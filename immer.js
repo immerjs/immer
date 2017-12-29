@@ -28,7 +28,7 @@ function immer(baseState, thunk) {
             return Reflect.ownKeys(getCurrentSource(target))
         },
         set(target, prop, value) {
-            const current = proxyThing(target[prop])
+            const current = proxyThing(getCurrentSource(target)[prop])
             const newValue = proxyThing(value)
             if (current !== newValue) {
                 const copy = getOrCreateObjectCopy(target)
