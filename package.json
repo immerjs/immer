@@ -1,0 +1,39 @@
+{
+  "name": "immer",
+  "version": "1.0.0",
+  "description": "Create your next immutable state by mutating the current one",
+  "main": "immer.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mweststrate/immer.git"
+  },
+  "keywords": [
+    "immutable",
+    "mutable",
+    "copy-on-write"
+  ],
+  "author": "Michel Weststrate",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mweststrate/immer/issues"
+  },
+  "homepage": "https://github.com/mweststrate/immer#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^22.0.0",
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.0.4",
+    "babel-preset-env": "^1.6.1",
+    "jest": "^22.0.4",
+    "regenerator-runtime": "^0.11.1",
+    "typescript": "^2.6.2"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  }
+}
