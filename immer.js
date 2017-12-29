@@ -31,22 +31,22 @@ function immer(baseState, thunk) {
             const current = proxyThing(getCurrentSource(target)[prop])
             const newValue = proxyThing(value)
             if (current !== newValue) {
-                const copy = getOrCreateObjectCopy(target)
+                const copy = getOrCreateCopy(target)
                 copy[prop] = newValue
             }
             return true
         },
         deleteProperty(target, property) {
-            const copy = getOrCreateObjectCopy(target)
+            const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
         }
     }
 
-    function getOrCreateObjectCopy(object) {
+    function getOrCreateCopy(object) {
         let copy = copies.get(object)
         if (!copy) {
-            copy = Object.assign({}, object)
+            copy = Array.isArray(object) ? object.slice() : Object.assign({}, object)
             copies.set(object, copy)
         }
         return copy
@@ -58,8 +58,7 @@ function immer(baseState, thunk) {
     }
 
     function proxyThing(thing) {
-        if (isPlainObject(thing)) return proxyObject(thing)
-        // TODO: array
+        if (isPlainObject(thing) || Array.isArray(thing)) return proxyObject(thing)
         return thing
     }
 
@@ -73,6 +72,7 @@ function immer(baseState, thunk) {
 
     function finalizeThing(thing) {
         if (isPlainObject(thing)) return finalizeObject(thing)
+        if (Array.isArray(thing)) return finalizeArray(thing)
         return thing
     }
 
@@ -91,9 +91,18 @@ function immer(baseState, thunk) {
 
     function finalizeObject(thing) {
         if (!hasObjectChanges(thing)) return thing
-        const copy = getOrCreateObjectCopy(thing)
+        const copy = getOrCreateCopy(thing)
         Object.keys(copy).forEach(prop => {
             copy[prop] = finalizeThing(copy[prop])
+        })
+        return copy
+    }
+
+    function finalizeArray(thing) {
+        if (!hasObjectChanges(thing)) return thing
+        const copy = getOrCreateCopy(thing)
+        copy.forEach((value, index) => {
+            copy[index] = finalizeThing(copy[index])
         })
         return copy
     }

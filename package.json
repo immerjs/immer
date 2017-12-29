@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "scripts": {

@@ -78,6 +78,44 @@ describe("base", () => {
         expect(nextState).toEqual(baseState)
     })
 
+    it("should support reading arrays", () => {
+        const nextState = immer(baseState, s => {
+            s.anArray.slice()
+        })
+        expect(nextState.anArray).toBe(baseState.anArray)
+        expect(nextState).toBe(baseState)
+    })
+
+    it("should support changing arrays", () => {
+        const nextState = immer(baseState, s => {
+            s.anArray[3] = true
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).not.toBe(baseState.anArray)
+        expect(nextState.anArray[3]).toEqual(true)
+    })
+
+    it("should support changing arrays - 2", () => {
+        const nextState = immer(baseState, s => {
+            s.anArray.splice(1, 1, "a", "b")
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).not.toBe(baseState.anArray)
+
+        expect(nextState.anArray).toEqual([3, "a", "b", { c: 3 }, 1])
+    })
+
+    it("should support sorting arrays", () => {
+        const nextState = immer(baseState, s => {
+            s.anArray[2].c = 4
+            s.anArray.sort()
+            s.anArray[3].c = 5
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).not.toBe(baseState.anArray)
+        expect(nextState.anArray).toEqual([1, 2, 3, { c: 5 }])
+    })
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
@@ -86,7 +124,7 @@ describe("base", () => {
 
 function createBaseState() {
     return {
-        anArray: [1, 2, { c: 3 }],
+        anArray: [3, 2, { c: 3 }, 1],
         aProp: "hi",
         anObject: {
             nested: {
