@@ -1,5 +1,7 @@
 // @ts-check
 
+const isProxySymbol = Symbol("immer-proxy")
+
 /**
  * Immer takes a state, and runs a function agains it.
  * That function can freely mutate the state, as it will create copies-on-write.
@@ -18,6 +20,7 @@ function immer(baseState, thunk) {
 
     const objectTraps = {
         get(target, prop) {
+            if (prop === isProxySymbol) return target
             return createProxy(getCurrentSource(target)[prop])
         },
         has(target, prop) {
@@ -31,7 +34,7 @@ function immer(baseState, thunk) {
             const newValue = createProxy(value)
             if (current !== newValue) {
                 const copy = getOrCreateCopy(target)
-                copy[prop] = newValue
+                copy[prop] = isProxy(newValue) ? newValue[isProxySymbol] : newValue
             }
             return true
         },
@@ -61,6 +64,7 @@ function immer(baseState, thunk) {
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
         if (isPlainObject(base) || Array.isArray(base)) {
+            if (isProxy(base)) return base // avoid double wrapping
             if (proxies.has(base)) return proxies.get(base)
             const proxy = new Proxy(base, objectTraps)
             proxies.set(base, proxy)
@@ -78,7 +82,8 @@ function immer(baseState, thunk) {
         // look deeper
         const keys = Object.keys(base)
         for (let i = 0; i < keys.length; i++) {
-            if (hasChanges(base[keys[i]])) return true
+            const value = base[keys[i]]
+            if ((Array.isArray(value) || isPlainObject(value)) && hasChanges(value)) return true
         }
         return false
     }
@@ -120,6 +125,10 @@ function isPlainObject(value) {
     if (value === null || typeof value !== "object") return false
     const proto = Object.getPrototypeOf(value)
     return proto === Object.prototype || proto === null
+}
+
+function isProxy(value) {
+    return !!value[isProxySymbol]
 }
 
 module.exports = immer

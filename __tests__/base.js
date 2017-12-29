@@ -125,21 +125,100 @@ describe("base", () => {
         expect(nextState.anArray).toEqual([3, 2, { c: 3, test: true }, 1])
     })
 
+    it("reusing object should work", () => {
+        const nextState = immer(baseState, s => {
+            debugger
+            const obj = s.anObject
+            delete s.anObject
+            s.messy = obj
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).toBe(baseState.anArray)
+        expect(nextState).toEqual({
+            anArray: [3, 2, { c: 3 }, 1],
+            aProp: "hi",
+            messy: {
+                nested: {
+                    yummie: true
+                },
+                coffee: false
+            }
+        })
+        expect(nextState.messy.nested).toBe(baseState.anObject.nested)
+    })
+
+    it("refs should be transparent", () => {
+        const nextState = immer(baseState, s => {
+            const obj = s.anObject
+            s.aProp = "hello"
+            delete s.anObject
+            obj.coffee = true
+            s.messy = obj
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).toBe(baseState.anArray)
+        expect(nextState).toEqual({
+            anArray: [3, 2, { c: 3 }, 1],
+            aProp: "hello",
+            messy: {
+                nested: {
+                    yummie: true
+                },
+                coffee: true
+            }
+        })
+        expect(nextState.messy.nested).toBe(baseState.anObject.nested)
+    })
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
     })
-})
 
-function createBaseState() {
-    return {
-        anArray: [3, 2, { c: 3 }, 1],
-        aProp: "hi",
-        anObject: {
-            nested: {
-                yummie: true
-            },
-            coffee: false
+    function createBaseState() {
+        return {
+            anArray: [3, 2, { c: 3 }, 1],
+            aProp: "hi",
+            anObject: {
+                nested: {
+                    yummie: true
+                },
+                coffee: false
+            }
         }
     }
-}
+})
+
+describe("readme example", () => {
+    it("works", () => {
+        const baseState = [
+            {
+                todo: "Learn typescript",
+                done: true
+            },
+            {
+                todo: "Try immer",
+                done: false
+            }
+        ]
+
+        const nextState = immer(baseState, state => {
+            state.push({ todo: "Tweet about it" })
+            state[1].done = true
+        })
+
+        // the new item is only added to the next state,
+        // base state is unmodified
+        expect(baseState.length).toBe(2)
+        expect(nextState.length).toBe(3)
+
+        // same for the changed 'done' prop
+        expect(baseState[1].done).toBe(false)
+        expect(nextState[1].done).toBe(true)
+
+        // unchanged data is structurally shared
+        expect(nextState[0]).toBe(baseState[0])
+        // changed data not (dûh)
+        expect(nextState[1]).not.toBe(baseState[1])
+    })
+})
