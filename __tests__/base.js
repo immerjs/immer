@@ -116,6 +116,15 @@ describe("base", () => {
         expect(nextState.anArray).toEqual([1, 2, 3, { c: 5 }])
     })
 
+    it("should updating inside arrays", () => {
+        const nextState = immer(baseState, s => {
+            s.anArray[2].test = true
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(nextState.anArray).not.toBe(baseState.anArray)
+        expect(nextState.anArray).toEqual([3, 2, { c: 3, test: true }, 1])
+    })
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
