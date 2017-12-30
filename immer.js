@@ -3,7 +3,7 @@
 const isProxySymbol = Symbol("immer-proxy")
 
 /**
- * Immer takes a state, and runs a function agains it.
+ * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
  * This means that the original state will stay unchanged, and once the function finishes, the modified state is returned
  *
@@ -55,7 +55,7 @@ function immer(baseState, thunk) {
         return copy
     }
 
-    // returns the current source of trugth for a base object
+    // returns the current source of truth for a base object
     function getCurrentSource(base) {
         const copy = copies.get(base)
         return copy || base

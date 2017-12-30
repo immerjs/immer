@@ -1,6 +1,6 @@
 # Immer
 
-_Your personally assistence for creating your next immutable state_
+_Your personally assistance for creating your next immutable state_
 
 ---
 
@@ -13,7 +13,7 @@ The basic idea is that you will apply all your changes to a _draftState_. Which 
 
 ![immer.png](immer.png)
 
-Using immer is like having a personal assistent; he takes a letter (the current state), and gives you a copy (draft) to jod changes onto. Once you are done the assistent will take your draft and produce the real inmutable, final letter for you (the next state).
+Using immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jod changes onto. Once you are done the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 </center>
 
 ## API
@@ -66,7 +66,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 * Strongly typed, no string based paths etc
 * Deep updates are trivial
 * Small, dependency free library with minimal api surface
-* No accidential mutations of current state, but intentional mutations of a draft state
+* No accidental mutations of current state, but intentional mutations of a draft state
 
 ## Reducer Example
 
