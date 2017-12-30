@@ -1,16 +1,26 @@
 # Immer
 
+_Your personally assistence for creating your next immutable state_
+
+---
+
 Immer (German for: always) is a tiny package that allows you work with immutable state in a more convenient way.
 It is based on [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
-The basic idea is that you will modify (a proxy of) the current state, and once that is completed, the copy will be finalized and form the next state.
-As soon as a piece of the state is modified, it is copied. That is what one typically does by hand (in for example Redux reducers).
+The basic idea is that you will apply all your changes to a _draftState_. Which is a proxy of the _currentState_, and once all your mutations are completed, immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
 
-_This means that you can interact with your data by using mutations, while keeping all the benefits of immutable data_
+<center>
+
+![immer.png](immer.png)
+
+Using immer is like having a personal assistent; he takes a letter (the current state), and gives you a copy (draft) to jod changes onto. Once you are done the assistent will take your draft and produce the real inmutable, final letter for you (the next state).
+</center>
+
+## API
 
 The immer package exposes a single function:
 
-`immer(currentState, fn: (state) => void): nextState`
+`immer(currentState, fn: (draftState) => void): nextState`
 
 ## Example
 
@@ -26,13 +36,13 @@ const baseState = [
     }
 ]
 
-const nextState = immer(baseState, state => {
-    state.push({ todo: "Tweet about it" })
-    state[1].done = true
+const nextState = immer(baseState, draftState => {
+    draftState.push({ todo: "Tweet about it" })
+    draftState[1].done = true
 })
 ```
 
-The interesting thing about `immer` is that `baseState` will be untouched, but that `nextState` will reflect all changes made to `state`.
+The interesting thing about `immer` is that `baseState` will be untouched, but that `nextState` will reflect all changes made to `draftState`.
 
 ```javascript
 // the new item is only added to the next state,
@@ -49,6 +59,14 @@ expect(nextState[0]).toBe(baseState[0])
 // changed data not (dûh)
 expect(nextState[1]).not.toBe(baseState[1])
 ```
+
+## Benefits
+
+* Use the language© to construct create your next state
+* Strongly typed, no string based paths etc
+* Deep updates are trivial
+* Small, dependency free library with minimal api surface
+* No accidential mutations of current state, but intentional mutations of a draft state
 
 ## Reducer Example
 
