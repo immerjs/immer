@@ -73,6 +73,8 @@ expect(nextState[1]).not.toBe(baseState[1])
 A lot of words; here is a simple example of what difference that could make in practice.
 The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
 
+_Note, this is just a sample application of the `immer` package. Immer is design to just simply Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
+
 ```javascript
 const todo = (state, action) => {
   switch (action.type) {
