@@ -6,7 +6,7 @@ It is based on [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) me
 The basic idea is that you will modify (a proxy of) the current state, and once that is completed, the copy will be finalized and form the next state.
 As soon as a piece of the state is modified, it is copied. That is what one typically does by hand (in for example Redux reducers).
 
-_This means that you can interact with your data by using mutations, will keeping all the benefits of immutable data_
+_This means that you can interact with your data by using mutations, while keeping all the benefits of immutable data_
 
 The immer package exposes a single function:
 
