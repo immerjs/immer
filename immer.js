@@ -174,6 +174,8 @@ function setAutoFreeze(enableAutoFreeze) {
     autoFreeze = enableAutoFreeze
 }
 
-module.exports.__esModule = true
+Object.defineProperty(exports, "__esModule", {
+    value: true
+})
 module.exports.default = immer
 module.exports.setAutoFreeze = setAutoFreeze
