@@ -128,7 +128,7 @@ function isPlainObject(value) {
 }
 
 function isProxy(value) {
-    return !!value[isProxySymbol]
+    return !!value && !!value[isProxySymbol]
 }
 
 module.exports = immer
