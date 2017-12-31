@@ -68,6 +68,15 @@ expect(nextState[1]).not.toBe(baseState[1])
 * Small, dependency free library with minimal api surface
 * No accidental mutations of current state, but intentional mutations of a draft state
 
+## Auto freezing
+
+ Immer automatically freezes any state trees that are modified using `immer.
+ This protects against accidental modifications of the state tree outside of an immer function.
+ This comes with a performance impact, so it is recommended to disable this option in production.
+ It is by default enabled.
+
+ Use `setAutoFreeze(true / false)` to turn this feature on or off.
+
 ## Reducer Example
 
 A lot of words; here is a simple example of what difference that could make in practice.
@@ -153,6 +162,12 @@ Creating middleware or reducer wrapper that applies `immer` automatically is lef
 * Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before optimize!), do the current state analysis before entering the `immer` block or read form the `currentState` rather than the `draftState`
 
 ## Changelog
+
+### 0.0.5
+
+* Fixed `immer` function export, it is now properly exposed as `default`
+* Immer now automatically freezes any state modifications made. Turn this is using `setAutoFreeze(false)`
+* Added support for frozen state trees in strict mode.
 
 ### 0.0.4 (31-12-2017)
 
