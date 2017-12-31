@@ -170,6 +170,15 @@ describe("base", () => {
         expect(nextState.messy.nested).toBe(baseState.anObject.nested)
     })
 
+    it("should allow setting to undefined a defined draft property", () => {
+        const nextState = immer(baseState, s => {
+            s.aProp = undefined
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(baseState.aProp).toBe('hi')
+        expect(nextState.aProp).toBe(undefined)
+    })
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
