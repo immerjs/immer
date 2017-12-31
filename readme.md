@@ -151,3 +151,10 @@ Creating middleware or reducer wrapper that applies `immer` automatically is lef
 
 * Make sure to modify the state you get passed in in the callback function, not the original base state that was passed as first argument to `immer`!
 * Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before optimize!), do the current state analysis before entering the `immer` block or read form the `currentState` rather than the `draftState`
+
+## Changelog
+
+### 0.0.4 (31-12-2017)
+
+* Added typescript typings [#11](https://github.com/mweststrate/immer/pull/11) by [@benbraou](https://github.com/benbraou)
+* Fixed bug when setting properties to `undefined`. Fixes [#12](https://github.com/mweststrate/immer/issues/12) through [#13](https://github.com/mweststrate/immer/pull/13) by [@benbraou](https://github.com/benbraou)
