@@ -121,17 +121,18 @@ After using immer, that simply [becomes](https://codesandbox.io/s/xl11qpo9mp):
 import immer from 'immer'
 
 const todos = (state = [], action) =>
-  immer(state, state => {
+  // immer produces nextState from draftState and returns it
+  immer(state, draftState => {
     switch (action.type) {
       case 'ADD_TODO':
-        state.push({
+        draftState.push({
           id: action.id,
           text: action.text,
           completed: false
         })
         return
       case 'TOGGLE_TODO':
-        const todo = state.find(todo => todo.id === action.id)
+        const todo = draftState.find(todo => todo.id === action.id)
         todo.completed = !todo.completed
         return
     }
@@ -149,3 +150,4 @@ Creating middleware or reducer wrapper that applies `immer` automatically is lef
 ## Pitfalls:
 
 * Make sure to modify the state you get passed in in the callback function, not the original base state that was passed as first argument to `immer`!
+* Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before optimize!), do the current state analysis before entering the `immer` block or read form the `currentState` rather than the `draftState`
