@@ -150,9 +150,25 @@ const todos = (state = [], action) =>
 
 Creating middleware or a reducer wrapper that applies `immer` automatically is left as exercise for the reader :-).
 
+## Performance
+
+Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
+This test takes 100.000 todo items, and updates 10.000 of them.
+These tests were executed on Node 8.4.0
+
+```
+  performance
+    ✓ just mutate (1ms)                  // No immutability at all
+    ✓ deepclone, then mutate (647ms)     // Clone entire tree, then mutate (no structural sharing!)
+    ✓ handcrafted reducer (17ms)         // Implement it as typical Redux reducer, with slices and spread operator
+    ✓ immutableJS (81ms)                 // Use immutableJS and leverage `withMutations` for best performance
+    ✓ immer - with autofreeze (309ms)    // Immer, with auto freeze enabled
+    ✓ immer - without autofreeze (148ms) // Immer, but without auto freeze enabled
+```
+
 ## Limitations
 
-* This package requires Proxies, so Safari > 10, no Internet Explorer
+* This package requires Proxies, so Safari > 9, no Internet Explorer, no React Native on Android. This can potentially done, so feel free to upvote on [#8](https://github.com/mweststrate/immer/issues/8) if you need this :)
 * Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
 * Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
 
@@ -160,3 +176,7 @@ Creating middleware or a reducer wrapper that applies `immer` automatically is l
 
 * Make sure to modify the draft state you get passed in in the callback function, not the original current state that was passed as the first argument to `immer`!
 * Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
+
+## Credits
+
+Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.

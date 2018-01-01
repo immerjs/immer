@@ -169,6 +169,7 @@ function immer(baseState, thunk) {
         console.warn(
             `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
         )
+    // console.log(`proxies: ${revocableProxies.size}, copies: ${copies.size}`)
     // revoke all proxies
     revoke(revocableProxies)
     // and finalize the modified proxy
