@@ -116,7 +116,12 @@ function immer(baseState, thunk) {
     // create proxy for root
     const rootClone = createProxy(baseState)
     // execute the thunk
-    thunk(rootClone)
+    const maybeVoidReturn = thunk(rootClone)
+
+    //values either than undefined will trigger warning;
+     !Object.is(maybeVoidReturn, undefined) &&
+     console.warn(`Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`)
+
     // and finalize the modified proxy
     return finalize(baseState)
 }
