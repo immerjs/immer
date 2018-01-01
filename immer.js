@@ -120,9 +120,9 @@ function immer(baseState, thunk) {
     const isEmptyString = (/ /.test(msg) || (typeof msg === 'string' && msg.length === 0)) &&
                           'an empty string';
 
-    const objectOrEmptyString = (isObject || isEmptyString);
+    const prettyObjectOrEmptyStringMsg = (isObject || isEmptyString);
 
-    return objectOrEmptyString ? objectOrEmptyString : msg;
+    return prettyObjectOrEmptyStringMsg || msg;
   }
 
     // create proxy for root
