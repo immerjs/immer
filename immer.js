@@ -105,7 +105,7 @@ function immer(baseState, thunk) {
                 })
             }
             // create the proxy
-            const revocableProxy = Proxy.revocable(base, objectTraps)
+            const revocableProxy = Proxy.revocable(proxyTarget, objectTraps)
             revocableProxies.set(base, revocableProxy)
             return revocableProxy.proxy
         }
