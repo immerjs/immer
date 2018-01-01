@@ -1,12 +1,19 @@
+"use strict"
+// @ts-check
+
 /**
  * @typedef {Object} RevocableProxy
  * @property {any} proxy
  * @property {Function} revoke
  */
 
-// @ts-check
+const IMMER_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 
-const isProxySymbol = Symbol("immer-proxy")
+// This property indicates that the current object is cloned for another object,
+// to make sure the proxy of a frozen object is writeable
+const CLONE_TARGET = Symbol("immer-clone-target")
+
+let autoFreeze = true
 
 /**
  * Immer takes a state, and runs a function against it.
@@ -19,7 +26,6 @@ const isProxySymbol = Symbol("immer-proxy")
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
-
     /**
      * Maps baseState objects to revocable proxies
      * @type {Map<Object,RevocableProxy>}
@@ -31,7 +37,7 @@ function immer(baseState, thunk) {
 
     const objectTraps = {
         get(target, prop) {
-            if (prop === isProxySymbol) return target
+            if (prop === IMMER_PROXY) return target
             return createProxy(getCurrentSource(target)[prop])
         },
         has(target, prop) {
@@ -46,7 +52,7 @@ function immer(baseState, thunk) {
             if (current !== newValue) {
                 const copy = getOrCreateCopy(target)
                 copy[prop] = isProxy(newValue)
-                    ? newValue[isProxySymbol]
+                    ? newValue[IMMER_PROXY]
                     : newValue
             }
             return true
@@ -61,10 +67,16 @@ function immer(baseState, thunk) {
     // creates a copy for a base object if there ain't one
     function getOrCreateCopy(base) {
         let copy = copies.get(base)
-        if (!copy) {
-            copy = Array.isArray(base) ? base.slice() : Object.assign({}, base)
-            copies.set(base, copy)
+        if (copy) return copy
+        const cloneTarget = base[CLONE_TARGET]
+        if (cloneTarget) {
+            // base is a clone already (source was frozen), no need to create addtional copy
+            copies.set(cloneTarget, base)
+            return base
         }
+        // create a fresh copy
+        copy = Array.isArray(base) ? base.slice() : Object.assign({}, base)
+        copies.set(base, copy)
         return copy
     }
 
@@ -73,14 +85,29 @@ function immer(baseState, thunk) {
         const copy = copies.get(base)
         return copy || base
     }
-    
+
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
         if (isPlainObject(base) || Array.isArray(base)) {
             if (isProxy(base)) return base // avoid double wrapping
-            if (revocableProxies.has(base)) return revocableProxies.get(base).proxy
-            //const proxy = new Proxy(base, objectTraps)
-            const revocableProxy = Proxy.revocable(base, objectTraps)
+            if (revocableProxies.has(base))
+                return revocableProxies.get(base).proxy
+            let proxyTarget
+            // special case, if the base tree is frozen, we cannot modify it's proxy it in strict mode, clone first.
+            if (Object.isFrozen(base)) {
+                proxyTarget = Array.isArray(base)
+                    ? base.slice()
+                    : Object.assign({}, base)
+                Object.defineProperty(proxyTarget, CLONE_TARGET, {
+                    enumerable: false,
+                    value: base,
+                    configurable: true,
+                })
+            } else {
+                proxyTarget = base
+            }
+            // create the proxy
+            const revocableProxy = Proxy.revocable(proxyTarget, objectTraps)
             revocableProxies.set(base, revocableProxy)
             return revocableProxy.proxy
         }
@@ -115,20 +142,22 @@ function immer(baseState, thunk) {
 
     function finalizeObject(thing) {
         if (!hasChanges(thing)) return thing
-        const copy = getOrCreateCopy(thing)
+        const copy = getOrCreateCopy(thing) // TODO: getOrCreate is weird here..
         Object.keys(copy).forEach(prop => {
             copy[prop] = finalize(copy[prop])
         })
-        return copy
+        delete copy[CLONE_TARGET]
+        return freeze(copy)
     }
 
     function finalizeArray(thing) {
         if (!hasChanges(thing)) return thing
-        const copy = getOrCreateCopy(thing)
+        const copy = getOrCreateCopy(thing) // TODO: getOrCreate is weird here..
         copy.forEach((value, index) => {
             copy[index] = finalize(copy[index])
         })
-        return copy
+        delete copy[CLONE_TARGET]
+        return freeze(copy)
     }
 
     // create proxy for root
@@ -148,10 +177,10 @@ function immer(baseState, thunk) {
 
 /**
  * Revoke all the proxies stored in the revocableProxies map
- * 
+ *
  * @param {Map<Object,RevocableProxy>} revocableProxies
  */
-function revoke (revocableProxies){
+function revoke(revocableProxies) {
     for (var revocableProxy of revocableProxies.values()) {
         revocableProxy.revoke()
     }
@@ -164,7 +193,30 @@ function isPlainObject(value) {
 }
 
 function isProxy(value) {
-    return !!value && !!value[isProxySymbol]
+    return !!value && !!value[IMMER_PROXY]
 }
 
-module.exports = immer
+function freeze(value) {
+    if (autoFreeze) {
+        Object.freeze(value)
+    }
+    return value
+}
+
+/**
+ * Automatically freezes any state trees generated by immer.
+ * This protects against accidental modifications of the state tree outside of an immer function.
+ * This comes with a performance impact, so it is recommended to disable this option in production.
+ * It is by default enabled.
+ *
+ * @returns {void}
+ */
+function setAutoFreeze(enableAutoFreeze) {
+    autoFreeze = enableAutoFreeze
+}
+
+Object.defineProperty(exports, "__esModule", {
+    value: true,
+})
+module.exports.default = immer
+module.exports.setAutoFreeze = setAutoFreeze

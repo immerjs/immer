@@ -1,3 +1,4 @@
+"use strict"
 import immer from ".."
 
 describe("base", () => {
@@ -137,7 +138,6 @@ describe("base", () => {
 
     it("reusing object should work", () => {
         const nextState = immer(baseState, s => {
-            debugger
             const obj = s.anObject
             delete s.anObject
             s.messy = obj
@@ -204,14 +204,13 @@ describe("base", () => {
         }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)
         expect(() => {
             const aProp = proxy.aProp
-        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)          
+        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)
 
         expect(nextState).not.toBe(baseState)
         expect(baseState.aProp).toBe("hi")
         expect(nextState.aProp).toBe("hello")
-
     })
-    
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
@@ -229,38 +228,4 @@ describe("base", () => {
             },
         }
     }
-})
-
-describe("readme example", () => {
-    it("works", () => {
-        const baseState = [
-            {
-                todo: "Learn typescript",
-                done: true,
-            },
-            {
-                todo: "Try immer",
-                done: false,
-            },
-        ]
-
-        const nextState = immer(baseState, state => {
-            state.push({todo: "Tweet about it"})
-            state[1].done = true
-        })
-
-        // the new item is only added to the next state,
-        // base state is unmodified
-        expect(baseState.length).toBe(2)
-        expect(nextState.length).toBe(3)
-
-        // same for the changed 'done' prop
-        expect(baseState[1].done).toBe(false)
-        expect(nextState[1].done).toBe(true)
-
-        // unchanged data is structurally shared
-        expect(nextState[0]).toBe(baseState[0])
-        // changed data not (dûh)
-        expect(nextState[1]).not.toBe(baseState[1])
-    })
 })
