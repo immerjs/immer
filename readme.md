@@ -7,7 +7,7 @@ _Your personal assistant for creating your next immutable state_
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
-The basic idea is that you will apply all your changes to a _draftState_. Which is a proxy of the _currentState_, and once all your mutations are completed, immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
+The basic idea is that, you will apply all your changes to a _draftState_, which is a proxy of the _currentState_ and once all your mutations are completed, immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
 
 <center>
 
@@ -42,7 +42,7 @@ const nextState = immer(baseState, draftState => {
 })
 ```
 
-The interesting thing about `immer` is that `baseState` will be untouched, but that `nextState` will reflect all changes made to `draftState`.
+The interesting thing about `immer` is that, the `baseState` will be untouched, but the `nextState` will reflect all changes made to `draftState`.
 
 ```javascript
 // the new item is only added to the next state,
@@ -73,7 +73,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 A lot of words; here is a simple example of the difference that this approach could make in practice.
 The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
 
-_Note, this is just a sample application of the `immer` package. Immer is designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
+_Note, this is just a sample application of the `immer` package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
 
 ```javascript
 const todo = (state, action) => {
@@ -149,8 +149,8 @@ Creating middleware or a reducer wrapper that applies `immer` automatically is l
 
 ## Pitfalls:
 
-* Make sure to modify the state you get passed in in the callback function, not the original base state that was passed as the first argument to `immer`!
-* Since immer uses proxies, reading huge amounts of data from state comes with overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
+* Make sure to modify the draft state you get passed in in the callback function, not the original current state that was passed as the first argument to `immer`!
+* Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
 
 ## Changelog
 
