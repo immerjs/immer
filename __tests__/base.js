@@ -189,6 +189,29 @@ describe("base", () => {
         expect(nextState.aProp).toBe(undefined)
     })
 
+    it("should revoke the proxy of the baseState after immer function is executed", () => {
+        let proxy
+        const nextState = immer(baseState, s => {
+            proxy = s
+            s.aProp = "hello"
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(baseState.aProp).toBe("hi")
+        expect(nextState.aProp).toBe("hello")
+
+        expect(() => {
+            proxy.aProp = "Hallo"
+        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)
+        expect(() => {
+            const aProp = proxy.aProp
+        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)          
+
+        expect(nextState).not.toBe(baseState)
+        expect(baseState.aProp).toBe("hi")
+        expect(nextState.aProp).toBe("hello")
+
+    })
+    
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())

@@ -1,3 +1,9 @@
+/**
+ * @typedef {Object} RevocableProxy
+ * @property {any} proxy
+ * @property {Function} revoke
+ */
+
 // @ts-check
 
 const isProxySymbol = Symbol("immer-proxy")
@@ -13,9 +19,14 @@ const isProxySymbol = Symbol("immer-proxy")
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
-    // Maps baseState objects to proxies
-    const proxies = new Map()
+
+    /**
+     * Maps baseState objects to revocable proxies
+     * @type {Map<Object,RevocableProxy>}
+     */
+    const revocableProxies = new Map()
     // Maps baseState objects to their copies
+
     const copies = new Map()
 
     const objectTraps = {
@@ -62,15 +73,16 @@ function immer(baseState, thunk) {
         const copy = copies.get(base)
         return copy || base
     }
-
+    
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
         if (isPlainObject(base) || Array.isArray(base)) {
             if (isProxy(base)) return base // avoid double wrapping
-            if (proxies.has(base)) return proxies.get(base)
-            const proxy = new Proxy(base, objectTraps)
-            proxies.set(base, proxy)
-            return proxy
+            if (revocableProxies.has(base)) return revocableProxies.get(base).proxy
+            //const proxy = new Proxy(base, objectTraps)
+            const revocableProxy = Proxy.revocable(base, objectTraps)
+            revocableProxies.set(base, revocableProxy)
+            return revocableProxy.proxy
         }
         return base
     }
@@ -78,7 +90,7 @@ function immer(baseState, thunk) {
     // checks if the given base object has modifications, either because it is modified, or
     // because one of it's children is
     function hasChanges(base) {
-        const proxy = proxies.get(base)
+        const proxy = revocableProxies.get(base)
         if (!proxy) return false // nobody did read this object
         if (copies.has(base)) return true // a copy was created, so there are changes
         // look deeper
@@ -123,15 +135,26 @@ function immer(baseState, thunk) {
     const rootClone = createProxy(baseState)
     // execute the thunk
     const maybeVoidReturn = thunk(rootClone)
-
     //values either than undefined will trigger warning;
     !Object.is(maybeVoidReturn, undefined) &&
         console.warn(
             `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
         )
-
+    // revoke all proxies
+    revoke(revocableProxies)
     // and finalize the modified proxy
     return finalize(baseState)
+}
+
+/**
+ * Revoke all the proxies stored in the revocableProxies map
+ * 
+ * @param {Map<Object,RevocableProxy>} revocableProxies
+ */
+function revoke (revocableProxies){
+    for (var revocableProxy of revocableProxies.values()) {
+        revocableProxy.revoke()
+    }
 }
 
 function isPlainObject(value) {
