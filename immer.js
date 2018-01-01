@@ -45,7 +45,9 @@ function immer(baseState, thunk) {
             const newValue = createProxy(value)
             if (current !== newValue) {
                 const copy = getOrCreateCopy(target)
-                copy[prop] = isProxy(newValue) ? newValue[isProxySymbol] : newValue
+                copy[prop] = isProxy(newValue)
+                    ? newValue[isProxySymbol]
+                    : newValue
             }
             return true
         },
@@ -53,7 +55,7 @@ function immer(baseState, thunk) {
             const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
-        }
+        },
     }
 
     // creates a copy for a base object if there ain't one
@@ -95,7 +97,11 @@ function immer(baseState, thunk) {
         const keys = Object.keys(base)
         for (let i = 0; i < keys.length; i++) {
             const value = base[keys[i]]
-            if ((Array.isArray(value) || isPlainObject(value)) && hasChanges(value)) return true
+            if (
+                (Array.isArray(value) || isPlainObject(value)) &&
+                hasChanges(value)
+            )
+                return true
         }
         return false
     }
@@ -128,7 +134,12 @@ function immer(baseState, thunk) {
     // create proxy for root
     const rootClone = createProxy(baseState)
     // execute the thunk
-    thunk(rootClone)
+    const maybeVoidReturn = thunk(rootClone)
+    //values either than undefined will trigger warning;
+    !Object.is(maybeVoidReturn, undefined) &&
+        console.warn(
+            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
+        )
     // revoke all proxies
     revoke(revocableProxies)
     // and finalize the modified proxy
