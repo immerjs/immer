@@ -130,7 +130,7 @@ function immer(baseState, thunk) {
     // execute the thunk
     const maybeVoidReturn = thunk(rootClone)
 
-    //coerce undefined || null values to short circuit : returning something will trigger warning;
+    //values either than undefined will trigger warning;
      !Object.is(maybeVoidReturn, undefined) &&
      console.warn(`Immer callback expects no return value. However %s was returned`, prettify(maybeVoidReturn))
 
