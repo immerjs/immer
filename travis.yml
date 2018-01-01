@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+ - "node"
+ - "8"
+before_script:
+   - npm install -g babel-jest
+script: test
+env:
+- NODE_ENV=TEST
+cache:
+  directories:
+    - "node_modules"
