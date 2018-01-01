@@ -1,6 +1,6 @@
 # Immer
 
-_Your personal assistant for creating your next immutable state_
+_Create the next immutable state tree by simply modifying the current tree_
 
 ---
 
@@ -13,7 +13,7 @@ The basic idea is that, you will apply all your changes to a _draftState_, which
 
 ![immer.png](immer.png)
 
-Using immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done the assistant will take your draft and produce the real immutable, final letter for you (the next state).
+Using immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 </center>
 
 ## API
@@ -68,12 +68,21 @@ expect(nextState[1]).not.toBe(baseState[1])
 * Small, dependency free library with minimal api surface
 * No accidental mutations of current state, but intentional mutations of a draft state
 
+## Auto freezing
+
+ Immer automatically freezes any state trees that are modified using `immer.
+ This protects against accidental modifications of the state tree outside of an immer function.
+ This comes with a performance impact, so it is recommended to disable this option in production.
+ It is by default enabled.
+
+ Use `setAutoFreeze(true / false)` to turn this feature on or off.
+
 ## Reducer Example
 
-A lot of words; here is a simple example of what difference that could make in practice.
+A lot of words; here is a simple example of the difference that this approach could make in practice.
 The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
 
-_Note, this is just a sample application of the `immer` package. Immer is designed to just simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
+_Note, this is just a sample application of the `immer` package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
 
 ```javascript
 const todo = (state, action) => {
@@ -139,22 +148,35 @@ const todos = (state = [], action) =>
   })
 ```
 
-Creating middleware or reducer wrapper that applies `immer` automatically is left as exercise to the reader :-).
+Creating middleware or a reducer wrapper that applies `immer` automatically is left as exercise for the reader :-).
+
+## Performance
+
+Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
+This test takes 100.000 todo items, and updates 10.000 of them.
+These tests were executed on Node 8.4.0
+
+```
+  performance
+    ✓ just mutate (1ms)                  // No immutability at all
+    ✓ deepclone, then mutate (647ms)     // Clone entire tree, then mutate (no structural sharing!)
+    ✓ handcrafted reducer (17ms)         // Implement it as typical Redux reducer, with slices and spread operator
+    ✓ immutableJS (81ms)                 // Use immutableJS and leverage `withMutations` for best performance
+    ✓ immer - with autofreeze (309ms)    // Immer, with auto freeze enabled
+    ✓ immer - without autofreeze (148ms) // Immer, but without auto freeze enabled
+```
 
 ## Limitations
 
-* This package requires Proxies, so Safari > 10, no Internet Explorer
-* Currently only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
-* Currently only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
+* This package requires Proxies, so Safari > 9, no Internet Explorer, no React Native on Android. This can potentially done, so feel free to upvote on [#8](https://github.com/mweststrate/immer/issues/8) if you need this :)
+* Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
+* Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
 
 ## Pitfalls:
 
-* Make sure to modify the state you get passed in the callback function, not the original base state that was passed as first argument to `immer`!
-* Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
+* Make sure to modify the draft state you get passed in in the callback function, not the original current state that was passed as the first argument to `immer`!
+* Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
 
-## Changelog
+## Credits
 
-### 0.0.4 (31-12-2017)
-
-* Added typescript typings [#11](https://github.com/mweststrate/immer/pull/11) by [@benbraou](https://github.com/benbraou)
-* Fixed bug when setting properties to `undefined`. Fixes [#12](https://github.com/mweststrate/immer/issues/12) through [#13](https://github.com/mweststrate/immer/pull/13) by [@benbraou](https://github.com/benbraou)
+Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.
