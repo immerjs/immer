@@ -35,6 +35,7 @@
     "babel-jest": "^22.0.4",
     "babel-preset-env": "^1.6.1",
     "jest": "^22.0.4",
+    "jest-cli": "^22.0.4",
     "pre-commit": "^1.2.2",
     "prettier": "^1.9.2",
     "regenerator-runtime": "^0.11.1",
