@@ -23,11 +23,10 @@ describe("base", () => {
 
     it("should not return any value: thunk", () => {
         const warning  = jest.spyOn(console, "warn");
-
-        const nextState = immer(baseState, () => ({bad: "don't do this"}))
-        const nextState1 = immer(baseState, () => [1,2,3])
-        const nextState2 = immer(baseState, () => false)
-        const nextState3 = immer(baseState, () => "")
+        immer(baseState, () => ({bad: "don't do this"}))
+        immer(baseState, () => [1,2,3])
+        immer(baseState, () => false)
+        immer(baseState, () => "")
 
         expect(warning).toHaveBeenCalledTimes(4);
     })

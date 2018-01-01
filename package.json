@@ -25,7 +25,6 @@
   "files": [
     "immer.js"
   ],
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^22.0.0",
     "babel-core": "^6.26.0",
