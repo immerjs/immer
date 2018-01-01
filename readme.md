@@ -1,6 +1,6 @@
 # Immer
 
-_Your personal assistant for creating your next immutable state_
+_Create the next immutable state tree by simply modifying the current tree_
 
 ---
 
@@ -160,16 +160,3 @@ Creating middleware or a reducer wrapper that applies `immer` automatically is l
 
 * Make sure to modify the draft state you get passed in in the callback function, not the original current state that was passed as the first argument to `immer`!
 * Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
-
-## Changelog
-
-### 0.0.5
-
-* Fixed `immer` function export, it is now properly exposed as `default`
-* Immer now automatically freezes any state modifications made. Turn this is using `setAutoFreeze(false)`
-* Added support for frozen state trees in strict mode.
-
-### 0.0.4 (31-12-2017)
-
-* Added typescript typings [#11](https://github.com/mweststrate/immer/pull/11) by [@benbraou](https://github.com/benbraou)
-* Fixed bug when setting properties to `undefined`. Fixes [#12](https://github.com/mweststrate/immer/issues/12) through [#13](https://github.com/mweststrate/immer/pull/13) by [@benbraou](https://github.com/benbraou)
