@@ -14,6 +14,7 @@ describe("auto freeze", () => {
         })
         expect(Object.isFrozen(next.object)).toBe(true)
         expect(Object.isFrozen(next)).toBe(true)
+        expect(Object.isFrozen(next.array)).toBe(false)
 
         expect(() => {
             next.object.a = 2
@@ -42,7 +43,6 @@ describe("auto freeze", () => {
         const n = immer(b, draft => {
             draft.c = true
             draft.a.push(3)
-            debugger
         })
         expect(n).toEqual({c: true, a: [3]})
     })

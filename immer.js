@@ -92,17 +92,19 @@ function immer(baseState, thunk) {
             if (isProxy(base)) return base // avoid double wrapping
             if (revocableProxies.has(base))
                 return revocableProxies.get(base).proxy
-            let proxyTarget = base
+            let proxyTarget
             // special case, if the base tree is frozen, we cannot modify it's proxy it in strict mode, clone first.
-            if (Object.isFrozen(proxyTarget)) {
-                proxyTarget = Array.isArray(proxyTarget)
-                    ? proxyTarget.slice()
-                    : {...proxyTarget}
+            if (Object.isFrozen(base)) {
+                proxyTarget = Array.isArray(base)
+                    ? base.slice()
+                    : Object.assign({}, base)
                 Object.defineProperty(proxyTarget, CLONE_TARGET, {
                     enumerable: false,
                     value: base,
                     configurable: true,
                 })
+            } else {
+                proxyTarget = base
             }
             // create the proxy
             const revocableProxy = Proxy.revocable(proxyTarget, objectTraps)
@@ -206,6 +208,8 @@ function freeze(value) {
  * This protects against accidental modifications of the state tree outside of an immer function.
  * This comes with a performance impact, so it is recommended to disable this option in production.
  * It is by default enabled.
+ *
+ * @returns {void}
  */
 function setAutoFreeze(enableAutoFreeze) {
     autoFreeze = enableAutoFreeze
