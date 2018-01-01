@@ -113,10 +113,27 @@ function immer(baseState, thunk) {
         return copy
     }
 
+  function prettify(msg){
+    const isObject = typeof msg === 'object' && !Array.isArray(msg) &&
+                     'an object';
+
+    const isEmptyString = (/ /.test(msg) || (typeof msg === 'string' && msg.length === 0)) &&
+                          'an empty string';
+
+    const objectOrEmptyString = (isObject || isEmptyString);
+
+    return objectOrEmptyString ? objectOrEmptyString : msg;
+  }
+
     // create proxy for root
     const rootClone = createProxy(baseState)
     // execute the thunk
-    thunk(rootClone)
+    const maybeVoidReturn = thunk(rootClone)
+
+    //coerce undefined || null values to short circuit : returning something will trigger warning;
+     !Object.is(maybeVoidReturn, undefined) &&
+     console.warn(`Immer callback expects no return value. However %s was returned`, prettify(maybeVoidReturn))
+
     // and finalize the modified proxy
     return finalize(baseState)
 }
