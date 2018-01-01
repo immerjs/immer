@@ -56,6 +56,5 @@ typings/
 
 # dotenv environment variables file
 .env
-.idea
 
 .idea
