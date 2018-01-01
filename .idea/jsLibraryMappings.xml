@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <file url="file://$PROJECT_DIR$" libraries="{immer/node_modules}" />
+    <file url="PROJECT" libraries="{@types/jest, immer/node_modules}" />
+    <includedPredefinedLibrary name="Node.js Core" />
+  </component>
+</project>
