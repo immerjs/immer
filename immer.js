@@ -124,6 +124,8 @@ function immer(baseState, thunk) {
 
     // and finalize the modified proxy
     return finalize(baseState)
+
+  //travis test
 }
 
 function isPlainObject(value) {
