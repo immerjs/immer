@@ -4,7 +4,7 @@ _Your personally assistance for creating your next immutable state_
 
 ---
 
-Immer (German for: always) is a tiny package that allows you work with immutable state in a more convenient way.
+Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
 The basic idea is that you will apply all your changes to a _draftState_. Which is a proxy of the _currentState_, and once all your mutations are completed, immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
