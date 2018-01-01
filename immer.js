@@ -1,6 +1,12 @@
 "use strict"
 // @ts-check
 
+/**
+ * @typedef {Object} RevocableProxy
+ * @property {any} proxy
+ * @property {Function} revoke
+ */
+
 const IMMER_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 
 // This property indicates that the current object is cloned for another object,
@@ -20,9 +26,13 @@ let autoFreeze = true
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
-    // Maps baseState objects to proxies
-    const proxies = new Map()
+    /**
+     * Maps baseState objects to revocable proxies
+     * @type {Map<Object,RevocableProxy>}
+     */
+    const revocableProxies = new Map()
     // Maps baseState objects to their copies
+
     const copies = new Map()
 
     const objectTraps = {
@@ -41,7 +51,9 @@ function immer(baseState, thunk) {
             const newValue = createProxy(value)
             if (current !== newValue) {
                 const copy = getOrCreateCopy(target)
-                copy[prop] = isProxy(newValue) ? newValue[IMMER_PROXY] : newValue
+                copy[prop] = isProxy(newValue)
+                    ? newValue[IMMER_PROXY]
+                    : newValue
             }
             return true
         },
@@ -49,7 +61,7 @@ function immer(baseState, thunk) {
             const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
-        }
+        },
     }
 
     // creates a copy for a base object if there ain't one
@@ -78,21 +90,24 @@ function immer(baseState, thunk) {
     function createProxy(base) {
         if (isPlainObject(base) || Array.isArray(base)) {
             if (isProxy(base)) return base // avoid double wrapping
-            if (proxies.has(base)) return proxies.get(base)
+            if (revocableProxies.has(base))
+                return revocableProxies.get(base).proxy
             let proxyTarget = base
             // special case, if the base tree is frozen, we cannot modify it's proxy it in strict mode, clone first.
             if (Object.isFrozen(proxyTarget)) {
-                proxyTarget = Array.isArray(proxyTarget) ? proxyTarget.slice() : { ...proxyTarget }
+                proxyTarget = Array.isArray(proxyTarget)
+                    ? proxyTarget.slice()
+                    : {...proxyTarget}
                 Object.defineProperty(proxyTarget, CLONE_TARGET, {
                     enumerable: false,
                     value: base,
-                    configurable: true
+                    configurable: true,
                 })
             }
             // create the proxy
-            const proxy = new Proxy(proxyTarget, objectTraps)
-            proxies.set(base, proxy)
-            return proxy
+            const revocableProxy = Proxy.revocable(base, objectTraps)
+            revocableProxies.set(base, revocableProxy)
+            return revocableProxy.proxy
         }
         return base
     }
@@ -100,14 +115,18 @@ function immer(baseState, thunk) {
     // checks if the given base object has modifications, either because it is modified, or
     // because one of it's children is
     function hasChanges(base) {
-        const proxy = proxies.get(base)
+        const proxy = revocableProxies.get(base)
         if (!proxy) return false // nobody did read this object
         if (copies.has(base)) return true // a copy was created, so there are changes
         // look deeper
         const keys = Object.keys(base)
         for (let i = 0; i < keys.length; i++) {
             const value = base[keys[i]]
-            if ((Array.isArray(value) || isPlainObject(value)) && hasChanges(value)) return true
+            if (
+                (Array.isArray(value) || isPlainObject(value)) &&
+                hasChanges(value)
+            )
+                return true
         }
         return false
     }
@@ -142,9 +161,27 @@ function immer(baseState, thunk) {
     // create proxy for root
     const rootClone = createProxy(baseState)
     // execute the thunk
-    thunk(rootClone)
+    const maybeVoidReturn = thunk(rootClone)
+    //values either than undefined will trigger warning;
+    !Object.is(maybeVoidReturn, undefined) &&
+        console.warn(
+            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
+        )
+    // revoke all proxies
+    revoke(revocableProxies)
     // and finalize the modified proxy
     return finalize(baseState)
+}
+
+/**
+ * Revoke all the proxies stored in the revocableProxies map
+ *
+ * @param {Map<Object,RevocableProxy>} revocableProxies
+ */
+function revoke(revocableProxies) {
+    for (var revocableProxy of revocableProxies.values()) {
+        revocableProxy.revoke()
+    }
 }
 
 function isPlainObject(value) {
@@ -175,7 +212,7 @@ function setAutoFreeze(enableAutoFreeze) {
 }
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+    value: true,
 })
 module.exports.default = immer
 module.exports.setAutoFreeze = setAutoFreeze

@@ -17,9 +17,19 @@ describe("base", () => {
     it("should return the original without modifications when reading stuff", () => {
         const nextState = immer(baseState, s => {
             expect(s.aProp).toBe("hi")
-            expect(s.anObject.nested).toEqual({ yummie: true })
+            expect(s.anObject.nested).toEqual({yummie: true})
         })
         expect(nextState).toBe(baseState)
+    })
+
+    it("should not return any value: thunk", () => {
+        const warning = jest.spyOn(console, "warn")
+        immer(baseState, () => ({bad: "don't do this"}))
+        immer(baseState, () => [1, 2, 3])
+        immer(baseState, () => false)
+        immer(baseState, () => "")
+
+        expect(warning).toHaveBeenCalledTimes(4)
     })
 
     it("should return a copy when modifying stuff", () => {
@@ -46,12 +56,12 @@ describe("base", () => {
 
     it("can add props", () => {
         const nextState = immer(baseState, s => {
-            s.anObject.cookie = { tasty: true }
+            s.anObject.cookie = {tasty: true}
         })
         expect(nextState).not.toBe(baseState)
         expect(nextState.anObject).not.toBe(baseState.anObject)
         expect(nextState.anObject.nested).toBe(baseState.anObject.nested)
-        expect(nextState.anObject.cookie).toEqual({ tasty: true })
+        expect(nextState.anObject.cookie).toEqual({tasty: true})
     })
 
     it("can delete props", () => {
@@ -103,7 +113,7 @@ describe("base", () => {
         expect(nextState).not.toBe(baseState)
         expect(nextState.anArray).not.toBe(baseState.anArray)
 
-        expect(nextState.anArray).toEqual([3, "a", "b", { c: 3 }, 1])
+        expect(nextState.anArray).toEqual([3, "a", "b", {c: 3}, 1])
     })
 
     it("should support sorting arrays", () => {
@@ -114,7 +124,7 @@ describe("base", () => {
         })
         expect(nextState).not.toBe(baseState)
         expect(nextState.anArray).not.toBe(baseState.anArray)
-        expect(nextState.anArray).toEqual([1, 2, 3, { c: 5 }])
+        expect(nextState.anArray).toEqual([1, 2, 3, {c: 5}])
     })
 
     it("should updating inside arrays", () => {
@@ -123,7 +133,7 @@ describe("base", () => {
         })
         expect(nextState).not.toBe(baseState)
         expect(nextState.anArray).not.toBe(baseState.anArray)
-        expect(nextState.anArray).toEqual([3, 2, { c: 3, test: true }, 1])
+        expect(nextState.anArray).toEqual([3, 2, {c: 3, test: true}, 1])
     })
 
     it("reusing object should work", () => {
@@ -135,14 +145,14 @@ describe("base", () => {
         expect(nextState).not.toBe(baseState)
         expect(nextState.anArray).toBe(baseState.anArray)
         expect(nextState).toEqual({
-            anArray: [3, 2, { c: 3 }, 1],
+            anArray: [3, 2, {c: 3}, 1],
             aProp: "hi",
             messy: {
                 nested: {
-                    yummie: true
+                    yummie: true,
                 },
-                coffee: false
-            }
+                coffee: false,
+            },
         })
         expect(nextState.messy.nested).toBe(baseState.anObject.nested)
     })
@@ -158,14 +168,14 @@ describe("base", () => {
         expect(nextState).not.toBe(baseState)
         expect(nextState.anArray).toBe(baseState.anArray)
         expect(nextState).toEqual({
-            anArray: [3, 2, { c: 3 }, 1],
+            anArray: [3, 2, {c: 3}, 1],
             aProp: "hello",
             messy: {
                 nested: {
-                    yummie: true
+                    yummie: true,
                 },
-                coffee: true
-            }
+                coffee: true,
+            },
         })
         expect(nextState.messy.nested).toBe(baseState.anObject.nested)
     })
@@ -179,6 +189,28 @@ describe("base", () => {
         expect(nextState.aProp).toBe(undefined)
     })
 
+    it("should revoke the proxy of the baseState after immer function is executed", () => {
+        let proxy
+        const nextState = immer(baseState, s => {
+            proxy = s
+            s.aProp = "hello"
+        })
+        expect(nextState).not.toBe(baseState)
+        expect(baseState.aProp).toBe("hi")
+        expect(nextState.aProp).toBe("hello")
+
+        expect(() => {
+            proxy.aProp = "Hallo"
+        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)
+        expect(() => {
+            const aProp = proxy.aProp
+        }).toThrowError(/^Cannot perform.*on a proxy that has been revoked/)
+
+        expect(nextState).not.toBe(baseState)
+        expect(baseState.aProp).toBe("hi")
+        expect(nextState.aProp).toBe("hello")
+    })
+
     afterEach(() => {
         expect(baseState).toBe(origBaseState)
         expect(baseState).toEqual(createBaseState())
@@ -186,14 +218,14 @@ describe("base", () => {
 
     function createBaseState() {
         return {
-            anArray: [3, 2, { c: 3 }, 1],
+            anArray: [3, 2, {c: 3}, 1],
             aProp: "hi",
             anObject: {
                 nested: {
-                    yummie: true
+                    yummie: true,
                 },
-                coffee: false
-            }
+                coffee: false,
+            },
         }
     }
 })

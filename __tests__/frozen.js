@@ -3,8 +3,8 @@ import immer from ".."
 
 describe("auto freeze", () => {
     const baseState = {
-        object: { a: 1 },
-        array: [1, 2]
+        object: {a: 1},
+        array: [1, 2],
     }
 
     it("should freeze objects after modifications", () => {
@@ -36,7 +36,7 @@ describe("auto freeze", () => {
 
     it("can handle already frozen trees", () => {
         const a = []
-        const b = { a: a }
+        const b = {a: a}
         Object.freeze(a)
         Object.freeze(b)
         const n = immer(b, draft => {
@@ -44,6 +44,6 @@ describe("auto freeze", () => {
             draft.a.push(3)
             debugger
         })
-        expect(n).toEqual({ c: true, a: [3] })
+        expect(n).toEqual({c: true, a: [3]})
     })
 })

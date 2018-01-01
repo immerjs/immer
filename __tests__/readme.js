@@ -6,16 +6,16 @@ describe("readme example", () => {
         const baseState = [
             {
                 todo: "Learn typescript",
-                done: true
+                done: true,
             },
             {
                 todo: "Try immer",
-                done: false
-            }
+                done: false,
+            },
         ]
 
         const nextState = immer(baseState, draft => {
-            draft.push({ todo: "Tweet about it" })
+            draft.push({todo: "Tweet about it"})
             draft[1].done = true
         })
 
