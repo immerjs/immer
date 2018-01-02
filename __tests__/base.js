@@ -149,10 +149,10 @@ describe("base", () => {
             aProp: "hi",
             messy: {
                 nested: {
-                    yummie: true,
+                    yummie: true
                 },
-                coffee: false,
-            },
+                coffee: false
+            }
         })
         expect(nextState.messy.nested).toBe(baseState.anObject.nested)
     })
@@ -172,10 +172,10 @@ describe("base", () => {
             aProp: "hello",
             messy: {
                 nested: {
-                    yummie: true,
+                    yummie: true
                 },
-                coffee: true,
-            },
+                coffee: true
+            }
         })
         expect(nextState.messy.nested).toBe(baseState.anObject.nested)
     })
@@ -236,10 +236,10 @@ describe("base", () => {
             aProp: "hi",
             anObject: {
                 nested: {
-                    yummie: true,
+                    yummie: true
                 },
-                coffee: false,
-            },
+                coffee: false
+            }
         }
     }
 })
