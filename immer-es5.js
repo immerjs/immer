@@ -32,7 +32,7 @@ function immer(baseState, thunk) {
     function assertUnfinished() {
         if (finished)
             throw new Error(
-                "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?",
+                "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?"
             )
     }
 
@@ -48,7 +48,7 @@ function immer(baseState, thunk) {
             enumerable: true,
             writable: true,
             configurable: true,
-            value: value,
+            value: value
         })
     }
 
@@ -81,13 +81,13 @@ function immer(baseState, thunk) {
                         },
                         set(value) {
                             proxySet(this, prop, value)
-                        },
+                        }
                     })
                     return proxy
                 },
                 set(value) {
                     proxySet(this, prop, value)
-                },
+                }
             })
         )
     }
@@ -97,7 +97,7 @@ function immer(baseState, thunk) {
         createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
         Object.keys(base).forEach(prop =>
-            Object.defineProperty(proxy, prop, createPropertyProxy(prop)),
+            Object.defineProperty(proxy, prop, createPropertyProxy(prop))
         )
         return proxy
     }
@@ -167,7 +167,7 @@ function immer(baseState, thunk) {
     //values either than undefined will trigger warning;
     !Object.is(maybeVoidReturn, undefined) &&
         console.warn(
-            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
+            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
         )
     // and finalize the modified proxy
     finalizing = true
@@ -198,11 +198,12 @@ function createHiddenProperty(target, prop, value) {
     Object.defineProperty(target, prop, {
         value: value,
         enumerable: false,
-        writable: true,
+        writable: true
     })
 }
 
 function shallowEqual(objA, objB) {
+    //From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
     if (Object.is(objA, objB)) return true
     if (
         typeof objA !== "object" ||
