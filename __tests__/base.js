@@ -9,7 +9,7 @@ describe("base", () => {
         origBaseState = baseState = createBaseState()
     })
 
-    it("should return the original without modifications", () => {
+    it.only("should return the original without modifications", () => {
         const nextState = immer(baseState, () => {})
         expect(nextState).toBe(baseState)
     })
@@ -17,7 +17,7 @@ describe("base", () => {
     it("should return the original without modifications when reading stuff", () => {
         const nextState = immer(baseState, s => {
             expect(s.aProp).toBe("hi")
-            expect(s.anObject.nested).toEqual({yummie: true})
+            expect(s.anObject.nested).toMatchObject({yummie: true})
         })
         expect(nextState).toBe(baseState)
     })
@@ -32,7 +32,7 @@ describe("base", () => {
         expect(warning).toHaveBeenCalledTimes(4)
     })
 
-    it("should return a copy when modifying stuff", () => {
+    it.only("should return a copy when modifying stuff", () => {
         const nextState = immer(baseState, s => {
             s.aProp = "hello world"
         })
@@ -43,7 +43,8 @@ describe("base", () => {
         expect(nextState.nested).toBe(baseState.nested)
     })
 
-    it("deep change bubbles up", () => {
+    it.only("deep change bubbles up", () => {
+        debugger
         const nextState = immer(baseState, s => {
             s.anObject.nested.yummie = false
         })
