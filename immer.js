@@ -61,7 +61,7 @@ function immer(baseState, thunk) {
             const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
-        },
+        }
     }
 
     // creates a copy for a base object if there ain't one
@@ -101,7 +101,7 @@ function immer(baseState, thunk) {
                 Object.defineProperty(proxyTarget, CLONE_TARGET, {
                     enumerable: false,
                     value: base,
-                    configurable: true,
+                    configurable: true
                 })
             } else {
                 proxyTarget = base
@@ -217,7 +217,7 @@ function setAutoFreeze(enableAutoFreeze) {
 }
 
 Object.defineProperty(exports, "__esModule", {
-    value: true,
+    value: true
 })
 module.exports.default = immer
 module.exports.setAutoFreeze = setAutoFreeze

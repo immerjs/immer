@@ -15,7 +15,7 @@ describe("performance", () => {
         baseState.push({
             todo: "todo_" + i,
             done: false,
-            someThingCompletelyIrrelevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+            someThingCompletelyIrrelevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
         })
     }
 
@@ -33,7 +33,7 @@ describe("performance", () => {
     const todoRecord = Record({
         todo: "",
         done: false,
-        someThingCompletelyIrrelevant: [],
+        someThingCompletelyIrrelevant: []
     })
     immutableJsBaseState = List(baseState.map(todo => todoRecord(todo)))
 
@@ -56,9 +56,9 @@ describe("performance", () => {
         const nextState = [
             ...baseState.slice(0, MAX * MODIFY_FACTOR).map(todo => ({
                 ...todo,
-                done: true,
+                done: true
             })),
-            ...baseState.slice(MAX * MODIFY_FACTOR),
+            ...baseState.slice(MAX * MODIFY_FACTOR)
         ]
     })
 
