@@ -169,7 +169,6 @@ These tests were executed on Node 8.4.0
 
 ## Limitations
 
-* This package requires Proxies, so Safari > 9, no Internet Explorer, no React Native on Android. This can potentially done, so feel free to upvote on [#8](https://github.com/mweststrate/immer/issues/8) if you need this :)
 * Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
 * Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
 
