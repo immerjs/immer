@@ -2,12 +2,6 @@ import {isObject} from "util"
 ;("use strict")
 // @ts-check
 
-/**
- * @typedef {Object} RevocableProxy
- * @property {any} proxy
- * @property {Function} revoke
- */
-
 const PROXY_TARGET = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 const CHANGED_STATE = Symbol("immer-changed-state")
 
@@ -43,9 +37,13 @@ function immer(baseState, thunk) {
     }
 
     function proxySet(target, prop, value) {
+        // immer func not ended?
         assertUnfinished()
+        // actually a change?
         if (Object.is(target[prop], value)) return
+        // mark changed
         target[CHANGED_STATE] = true
+        // and stop proxying, we know this object has changed
         Object.defineProperty(target, prop, {
             enumerable: true,
             writable: true,
@@ -62,12 +60,19 @@ function immer(baseState, thunk) {
                 enumerable: true,
                 get() {
                     assertUnfinished()
+                    // find the target object
                     const target = this[PROXY_TARGET]
-                    if (finalizing) return target[prop]
+                    // find the original value
                     const value = target[prop]
+                    // if we are finalizing, don't bother creating proxies, just return base value
+                    if (finalizing) return value
+                    // if not proxy-able, return value
                     if (!isPlainObject(value) && !Array.isArray(value))
                         return value
+                    // otherwise, create proxy
                     const proxy = createProxy(value)
+                    // and make sure this proxy is returned from this prop in the future if read
+                    // (write behavior as is)
                     Object.defineProperty(this, prop, {
                         configurable: true,
                         enumerable: true,
@@ -106,8 +111,6 @@ function immer(baseState, thunk) {
         return proxy
     }
 
-    // checks if the given base object has modifications, either because it is modified, or
-    // because one of it's children is
     function hasChanges(proxy) {
         if (!isProxy(proxy)) return false
         if (proxy[CHANGED_STATE]) return true // some property was modified
@@ -136,16 +139,16 @@ function immer(baseState, thunk) {
         return false
     }
 
-    // given a base object, returns it if unmodified, or return the changed cloned if modified
-    function finalize(thing) {
-        if (!isProxy(thing)) return thing
-        if (isPlainObject(thing)) return finalizeObject(thing)
-        if (Array.isArray(thing)) return finalizeArray(thing)
-        return thing
+    function finalize(proxy) {
+        // given a base object, returns it if unmodified, or return the changed cloned if modified
+        if (!isProxy(proxy)) return proxy
+        if (!hasChanges(proxy)) return proxy[PROXY_TARGET] // return the original target
+        if (isPlainObject(proxy)) return finalizeObject(proxy)
+        if (Array.isArray(proxy)) return finalizeArray(proxy)
+        throw new Error("Illegal state")
     }
 
     function finalizeObject(proxy) {
-        if (!hasChanges(proxy)) return proxy[PROXY_TARGET] // return the original target
         const res = {}
         Object.keys(proxy).forEach(prop => {
             res[prop] = finalize(proxy[prop])
@@ -154,7 +157,6 @@ function immer(baseState, thunk) {
     }
 
     function finalizeArray(proxy) {
-        if (!hasChanges(proxy)) return proxy[PROXY_TARGET]
         return freeze(proxy.map(finalize))
     }
 
@@ -173,17 +175,6 @@ function immer(baseState, thunk) {
     // make sure all proxies become unusable
     finished = true
     return res
-}
-
-/**
- * Revoke all the proxies stored in the revocableProxies map
- *
- * @param {Map<Object,RevocableProxy>} revocableProxies
- */
-function revoke(revocableProxies) {
-    for (var revocableProxy of revocableProxies.values()) {
-        revocableProxy.revoke()
-    }
 }
 
 function isPlainObject(value) {
@@ -212,10 +203,7 @@ function createHiddenProperty(target, prop, value) {
 }
 
 function shallowEqual(objA, objB) {
-    if (Object.is(objA, objB)) {
-        return true
-    }
-
+    if (Object.is(objA, objB)) return true
     if (
         typeof objA !== "object" ||
         objA === null ||
@@ -224,14 +212,9 @@ function shallowEqual(objA, objB) {
     ) {
         return false
     }
-
     const keysA = Object.keys(objA)
     const keysB = Object.keys(objB)
-
-    if (keysA.length !== keysB.length) {
-        return false
-    }
-
+    if (keysA.length !== keysB.length) return false
     for (let i = 0; i < keysA.length; i++) {
         if (
             !hasOwnProperty.call(objB, keysA[i]) ||
@@ -240,7 +223,6 @@ function shallowEqual(objA, objB) {
             return false
         }
     }
-
     return true
 }
 
