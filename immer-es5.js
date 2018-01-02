@@ -26,12 +26,13 @@ let autoFreeze = true
 function immer(baseState, thunk) {
     let finalizing = false
     let finished = false
+    const descriptors = {}
 
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
         if (isPlainObject(base)) return createObjectProxy(base)
         if (Array.isArray(base)) return createArrayProxy(base)
-        throw "Expected a plain object or array"
+        throw new Error("Expected a plain object or array")
     }
 
     function assertUnfinished() {
@@ -53,33 +54,37 @@ function immer(baseState, thunk) {
         })
     }
 
-    function createPropertyProxy(proxy, base, prop) {
-        // TODO: optimize, reuse property accessors, closures etc
-        Object.defineProperty(proxy, prop, {
-            configurable: true,
-            enumerable: true,
-            get() {
-                assertUnfinished()
-                if (finalizing) return base[prop]
-                const value = base[prop]
-                if (!isPlainObject(value) && !Array.isArray(value)) return value
-                const proxy = createProxy(value)
-                Object.defineProperty(this, prop, {
-                    configurable: true,
-                    enumerable: true,
-                    get() {
-                        return proxy
-                    },
-                    set(value) {
-                        proxySet(this, prop, value)
-                    },
-                })
-                return proxy
-            },
-            set(value) {
-                proxySet(this, prop, value)
-            },
-        })
+    function createPropertyProxy(prop) {
+        return (
+            descriptors[prop] ||
+            (descriptors[prop] = {
+                configurable: true,
+                enumerable: true,
+                get() {
+                    assertUnfinished()
+                    const target = this[PROXY_TARGET]
+                    if (finalizing) return target[prop]
+                    const value = target[prop]
+                    if (!isPlainObject(value) && !Array.isArray(value))
+                        return value
+                    const proxy = createProxy(value)
+                    Object.defineProperty(this, prop, {
+                        configurable: true,
+                        enumerable: true,
+                        get() {
+                            return proxy
+                        },
+                        set(value) {
+                            proxySet(this, prop, value)
+                        },
+                    })
+                    return proxy
+                },
+                set(value) {
+                    proxySet(this, prop, value)
+                },
+            })
+        )
     }
 
     function createObjectProxy(base) {
@@ -87,7 +92,7 @@ function immer(baseState, thunk) {
         createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
         Object.keys(base).forEach(prop =>
-            createPropertyProxy(proxy, base, prop),
+            Object.defineProperty(proxy, prop, createPropertyProxy(prop)),
         )
         return proxy
     }
@@ -97,7 +102,7 @@ function immer(baseState, thunk) {
         createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
         for (let i = 0; i < base.length; i++)
-            createPropertyProxy(proxy, base, "" + i)
+            Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
         return proxy
     }
 

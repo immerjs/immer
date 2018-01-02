@@ -10,6 +10,7 @@ describe("base", () => {
     })
 
     it("should return the original without modifications", () => {
+        debugger
         const nextState = immer(baseState, () => {})
         expect(nextState).toBe(baseState)
     })
