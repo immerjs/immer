@@ -1,12 +1,16 @@
 {
   "name": "immer",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write && git add . && git status"
   },
+  "pre-commit": [
+    "prettier"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mweststrate/immer.git"
@@ -30,7 +34,11 @@
     "babel-core": "^6.26.0",
     "babel-jest": "^22.0.4",
     "babel-preset-env": "^1.6.1",
+    "immutable": "^3.8.2",
     "jest": "^22.0.4",
+    "lodash.clonedeep": "^4.5.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "^1.9.2",
     "regenerator-runtime": "^0.11.1",
     "typescript": "^2.6.2"
   },
