@@ -1,8 +1,12 @@
 # Changelog
 
+### 0.1.2 (2-1-2018)
+
+* Fixed issue where trailing commas could break consumers. Fixes [#21](https://github.com/mweststrate/immer/pull/21).
+
 ### 0.1.1 (2-1-2018)
 
-* Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/pull/18).
+* Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/issue/18).
 
 ### 0.1.0 (1-1-2018)
 

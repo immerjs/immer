@@ -61,7 +61,7 @@ function immer(baseState, thunk) {
             const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
-        },
+        }
     }
 
     // creates a copy for a base object if there ain't one
@@ -101,7 +101,7 @@ function immer(baseState, thunk) {
                 Object.defineProperty(proxyTarget, CLONE_TARGET, {
                     enumerable: false,
                     value: base,
-                    configurable: true,
+                    configurable: true
                 })
             } else {
                 proxyTarget = base
@@ -167,7 +167,7 @@ function immer(baseState, thunk) {
     //values either than undefined will trigger warning;
     !Object.is(maybeVoidReturn, undefined) &&
         console.warn(
-            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
+            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
         )
     // console.log(`proxies: ${revocableProxies.size}, copies: ${copies.size}`)
     // revoke all proxies
@@ -217,7 +217,7 @@ function setAutoFreeze(enableAutoFreeze) {
 }
 
 Object.defineProperty(exports, "__esModule", {
-    value: true,
+    value: true
 })
 module.exports.default = immer
 module.exports.setAutoFreeze = setAutoFreeze

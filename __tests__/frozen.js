@@ -4,7 +4,7 @@ import immer from ".."
 describe("auto freeze", () => {
     const baseState = {
         object: {a: 1},
-        array: [1, 2],
+        array: [1, 2]
     }
 
     it("should freeze objects after modifications", () => {
