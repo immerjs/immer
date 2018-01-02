@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",
@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "immer.js"
+    "immer.js",
+    "index.d.ts"
   ],
   "devDependencies": {
     "@types/jest": "^22.0.0",
