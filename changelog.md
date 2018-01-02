@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.1.1 (2-1-2018)
+
+* Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/pull/18).
+
 ### 0.1.0 (1-1-2018)
 
 * Fixed `immer` function export, it is now properly exposed as the `default` export. So `import immer from "immer"`. See [#15](https://github.com/mweststrate/immer/pull/15)
