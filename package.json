@@ -2,7 +2,7 @@
   "name": "immer",
   "version": "0.1.0",
   "description": "Create your next immutable state by mutating the current one",
-  "main": "immer.js",
+  "main": "immer-es5.js",
   "types": "./index.d.ts",
   "scripts": {
     "test": "jest",
