@@ -10,6 +10,7 @@ describe("base", () => {
     })
 
     it.only("should return the original without modifications", () => {
+        debugger
         const nextState = immer(baseState, () => {})
         expect(nextState).toBe(baseState)
     })
@@ -55,7 +56,8 @@ describe("base", () => {
         expect(nextState.anArray).toBe(baseState.anArray)
     })
 
-    it("can add props", () => {
+    it.only("can add props", () => {
+        debugger
         const nextState = immer(baseState, s => {
             s.anObject.cookie = {tasty: true}
         })
@@ -65,7 +67,7 @@ describe("base", () => {
         expect(nextState.anObject.cookie).toEqual({tasty: true})
     })
 
-    it("can delete props", () => {
+    it.only("can delete props", () => {
         const nextState = immer(baseState, s => {
             delete s.anObject.nested
         })
@@ -74,14 +76,14 @@ describe("base", () => {
         expect(nextState.anObject.nested).toBe(undefined)
     })
 
-    it("ignores single non-modification", () => {
+    it.only("ignores single non-modification", () => {
         const nextState = immer(baseState, s => {
             s.aProp = "hi"
         })
         expect(nextState).toBe(baseState)
     })
 
-    it("processes single modification", () => {
+    it.only("processes single modification", () => {
         const nextState = immer(baseState, s => {
             s.aProp = "hello"
             s.aProp = "hi"

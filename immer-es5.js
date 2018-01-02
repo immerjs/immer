@@ -1,4 +1,5 @@
-"use strict"
+import {isObject} from "util"
+;("use strict")
 // @ts-check
 
 /**
@@ -7,16 +8,21 @@
  * @property {Function} revoke
  */
 
-// TODO: rename to PROXY_TARGET
-const IMMER_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
-
-// This property indicates that the current object is cloned for another object,
-// to make sure the proxy of a frozen object is writeable
-const CLONE_TARGET = Symbol("immer-clone-target")
+const PROXY_TARGET = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 const CHANGED_STATE = Symbol("immer-changed-state")
-const CHANGED_METHOD = Symbol("immer-changed")
 
 let autoFreeze = true
+
+function proxySet(target, prop, value) {
+    if (Object.is(target[prop], value)) return
+    target[CHANGED_STATE] = true
+    Object.defineProperty(target, prop, {
+        enumerable: true,
+        writable: true,
+        configurable: true,
+        value: value,
+    })
+}
 
 /**
  * Immer takes a state, and runs a function against it.
@@ -29,109 +35,53 @@ let autoFreeze = true
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
-    /**
-     * Maps baseState objects to revocable proxies
-     * @type {Map<Object,RevocableProxy>}
-     */
-    const revocableProxies = new Map()
-    // Maps baseState objects to their copies
-
-    const copies = new Map()
-
-    const objectTraps = {
-        get(target, prop) {
-            if (prop === IMMER_PROXY) return target
-            return createProxy(getCurrentSource(target)[prop])
-        },
-        has(target, prop) {
-            return prop in getCurrentSource(target)
-        },
-        ownKeys(target) {
-            return Reflect.ownKeys(getCurrentSource(target))
-        },
-        set(target, prop, value) {
-            const current = createProxy(getCurrentSource(target)[prop])
-            const newValue = createProxy(value)
-            if (current !== newValue) {
-                const copy = getOrCreateCopy(target)
-                copy[prop] = isProxy(newValue)
-                    ? newValue[IMMER_PROXY]
-                    : newValue
-            }
-            return true
-        },
-        deleteProperty(target, property) {
-            const copy = getOrCreateCopy(target)
-            delete copy[property]
-            return true
-        },
-    }
-
-    // creates a copy for a base object if there ain't one
-    function getOrCreateCopy(base) {
-        let copy = copies.get(base)
-        if (copy) return copy
-        const cloneTarget = base[CLONE_TARGET]
-        if (cloneTarget) {
-            // base is a clone already (source was frozen), no need to create addtional copy
-            copies.set(cloneTarget, base)
-            return base
-        }
-        // create a fresh copy
-        copy = Array.isArray(base) ? base.slice() : Object.assign({}, base)
-        copies.set(base, copy)
-        return copy
-    }
-
-    // returns the current source of truth for a base object
-    function getCurrentSource(base) {
-        const copy = copies.get(base)
-        return copy || base
-    }
+    let finalizing = false
+    let finished = false
 
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
-        if (isProxy(base)) return base
         if (isPlainObject(base)) return createObjectProxy(base)
-        if (Array.isArray(base)) return createObjectProxy(base) // TODO: create Array proxy?
-        return base
+        // if (Array.isArray(base)) return createArrayProxy(base) // TODO: create Array proxy?
+        throw "Expected a plain object or array"
     }
 
     function createObjectProxy(base) {
-        // TODO: optimize, reuse property accessors
+        // TODO: optimize, reuse property accessors, closures etc
         const proxy = {}
-        createHiddenProperty(proxy, IMMER_PROXY, base)
+        createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
-        createHiddenProperty(proxy, CHANGED_METHOD, function() {
-            if (this[CHANGED_STATE] === true) return true
-            // TODO: first check child properties, that might be cheaper...
-            return !shallowEqual(Object.keys(base), Object.keys(this))
-        })
         Object.keys(base).forEach(prop => {
             Object.defineProperty(proxy, prop, {
                 configurable: true,
                 enumerable: true,
                 get() {
-                    // const target = this[PROXY_TARGET]
-                    // return createProxy(getCurrentSource(target)[prop])
-                    return createProxy(base[prop])
+                    if (finished)
+                        throw "Cannot use proxy outside immer function"
+                    if (finalizing) return base[prop]
+                    const value = base[prop]
+                    if (!isPlainObject(value) && !Array.isArray(value))
+                        return value
+                    const proxy = createProxy(value)
+                    Object.defineProperty(this, prop, {
+                        configurable: true,
+                        enumerable: true,
+                        get() {
+                            return proxy
+                        },
+                        set(value) {
+                            if (finished)
+                                throw "Cannot use proxy outside immer function"
+                            proxySet(this, prop, value)
+                        },
+                    })
+                    return proxy
                 },
                 set(value) {
-                    this[CHANGED_STATE] = true
-                    Object.defineProperty(this, prop, {
-                        enumerable: true,
-                        writable: true,
-                        configurable: true,
-                        value: value,
-                    })
+                    if (finished)
+                        throw "Cannot use proxy outside immer function"
+                    proxySet(this, prop, value)
                 },
             })
-        })
-        revocableProxies.set(base, {
-            proxy,
-            revoke: () => {
-                // TODO: set unreadable state, reuse closure
-            },
         })
         return proxy
     }
@@ -140,17 +90,14 @@ function immer(baseState, thunk) {
     // because one of it's children is
     function hasChanges(proxy) {
         if (!isProxy(proxy)) return false
-        const base = proxy[IMMER_PROXY]
-        if (proxy[CHANGED_METHOD](base)) return true // some property was modified
+        if (proxy[CHANGED_STATE]) return true // some property was modified
+        const baseKeys = Object.keys(proxy[PROXY_TARGET])
+        const keys = Object.keys(proxy)
+        if (!shallowEqual(baseKeys, keys)) return true
         // look deeper, this object was not modified, but maybe some of its children are
-        const keys = Object.keys(base)
         for (let i = 0; i < keys.length; i++) {
-            const value = proxy[keys[i]] // TODO: fix, this does convert value to a proxy?!
-            if (
-                (Array.isArray(value) || isPlainObject(value)) &&
-                hasChanges(value)
-            )
-                return true
+            const value = proxy[keys[i]]
+            if (hasChanges(value)) return true
         }
         return false
     }
@@ -164,12 +111,12 @@ function immer(baseState, thunk) {
     }
 
     function finalizeObject(proxy) {
-        if (!hasChanges(proxy)) return proxy[IMMER_PROXY] // return the original target
+        if (!hasChanges(proxy)) return proxy[PROXY_TARGET] // return the original target
+        const res = {}
         Object.keys(proxy).forEach(prop => {
-            proxy[prop] = finalize(proxy[prop])
+            res[prop] = finalize(proxy[prop])
         })
-        delete proxy[CLONE_TARGET]
-        return freeze(proxy)
+        return freeze(res)
     }
 
     function finalizeArray(thing) {
@@ -191,11 +138,12 @@ function immer(baseState, thunk) {
         console.warn(
             `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`,
         )
-    // console.log(`proxies: ${revocableProxies.size}, copies: ${copies.size}`)
-    // revoke all proxies
-    revoke(revocableProxies)
     // and finalize the modified proxy
-    return finalize(rootClone)
+    finalizing = true
+    const res = finalize(rootClone)
+    // make sure all proxies become unusable
+    finished = true
+    return res
 }
 
 /**
@@ -216,7 +164,7 @@ function isPlainObject(value) {
 }
 
 function isProxy(value) {
-    return !!(value && value[IMMER_PROXY])
+    return !!(value && value[PROXY_TARGET])
 }
 
 function freeze(value) {
