@@ -13,17 +13,6 @@ const CHANGED_STATE = Symbol("immer-changed-state")
 
 let autoFreeze = true
 
-function proxySet(target, prop, value) {
-    if (Object.is(target[prop], value)) return
-    target[CHANGED_STATE] = true
-    Object.defineProperty(target, prop, {
-        enumerable: true,
-        writable: true,
-        configurable: true,
-        value: value,
-    })
-}
-
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
@@ -41,48 +30,74 @@ function immer(baseState, thunk) {
     // creates a proxy for plain objects / arrays
     function createProxy(base) {
         if (isPlainObject(base)) return createObjectProxy(base)
-        // if (Array.isArray(base)) return createArrayProxy(base) // TODO: create Array proxy?
+        if (Array.isArray(base)) return createArrayProxy(base)
         throw "Expected a plain object or array"
     }
 
-    function createObjectProxy(base) {
+    function assertUnfinished() {
+        if (finished)
+            throw new Error(
+                "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?",
+            )
+    }
+
+    function proxySet(target, prop, value) {
+        assertUnfinished()
+        if (Object.is(target[prop], value)) return
+        target[CHANGED_STATE] = true
+        Object.defineProperty(target, prop, {
+            enumerable: true,
+            writable: true,
+            configurable: true,
+            value: value,
+        })
+    }
+
+    function createPropertyProxy(proxy, base, prop) {
         // TODO: optimize, reuse property accessors, closures etc
+        Object.defineProperty(proxy, prop, {
+            configurable: true,
+            enumerable: true,
+            get() {
+                assertUnfinished()
+                if (finalizing) return base[prop]
+                const value = base[prop]
+                if (!isPlainObject(value) && !Array.isArray(value)) return value
+                const proxy = createProxy(value)
+                Object.defineProperty(this, prop, {
+                    configurable: true,
+                    enumerable: true,
+                    get() {
+                        return proxy
+                    },
+                    set(value) {
+                        proxySet(this, prop, value)
+                    },
+                })
+                return proxy
+            },
+            set(value) {
+                proxySet(this, prop, value)
+            },
+        })
+    }
+
+    function createObjectProxy(base) {
         const proxy = {}
         createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
-        Object.keys(base).forEach(prop => {
-            Object.defineProperty(proxy, prop, {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    if (finished)
-                        throw "Cannot use proxy outside immer function"
-                    if (finalizing) return base[prop]
-                    const value = base[prop]
-                    if (!isPlainObject(value) && !Array.isArray(value))
-                        return value
-                    const proxy = createProxy(value)
-                    Object.defineProperty(this, prop, {
-                        configurable: true,
-                        enumerable: true,
-                        get() {
-                            return proxy
-                        },
-                        set(value) {
-                            if (finished)
-                                throw "Cannot use proxy outside immer function"
-                            proxySet(this, prop, value)
-                        },
-                    })
-                    return proxy
-                },
-                set(value) {
-                    if (finished)
-                        throw "Cannot use proxy outside immer function"
-                    proxySet(this, prop, value)
-                },
-            })
-        })
+        Object.keys(base).forEach(prop =>
+            createPropertyProxy(proxy, base, prop),
+        )
+        return proxy
+    }
+
+    function createArrayProxy(base) {
+        const proxy = []
+        createHiddenProperty(proxy, PROXY_TARGET, base)
+        createHiddenProperty(proxy, CHANGED_STATE, false)
+        for (let i = 0; i < base.length; i++)
+            createPropertyProxy(proxy, base, "" + i)
         return proxy
     }
 
@@ -91,13 +106,27 @@ function immer(baseState, thunk) {
     function hasChanges(proxy) {
         if (!isProxy(proxy)) return false
         if (proxy[CHANGED_STATE]) return true // some property was modified
+        if (isPlainObject(proxy)) return objectHasChanges(proxy)
+        if (Array.isArray(proxy)) return arrayHasChanges(proxy)
+    }
+
+    function objectHasChanges(proxy) {
         const baseKeys = Object.keys(proxy[PROXY_TARGET])
         const keys = Object.keys(proxy)
         if (!shallowEqual(baseKeys, keys)) return true
         // look deeper, this object was not modified, but maybe some of its children are
         for (let i = 0; i < keys.length; i++) {
-            const value = proxy[keys[i]]
-            if (hasChanges(value)) return true
+            if (hasChanges(proxy[keys[i]])) return true
+        }
+        return false
+    }
+
+    function arrayHasChanges(proxy) {
+        const target = proxy[PROXY_TARGET]
+        if (target.length !== proxy.length) return true
+        // look deeper, this object was not modified, but maybe some of its children are
+        for (let i = 0; i < proxy.length; i++) {
+            if (hasChanges(proxy[i])) return true
         }
         return false
     }
@@ -119,14 +148,9 @@ function immer(baseState, thunk) {
         return freeze(res)
     }
 
-    function finalizeArray(thing) {
-        if (!hasChanges(thing)) return thing
-        const copy = getOrCreateCopy(thing) // TODO: getOrCreate is weird here..
-        copy.forEach((value, index) => {
-            copy[index] = finalize(copy[index])
-        })
-        delete copy[CLONE_TARGET]
-        return freeze(copy)
+    function finalizeArray(proxy) {
+        if (!hasChanges(proxy)) return proxy[PROXY_TARGET]
+        return freeze(proxy.map(finalize))
     }
 
     // create proxy for root
