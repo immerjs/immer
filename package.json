@@ -6,7 +6,7 @@
   "types": "./index.d.ts",
   "scripts": {
     "test": "jest",
-    "coveralls": "rm -rf ./coverage && jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write && git add . && git status"
   },
   "pre-commit": [
