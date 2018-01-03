@@ -170,6 +170,69 @@ const todos = (state = [], action) =>
 
 Creating middleware or a reducer wrapper that applies `immer` automatically is left as exercise for the reader :-).
 
+---
+
+Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their immer counter part.
+These examples are semantically equivalent and produce the exact same state.
+
+```javascript
+// Plain reducer
+function insertItem(array, action) {
+    return [
+        ...array.slice(0, action.index),
+        action.item,
+        ...array.slice(action.index)
+    ]
+}
+
+// With immer
+function insertItem(array, action) {
+    return immer(array, draft => {
+        draft.splice(action.index, 0, action.item)
+    })
+}
+
+// Plain reducer
+function removeItem(array, action) {
+    return [
+        ...array.slice(0, action.index),
+        ...array.slice(action.index + 1)
+    ];
+}
+
+// With immer
+function removeItem(array, action) {
+    return immer(array, draft => {
+        draft.splice(action.index, 1)
+    })
+}
+
+// Plain reducer
+function updateObjectInArray(array, action) {
+    return array.map( (item, index) => {
+        if(index !== action.index) {
+            // This isn't the item we care about - keep it as-is
+            return item;
+        }
+
+        // Otherwise, this is the one we want - return an updated value
+        return {
+            ...item,
+            ...action.item
+        };
+    });
+}
+
+// With immer
+function updateObjectInArray(array, action) {
+    return immer(array, draft => {
+        draft[action.index] = { ...item, ...action.item}
+        // Alternatively, since arbitrarily deep updates are supported:
+        // Object.assign(draft[action.index], action.item)
+    })
+}
+```
+
 ## Performance
 
 Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
