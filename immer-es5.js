@@ -22,6 +22,7 @@ function immer(baseState, thunk) {
     let finalizing = false
     let finished = false
     const descriptors = {}
+    const proxies = []
 
     // creates a proxy for plain objects / arrays
     function createProxy(base, parent) {
@@ -32,6 +33,7 @@ function immer(baseState, thunk) {
         createHiddenProperty(proxy, PROXY_TARGET, base)
         createHiddenProperty(proxy, CHANGED_STATE, false)
         createHiddenProperty(proxy, PARENT, parent)
+        proxies.push(proxy)
         return proxy
     }
 
@@ -48,8 +50,7 @@ function immer(baseState, thunk) {
         // actually a change?
         if (Object.is(proxy[prop], value)) return
         // mark changed
-        proxy[CHANGED_STATE] = true
-        markParentsDirty(proxy)
+        markDirty(proxy)
         // and stop proxying, we know this object has changed
         Object.defineProperty(proxy, prop, {
             enumerable: true,
@@ -117,34 +118,30 @@ function immer(baseState, thunk) {
     // this sounds very expensive, but actually it is not that extensive in practice
     // as it will only visit proxies, and only do key-based change detection for objects for
     // which it is not already know that they are changed (that is, only object for which no known key was changed)
-    function markChanges(proxy) {
-        if (!isProxy(proxy)) return false
-        if (isPlainObject(proxy)) return markObjectChanges(proxy)
-        if (Array.isArray(proxy)) return markArrayChanges(proxy)
+    function markChanges() {
+        // intentionally we process the proxies in reverse order;
+        // ideally we start by processing leafs in the tree, because if a child has changed, we don't have to check the parent anymore
+        // reverse order of proxy creation approximates this
+        for (let i = proxies.length - 1; i >= 0; i--) {
+            const proxy = proxies[i]
+            if (
+                proxy[CHANGED_STATE] === false &&
+                ((isPlainObject(proxy) && hasObjectChanges(proxy)) ||
+                    (Array.isArray(proxy) && hasArrayChanges(proxy)))
+            ) {
+                markDirty(proxy)
+            }
+        }
     }
 
-    function markObjectChanges(proxy) {
+    function hasObjectChanges(proxy) {
         const baseKeys = Object.keys(proxy[PROXY_TARGET])
         const keys = Object.keys(proxy)
-        let hasChanges = proxy[CHANGED_STATE]
-        // look deeper, this object was not modified, but maybe some of its children are
-        for (let i = 0; i < keys.length; i++) {
-            if (markChanges(proxy[keys[i]])) hasChanges = true
-        }
-        // all children are the same, but maybe there are items added / removed
-        if (!hasChanges) hasChanges = !shallowEqual(baseKeys, keys)
-        return (proxy[CHANGED_STATE] = hasChanges)
+        return !shallowEqual(baseKeys, keys)
     }
 
-    function markArrayChanges(proxy) {
-        const target = proxy[PROXY_TARGET]
-        let hasChanges = proxy[CHANGED_STATE]
-        for (let i = 0; i < proxy.length; i++) {
-            if (markChanges(proxy[i])) hasChanges = true
-        }
-        // all children are the same, but maybe there are items added / removed
-        if (!hasChanges) hasChanges = target.length !== proxy.length
-        return (proxy[CHANGED_STATE] = hasChanges)
+    function hasArrayChanges(proxy) {
+        return proxy[PROXY_TARGET].length !== proxy.length
     }
 
     function finalize(proxy) {
@@ -180,17 +177,18 @@ function immer(baseState, thunk) {
     // and finalize the modified proxy
     finalizing = true
     // find and mark all changes (for parts not done yet)
-    markChanges(rootClone)
+    markChanges()
     const res = finalize(rootClone)
     // make sure all proxies become unusable
     finished = true
     return res
 }
 
-function markParentsDirty(proxy) {
+function markDirty(proxy) {
+    proxy[CHANGED_STATE] = true
     let parent = proxy
     while ((parent = parent[PARENT])) {
-        if (parent[CHANGED_STATE]) return
+        if (parent[CHANGED_STATE] === true) return
         parent[CHANGED_STATE] = true
     }
 }
