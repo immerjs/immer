@@ -4,6 +4,7 @@ import {isObject} from "util"
 
 const PROXY_TARGET = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 const CHANGED_STATE = Symbol("immer-changed-state")
+const PARENT = Symbol("immer-parent")
 
 let autoFreeze = true
 
@@ -23,10 +24,15 @@ function immer(baseState, thunk) {
     const descriptors = {}
 
     // creates a proxy for plain objects / arrays
-    function createProxy(base) {
-        if (isPlainObject(base)) return createObjectProxy(base)
-        if (Array.isArray(base)) return createArrayProxy(base)
-        throw new Error("Expected a plain object or array")
+    function createProxy(base, parent) {
+        let proxy
+        if (isPlainObject(base)) proxy = createObjectProxy(base)
+        else if (Array.isArray(base)) proxy = createArrayProxy(base)
+        else throw new Error("Expected a plain object or array")
+        createHiddenProperty(proxy, PROXY_TARGET, base)
+        createHiddenProperty(proxy, CHANGED_STATE, false)
+        createHiddenProperty(proxy, PARENT, parent)
+        return proxy
     }
 
     function assertUnfinished() {
@@ -36,15 +42,16 @@ function immer(baseState, thunk) {
             )
     }
 
-    function proxySet(target, prop, value) {
+    function proxySet(proxy, prop, value) {
         // immer func not ended?
         assertUnfinished()
         // actually a change?
-        if (Object.is(target[prop], value)) return
+        if (Object.is(proxy[prop], value)) return
         // mark changed
-        target[CHANGED_STATE] = true
+        proxy[CHANGED_STATE] = true
+        markParentsDirty(proxy)
         // and stop proxying, we know this object has changed
-        Object.defineProperty(target, prop, {
+        Object.defineProperty(proxy, prop, {
             enumerable: true,
             writable: true,
             configurable: true,
@@ -70,7 +77,7 @@ function immer(baseState, thunk) {
                     if (!isPlainObject(value) && !Array.isArray(value))
                         return value
                     // otherwise, create proxy
-                    const proxy = createProxy(value)
+                    const proxy = createProxy(value, this)
                     // and make sure this proxy is returned from this prop in the future if read
                     // (write behavior as is)
                     Object.defineProperty(this, prop, {
@@ -94,8 +101,6 @@ function immer(baseState, thunk) {
 
     function createObjectProxy(base) {
         const proxy = {}
-        createHiddenProperty(proxy, PROXY_TARGET, base)
-        createHiddenProperty(proxy, CHANGED_STATE, false)
         Object.keys(base).forEach(prop =>
             Object.defineProperty(proxy, prop, createPropertyProxy(prop))
         )
@@ -104,8 +109,6 @@ function immer(baseState, thunk) {
 
     function createArrayProxy(base) {
         const proxy = []
-        createHiddenProperty(proxy, PROXY_TARGET, base)
-        createHiddenProperty(proxy, CHANGED_STATE, false)
         for (let i = 0; i < base.length; i++)
             Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
         return proxy
@@ -166,7 +169,7 @@ function immer(baseState, thunk) {
     }
 
     // create proxy for root
-    const rootClone = createProxy(baseState)
+    const rootClone = createProxy(baseState, undefined)
     // execute the thunk
     const maybeVoidReturn = thunk(rootClone)
     //values either than undefined will trigger warning;
@@ -182,6 +185,14 @@ function immer(baseState, thunk) {
     // make sure all proxies become unusable
     finished = true
     return res
+}
+
+function markParentsDirty(proxy) {
+    let parent = proxy
+    while ((parent = parent[PARENT])) {
+        if (parent[CHANGED_STATE]) return
+        parent[CHANGED_STATE] = true
+    }
 }
 
 function isPlainObject(value) {
