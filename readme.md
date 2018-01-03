@@ -17,6 +17,10 @@ Using immer is like having a personal assistant; he takes a letter (the current 
 
 A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applicable to plain, native JavaScript data structures (arrays and objects) without further needing any library.
 
+## Installation
+
+`npm install immer`
+
 ## API
 
 The immer package exposes a single function:
@@ -26,6 +30,8 @@ The immer package exposes a single function:
 ## Example
 
 ```javascript
+import immer from "immer"
+
 const baseState = [
     {
         todo: "Learn typescript",
@@ -61,9 +67,22 @@ expect(nextState[0]).toBe(baseState[0])
 expect(nextState[1]).not.toBe(baseState[1])
 ```
 
+## Using immer on older JavaScript environments
+
+By default `immer` tries to use proxies for optimal performance.
+However, on older JavaScript engines `Proxy` is not available.
+For example, Microsoft Internet Explorer or React Native on Android.
+In these cases, import the ES5 compatibile implementation first, which is a bit slower (see below) but semantically equivalent:
+
+```javascript
+import immer from "immer/es5"
+```
+
 ## Benefits
 
 * Use the language© to construct create your next state
+* Use JavaScript native arrays and object
+* Automatic immutability; any state tree produced by `immer` will by defualt be deeply frozen
 * Strongly typed, no string based paths etc
 * Deep updates are trivial
 * Small, dependency free library with minimal api surface
@@ -80,7 +99,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 
 ## Reducer Example
 
-A lot of words; here is a simple example of the difference that this approach could make in practice.
+Here is a simple example of the difference that this approach could make in practice.
 The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
 
 _Note, this is just a sample application of the `immer` package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
@@ -158,18 +177,26 @@ This test takes 100.000 todo items, and updates 10.000 of them.
 These tests were executed on Node 8.4.0
 
 ```
-  performance
-    ✓ just mutate (1ms)                  // No immutability at all
-    ✓ deepclone, then mutate (647ms)     // Clone entire tree, then mutate (no structural sharing!)
-    ✓ handcrafted reducer (17ms)         // Implement it as typical Redux reducer, with slices and spread operator
-    ✓ immutableJS (81ms)                 // Use immutableJS and leverage `withMutations` for best performance
-    ✓ immer - with autofreeze (309ms)    // Immer, with auto freeze enabled
-    ✓ immer - without autofreeze (148ms) // Immer, but without auto freeze enabled
+    ✓ just mutate (2ms)
+       (No immutability at all)
+    ✓ deepclone, then mutate (390ms)
+       (Clone entire tree, then mutate (no structural sharing!))
+    ✓ handcrafted reducer (27ms)
+       (Implement it as typical Redux reducer, with slices and spread operator)
+    ✓ immutableJS (68ms)
+       (Use immutableJS and leverage `withMutations` for best performance)
+    ✓ immer (proxy) - with autofreeze (303ms)
+       (Immer, with auto freeze enabled, default implementation)
+    ✓ immer (proxy) - without autofreeze (142ms)
+       (Immer, with auto freeze disabled, default implementation)
+    ✓ immer (es5) - with autofreeze (414ms)
+       (Immer, with auto freeze enabled, compatibility implementation)
+    ✓ immer (es5) - without autofreeze (341ms)
+       (Immer, with auto freeze disabled, default implementation)
 ```
 
 ## Limitations
 
-* This package requires Proxies, so Safari > 9, no Internet Explorer, no React Native on Android. This can potentially done, so feel free to upvote on [#8](https://github.com/mweststrate/immer/issues/8) if you need this :)
 * Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
 * Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
 
