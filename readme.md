@@ -20,6 +20,10 @@ Using immer is like having a personal assistant; he takes a letter (the current 
 
 A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applicable to plain, native JavaScript data structures (arrays and objects) without further needing any library.
 
+## Installation
+
+`npm install immer`
+
 ## API
 
 The immer package exposes a single function:
@@ -29,6 +33,8 @@ The immer package exposes a single function:
 ## Example
 
 ```javascript
+import immer from "immer"
+
 const baseState = [
     {
         todo: "Learn typescript",
@@ -64,9 +70,22 @@ expect(nextState[0]).toBe(baseState[0])
 expect(nextState[1]).not.toBe(baseState[1])
 ```
 
+## Using immer on older JavaScript environments
+
+By default `immer` tries to use proxies for optimal performance.
+However, on older JavaScript engines `Proxy` is not available.
+For example, Microsoft Internet Explorer or React Native on Android.
+In these cases, import the ES5 compatibile implementation first, which is a bit slower (see below) but semantically equivalent:
+
+```javascript
+import immer from "immer/es5"
+```
+
 ## Benefits
 
 * Use the language© to construct create your next state
+* Use JavaScript native arrays and object
+* Automatic immutability; any state tree produced by `immer` will by defualt be deeply frozen
 * Strongly typed, no string based paths etc
 * Deep updates are trivial
 * Small, dependency free library with minimal api surface
@@ -83,7 +102,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 
 ## Reducer Example
 
-A lot of words; here is a simple example of the difference that this approach could make in practice.
+Here is a simple example of the difference that this approach could make in practice.
 The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
 
 _Note, this is just a sample application of the `immer` package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
@@ -154,6 +173,69 @@ const todos = (state = [], action) =>
 
 Creating middleware or a reducer wrapper that applies `immer` automatically is left as exercise for the reader :-).
 
+---
+
+Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their immer counter part.
+These examples are semantically equivalent and produce the exact same state.
+
+```javascript
+// Plain reducer
+function insertItem(array, action) {
+    return [
+        ...array.slice(0, action.index),
+        action.item,
+        ...array.slice(action.index)
+    ]
+}
+
+// With immer
+function insertItem(array, action) {
+    return immer(array, draft => {
+        draft.splice(action.index, 0, action.item)
+    })
+}
+
+// Plain reducer
+function removeItem(array, action) {
+    return [
+        ...array.slice(0, action.index),
+        ...array.slice(action.index + 1)
+    ];
+}
+
+// With immer
+function removeItem(array, action) {
+    return immer(array, draft => {
+        draft.splice(action.index, 1)
+    })
+}
+
+// Plain reducer
+function updateObjectInArray(array, action) {
+    return array.map( (item, index) => {
+        if(index !== action.index) {
+            // This isn't the item we care about - keep it as-is
+            return item;
+        }
+
+        // Otherwise, this is the one we want - return an updated value
+        return {
+            ...item,
+            ...action.item
+        };
+    });
+}
+
+// With immer
+function updateObjectInArray(array, action) {
+    return immer(array, draft => {
+        draft[action.index] = { ...item, ...action.item}
+        // Alternatively, since arbitrarily deep updates are supported:
+        // Object.assign(draft[action.index], action.item)
+    })
+}
+```
+
 ## Performance
 
 Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
@@ -161,18 +243,26 @@ This test takes 100.000 todo items, and updates 10.000 of them.
 These tests were executed on Node 8.4.0
 
 ```
-  performance
-    ✓ just mutate (1ms)                  // No immutability at all
-    ✓ deepclone, then mutate (647ms)     // Clone entire tree, then mutate (no structural sharing!)
-    ✓ handcrafted reducer (17ms)         // Implement it as typical Redux reducer, with slices and spread operator
-    ✓ immutableJS (81ms)                 // Use immutableJS and leverage `withMutations` for best performance
-    ✓ immer - with autofreeze (309ms)    // Immer, with auto freeze enabled
-    ✓ immer - without autofreeze (148ms) // Immer, but without auto freeze enabled
+    ✓ just mutate (2ms)
+       (No immutability at all)
+    ✓ deepclone, then mutate (390ms)
+       (Clone entire tree, then mutate (no structural sharing!))
+    ✓ handcrafted reducer (27ms)
+       (Implement it as typical Redux reducer, with slices and spread operator)
+    ✓ immutableJS (68ms)
+       (Use immutableJS and leverage `withMutations` for best performance)
+    ✓ immer (proxy) - with autofreeze (303ms)
+       (Immer, with auto freeze enabled, default implementation)
+    ✓ immer (proxy) - without autofreeze (142ms)
+       (Immer, with auto freeze disabled, default implementation)
+    ✓ immer (es5) - with autofreeze (414ms)
+       (Immer, with auto freeze enabled, compatibility implementation)
+    ✓ immer (es5) - without autofreeze (341ms)
+       (Immer, with auto freeze disabled, default implementation)
 ```
 
 ## Limitations
 
-* This package requires Proxies, so Safari > 9, no Internet Explorer, no React Native on Android. This can potentially done, so feel free to upvote on [#8](https://github.com/mweststrate/immer/issues/8) if you need this :)
 * Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
 * Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
 

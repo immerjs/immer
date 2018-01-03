@@ -1,5 +1,6 @@
 "use strict"
-import immer, {setAutoFreeze} from ".."
+import immerProxy, {setAutoFreeze as setAutoFreezeProxy} from ".."
+import immerEs5, {setAutoFreeze as setAutoFreezeEs5} from "../es5"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
 
@@ -71,22 +72,41 @@ describe("performance", () => {
         })
     })
 
-    test("immer - with autofreeze", () => {
-        setAutoFreeze(true)
-        immer(frozenBazeState, draft => {
+    test("immer (proxy) - with autofreeze", () => {
+        setAutoFreezeProxy(true)
+        immerProxy(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
         })
     })
 
-    test("immer - without autofreeze", () => {
-        setAutoFreeze(false)
-        immer(baseState, draft => {
+    test("immer (proxy) - without autofreeze", () => {
+        setAutoFreezeProxy(false)
+        immerProxy(baseState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
         })
-        setAutoFreeze(true)
+        setAutoFreezeProxy(true)
+    })
+
+    test("immer (es5) - with autofreeze", () => {
+        setAutoFreezeEs5(true)
+        immerEs5(frozenBazeState, draft => {
+            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                draft[i].done = true
+            }
+        })
+    })
+
+    test("immer (es5) - without autofreeze", () => {
+        setAutoFreezeEs5(false)
+        immerEs5(baseState, draft => {
+            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                draft[i].done = true
+            }
+        })
+        setAutoFreezeEs5(true)
     })
 })
