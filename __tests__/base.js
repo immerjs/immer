@@ -33,6 +33,7 @@ describe("base", () => {
     })
 
     it("should return a copy when modifying stuff", () => {
+        debugger
         const nextState = immer(baseState, s => {
             s.aProp = "hello world"
         })
@@ -44,6 +45,7 @@ describe("base", () => {
     })
 
     it("deep change bubbles up", () => {
+        debugger
         const nextState = immer(baseState, s => {
             s.anObject.nested.yummie = false
         })

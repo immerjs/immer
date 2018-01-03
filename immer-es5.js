@@ -111,38 +111,43 @@ function immer(baseState, thunk) {
         return proxy
     }
 
-    function hasChanges(proxy) {
+    // this sounds very expensive, but actually it is not that extensive in practice
+    // as it will only visit proxies, and only do key-based change detection for objects for
+    // which it is not already know that they are changed (that is, only object for which no known key was changed)
+    function markChanges(proxy) {
         if (!isProxy(proxy)) return false
-        if (proxy[CHANGED_STATE]) return true // some property was modified
-        if (isPlainObject(proxy)) return objectHasChanges(proxy)
-        if (Array.isArray(proxy)) return arrayHasChanges(proxy)
+        if (isPlainObject(proxy)) return markObjectChanges(proxy)
+        if (Array.isArray(proxy)) return markArrayChanges(proxy)
     }
 
-    function objectHasChanges(proxy) {
+    function markObjectChanges(proxy) {
         const baseKeys = Object.keys(proxy[PROXY_TARGET])
         const keys = Object.keys(proxy)
-        if (!shallowEqual(baseKeys, keys)) return true
+        let hasChanges = proxy[CHANGED_STATE]
         // look deeper, this object was not modified, but maybe some of its children are
         for (let i = 0; i < keys.length; i++) {
-            if (hasChanges(proxy[keys[i]])) return true
+            if (markChanges(proxy[keys[i]])) hasChanges = true
         }
-        return false
+        // all children are the same, but maybe there are items added / removed
+        if (!hasChanges) hasChanges = !shallowEqual(baseKeys, keys)
+        return (proxy[CHANGED_STATE] = hasChanges)
     }
 
-    function arrayHasChanges(proxy) {
+    function markArrayChanges(proxy) {
         const target = proxy[PROXY_TARGET]
-        if (target.length !== proxy.length) return true
-        // look deeper, this object was not modified, but maybe some of its children are
+        let hasChanges = proxy[CHANGED_STATE]
         for (let i = 0; i < proxy.length; i++) {
-            if (hasChanges(proxy[i])) return true
+            if (markChanges(proxy[i])) hasChanges = true
         }
-        return false
+        // all children are the same, but maybe there are items added / removed
+        if (!hasChanges) hasChanges = target.length !== proxy.length
+        return (proxy[CHANGED_STATE] = hasChanges)
     }
 
     function finalize(proxy) {
         // given a base object, returns it if unmodified, or return the changed cloned if modified
         if (!isProxy(proxy)) return proxy
-        if (!hasChanges(proxy)) return proxy[PROXY_TARGET] // return the original target
+        if (!proxy[CHANGED_STATE]) return proxy[PROXY_TARGET] // return the original target
         if (isPlainObject(proxy)) return finalizeObject(proxy)
         if (Array.isArray(proxy)) return finalizeArray(proxy)
         throw new Error("Illegal state")
@@ -171,6 +176,8 @@ function immer(baseState, thunk) {
         )
     // and finalize the modified proxy
     finalizing = true
+    // find and mark all changes (for parts not done yet)
+    markChanges(rootClone)
     const res = finalize(rootClone)
     // make sure all proxies become unusable
     finished = true
