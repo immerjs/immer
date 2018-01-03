@@ -7,3 +7,5 @@ env:
 cache:
   directories:
     - "node_modules"
+scripts:
+ - coveralls

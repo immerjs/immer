@@ -1,5 +1,8 @@
 # Immer
 
+[![Coverage Status](https://coveralls.io/repos/github/Gregjarvez/immer/badge.svg?branch=master)](https://coveralls.io/github/Gregjarvez/immer?branch=master)
+
+
 _Create the next immutable state tree by simply modifying the current tree_
 
 ---
