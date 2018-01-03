@@ -1,8 +1,7 @@
-import {isObject} from "util"
-;("use strict")
+"use strict"
 // @ts-check
 
-const PROXY_TARGET = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
+const PROXY_TARGET = Symbol("immer-proxy")
 const CHANGED_STATE = Symbol("immer-changed-state")
 const PARENT = Symbol("immer-parent")
 

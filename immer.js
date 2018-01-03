@@ -1,6 +1,11 @@
 "use strict"
 // @ts-check
 
+if (typeof Proxy === "undefined")
+    throw new Error(
+        "Immer requires `Proxy` to be available, but it seems to be not available on your platform. Consider requiring immer '\"immer/es5\"' instead."
+    )
+
 /**
  * @typedef {Object} RevocableProxy
  * @property {any} proxy
