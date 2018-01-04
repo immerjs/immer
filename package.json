@@ -1,12 +1,13 @@
 {
   "name": "immer",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",
   "scripts": {
-    "test": "jest",
+    "test": "jest --verbose __tests__/base.js",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test:perf": "jest --verbose __tests__/performance.js",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write && git add . && git status"
   },
   "pre-commit": [

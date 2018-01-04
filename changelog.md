@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.2.0
+
+* Immer now supports JavaScript engines without Proxies as well! Just require `immer` from `"immer/es5"`. See [#22](https://github.com/mweststrate/immer/pull/22)
+
 ### 0.1.2 (2-1-2018)
 
 * Fixed issue where trailing commas could break consumers. Fixes [#21](https://github.com/mweststrate/immer/pull/21).
