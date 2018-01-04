@@ -144,13 +144,26 @@ function runBaseTest(name, lib, freeze) {
             expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
         })
 
-        it("should support sorting arrays - 2", () => {
+        it("should expose property descriptors", () => {
             const nextState = immer([], s => {
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
                 s.unshift("x")
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
+                    configurable: true,
+                    enumerable: true,
+                    value: "x",
+                    writable: true
+                })
                 expect(s.length).toBe(1)
                 expect(s[0] === "x").toBe(true)
             })
             expect(nextState).toEqual(["x"])
+            expect(Object.getOwnPropertyDescriptor(nextState, 0)).toEqual({
+                configurable: !freeze,
+                enumerable: true,
+                value: "x",
+                writable: !freeze
+            })
         })
 
         it("should support sorting arrays - 2", () => {
