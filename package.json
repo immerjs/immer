@@ -29,6 +29,7 @@
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
     "immer.js",
+    "es5.js",
     "index.d.ts"
   ],
   "devDependencies": {
