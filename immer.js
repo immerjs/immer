@@ -72,6 +72,13 @@ function immer(baseState, thunk) {
                 getCurrentSource(target),
                 prop
             )
+        },
+        defineProperty(target, property, descriptor) {
+            Object.defineProperty(getOrCreateCopy(target), property, descriptor)
+            return true
+        },
+        setPrototypeOf() {
+            throw new Error("Don't even try this...")
         }
     }
 
