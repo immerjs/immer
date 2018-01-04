@@ -144,27 +144,20 @@ function runBaseTest(name, lib, freeze) {
             expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
         })
 
-        it.skip("should support sorting arrays - 2", () => {
+        it("should support sorting arrays - 2", () => {
             const nextState = immer([], s => {
-                debugger
                 s.unshift("x")
-                // console.dir(s)
-                // console.dir(Object.getOwnPropertyDescriptor(s, "length"))
-                // console.dir(Object.getOwnPropertyDescriptor(s, 0))
                 expect(s.length).toBe(1)
                 expect(s[0] === "x").toBe(true)
             })
             expect(nextState).toEqual(["x"])
         })
 
-        it.skip("should support sorting arrays - 2", () => {
+        it("should support sorting arrays - 2", () => {
             const nextState = immer(baseState, s => {
-                debugger
                 s.anArray.unshift("x")
                 s.anArray[3].c = 4
-                // console.dir(s.anArray)
                 s.anArray.sort()
-                // console.dir(s.anArray)
                 s.anArray[3].c = 5
                 s.anArray.unshift("y")
             })
