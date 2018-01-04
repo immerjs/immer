@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.2.1
+
+* Fixed: `immer/es5.js` was not packed into the package. PR [#28](https://github.com/mweststrate/immer/pull/28) by [Nicolas Lepage](https://github.com/nlepage)
+
 ### 0.2.0
 
 * Immer now supports JavaScript engines without Proxies as well! Just require `immer` from `"immer/es5"`. See [#22](https://github.com/mweststrate/immer/pull/22)
