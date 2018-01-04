@@ -237,24 +237,26 @@ function updateObjectInArray(array, action) {
 
 Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
 This test takes 100.000 todo items, and updates 10.000 of them.
-These tests were executed on Node 8.4.0
+These tests were executed on Node 8.4.0.
+
+Use `yarn test:perf`  to reproduce them locally
 
 ```
-    ✓ just mutate (2ms)
+    ✓ just mutate (3ms)
        (No immutability at all)
-    ✓ deepclone, then mutate (390ms)
+    ✓ deepclone, then mutate (409ms)
        (Clone entire tree, then mutate (no structural sharing!))
-    ✓ handcrafted reducer (27ms)
+    ✓ handcrafted reducer (17ms)
        (Implement it as typical Redux reducer, with slices and spread operator)
-    ✓ immutableJS (68ms)
+    ✓ immutableJS (60ms)
        (Use immutableJS and leverage `withMutations` for best performance)
-    ✓ immer (proxy) - with autofreeze (303ms)
+    ✓ immer (proxy) - with autofreeze (305ms)
        (Immer, with auto freeze enabled, default implementation)
-    ✓ immer (proxy) - without autofreeze (142ms)
+    ✓ immer (proxy) - without autofreeze (149ms)
        (Immer, with auto freeze disabled, default implementation)
-    ✓ immer (es5) - with autofreeze (414ms)
+    ✓ immer (es5) - with autofreeze (436ms)
        (Immer, with auto freeze enabled, compatibility implementation)
-    ✓ immer (es5) - without autofreeze (341ms)
+    ✓ immer (es5) - without autofreeze (336ms)
        (Immer, with auto freeze disabled, default implementation)
 ```
 

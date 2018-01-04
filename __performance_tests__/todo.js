@@ -38,22 +38,25 @@ describe("performance", () => {
     })
     immutableJsBaseState = List(baseState.map(todo => todoRecord(todo)))
 
-    // The benchmarks
+    function measure(name, fn) {
+        global.gc && global.gc()
+        test(name, fn)
+    }
 
-    test("just mutate", () => {
+    measure("just mutate", () => {
         for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
             baseState[i].done = true
         }
     })
 
-    test("deepclone, then mutate", () => {
+    measure("deepclone, then mutate", () => {
         const draft = cloneDeep(baseState)
         for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
             draft[i].done = true
         }
     })
 
-    test("handcrafted reducer", () => {
+    measure("handcrafted reducer", () => {
         const nextState = [
             ...baseState.slice(0, MAX * MODIFY_FACTOR).map(todo => ({
                 ...todo,
@@ -63,7 +66,7 @@ describe("performance", () => {
         ]
     })
 
-    test("immutableJS", () => {
+    measure("immutableJS", () => {
         let state = immutableJsBaseState
         state.withMutations(state => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
@@ -72,7 +75,7 @@ describe("performance", () => {
         })
     })
 
-    test("immer (proxy) - with autofreeze", () => {
+    measure("immer (proxy) - with autofreeze", () => {
         setAutoFreezeProxy(true)
         immerProxy(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
@@ -81,7 +84,7 @@ describe("performance", () => {
         })
     })
 
-    test("immer (proxy) - without autofreeze", () => {
+    measure("immer (proxy) - without autofreeze", () => {
         setAutoFreezeProxy(false)
         immerProxy(baseState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
@@ -91,7 +94,7 @@ describe("performance", () => {
         setAutoFreezeProxy(true)
     })
 
-    test("immer (es5) - with autofreeze", () => {
+    measure("immer (es5) - with autofreeze", () => {
         setAutoFreezeEs5(true)
         immerEs5(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
@@ -100,7 +103,7 @@ describe("performance", () => {
         })
     })
 
-    test("immer (es5) - without autofreeze", () => {
+    measure("immer (es5) - without autofreeze", () => {
         setAutoFreezeEs5(false)
         immerEs5(baseState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
