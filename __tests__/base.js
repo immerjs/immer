@@ -144,7 +144,7 @@ function runBaseTest(name, lib, freeze) {
             expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
         })
 
-        it.only("should support sorting arrays - 2", () => {
+        it.skip("should support sorting arrays - 2", () => {
             const nextState = immer([], s => {
                 debugger
                 s.unshift("x")
@@ -157,7 +157,7 @@ function runBaseTest(name, lib, freeze) {
             expect(nextState).toEqual(["x"])
         })
 
-        it.only("should support sorting arrays - 2", () => {
+        it.skip("should support sorting arrays - 2", () => {
             const nextState = immer(baseState, s => {
                 debugger
                 s.anArray.unshift("x")
