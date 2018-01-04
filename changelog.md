@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.2.2
+
+* Fixed [#32](https://github.com/mweststrate/immer/issue/32): changes are not properly reflected in proxies when using for example `console.dir`
+
 ### 0.2.1
 
 * Fixed: `immer/es5.js` was not packed into the package. PR [#28](https://github.com/mweststrate/immer/pull/28) by [Nicolas Lepage](https://github.com/nlepage)

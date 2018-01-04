@@ -1,16 +1,21 @@
 "use strict"
-import immerProxy from ".."
-import immerEs5 from "../es5"
+import * as immerProxy from ".."
+import * as immerEs5 from "../es5"
+import deepFreeze from "deep-freeze"
 
-runBaseTest("proxy", immerProxy)
-runBaseTest("es5", immerEs5)
+runBaseTest("proxy (no freeze)", immerProxy, false)
+runBaseTest("proxy (autofreeze)", immerProxy, true)
+runBaseTest("es5 (no freeze)", immerEs5, false)
+runBaseTest("es5 (autofreeze)", immerEs5, true)
 
-function runBaseTest(name, immer) {
+function runBaseTest(name, lib, freeze) {
     describe(`base functionality - ${name}`, () => {
+        const immer = lib.default
         let baseState
         let origBaseState
 
         beforeEach(() => {
+            lib.setAutoFreeze(freeze)
             origBaseState = baseState = createBaseState()
         })
 
@@ -119,7 +124,13 @@ function runBaseTest(name, immer) {
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).not.toBe(baseState.anArray)
 
-            expect(nextState.anArray).toEqual([3, "a", "b", {c: 3}, 1])
+            expect(enumerableOnly(nextState.anArray)).toEqual([
+                3,
+                "a",
+                "b",
+                {c: 3},
+                1
+            ])
         })
 
         it("should support sorting arrays", () => {
@@ -130,7 +141,49 @@ function runBaseTest(name, immer) {
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(nextState.anArray).toEqual([1, 2, 3, {c: 5}])
+            expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
+        })
+
+        it("should expose property descriptors", () => {
+            const nextState = immer([], s => {
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
+                s.unshift("x")
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
+                    configurable: true,
+                    enumerable: true,
+                    value: "x",
+                    writable: true
+                })
+                expect(s.length).toBe(1)
+                expect(s[0] === "x").toBe(true)
+            })
+            expect(nextState).toEqual(["x"])
+            expect(Object.getOwnPropertyDescriptor(nextState, 0)).toEqual({
+                configurable: !freeze,
+                enumerable: true,
+                value: "x",
+                writable: !freeze
+            })
+        })
+
+        it("should support sorting arrays - 2", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.unshift("x")
+                s.anArray[3].c = 4
+                s.anArray.sort()
+                s.anArray[3].c = 5
+                s.anArray.unshift("y")
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(enumerableOnly(nextState.anArray)).toEqual([
+                "y",
+                1,
+                2,
+                3,
+                {c: 5},
+                "x"
+            ])
         })
 
         it("should updating inside arrays", () => {
@@ -150,7 +203,7 @@ function runBaseTest(name, immer) {
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
-            expect(nextState).toEqual({
+            expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hi",
                 messy: {
@@ -173,7 +226,7 @@ function runBaseTest(name, immer) {
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
-            expect(nextState).toEqual({
+            expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hello",
                 messy: {
@@ -258,7 +311,7 @@ function runBaseTest(name, immer) {
         })
 
         function createBaseState() {
-            return {
+            const data = {
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hi",
                 anObject: {
@@ -268,6 +321,12 @@ function runBaseTest(name, immer) {
                     coffee: false
                 }
             }
+            return freeze ? deepFreeze(data) : data
         }
     })
+}
+
+function enumerableOnly(x) {
+    // this can be done better...
+    return JSON.parse(JSON.stringify(x))
 }
