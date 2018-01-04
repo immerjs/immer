@@ -66,6 +66,12 @@ function immer(baseState, thunk) {
             const copy = getOrCreateCopy(target)
             delete copy[property]
             return true
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            return Reflect.getOwnPropertyDescriptor(
+                getCurrentSource(target),
+                prop
+            )
         }
     }
 
