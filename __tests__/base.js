@@ -54,16 +54,31 @@ function runBaseTest(name, lib, freeze) {
             expect(nextState.nested).toBe(baseState.nested)
         })
 
-        it("deep change bubbles up", () => {
-            const nextState = immer(baseState, s => {
-                s.anObject.nested.yummie = false
+        if (
+            ("should preserve type",
+            () => {
+                const nextState = immer(baseState, s => {
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                    s.anArray.push(3)
+                    s.aProp = "hello world"
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                })
+                expect(Array.isArray(nextState)).toBe(true)
+                expect(nextState.protoType).toBe(Object)
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anObject).not.toBe(baseState.anObject)
-            expect(baseState.anObject.nested.yummie).toBe(true)
-            expect(nextState.anObject.nested.yummie).toBe(false)
-            expect(nextState.anArray).toBe(baseState.anArray)
-        })
+        )
+            it("deep change bubbles up", () => {
+                const nextState = immer(baseState, s => {
+                    s.anObject.nested.yummie = false
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState.anObject).not.toBe(baseState.anObject)
+                expect(baseState.anObject.nested.yummie).toBe(true)
+                expect(nextState.anObject.nested.yummie).toBe(false)
+                expect(nextState.anArray).toBe(baseState.anArray)
+            })
 
         it("can add props", () => {
             const nextState = immer(baseState, s => {
