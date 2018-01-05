@@ -77,7 +77,9 @@ function immer(baseState, thunk) {
         markChanged() {
             if (!this.modified) {
                 this.modified = true
-                this.copy = Object.assign({}, this.base)
+                this.copy = Array.isArray(this.base)
+                    ? this.base.slice()
+                    : Object.assign({}, this.base)
                 if (this.parent) this.parent.markChanged()
             }
         }
@@ -117,10 +119,50 @@ function immer(baseState, thunk) {
         }
     }
 
+    const arrayTraps = {
+        get(target, prop) {
+            if (prop === IS_PROXY) return true
+            if (prop === PROXY_STATE) return target[0]
+            return target[0].get(prop)
+        },
+        has(target, prop) {
+            return prop in target[0].source
+        },
+        ownKeys(target) {
+            return Reflect.ownKeys(target[0].source)
+        },
+        set(target, prop, value) {
+            target[0].set(prop, value)
+            return true
+        },
+        deleteProperty(target, property) {
+            target[0].markChanged()
+            delete target[0].copy[property]
+            return true
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            return Reflect.getOwnPropertyDescriptor(target[0].source, prop)
+        },
+        defineProperty(target, property, descriptor) {
+            target[0].markChanged()
+            Object.defineProperty(target[0].copy, property, descriptor)
+            return true
+        },
+        setPrototypeOf() {
+            throw new Error("Don't even try this...")
+        }
+    }
+
     // creates a proxy for plain objects / arrays
     function createProxy(parentState, base) {
         const state = new State(parentState, base)
-        return new Proxy(state, objectTraps)
+        if (Array.isArray(base)) {
+            // Proxy should be created with an array to make it an array for JS
+            // so... here you have it!
+            return new Proxy([state], arrayTraps)
+        } else {
+            return new Proxy(state, objectTraps)
+        }
     }
 
     // given a base object, returns it if unmodified, or return the changed cloned if modified
