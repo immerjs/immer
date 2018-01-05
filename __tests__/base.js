@@ -4,9 +4,9 @@ import * as immerEs5 from "../es5"
 import deepFreeze from "deep-freeze"
 
 runBaseTest("proxy (no freeze)", immerProxy, false)
-runBaseTest("proxy (autofreeze)", immerProxy, true)
-runBaseTest("es5 (no freeze)", immerEs5, false)
-runBaseTest("es5 (autofreeze)", immerEs5, true)
+// runBaseTest("proxy (autofreeze)", immerProxy, true)
+// runBaseTest("es5 (no freeze)", immerEs5, false)
+// runBaseTest("es5 (autofreeze)", immerEs5, true)
 
 function runBaseTest(name, lib, freeze) {
     describe(`base functionality - ${name}`, () => {
@@ -345,3 +345,8 @@ function enumerableOnly(x) {
     // this can be done better...
     return JSON.parse(JSON.stringify(x))
 }
+
+// TODO: test problem scenarios
+// nesting immmer
+// non-trees
+// complex objects / functions

@@ -12,7 +12,8 @@ if (typeof Proxy === "undefined")
  * @property {Function} revoke
  */
 
-const IMMER_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
+const IS_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
+const PROXY_STATE = Symbol("immer-proxy-state") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 
 // This property indicates that the current object is cloned for another object,
 // to make sure the proxy of a frozen object is writeable
@@ -31,50 +32,84 @@ let autoFreeze = true
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
-    /**
-     * Maps baseState objects to revocable proxies
-     * @type {Map<Object,RevocableProxy>}
-     */
-    const revocableProxies = new Map()
-    // Maps baseState objects to their copies
+    class State {
+        // /** @type {boolean} */
+        // modified
+        // /** @type {State} */
+        // parent
+        // /** @type {any} */
+        // base
+        // /** @type {any} */
+        // copy
+        // /** @type {any} */
+        // proxies
 
-    const copies = new Map()
+        constructor(parent, base) {
+            this.modified
+            this.parent = parent
+            this.base = base
+            this.proxies = {}
+        }
+
+        get source() {
+            return this.modified === true ? this.copy : this.base
+        }
+
+        get(prop) {
+            const proxy = this.proxies[prop]
+            if (proxy) return proxy
+            const value = this.source[prop]
+            if (!isProxy(value) && isProxyable(value))
+                return (this.proxies[prop] = createProxy(this, value))
+            return value
+        }
+
+        set(prop, value) {
+            if (!this.modified) {
+                if (this.proxies[prop] === value || this.base[prop] === value)
+                    return
+                this.markChanged()
+            }
+            if (isProxy(value)) this.proxies[prop] = value
+            this.copy[prop] = value
+        }
+
+        markChanged() {
+            if (!this.modified) {
+                this.modified = true
+                this.copy = Object.assign({}, this.base)
+                if (this.parent) this.parent.markChanged()
+            }
+        }
+    }
 
     const objectTraps = {
         get(target, prop) {
-            if (prop === IMMER_PROXY) return target
-            return createProxy(getCurrentSource(target)[prop])
+            if (prop === IS_PROXY) return true
+            if (prop === PROXY_STATE) return target
+            return target.get(prop)
         },
         has(target, prop) {
-            return prop in getCurrentSource(target)
+            return prop in target.source
         },
         ownKeys(target) {
-            return Reflect.ownKeys(getCurrentSource(target))
+            return Reflect.ownKeys(target.source)
         },
         set(target, prop, value) {
-            const current = createProxy(getCurrentSource(target)[prop])
-            const newValue = createProxy(value)
-            if (current !== newValue) {
-                const copy = getOrCreateCopy(target)
-                copy[prop] = isProxy(newValue)
-                    ? newValue[IMMER_PROXY]
-                    : newValue
-            }
+            target.set(prop, value)
             return true
         },
         deleteProperty(target, property) {
-            const copy = getOrCreateCopy(target)
-            delete copy[property]
+            target.markChanged()
+            delete target.copy[property]
             return true
         },
         getOwnPropertyDescriptor(target, prop) {
-            return Reflect.getOwnPropertyDescriptor(
-                getCurrentSource(target),
-                prop
-            )
+            return Reflect.getOwnPropertyDescriptor(target.source, prop)
         },
         defineProperty(target, property, descriptor) {
-            Object.defineProperty(getOrCreateCopy(target), property, descriptor)
+            target.markChanged()
+            Object.defineProperty(target.copy, property, descriptor)
             return true
         },
         setPrototypeOf() {
@@ -82,104 +117,42 @@ function immer(baseState, thunk) {
         }
     }
 
-    // creates a copy for a base object if there ain't one
-    function getOrCreateCopy(base) {
-        let copy = copies.get(base)
-        if (copy) return copy
-        const cloneTarget = base[CLONE_TARGET]
-        if (cloneTarget) {
-            // base is a clone already (source was frozen), no need to create addtional copy
-            copies.set(cloneTarget, base)
-            return base
-        }
-        // create a fresh copy
-        copy = Array.isArray(base) ? base.slice() : Object.assign({}, base)
-        copies.set(base, copy)
-        return copy
-    }
-
-    // returns the current source of truth for a base object
-    function getCurrentSource(base) {
-        const copy = copies.get(base)
-        return copy || base
-    }
-
     // creates a proxy for plain objects / arrays
-    function createProxy(base) {
-        if (isPlainObject(base) || Array.isArray(base)) {
-            if (isProxy(base)) return base // avoid double wrapping
-            if (revocableProxies.has(base))
-                return revocableProxies.get(base).proxy
-            let proxyTarget
-            // special case, if the base tree is frozen, we cannot modify it's proxy it in strict mode, clone first.
-            if (Object.isFrozen(base)) {
-                proxyTarget = Array.isArray(base)
-                    ? base.slice()
-                    : Object.assign({}, base)
-                Object.defineProperty(proxyTarget, CLONE_TARGET, {
-                    enumerable: false,
-                    value: base,
-                    configurable: true
-                })
-            } else {
-                proxyTarget = base
-            }
-            // create the proxy
-            const revocableProxy = Proxy.revocable(proxyTarget, objectTraps)
-            revocableProxies.set(base, revocableProxy)
-            return revocableProxy.proxy
-        }
-        return base
-    }
-
-    // checks if the given base object has modifications, either because it is modified, or
-    // because one of it's children is
-    function hasChanges(base) {
-        const proxy = revocableProxies.get(base)
-        if (!proxy) return false // nobody did read this object
-        if (copies.has(base)) return true // a copy was created, so there are changes
-        // look deeper
-        const keys = Object.keys(base)
-        for (let i = 0; i < keys.length; i++) {
-            const value = base[keys[i]]
-            if (
-                (Array.isArray(value) || isPlainObject(value)) &&
-                hasChanges(value)
-            )
-                return true
-        }
-        return false
+    function createProxy(parentState, base) {
+        const state = new State(parentState, base)
+        return new Proxy(state, objectTraps)
     }
 
     // given a base object, returns it if unmodified, or return the changed cloned if modified
     function finalize(base) {
-        if (isPlainObject(base)) return finalizeObject(base)
-        if (Array.isArray(base)) return finalizeArray(base)
+        if (isProxy(base)) {
+            const state = base[PROXY_STATE]
+            if (state.modified === true) {
+                if (isPlainObject(base)) return finalizeObject(state)
+                if (Array.isArray(base)) return finalizeArray(state)
+            } else return state.base
+        }
         return base
     }
 
-    function finalizeObject(thing) {
-        if (!hasChanges(thing)) return thing
-        const copy = getOrCreateCopy(thing) // TODO: getOrCreate is weird here..
+    function finalizeObject(state) {
+        const copy = state.copy
         Object.keys(copy).forEach(prop => {
             copy[prop] = finalize(copy[prop])
         })
-        delete copy[CLONE_TARGET]
         return freeze(copy)
     }
 
     function finalizeArray(thing) {
-        if (!hasChanges(thing)) return thing
-        const copy = getOrCreateCopy(thing) // TODO: getOrCreate is weird here..
+        const copy = state.copy
         copy.forEach((value, index) => {
             copy[index] = finalize(copy[index])
         })
-        delete copy[CLONE_TARGET]
         return freeze(copy)
     }
 
     // create proxy for root
-    const rootClone = createProxy(baseState)
+    const rootClone = createProxy(undefined, baseState)
     // execute the thunk
     const maybeVoidReturn = thunk(rootClone)
     //values either than undefined will trigger warning;
@@ -189,9 +162,9 @@ function immer(baseState, thunk) {
         )
     // console.log(`proxies: ${revocableProxies.size}, copies: ${copies.size}`)
     // revoke all proxies
-    revoke(revocableProxies)
+    // TODO: revoke(revocableProxies)
     // and finalize the modified proxy
-    return finalize(baseState)
+    return finalize(rootClone)
 }
 
 /**
@@ -212,7 +185,13 @@ function isPlainObject(value) {
 }
 
 function isProxy(value) {
-    return !!value && !!value[IMMER_PROXY]
+    return !!value && !!value[IS_PROXY]
+}
+
+function isProxyable(value) {
+    if (!value) return false
+    if (typeof value !== "object") return false
+    return Array.isArray(value) || isPlainObject(value)
 }
 
 function freeze(value) {
