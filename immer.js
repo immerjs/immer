@@ -45,9 +45,10 @@ function immer(baseState, thunk) {
         // proxies
 
         constructor(parent, base) {
-            this.modified
+            this.modified = false
             this.parent = parent
             this.base = base
+            this.copy = undefined
             this.proxies = {}
         }
 
@@ -56,30 +57,39 @@ function immer(baseState, thunk) {
         }
 
         get(prop) {
-            const proxy = this.proxies[prop]
-            if (proxy) return proxy
-            const value = this.source[prop]
-            if (!isProxy(value) && isProxyable(value))
-                return (this.proxies[prop] = createProxy(this, value))
-            return value
+            if (this.modified) {
+                const value = this.copy[prop]
+                if (!isProxy(value) && isProxyable(value))
+                    return (this.copy[prop] = createProxy(this, value))
+                return value
+            } else {
+                if (prop in this.proxies) return this.proxies[prop]
+                const value = this.base[prop]
+                if (!isProxy(value) && isProxyable(value))
+                    return (this.proxies[prop] = createProxy(this, value))
+                return value
+            }
         }
 
         set(prop, value) {
             if (!this.modified) {
-                if (this.proxies[prop] === value || this.base[prop] === value)
+                if (
+                    (prop in this.base && this.base[prop] === value) ||
+                    (prop in this.proxies && this.proxies[prop] === value)
+                )
                     return
                 this.markChanged()
             }
-            if (isProxy(value)) this.proxies[prop] = value
             this.copy[prop] = value
         }
 
         markChanged() {
             if (!this.modified) {
                 this.modified = true
-                this.copy = Array.isArray(this.base)
+                this.copy = Array.isArray(this.base) // TODO: eliminate those isArray checks?
                     ? this.base.slice()
                     : Object.assign({}, this.base)
+                Object.assign(this.copy, this.proxies) // yup that works for arrays as well
                 if (this.parent) this.parent.markChanged()
             }
         }
@@ -107,7 +117,11 @@ function immer(baseState, thunk) {
             return true
         },
         getOwnPropertyDescriptor(target, prop) {
-            return Reflect.getOwnPropertyDescriptor(target.source, prop)
+            // TOOD: move to state
+            const owner = target.modified
+                ? target.copy
+                : prop in target.proxies ? target.proxies : target.base
+            return Reflect.getOwnPropertyDescriptor(owner, prop)
         },
         defineProperty(target, property, descriptor) {
             target.markChanged()
@@ -140,8 +154,12 @@ function immer(baseState, thunk) {
             delete target[0].copy[property]
             return true
         },
-        getOwnPropertyDescriptor(target, prop) {
-            return Reflect.getOwnPropertyDescriptor(target[0].source, prop)
+        getOwnPropertyDescriptor(target_, prop) {
+            const target = target_[0]
+            const owner = target.modified
+                ? target.copy
+                : prop in target.proxies ? target.proxies : target.base
+            return Reflect.getOwnPropertyDescriptor(owner, prop)
         },
         defineProperty(target, property, descriptor) {
             target[0].markChanged()
@@ -170,8 +188,8 @@ function immer(baseState, thunk) {
         if (isProxy(base)) {
             const state = base[PROXY_STATE]
             if (state.modified === true) {
-                if (isPlainObject(base)) return finalizeObject(state)
-                if (Array.isArray(base)) return finalizeArray(state)
+                if (isPlainObject(state.base)) return finalizeObject(state)
+                if (Array.isArray(state.base)) return finalizeArray(state)
             } else return state.base
         }
         return base
@@ -180,12 +198,12 @@ function immer(baseState, thunk) {
     function finalizeObject(state) {
         const copy = state.copy
         Object.keys(copy).forEach(prop => {
-            copy[prop] = finalize(copy[prop])
+            copy[prop] = finalize(copy[prop]) // TODO: make sure no new proxies are generated!
         })
         return freeze(copy)
     }
 
-    function finalizeArray(thing) {
+    function finalizeArray(state) {
         const copy = state.copy
         copy.forEach((value, index) => {
             copy[index] = finalize(copy[index])
