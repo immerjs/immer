@@ -4,6 +4,14 @@ _Create the next immutable state tree by simply modifying the current tree_
 
 ---
 
+[![Build Status](https://travis-ci.org/mweststrate/immer.svg?branch=master)](https://travis-ci.org/mweststrate/immer)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
+![npm install immer](https://nodei.co/npm/immer.png?downloadRank=true&downloads=true)
+
+* CDN:
+- https://unpkg.com/immer/immer.js
+
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
