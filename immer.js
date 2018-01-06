@@ -32,6 +32,8 @@ let autoFreeze = true
  * @returns {any} a new state, or the base state if nothing was modified
  */
 function immer(baseState, thunk) {
+    const revocableProxies = []
+
     class State {
         // /** @type {boolean} */
         // modified
@@ -121,7 +123,9 @@ function immer(baseState, thunk) {
             const owner = target.modified
                 ? target.copy
                 : prop in target.proxies ? target.proxies : target.base
-            return Reflect.getOwnPropertyDescriptor(owner, prop)
+            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
+            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
+            return descriptor
         },
         defineProperty(target, property, descriptor) {
             target.markChanged()
@@ -155,11 +159,14 @@ function immer(baseState, thunk) {
             return true
         },
         getOwnPropertyDescriptor(target_, prop) {
+            // TOOD: move to state
             const target = target_[0]
             const owner = target.modified
                 ? target.copy
                 : prop in target.proxies ? target.proxies : target.base
-            return Reflect.getOwnPropertyDescriptor(owner, prop)
+            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
+            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
+            return descriptor
         },
         defineProperty(target, property, descriptor) {
             target[0].markChanged()
@@ -174,13 +181,16 @@ function immer(baseState, thunk) {
     // creates a proxy for plain objects / arrays
     function createProxy(parentState, base) {
         const state = new State(parentState, base)
+        let proxy
         if (Array.isArray(base)) {
             // Proxy should be created with an array to make it an array for JS
             // so... here you have it!
-            return new Proxy([state], arrayTraps)
+            proxy = Proxy.revocable([state], arrayTraps)
         } else {
-            return new Proxy(state, objectTraps)
+            proxy = Proxy.revocable(state, objectTraps)
         }
+        revocableProxies.push(proxy)
+        return proxy.proxy
     }
 
     // given a base object, returns it if unmodified, or return the changed cloned if modified
@@ -220,22 +230,11 @@ function immer(baseState, thunk) {
         console.warn(
             `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
         )
-    // console.log(`proxies: ${revocableProxies.size}, copies: ${copies.size}`)
-    // revoke all proxies
-    // TODO: revoke(revocableProxies)
     // and finalize the modified proxy
-    return finalize(rootClone)
-}
-
-/**
- * Revoke all the proxies stored in the revocableProxies map
- *
- * @param {Map<Object,RevocableProxy>} revocableProxies
- */
-function revoke(revocableProxies) {
-    for (var revocableProxy of revocableProxies.values()) {
-        revocableProxy.revoke()
-    }
+    const res = finalize(rootClone)
+    // revoke all proxies
+    revocableProxies.forEach(p => p.revoke())
+    return res
 }
 
 function isPlainObject(value) {
