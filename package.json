@@ -1,12 +1,14 @@
 {
   "name": "immer",
-  "version": "0.0.4",
+  "version": "0.3.0",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",
   "scripts": {
     "test": "jest",
-    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write && git add . && git status"
+    "test:perf": "node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write"
   },
   "pre-commit": [
     "prettier"
@@ -27,14 +29,20 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "immer.js"
+    "immer.js",
+    "es5.js",
+    "index.d.ts"
   ],
   "devDependencies": {
     "@types/jest": "^22.0.0",
     "babel-core": "^6.26.0",
     "babel-jest": "^22.0.4",
     "babel-preset-env": "^1.6.1",
+    "coveralls": "^3.0.0",
+    "deep-freeze": "^0.0.1",
+    "immutable": "^3.8.2",
     "jest": "^22.0.4",
+    "lodash.clonedeep": "^4.5.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.9.2",
     "regenerator-runtime": "^0.11.1",

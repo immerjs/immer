@@ -1,243 +1,363 @@
-import immer from ".."
+"use strict"
+import * as immerProxy from ".."
+import * as immerEs5 from "../es5"
+import deepFreeze from "deep-freeze"
 
-describe("base", () => {
-  let baseState
-  let origBaseState
+runBaseTest("proxy (no freeze)", immerProxy, false)
+runBaseTest("proxy (autofreeze)", immerProxy, true)
+runBaseTest("es5 (no freeze)", immerEs5, false)
+runBaseTest("es5 (autofreeze)", immerEs5, true)
 
-  beforeEach(() => {
-    origBaseState = baseState = createBaseState()
-  })
+function runBaseTest(name, lib, freeze) {
+    describe(`base functionality - ${name}`, () => {
+        const immer = lib.default
+        let baseState
+        let origBaseState
 
-  it("should return the original without modifications", () => {
-    const nextState = immer(baseState, () => {})
-    expect(nextState).toBe(baseState)
-  })
+        beforeEach(() => {
+            lib.setAutoFreeze(freeze)
+            origBaseState = baseState = createBaseState()
+        })
 
-  it("should return the original without modifications when reading stuff", () => {
-    const nextState = immer(baseState, s => {
-      expect(s.aProp).toBe("hi")
-      expect(s.anObject.nested).toEqual({yummie: true})
+        it("should return the original without modifications", () => {
+            const nextState = immer(baseState, () => {})
+            expect(nextState).toBe(baseState)
+        })
+
+        it("should return the original without modifications when reading stuff", () => {
+            const nextState = immer(baseState, s => {
+                expect(s.aProp).toBe("hi")
+                expect(s.anObject.nested).toMatchObject({yummie: true})
+            })
+            expect(nextState).toBe(baseState)
+        })
+
+        it("should not return any value: thunk", () => {
+            const warning = jest.spyOn(console, "warn")
+            immer(baseState, () => ({bad: "don't do this"}))
+            immer(baseState, () => [1, 2, 3])
+            immer(baseState, () => false)
+            immer(baseState, () => "")
+
+            expect(warning).toHaveBeenCalledTimes(4)
+            warning.mockClear()
+        })
+
+        it("should return a copy when modifying stuff", () => {
+            const nextState = immer(baseState, s => {
+                s.aProp = "hello world"
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(baseState.aProp).toBe("hi")
+            expect(nextState.aProp).toBe("hello world")
+            // structural sharing?
+            expect(nextState.nested).toBe(baseState.nested)
+        })
+
+        if (
+            ("should preserve type",
+            () => {
+                const nextState = immer(baseState, s => {
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                    s.anArray.push(3)
+                    s.aProp = "hello world"
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                })
+                expect(Array.isArray(nextState)).toBe(true)
+                expect(nextState.protoType).toBe(Object)
+            })
+        )
+            it("deep change bubbles up", () => {
+                const nextState = immer(baseState, s => {
+                    s.anObject.nested.yummie = false
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState.anObject).not.toBe(baseState.anObject)
+                expect(baseState.anObject.nested.yummie).toBe(true)
+                expect(nextState.anObject.nested.yummie).toBe(false)
+                expect(nextState.anArray).toBe(baseState.anArray)
+            })
+
+        it("can add props", () => {
+            const nextState = immer(baseState, s => {
+                s.anObject.cookie = {tasty: true}
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).not.toBe(baseState.anObject)
+            expect(nextState.anObject.nested).toBe(baseState.anObject.nested)
+            expect(nextState.anObject.cookie).toEqual({tasty: true})
+        })
+
+        it("can delete props", () => {
+            const nextState = immer(baseState, s => {
+                delete s.anObject.nested
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).not.toBe(baseState.anObject)
+            expect(nextState.anObject.nested).toBe(undefined)
+        })
+
+        it("ignores single non-modification", () => {
+            const nextState = immer(baseState, s => {
+                s.aProp = "hi"
+            })
+            expect(nextState).toBe(baseState)
+        })
+
+        it("processes single modification", () => {
+            const nextState = immer(baseState, s => {
+                s.aProp = "hello"
+                s.aProp = "hi"
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState).toEqual(baseState)
+        })
+
+        it("should support reading arrays", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.slice()
+            })
+            expect(nextState.anArray).toBe(baseState.anArray)
+            expect(nextState).toBe(baseState)
+        })
+
+        it("should support changing arrays", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray[3] = true
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray[3]).toEqual(true)
+        })
+
+        it("should support changing arrays - 2", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.splice(1, 1, "a", "b")
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+
+            expect(enumerableOnly(nextState.anArray)).toEqual([
+                3,
+                "a",
+                "b",
+                {c: 3},
+                1
+            ])
+        })
+
+        it("can delete array items", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.length = 3
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).toBe(baseState.anObject)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray).toEqual([3, 2, {c: 3}])
+        })
+
+        it("should support sorting arrays", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray[2].c = 4
+                s.anArray.sort()
+                s.anArray[3].c = 5
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
+        })
+
+        it("should expose property descriptors", () => {
+            const nextState = immer([], s => {
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
+                s.unshift("x")
+                expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
+                    configurable: true,
+                    enumerable: true,
+                    value: "x",
+                    writable: true
+                })
+                expect(s.length).toBe(1)
+                expect(s[0] === "x").toBe(true)
+            })
+            expect(nextState).toEqual(["x"])
+            expect(Object.getOwnPropertyDescriptor(nextState, 0)).toEqual({
+                configurable: !freeze,
+                enumerable: true,
+                value: "x",
+                writable: !freeze
+            })
+        })
+
+        it("should support sorting arrays - 2", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.unshift("x")
+                s.anArray[3].c = 4
+                s.anArray.sort()
+                s.anArray[3].c = 5
+                s.anArray.unshift("y")
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(enumerableOnly(nextState.anArray)).toEqual([
+                "y",
+                1,
+                2,
+                3,
+                {c: 5},
+                "x"
+            ])
+        })
+
+        it("should updating inside arrays", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray[2].test = true
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray).toEqual([3, 2, {c: 3, test: true}, 1])
+        })
+
+        it("reusing object should work", () => {
+            const nextState = immer(baseState, s => {
+                const obj = s.anObject
+                delete s.anObject
+                s.messy = obj
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).toBe(baseState.anArray)
+            expect(enumerableOnly(nextState)).toEqual({
+                anArray: [3, 2, {c: 3}, 1],
+                aProp: "hi",
+                messy: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: false
+                }
+            })
+            expect(nextState.messy.nested).toBe(baseState.anObject.nested)
+        })
+
+        it("refs should be transparent", () => {
+            const nextState = immer(baseState, s => {
+                const obj = s.anObject
+                s.aProp = "hello"
+                delete s.anObject
+                obj.coffee = true
+                s.messy = obj
+                debugger
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).toBe(baseState.anArray)
+            expect(enumerableOnly(nextState)).toEqual({
+                anArray: [3, 2, {c: 3}, 1],
+                aProp: "hello",
+                messy: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: true
+                }
+            })
+            expect(nextState.messy.nested).toBe(baseState.anObject.nested)
+        })
+
+        it("should allow setting to undefined a defined draft property", () => {
+            const nextState = immer(baseState, s => {
+                s.aProp = undefined
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(baseState.aProp).toBe("hi")
+            expect(nextState.aProp).toBe(undefined)
+        })
+
+        // ES implementation does't protect against all outside modifications, just some..
+        if (name === "proxy") {
+            it("should revoke the proxy of the baseState after immer function is executed", () => {
+                let proxy
+                const nextState = immer(baseState, s => {
+                    proxy = s
+                    s.aProp = "hello"
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(baseState.aProp).toBe("hi")
+                expect(nextState.aProp).toBe("hello")
+
+                expect(() => {
+                    proxy.aProp = "Hallo"
+                }).toThrowError(/revoked/)
+                expect(() => {
+                    const aProp = proxy.aProp
+                }).toThrowError(/revoked/)
+
+                expect(nextState).not.toBe(baseState)
+                expect(baseState.aProp).toBe("hi")
+                expect(nextState.aProp).toBe("hello")
+            })
+        }
+
+        it("should revoke the proxy of the baseState after immer function is executed - 2", () => {
+            let proxy
+            const nextState = immer(baseState, s => {
+                proxy = s.anObject
+            })
+            expect(nextState).toBe(baseState)
+            expect(() => {
+                // In ES5 implemenation only protects existing props, but alas..
+                proxy.coffee = "Hallo"
+            }).toThrowError(/revoked/)
+            expect(() => {
+                const test = proxy.coffee
+            }).toThrowError(/revoked/)
+        })
+
+        it("should reflect all changes made in the draft immediately", () => {
+            immer(baseState, draft => {
+                draft.anArray[0] = 5
+                draft.anArray.unshift("test")
+                // sliced here; jest will also compare non-enumerable keys, which would include the immer Symbols
+                expect(draft.anArray.slice()).toMatchObject([
+                    "test",
+                    5,
+                    2,
+                    {c: 3},
+                    1
+                ])
+                draft.stuffz = "coffee"
+                expect(draft.stuffz).toBe("coffee")
+            })
+        })
+
+        afterEach(() => {
+            expect(baseState).toBe(origBaseState)
+            expect(baseState).toEqual(createBaseState())
+        })
+
+        function createBaseState() {
+            const data = {
+                anArray: [3, 2, {c: 3}, 1],
+                aProp: "hi",
+                anObject: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: false
+                }
+            }
+            return freeze ? deepFreeze(data) : data
+        }
     })
-    expect(nextState).toBe(baseState)
-  })
+}
 
-  it("should not return any value: thunk", () => {
-    const warning = jest.spyOn(console, "warn")
-    immer(baseState, () => ({bad: "don't do this"}))
-    immer(baseState, () => [1, 2, 3])
-    immer(baseState, () => false)
-    immer(baseState, () => "")
+function enumerableOnly(x) {
+    // this can be done better...
+    return JSON.parse(JSON.stringify(x))
+}
 
-    expect(warning).toHaveBeenCalledTimes(4)
-  })
-
-  it("should return a copy when modifying stuff", () => {
-    const nextState = immer(baseState, s => {
-      s.aProp = "hello world"
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(baseState.aProp).toBe("hi")
-    expect(nextState.aProp).toBe("hello world")
-    // structural sharing?
-    expect(nextState.nested).toBe(baseState.nested)
-  })
-
-  it("deep change bubbles up", () => {
-    const nextState = immer(baseState, s => {
-      s.anObject.nested.yummie = false
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anObject).not.toBe(baseState.anObject)
-    expect(baseState.anObject.nested.yummie).toBe(true)
-    expect(nextState.anObject.nested.yummie).toBe(false)
-    expect(nextState.anArray).toBe(baseState.anArray)
-  })
-
-  it("can add props", () => {
-    const nextState = immer(baseState, s => {
-      s.anObject.cookie = {tasty: true}
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anObject).not.toBe(baseState.anObject)
-    expect(nextState.anObject.nested).toBe(baseState.anObject.nested)
-    expect(nextState.anObject.cookie).toEqual({tasty: true})
-  })
-
-  it("can delete props", () => {
-    const nextState = immer(baseState, s => {
-      delete s.anObject.nested
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anObject).not.toBe(baseState.anObject)
-    expect(nextState.anObject.nested).toBe(undefined)
-  })
-
-  it("ignores single non-modification", () => {
-    const nextState = immer(baseState, s => {
-      s.aProp = "hi"
-    })
-    expect(nextState).toBe(baseState)
-  })
-
-  it("processes single modification", () => {
-    const nextState = immer(baseState, s => {
-      s.aProp = "hello"
-      s.aProp = "hi"
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState).toEqual(baseState)
-  })
-
-  it("should support reading arrays", () => {
-    const nextState = immer(baseState, s => {
-      s.anArray.slice()
-    })
-    expect(nextState.anArray).toBe(baseState.anArray)
-    expect(nextState).toBe(baseState)
-  })
-
-  it("should support changing arrays", () => {
-    const nextState = immer(baseState, s => {
-      s.anArray[3] = true
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).not.toBe(baseState.anArray)
-    expect(nextState.anArray[3]).toEqual(true)
-  })
-
-  it("should support changing arrays - 2", () => {
-    const nextState = immer(baseState, s => {
-      s.anArray.splice(1, 1, "a", "b")
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).not.toBe(baseState.anArray)
-
-    expect(nextState.anArray).toEqual([3, "a", "b", {c: 3}, 1])
-  })
-
-  it("should support sorting arrays", () => {
-    const nextState = immer(baseState, s => {
-      s.anArray[2].c = 4
-      s.anArray.sort()
-      s.anArray[3].c = 5
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).not.toBe(baseState.anArray)
-    expect(nextState.anArray).toEqual([1, 2, 3, {c: 5}])
-  })
-
-  it("should updating inside arrays", () => {
-    const nextState = immer(baseState, s => {
-      s.anArray[2].test = true
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).not.toBe(baseState.anArray)
-    expect(nextState.anArray).toEqual([3, 2, {c: 3, test: true}, 1])
-  })
-
-  it("reusing object should work", () => {
-    const nextState = immer(baseState, s => {
-      debugger
-      const obj = s.anObject
-      delete s.anObject
-      s.messy = obj
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).toBe(baseState.anArray)
-    expect(nextState).toEqual({
-      anArray: [3, 2, {c: 3}, 1],
-      aProp: "hi",
-      messy: {
-        nested: {
-          yummie: true,
-        },
-        coffee: false,
-      },
-    })
-    expect(nextState.messy.nested).toBe(baseState.anObject.nested)
-  })
-
-  it("refs should be transparent", () => {
-    const nextState = immer(baseState, s => {
-      const obj = s.anObject
-      s.aProp = "hello"
-      delete s.anObject
-      obj.coffee = true
-      s.messy = obj
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(nextState.anArray).toBe(baseState.anArray)
-    expect(nextState).toEqual({
-      anArray: [3, 2, {c: 3}, 1],
-      aProp: "hello",
-      messy: {
-        nested: {
-          yummie: true,
-        },
-        coffee: true,
-      },
-    })
-    expect(nextState.messy.nested).toBe(baseState.anObject.nested)
-  })
-
-  it("should allow setting to undefined a defined draft property", () => {
-    const nextState = immer(baseState, s => {
-      s.aProp = undefined
-    })
-    expect(nextState).not.toBe(baseState)
-    expect(baseState.aProp).toBe("hi")
-    expect(nextState.aProp).toBe(undefined)
-  })
-
-  afterEach(() => {
-    expect(baseState).toBe(origBaseState)
-    expect(baseState).toEqual(createBaseState())
-  })
-
-  function createBaseState() {
-    return {
-      anArray: [3, 2, {c: 3}, 1],
-      aProp: "hi",
-      anObject: {
-        nested: {
-          yummie: true,
-        },
-        coffee: false,
-      },
-    }
-  }
-})
-
-describe("readme example", () => {
-  it("works", () => {
-    const baseState = [
-      {
-        todo: "Learn typescript",
-        done: true,
-      },
-      {
-        todo: "Try immer",
-        done: false,
-      },
-    ]
-
-    const nextState = immer(baseState, state => {
-      state.push({todo: "Tweet about it"})
-      state[1].done = true
-    })
-
-    // the new item is only added to the next state,
-    // base state is unmodified
-    expect(baseState.length).toBe(2)
-    expect(nextState.length).toBe(3)
-
-    // same for the changed 'done' prop
-    expect(baseState[1].done).toBe(false)
-    expect(nextState[1].done).toBe(true)
-
-    // unchanged data is structurally shared
-    expect(nextState[0]).toBe(baseState[0])
-    // changed data not (dûh)
-    expect(nextState[1]).not.toBe(baseState[1])
-  })
-})
+// TODO: test problem scenarios
+// nesting immmer
+// non-trees
+// complex objects / functions

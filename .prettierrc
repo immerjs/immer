@@ -5,8 +5,8 @@
   "requirePragma": false,
   "semi": false,
   "singleQuote": false,
-  "tabWidth": 2,
-  "trailingComma": "all",
+  "tabWidth": 4,
+  "trailingComma": "none",
   "useTabs": false,
   "overrides": [
     {
