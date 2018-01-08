@@ -1,4 +1,9 @@
 # Changelog
+### 0.3.0 (8-1-2018)
+
+* Increased performance of the proxy-based implementation by a factor 2x - 3x. [#38](https://github.com/mweststrate/immer/pull/38)
+* Improved typescript typings [#40](https://github.com/mweststrate/immer/pull/40) by [Julien Cavaleiro](https://github.com/Julienng)
+* Added badges, coverage and typical project shizzle. [#25](https://github.com/mweststrate/immer/pull/25) by [Gregory Assasie](https://github.com/Gregjarvez) and [#39](https://github.com/mweststrate/immer/pull/39) by [Fadi Khadra](https://github.com/fkhadra)
 
 ### 0.2.2
 
