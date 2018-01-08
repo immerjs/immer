@@ -42,11 +42,24 @@ describe("performance", () => {
         test(name, fn)
     }
 
-    measure("just mutate", () => {
-        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-            baseState[i].done = true
-        }
-    })
+    {
+        const draft = cloneDeep(baseState)
+        measure("just mutate", () => {
+            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                draft[i].done = true
+            }
+        })
+    }
+
+    {
+        const draft = cloneDeep(baseState)
+        measure("just mutate, freeze", () => {
+            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                draft[i].done = true
+            }
+            deepFreeze(draft)
+        })
+    }
 
     measure("deepclone, then mutate", () => {
         const draft = cloneDeep(baseState)
