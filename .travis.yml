@@ -1,11 +1,9 @@
 language: node_js
 node_js:
- - "node"
- - "8"
+  - "8"
 env:
-- NODE_ENV=TEST
+  - NODE_ENV=TEST
 cache:
   directories:
     - "node_modules"
-scripts:
- - coveralls
+script: yarn coveralls
