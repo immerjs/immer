@@ -148,6 +148,16 @@ function runBaseTest(name, lib, freeze) {
             ])
         })
 
+        it("can delete array items", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.length = 3
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).toBe(baseState.anObject)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray).toEqual([3, 2, {c: 3}])
+        })
+
         it("should support sorting arrays", () => {
             const nextState = immer(baseState, s => {
                 s.anArray[2].c = 4
@@ -238,6 +248,7 @@ function runBaseTest(name, lib, freeze) {
                 delete s.anObject
                 obj.coffee = true
                 s.messy = obj
+                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
