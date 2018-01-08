@@ -18,4 +18,4 @@ export default function<S = any>(
  * This comes with a performance impact, so it is recommended to disable this option in production.
  * It is by default enabled.
  */
-export function setAutoFreeze(autoFreeze: boolean)
+export function setAutoFreeze(autoFreeze: boolean): void;
