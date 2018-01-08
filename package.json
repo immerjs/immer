@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest",
     "test:perf": "node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write"
   },
   "pre-commit": [
@@ -37,6 +38,7 @@
     "babel-core": "^6.26.0",
     "babel-jest": "^22.0.4",
     "babel-preset-env": "^1.6.1",
+    "coveralls": "^3.0.0",
     "deep-freeze": "^0.0.1",
     "immutable": "^3.8.2",
     "jest": "^22.0.4",
