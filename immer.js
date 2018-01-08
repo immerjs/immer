@@ -6,20 +6,70 @@ if (typeof Proxy === "undefined")
         "Immer requires `Proxy` to be available, but it seems to be not available on your platform. Consider requiring immer '\"immer/es5\"' instead."
     )
 
-/**
- * @typedef {Object} RevocableProxy
- * @property {any} proxy
- * @property {Function} revoke
- */
-
-const IS_PROXY = Symbol("immer-proxy") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 const PROXY_STATE = Symbol("immer-proxy-state") // TODO: create per closure, to avoid sharing proxies between multiple immer version
-
-// This property indicates that the current object is cloned for another object,
-// to make sure the proxy of a frozen object is writeable
-const CLONE_TARGET = Symbol("immer-clone-target")
-
 let autoFreeze = true
+
+const objectTraps = {
+    get(target, prop) {
+        if (prop === PROXY_STATE) return target
+        return target.get(prop)
+    },
+    has(target, prop) {
+        return prop in target.source
+    },
+    ownKeys(target) {
+        return Reflect.ownKeys(target.source)
+    },
+    set(target, prop, value) {
+        target.set(prop, value)
+        return true
+    },
+    deleteProperty(target, prop) {
+        target.deleteProp(prop)
+        return true
+    },
+    getOwnPropertyDescriptor(target, prop) {
+        return target.getOwnPropertyDescriptor(prop)
+    },
+    defineProperty(target, property, descriptor) {
+        target.defineProperty(property, descriptor)
+        return true
+    },
+    setPrototypeOf() {
+        throw new Error("Don't even try this...")
+    }
+}
+
+const arrayTraps = {
+    get(target, prop) {
+        if (prop === PROXY_STATE) return target[0]
+        return target[0].get(prop)
+    },
+    has(target, prop) {
+        return prop in target[0].source
+    },
+    ownKeys(target) {
+        return Reflect.ownKeys(target[0].source)
+    },
+    set(target, prop, value) {
+        target[0].set(prop, value)
+        return true
+    },
+    deleteProperty(target, prop) {
+        target[0].deleteProp(prop)
+        return true
+    },
+    getOwnPropertyDescriptor(target, prop) {
+        return target[0].getOwnPropertyDescriptor(prop)
+    },
+    defineProperty(target, property, descriptor) {
+        target[0].defineProperty(property, descriptor)
+        return true
+    },
+    setPrototypeOf() {
+        throw new Error("Don't even try this...")
+    }
+}
 
 /**
  * Immer takes a state, and runs a function against it.
@@ -74,6 +124,25 @@ function immer(baseState, thunk) {
             this.copy[prop] = value
         }
 
+        deleteProp(prop) {
+            this.markChanged()
+            delete this.copy[prop]
+        }
+
+        getOwnPropertyDescriptor(prop) {
+            const owner = this.modified
+                ? this.copy
+                : prop in this.proxies ? this.proxies : this.base
+            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
+            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
+            return descriptor
+        }
+
+        defineProperty(property, descriptor) {
+            this.markChanged()
+            Object.defineProperty(this.copy, property, descriptor)
+        }
+
         markChanged() {
             if (!this.modified) {
                 this.modified = true
@@ -83,87 +152,6 @@ function immer(baseState, thunk) {
                 Object.assign(this.copy, this.proxies) // yup that works for arrays as well
                 if (this.parent) this.parent.markChanged()
             }
-        }
-    }
-
-    const objectTraps = {
-        get(target, prop) {
-            if (prop === IS_PROXY) return true
-            if (prop === PROXY_STATE) return target
-            return target.get(prop)
-        },
-        has(target, prop) {
-            return prop in target.source
-        },
-        ownKeys(target) {
-            return Reflect.ownKeys(target.source)
-        },
-        set(target, prop, value) {
-            target.set(prop, value)
-            return true
-        },
-        deleteProperty(target, property) {
-            target.markChanged()
-            delete target.copy[property]
-            return true
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            // TOOD: move to state
-            const owner = target.modified
-                ? target.copy
-                : prop in target.proxies ? target.proxies : target.base
-            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
-            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
-            return descriptor
-        },
-        defineProperty(target, property, descriptor) {
-            target.markChanged()
-            Object.defineProperty(target.copy, property, descriptor)
-            return true
-        },
-        setPrototypeOf() {
-            throw new Error("Don't even try this...")
-        }
-    }
-
-    const arrayTraps = {
-        get(target, prop) {
-            if (prop === IS_PROXY) return true
-            if (prop === PROXY_STATE) return target[0]
-            return target[0].get(prop)
-        },
-        has(target, prop) {
-            return prop in target[0].source
-        },
-        ownKeys(target) {
-            return Reflect.ownKeys(target[0].source)
-        },
-        set(target, prop, value) {
-            target[0].set(prop, value)
-            return true
-        },
-        deleteProperty(target, property) {
-            target[0].markChanged()
-            delete target[0].copy[property]
-            return true
-        },
-        getOwnPropertyDescriptor(target_, prop) {
-            // TOOD: move to state
-            const target = target_[0]
-            const owner = target.modified
-                ? target.copy
-                : prop in target.proxies ? target.proxies : target.base
-            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
-            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
-            return descriptor
-        },
-        defineProperty(target, property, descriptor) {
-            target[0].markChanged()
-            Object.defineProperty(target[0].copy, property, descriptor)
-            return true
-        },
-        setPrototypeOf() {
-            throw new Error("Don't even try this...")
         }
     }
 
@@ -187,8 +175,8 @@ function immer(baseState, thunk) {
         if (isProxy(base)) {
             const state = base[PROXY_STATE]
             if (state.modified === true) {
-                if (isPlainObject(state.base)) return finalizeObject(state)
                 if (Array.isArray(state.base)) return finalizeArray(state)
+                return finalizeObject(state)
             } else return state.base
         }
         return base
@@ -197,7 +185,7 @@ function immer(baseState, thunk) {
     function finalizeObject(state) {
         const copy = state.copy
         Object.keys(copy).forEach(prop => {
-            copy[prop] = finalize(copy[prop]) // TODO: make sure no new proxies are generated!
+            copy[prop] = finalize(copy[prop])
         })
         return freeze(copy)
     }
@@ -226,20 +214,16 @@ function immer(baseState, thunk) {
     return res
 }
 
-function isPlainObject(value) {
-    if (value === null || typeof value !== "object") return false
-    const proto = Object.getPrototypeOf(value)
-    return proto === Object.prototype || proto === null
-}
-
 function isProxy(value) {
-    return !!value && !!value[IS_PROXY]
+    return !!value && !!value[PROXY_STATE]
 }
 
 function isProxyable(value) {
     if (!value) return false
     if (typeof value !== "object") return false
-    return Array.isArray(value) || isPlainObject(value)
+    if (Array.isArray(value)) return true
+    const proto = Object.getPrototypeOf(value)
+    return (proto === proto) === null || Object.prototype
 }
 
 function freeze(value) {
