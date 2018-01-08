@@ -3,6 +3,12 @@ import immerProxy, {setAutoFreeze as setAutoFreezeProxy} from ".."
 import immerEs5, {setAutoFreeze as setAutoFreezeEs5} from "../es5"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
+import deepFreeze from "deep-freeze"
+
+function freeze(x) {
+    Object.freeze(x)
+    return x
+}
 
 describe("performance", () => {
     const MAX = 100000
@@ -21,14 +27,7 @@ describe("performance", () => {
     }
 
     // Produce the frozen bazeState
-    frozenBazeState = baseState.map(todo => {
-        const newTodo = {...todo}
-        newTodo.someThingCompletelyIrrelevant = todo.someThingCompletelyIrrelevant.slice()
-        Object.freeze(newTodo.someThingCompletelyIrrelevant)
-        Object.freeze(newTodo)
-        return newTodo
-    })
-    Object.freeze(frozenBazeState)
+    frozenBazeState = deepFreeze(cloneDeep(baseState))
 
     // generate immutalbeJS base state
     const todoRecord = Record({
@@ -56,7 +55,15 @@ describe("performance", () => {
         }
     })
 
-    measure("handcrafted reducer", () => {
+    measure("deepclone, then mutate, then freeze", () => {
+        const draft = cloneDeep(baseState)
+        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+            draft[i].done = true
+        }
+        deepFreeze(draft)
+    })
+
+    measure("handcrafted reducer (no freeze)", () => {
         const nextState = [
             ...baseState.slice(0, MAX * MODIFY_FACTOR).map(todo => ({
                 ...todo,
@@ -64,6 +71,42 @@ describe("performance", () => {
             })),
             ...baseState.slice(MAX * MODIFY_FACTOR)
         ]
+    })
+
+    measure("handcrafted reducer (with freeze)", () => {
+        const nextState = freeze([
+            ...baseState.slice(0, MAX * MODIFY_FACTOR).map(todo =>
+                freeze({
+                    ...todo,
+                    done: true
+                })
+            ),
+            ...baseState.slice(MAX * MODIFY_FACTOR)
+        ])
+    })
+
+    measure("naive handcrafted reducer (without freeze)", () => {
+        const nextState = baseState.map((todo, index) => {
+            if (index < MAX * MODIFY_FACTOR)
+                return {
+                    ...todo,
+                    done: true
+                }
+            else return todo
+        })
+    })
+
+    measure("naive handcrafted reducer (with freeze)", () => {
+        const nextState = deepFreeze(
+            baseState.map((todo, index) => {
+                if (index < MAX * MODIFY_FACTOR)
+                    return {
+                        ...todo,
+                        done: true
+                    }
+                else return todo
+            })
+        )
     })
 
     measure("immutableJS", () => {
@@ -75,13 +118,14 @@ describe("performance", () => {
         })
     })
 
-    measure("immer (proxy) - with autofreeze", () => {
-        setAutoFreezeProxy(true)
-        immerProxy(frozenBazeState, draft => {
-            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-                draft[i].done = true
-            }
-        })
+    measure("immutableJS + toJS", () => {
+        let state = immutableJsBaseState
+            .withMutations(state => {
+                for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                    state.setIn([i, "done"], true)
+                }
+            })
+            .toJS()
     })
 
     measure("immer (proxy) - without autofreeze", () => {
@@ -94,9 +138,9 @@ describe("performance", () => {
         setAutoFreezeProxy(true)
     })
 
-    measure("immer (es5) - with autofreeze", () => {
-        setAutoFreezeEs5(true)
-        immerEs5(frozenBazeState, draft => {
+    measure("immer (proxy) - with autofreeze", () => {
+        setAutoFreezeProxy(true)
+        immerProxy(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
@@ -111,5 +155,14 @@ describe("performance", () => {
             }
         })
         setAutoFreezeEs5(true)
+    })
+
+    measure("immer (es5) - with autofreeze", () => {
+        setAutoFreezeEs5(true)
+        immerEs5(frozenBazeState, draft => {
+            for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                draft[i].done = true
+            }
+        })
     })
 })
