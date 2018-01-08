@@ -1,9 +1,7 @@
 "use strict"
 // @ts-check
 
-const PROXY_TARGET = Symbol("immer-proxy")
-const CHANGED_STATE = Symbol("immer-changed-state")
-const PARENT = Symbol("immer-parent")
+const PROXY_STATE = Symbol("immer-proxy-state") // TODO: create per closure, to avoid sharing proxies between multiple immer version
 
 let autoFreeze = true
 
@@ -21,42 +19,67 @@ function immer(baseState, thunk) {
     let finalizing = false
     let finished = false
     const descriptors = {}
-    const proxies = []
+    const states = []
+
+    class State {
+        constructor(parent, proxy, base) {
+            this.modified = false
+            this.hasCopy = false
+            this.parent = parent
+            this.base = base
+            this.proxy = proxy
+            this.copy = undefined
+        }
+
+        get source() {
+            return this.hasCopy ? this.copy : this.base
+        }
+
+        get(prop) {
+            assertUnfinished()
+            const value = this.source[prop]
+            if (!finalizing && !isProxy(value) && isProxyable(value)) {
+                this.prepareCopy()
+                return (this.copy[prop] = createProxy(this, value))
+            }
+            return value
+        }
+
+        set(prop, value) {
+            assertUnfinished()
+            if (!this.modified) {
+                if (this.source[prop] === value) return
+                this.markChanged()
+            }
+            this.prepareCopy()
+            this.copy[prop] = value
+        }
+
+        markChanged() {
+            if (!this.modified) {
+                this.modified = true
+                if (this.parent) this.parent.markChanged()
+            }
+        }
+
+        prepareCopy() {
+            if (this.hasCopy) return
+            this.hasCopy = true
+            this.copy = Array.isArray(this.base)
+                ? this.base.slice()
+                : Object.assign({}, this.base)
+        }
+    }
 
     // creates a proxy for plain objects / arrays
-    function createProxy(base, parent) {
+    function createProxy(parent, base) {
         let proxy
-        if (isPlainObject(base)) proxy = createObjectProxy(base)
-        else if (Array.isArray(base)) proxy = createArrayProxy(base)
-        else throw new Error("Expected a plain object or array")
-        createHiddenProperty(proxy, PROXY_TARGET, base)
-        createHiddenProperty(proxy, CHANGED_STATE, false)
-        createHiddenProperty(proxy, PARENT, parent)
-        proxies.push(proxy)
+        if (Array.isArray(base)) proxy = createArrayProxy(base)
+        else proxy = createObjectProxy(base)
+        const state = new State(parent, proxy, base)
+        createHiddenProperty(proxy, PROXY_STATE, state)
+        states.push(state)
         return proxy
-    }
-
-    function assertUnfinished() {
-        if (finished)
-            throw new Error(
-                "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?"
-            )
-    }
-
-    function proxySet(proxy, prop, value) {
-        // immer func not ended?
-        assertUnfinished()
-        // actually a change?
-        if (Object.is(proxy[prop], value)) return
-        // mark changed
-        markDirty(proxy)
-        // and stop proxying, we know this object has changed
-        Object.defineProperty(proxy, prop, {
-            enumerable: true,
-            writable: true,
-            configurable: true,
-            value: value
-        })
     }
 
     function createPropertyProxy(prop) {
@@ -66,34 +89,10 @@ function immer(baseState, thunk) {
                 configurable: true,
                 enumerable: true,
                 get() {
-                    assertUnfinished()
-                    // find the target object
-                    const target = this[PROXY_TARGET]
-                    // find the original value
-                    const value = target[prop]
-                    // if we are finalizing, don't bother creating proxies, just return base value
-                    if (finalizing) return value
-                    // if not proxy-able, return value
-                    if (!isPlainObject(value) && !Array.isArray(value))
-                        return value
-                    // otherwise, create proxy
-                    const proxy = createProxy(value, this)
-                    // and make sure this proxy is returned from this prop in the future if read
-                    // (write behavior as is)
-                    Object.defineProperty(this, prop, {
-                        configurable: true,
-                        enumerable: true,
-                        get() {
-                            return proxy
-                        },
-                        set(value) {
-                            proxySet(this, prop, value)
-                        }
-                    })
-                    return proxy
+                    return this[PROXY_STATE].get(prop)
                 },
                 set(value) {
-                    proxySet(this, prop, value)
+                    this[PROXY_STATE].set(prop, value)
                 }
             })
         )
@@ -114,6 +113,13 @@ function immer(baseState, thunk) {
         return proxy
     }
 
+    function assertUnfinished() {
+        if (finished)
+            throw new Error(
+                "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?"
+            )
+    }
+
     // this sounds very expensive, but actually it is not that extensive in practice
     // as it will only visit proxies, and only do key-based change detection for objects for
     // which it is not already know that they are changed (that is, only object for which no known key was changed)
@@ -121,41 +127,39 @@ function immer(baseState, thunk) {
         // intentionally we process the proxies in reverse order;
         // ideally we start by processing leafs in the tree, because if a child has changed, we don't have to check the parent anymore
         // reverse order of proxy creation approximates this
-        for (let i = proxies.length - 1; i >= 0; i--) {
-            const proxy = proxies[i]
-            if (
-                proxy[CHANGED_STATE] === false &&
-                ((isPlainObject(proxy) && hasObjectChanges(proxy)) ||
-                    (Array.isArray(proxy) && hasArrayChanges(proxy)))
-            ) {
-                markDirty(proxy)
+        for (let i = states.length - 1; i >= 0; i--) {
+            const state = states[i]
+            if (state.modified === false) {
+                if (Array.isArray(state.base)) {
+                    if (hasArrayChanges(state)) state.markChanged()
+                } else if (hasObjectChanges(state)) state.markChanged()
             }
         }
     }
 
-    function hasObjectChanges(proxy) {
-        const baseKeys = Object.keys(proxy[PROXY_TARGET])
-        const keys = Object.keys(proxy)
+    function hasObjectChanges(state) {
+        const baseKeys = Object.keys(state.base)
+        const keys = Object.keys(state.proxy)
         return !shallowEqual(baseKeys, keys)
     }
 
-    function hasArrayChanges(proxy) {
-        return proxy[PROXY_TARGET].length !== proxy.length
+    function hasArrayChanges(state) {
+        return state.proxy.length !== state.base.length
     }
 
     function finalize(proxy) {
         // given a base object, returns it if unmodified, or return the changed cloned if modified
         if (!isProxy(proxy)) return proxy
-        if (!proxy[CHANGED_STATE]) return proxy[PROXY_TARGET] // return the original target
-        if (isPlainObject(proxy)) return finalizeObject(proxy)
+        const state = proxy[PROXY_STATE]
+        if (state.modified === false) return state.base // return the original target
         if (Array.isArray(proxy)) return finalizeArray(proxy)
-        throw new Error("Illegal state")
+        return finalizeObject(proxy)
     }
 
     function finalizeObject(proxy) {
-        const res = {}
-        Object.keys(proxy).forEach(prop => {
-            res[prop] = finalize(proxy[prop])
+        const res = Object.assign({}, proxy)
+        Object.keys(res).forEach(prop => {
+            res[prop] = finalize(res[prop])
         })
         return freeze(res)
     }
@@ -165,7 +169,7 @@ function immer(baseState, thunk) {
     }
 
     // create proxy for root
-    const rootClone = createProxy(baseState, undefined)
+    const rootClone = createProxy(undefined, baseState)
     // execute the thunk
     const maybeVoidReturn = thunk(rootClone)
     //values either than undefined will trigger warning;
@@ -183,23 +187,16 @@ function immer(baseState, thunk) {
     return res
 }
 
-function markDirty(proxy) {
-    proxy[CHANGED_STATE] = true
-    let parent = proxy
-    while ((parent = parent[PARENT])) {
-        if (parent[CHANGED_STATE] === true) return
-        parent[CHANGED_STATE] = true
-    }
-}
-
-function isPlainObject(value) {
-    if (value === null || typeof value !== "object") return false
-    const proto = Object.getPrototypeOf(value)
-    return proto === Object.prototype || proto === null
-}
-
 function isProxy(value) {
-    return !!(value && value[PROXY_TARGET])
+    return !!value && !!value[PROXY_STATE]
+}
+
+function isProxyable(value) {
+    if (!value) return false
+    if (typeof value !== "object") return false
+    if (Array.isArray(value)) return true
+    const proto = Object.getPrototypeOf(value)
+    return (proto === proto) === null || Object.prototype
 }
 
 function freeze(value) {
