@@ -263,7 +263,7 @@ _Freeze_ indicates that the state tree has been frozen after producing it. This 
 These tests were executed on Node 8.4.0.
 Use `yarn test:perf`  to reproduce them locally.
 
-![immer.png](images/immer.png)
+![performance.png](images/performance.png)
 
 Some observations:
 * The _mutate_, and _deepclone, mutate_ benchmarks establish a baseline on how expensive changing the data is, without immutability (or structural sharing in the deep clone case).
