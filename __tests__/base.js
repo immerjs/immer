@@ -54,16 +54,31 @@ function runBaseTest(name, lib, freeze) {
             expect(nextState.nested).toBe(baseState.nested)
         })
 
-        it("deep change bubbles up", () => {
-            const nextState = immer(baseState, s => {
-                s.anObject.nested.yummie = false
+        if (
+            ("should preserve type",
+            () => {
+                const nextState = immer(baseState, s => {
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                    s.anArray.push(3)
+                    s.aProp = "hello world"
+                    expect(Array.isArray(s)).toBe(true)
+                    expect(s.protoType).toBe(Object)
+                })
+                expect(Array.isArray(nextState)).toBe(true)
+                expect(nextState.protoType).toBe(Object)
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anObject).not.toBe(baseState.anObject)
-            expect(baseState.anObject.nested.yummie).toBe(true)
-            expect(nextState.anObject.nested.yummie).toBe(false)
-            expect(nextState.anArray).toBe(baseState.anArray)
-        })
+        )
+            it("deep change bubbles up", () => {
+                const nextState = immer(baseState, s => {
+                    s.anObject.nested.yummie = false
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState.anObject).not.toBe(baseState.anObject)
+                expect(baseState.anObject.nested.yummie).toBe(true)
+                expect(nextState.anObject.nested.yummie).toBe(false)
+                expect(nextState.anArray).toBe(baseState.anArray)
+            })
 
         it("can add props", () => {
             const nextState = immer(baseState, s => {
@@ -131,6 +146,16 @@ function runBaseTest(name, lib, freeze) {
                 {c: 3},
                 1
             ])
+        })
+
+        it("can delete array items", () => {
+            const nextState = immer(baseState, s => {
+                s.anArray.length = 3
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).toBe(baseState.anObject)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray).toEqual([3, 2, {c: 3}])
         })
 
         it("should support sorting arrays", () => {
@@ -223,6 +248,7 @@ function runBaseTest(name, lib, freeze) {
                 delete s.anObject
                 obj.coffee = true
                 s.messy = obj
+                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
@@ -330,3 +356,8 @@ function enumerableOnly(x) {
     // this can be done better...
     return JSON.parse(JSON.stringify(x))
 }
+
+// TODO: test problem scenarios
+// nesting immmer
+// non-trees
+// complex objects / functions
