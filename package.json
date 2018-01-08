@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest",
     "test:perf": "node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
-    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write && git add . && git status"
+    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write"
   },
   "pre-commit": [
     "prettier"
