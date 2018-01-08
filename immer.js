@@ -35,17 +35,6 @@ function immer(baseState, thunk) {
     const revocableProxies = []
 
     class State {
-        // /** @type {boolean} */
-        // modified
-        // /** @type {State} */
-        // parent
-        // /** @type {any} */
-        // base
-        // /** @type {any} */
-        // copy
-        // /** @type {any} */
-        // proxies
-
         constructor(parent, base) {
             this.modified = false
             this.parent = parent

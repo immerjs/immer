@@ -100,7 +100,7 @@ function immer(baseState, thunk) {
     }
 
     function createObjectProxy(base) {
-        const proxy = {}
+        const proxy = Object.assign({}, base)
         Object.keys(base).forEach(prop =>
             Object.defineProperty(proxy, prop, createPropertyProxy(prop))
         )
@@ -108,7 +108,7 @@ function immer(baseState, thunk) {
     }
 
     function createArrayProxy(base) {
-        const proxy = []
+        const proxy = new Array(base.length)
         for (let i = 0; i < base.length; i++)
             Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
         return proxy
