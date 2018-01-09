@@ -6,7 +6,7 @@ runTests("proxy", immerProxy)
 runTests("es5", immerEs5)
 
 function runTests(name, lib) {
-    describe("auto freeze - " + name, () => {
+    describe("curry - " + name, () => {
         const produce = lib.default
 
         it("should check arguments", () => {
@@ -34,6 +34,7 @@ function runTests(name, lib) {
                 {index: 1},
                 {index: 2}
             ])
+            expect(state).toEqual([{}, {}, {}])
         })
     })
 }

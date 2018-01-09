@@ -5,7 +5,6 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://mobx.js.org/donate.html)
 
-
 _Create the next immutable state tree by simply modifying the current tree_
 
 ---
@@ -24,7 +23,7 @@ This means that you can interact with your data by simply modifying it, while ke
 
 Using immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
-A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applicable to plain, native JavaScript data structures (arrays and objects) without further needing any library.
+A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applied to plain, native JavaScript data structures (arrays and objects) without further needing any library.
 
 ## Installation
 
@@ -32,9 +31,11 @@ A mindful reader might notice that this is quite similar to `withMutations` of I
 
 ## API
 
-The immer package exposes a single function:
+The immer package exposes a default function that does all the work.
 
 `immer(currentState, fn: (draftState) => void): nextState`
+
+There is also a curried overload that is explained [below](#currying)
 
 ## Example
 
@@ -76,6 +77,108 @@ expect(nextState[0]).toBe(baseState[0])
 expect(nextState[1]).not.toBe(baseState[1])
 ```
 
+## Benefits
+
+* Immutability with normal JavaScript objects and arrays. No new APIs to learn!
+* Strongly typed, no string based paths selectors etc.
+* Structural sharing out of the box
+* Object freezing out of the box
+* Deep updates are a breeze
+* Boilerplate reduction. Less noise, more concise code.
+
+Read further to see all these benefits explained.
+
+## Reducer Example
+
+Here is a simple example of the difference that Immer could make in practice.
+
+
+```javascript
+// Redux reducer
+// Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
+const byId = (state, action) => {
+  switch (action.type) {
+    case RECEIVE_PRODUCTS:
+      return {
+        ...state,
+        ...action.products.reduce((obj, product) => {
+          obj[product.id] = product
+          return obj
+        }, {})
+      }
+    default:
+      return state
+  }
+}
+```
+
+After using immer, that simply becomes:
+
+```javascript
+import immer from 'immer'
+
+const byId = (state, action) =>
+  produce(state, draft => {
+    switch (action.type) {
+      case RECEIVE_PRODUCTS:
+        action.products.forEach(product => {
+          draft[product.id] = product
+        })
+    }
+  })
+```
+
+Note that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
+
+_Note, creating Redux reducer is just a sample application of the `immer` package.
+Immer is not just designed to simplify Redux reducers.
+It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
+
+## Currying
+
+`produce` can be called with one or two arguments.
+The one argument version is intended to be used as currying. This means that you get a pre-pound producer, that only needs a state to produce the value from.
+The producer function get's passed in the draft, and any further arguments that were passed to the curried function.
+
+For example:
+
+```javascript
+// mapper will be of signature (state, index) => state
+const mapper = produce((draft, index) => {
+    draft.index = index
+})
+
+// example usage
+console.dir([{}, {}, {}].map(mapper))
+//[{index: 0}, {index: 1}, {index: 2}])
+```
+
+This mechanism can also nicely be leveraged to further simplify our example reducer:
+
+```javascript
+
+const byId = produce((draft, action) => {
+  switch (action.type) {
+    case RECEIVE_PRODUCTS:
+    action.products.forEach(product => {
+        draft[product.id] = product
+    })
+  }
+})
+```
+
+Note that `state` is now factored out (the created reducer will accept a state, and invoke the bound producer with it).
+One think to keep in mind; you cannot use this construction to initialize an uninitialized state. E.g. `draft = {}` doesn't do anything useful.
+
+
+## Auto freezing
+
+ Immer automatically freezes any state trees that are modified using `produce`.
+ This protects against accidental modifications of the state tree outside of an immer function.
+ This comes with a performance impact, so it is recommended to disable this option in production.
+ It is by default enabled.
+ Use `setAutoFreeze(true / false)` to turn this feature on or off.
+
 ## Using immer on older JavaScript environments
 
 By default `immer` tries to use proxies for optimal performance.
@@ -87,99 +190,7 @@ In these cases, import the ES5 compatibile implementation first, which is a bit 
 import immer from "immer/es5"
 ```
 
-## Benefits
-
-* Use the language© to construct create your next state
-* Use JavaScript native arrays and object
-* Automatic immutability; any state tree produced by `immer` will by defualt be deeply frozen
-* Strongly typed, no string based paths etc
-* Deep updates are trivial
-* Small, dependency free library with minimal api surface
-* No accidental mutations of current state, but intentional mutations of a draft state
-
-## Auto freezing
-
- Immer automatically freezes any state trees that are modified using `immer.
- This protects against accidental modifications of the state tree outside of an immer function.
- This comes with a performance impact, so it is recommended to disable this option in production.
- It is by default enabled.
-
- Use `setAutoFreeze(true / false)` to turn this feature on or off.
-
-## Reducer Example
-
-Here is a simple example of the difference that this approach could make in practice.
-The todo reducers from the official Redux [todos-with-undo example](https://codesandbox.io/s/github/reactjs/redux/tree/master/examples/todos-with-undo)
-
-_Note, this is just a sample application of the `immer` package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
-
-```javascript
-const todo = (state, action) => {
-  switch (action.type) {
-    case 'ADD_TODO':
-      return {
-        id: action.id,
-        text: action.text,
-        completed: false
-      }
-    case 'TOGGLE_TODO':
-      if (state.id !== action.id) {
-        return state
-      }
-
-      return {
-        ...state,
-        completed: !state.completed
-      }
-    default:
-      return state
-  }
-}
-
-const todos = (state = [], action) => {
-  switch (action.type) {
-    case 'ADD_TODO':
-      return [
-        ...state,
-        todo(undefined, action)
-      ]
-    case 'TOGGLE_TODO':
-      return state.map(t =>
-        todo(t, action)
-      )
-    default:
-      return state
-  }
-}
-```
-
-After using immer, that simply [becomes](https://codesandbox.io/s/xl11qpo9mp):
-
-```javascript
-import immer from 'immer'
-
-const todos = (state = [], action) =>
-  // immer produces nextState from draftState and returns it
-  immer(state, draftState => {
-    switch (action.type) {
-      case 'ADD_TODO':
-        draftState.push({
-          id: action.id,
-          text: action.text,
-          completed: false
-        })
-        return
-      case 'TOGGLE_TODO':
-        const todo = draftState.find(todo => todo.id === action.id)
-        todo.completed = !todo.completed
-        return
-    }
-  })
-```
-
-Creating middleware or a reducer wrapper that applies `immer` automatically is left as exercise for the reader :-).
-
----
+## More reducer examples
 
 Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their immer counter part.
 These examples are semantically equivalent and produce the exact same state.
@@ -242,17 +253,16 @@ function updateObjectInArray(array, action) {
 }
 ```
 
-## Limitations
+## Pitfalls
 
-* Currently, only tree shaped states are supported. Cycles could potentially be supported as well (PR's welcome)
-* Currently, only supports plain objects and arrays. Non-plain data structures (like `Map`, `Set`) not (yet). (PR's welcome)
-
-## Pitfalls:
-
+* Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
 * Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer`  or whatever complex object from the draft state, it will be that very same object in both the base state as the next state. In such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
-* Make sure to modify the draft state you get passed in in the callback function, not the original current state that was passed as the first argument to `immer`!
-* Since immer uses proxies, reading huge amounts of data from state comes with an overhead. If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the `immer` block or read from the `currentState` rather than the `draftState`
+* Since immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
 * Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
+
+## How does immer work?
+
+Read the (second part of the) [introduction blog](https://medium.com/@mweststrate/9d73d8f71cb3).
 
 ## Performance
 
@@ -276,3 +286,7 @@ Some observations:
 ## Credits
 
 Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.
+
+## Donations
+
+A significant part of my OSS work is unpaid. So [donations](https://mobx.js.org/donate.html) are greatly appreciated :)
