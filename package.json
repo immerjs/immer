@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",

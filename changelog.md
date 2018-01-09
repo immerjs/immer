@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.4.0
+
+* Introduce support for [currying](https://github.com/mweststrate/immer#currying). [#37](https://github.com/mweststrate/immer/pull/37)
+* Added argument checking
+* The name of the immer import is now idiomatically `produce`. So the recommend import statement is: `import produce from "immer"`.
+
 ### 0.3.1
 
 * Republished, somehow NPM still returned 0.2.2
