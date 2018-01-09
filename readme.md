@@ -267,10 +267,10 @@ Use `yarn test:perf`  to reproduce them locally.
 
 Some observations:
 * The _mutate_, and _deepclone, mutate_ benchmarks establish a baseline on how expensive changing the data is, without immutability (or structural sharing in the deep clone case).
-* The _reducure_ and _naive reducer_ are implemented in typical Redux style reducers. The "smart" implementation slices the collection first, and then maps and freezes only the relevant todos. The "naive" implementation just maps over and processes the entire collection.
-* Immer with proxies is roughly speaking twice as slow as a hand written reducer. This is in practice negclectable.
+* The _reduce_ and _naive reducer_ are implemented in typical Redux style reducers. The "smart" implementation slices the collection first, and then maps and freezes only the relevant todos. The "naive" implementation just maps over and processes the entire collection.
+* Immer with proxies is roughly speaking twice as slow as a hand written reducer. This is in practice negligible.
 * Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
-* The ES5 implentation of immer is significantly slower. For most reducers this won't matter, but reducers that process large amounts of data might benefit from not (or only partially) using an immer producer. Luckily, immer is fully opt-in.
+* The ES5 implementation of immer is significantly slower. For most reducers this won't matter, but reducers that process large amounts of data might benefit from not (or only partially) using an immer producer. Luckily, immer is fully opt-in.
 * The peeks in the _frozen_ versions of _just mutate_, _deepclone_ and _naive reducer_ come from the fact that they recursively freeze the full state tree, while the other test cases only freeze the modified parts of the tree.
 
 ## Credits
