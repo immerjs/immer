@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.4.1
+
+* Added UMD build
+
 ### 0.4.0
 
 * Introduce support for [currying](https://github.com/mweststrate/immer#currying). [#37](https://github.com/mweststrate/immer/pull/37)

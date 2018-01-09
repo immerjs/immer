@@ -10,7 +10,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 ---
 
 * NPM / Yarn: `npm install immer`
-* CDN: https://unpkg.com/immer
+* CDN: https://unpkg.com/immer/immer.umd.js or https://unpkg.com/immer/es5.umd.js. Exposed global is `immer`.
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.

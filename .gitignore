@@ -58,3 +58,5 @@ typings/
 .env
 
 .idea
+immer.umd.js
+es5.umd.js

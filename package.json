@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Create your next immutable state by mutating the current one",
   "main": "immer.js",
   "types": "./index.d.ts",
@@ -8,7 +8,9 @@
     "test": "jest",
     "test:perf": "node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
-    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write"
+    "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
+    "build:umd": "browserify immer.js -o immer.umd.js -s immer && browserify es5.js -o es5.umd.js -s immer",
+    "prepublish": "yarn build:umd"
   },
   "pre-commit": [
     "prettier"
@@ -30,7 +32,9 @@
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
     "immer.js",
+    "immer.umd.js",
     "es5.js",
+    "es5.umd.js",
     "index.d.ts"
   ],
   "devDependencies": {
@@ -38,6 +42,7 @@
     "babel-core": "^6.26.0",
     "babel-jest": "^22.0.4",
     "babel-preset-env": "^1.6.1",
+    "browserify": "^15.0.0",
     "coveralls": "^3.0.0",
     "deep-freeze": "^0.0.1",
     "immutable": "^3.8.2",
