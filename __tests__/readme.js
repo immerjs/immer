@@ -1,5 +1,5 @@
 "use strict"
-import immer from ".."
+import produce from ".."
 
 describe("readme example", () => {
     it("works", () => {
@@ -14,7 +14,7 @@ describe("readme example", () => {
             }
         ]
 
-        const nextState = immer(baseState, draft => {
+        const nextState = produce(baseState, draft => {
             draft.push({todo: "Tweet about it"})
             draft[1].done = true
         })

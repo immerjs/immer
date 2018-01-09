@@ -16,31 +16,27 @@ Immer (German for: always) is a tiny package that allows you to work with immuta
 It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
 The basic idea is that you will apply all your changes to a temporarily _draftState_, which is a proxy of the _currentState_.
-Once all your mutations are completed, immer will produce the _nextState_ based on the mutations to the draft state.
+Once all your mutations are completed, Immer will produce the _nextState_ based on the mutations to the draft state.
 This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
 
 ![immer.png](images/immer.png)
 
-Using immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
+Using Immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
 A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applied to plain, native JavaScript data structures (arrays and objects) without further needing any library.
 
-## Installation
-
-`npm install immer`
-
 ## API
 
-The immer package exposes a default function that does all the work.
+The Immer package exposes a default function that does all the work.
 
-`immer(currentState, fn: (draftState) => void): nextState`
+`produce(currentState, producer: (draftState) => void): nextState`
 
 There is also a curried overload that is explained [below](#currying)
 
 ## Example
 
 ```javascript
-import immer from "immer"
+import produce from "immer"
 
 const baseState = [
     {
@@ -53,13 +49,13 @@ const baseState = [
     }
 ]
 
-const nextState = immer(baseState, draftState => {
+const nextState = produce(baseState, draftState => {
     draftState.push({ todo: "Tweet about it" })
     draftState[1].done = true
 })
 ```
 
-The interesting thing about `immer` is that, the `baseState` will be untouched, but the `nextState` will reflect all changes made to `draftState`.
+The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will reflect all changes made to `draftState`.
 
 ```javascript
 // the new item is only added to the next state,
@@ -92,7 +88,6 @@ Read further to see all these benefits explained.
 
 Here is a simple example of the difference that Immer could make in practice.
 
-
 ```javascript
 // Redux reducer
 // Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
@@ -112,10 +107,10 @@ const byId = (state, action) => {
 }
 ```
 
-After using immer, that simply becomes:
+After using Immer, that simply becomes:
 
 ```javascript
-import immer from 'immer'
+import produce from 'immer'
 
 const byId = (state, action) =>
   produce(state, draft => {
@@ -130,7 +125,7 @@ const byId = (state, action) =>
 
 Note that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
 
-_Note, creating Redux reducer is just a sample application of the `immer` package.
+_Note, creating Redux reducer is just a sample application of the Immer package.
 Immer is not just designed to simplify Redux reducers.
 It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
 
@@ -156,7 +151,6 @@ console.dir([{}, {}, {}].map(mapper))
 This mechanism can also nicely be leveraged to further simplify our example reducer:
 
 ```javascript
-
 const byId = produce((draft, action) => {
   switch (action.type) {
     case RECEIVE_PRODUCTS:
@@ -174,14 +168,14 @@ One think to keep in mind; you cannot use this construction to initialize an uni
 ## Auto freezing
 
  Immer automatically freezes any state trees that are modified using `produce`.
- This protects against accidental modifications of the state tree outside of an immer function.
+ This protects against accidental modifications of the state tree outside of a producer.
  This comes with a performance impact, so it is recommended to disable this option in production.
  It is by default enabled.
  Use `setAutoFreeze(true / false)` to turn this feature on or off.
 
-## Using immer on older JavaScript environments
+## Using Immer on older JavaScript environments
 
-By default `immer` tries to use proxies for optimal performance.
+By default `produce` tries to use proxies for optimal performance.
 However, on older JavaScript engines `Proxy` is not available.
 For example, Microsoft Internet Explorer or React Native on Android.
 In these cases, import the ES5 compatibile implementation first, which is a bit slower (see below) but semantically equivalent:
@@ -192,7 +186,7 @@ import immer from "immer/es5"
 
 ## More reducer examples
 
-Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their immer counter part.
+Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their Immer counter part.
 These examples are semantically equivalent and produce the exact same state.
 
 ```javascript
@@ -207,7 +201,7 @@ function insertItem(array, action) {
 
 // With immer
 function insertItem(array, action) {
-    return immer(array, draft => {
+    return produce(array, draft => {
         draft.splice(action.index, 0, action.item)
     })
 }
@@ -222,7 +216,7 @@ function removeItem(array, action) {
 
 // With immer
 function removeItem(array, action) {
-    return immer(array, draft => {
+    return produce(array, draft => {
         draft.splice(action.index, 1)
     })
 }
@@ -245,7 +239,7 @@ function updateObjectInArray(array, action) {
 
 // With immer
 function updateObjectInArray(array, action) {
-    return immer(array, draft => {
+    return produce(array, draft => {
         draft[action.index] = { ...item, ...action.item}
         // Alternatively, since arbitrarily deep updates are supported:
         // Object.assign(draft[action.index], action.item)
@@ -257,16 +251,16 @@ function updateObjectInArray(array, action) {
 
 * Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
 * Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer`  or whatever complex object from the draft state, it will be that very same object in both the base state as the next state. In such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
-* Since immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
+* Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
 * Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 
-## How does immer work?
+## How does Immer work?
 
 Read the (second part of the) [introduction blog](https://medium.com/@mweststrate/9d73d8f71cb3).
 
 ## Performance
 
-Here is a [simple benchmark](__tests__/performance.js) on the performance of `immer`.
+Here is a [simple benchmark](__tests__/performance.js) on the performance of Immer.
 This test takes 100.000 todo items, and updates 10.000 of them.
 _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
 
@@ -277,10 +271,10 @@ Use `yarn test:perf`  to reproduce them locally.
 
 Some observations:
 * The _mutate_, and _deepclone, mutate_ benchmarks establish a baseline on how expensive changing the data is, without immutability (or structural sharing in the deep clone case).
-* The _reducure_ and _naive reducer_ are implemented in typical Redux style reducers. The "smart" implementation slices the collection first, and then maps and freezes only the relevant todos. The "naive" implementation just maps over and processes the entire collection.
-* Immer with proxies is roughly speaking twice as slow as a hand written reducer. This is in practice negclectable.
+* The _reducer_ and _naive reducer_ are implemented in typical Redux style reducers. The "smart" implementation slices the collection first, and then maps and freezes only the relevant todos. The "naive" implementation just maps over and processes the entire collection.
+* Immer with proxies is roughly speaking twice as slow as a hand written reducer. This is in practice negligible.
 * Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
-* The ES5 implentation of immer is significantly slower. For most reducers this won't matter, but reducers that process large amounts of data might benefit from not (or only partially) using an immer producer. Luckily, immer is fully opt-in.
+* The ES5 implementation of Immer is significantly slower. For most reducers this won't matter, but reducers that process large amounts of data might benefit from not (or only partially) using an Immer producer. Luckily, Immer is fully opt-in.
 * The peeks in the _frozen_ versions of _just mutate_, _deepclone_ and _naive reducer_ come from the fact that they recursively freeze the full state tree, while the other test cases only freeze the modified parts of the tree.
 
 ## Credits
