@@ -12,10 +12,31 @@ let autoFreeze = true
  *
  * @export
  * @param {any} baseState - the state to start with
- * @param {Function} thunk - function that receives a proxy of the base state as first argument and which can be freely modified
+ * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
  * @returns {any} a new state, or the base state if nothing was modified
  */
-function produce(baseState, thunk) {
+function produce(baseState, producer) {
+    // curried invocation
+    if (arguments.length === 1) {
+        const producer = baseState
+        // prettier-ignore
+        if (typeof producer !== "function") throw new Error("if produce is called with 1 argument, the first argument should be a function")
+        return function() {
+            const args = arguments
+            return produce(args[0], draft => {
+                args[0] = draft // blegh!
+                baseState.apply(null, args)
+            })
+        }
+    }
+
+    // prettier-ignore
+    {
+        if (arguments.length !== 2)  throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
+        if (!isProxyable(baseState)) throw new Error("the first argument to produce should be a plain object or array, got " + (typeof baseState))
+        if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
+    }
+
     let finalizing = false
     let finished = false
     const descriptors = {}
@@ -171,7 +192,7 @@ function produce(baseState, thunk) {
     // create proxy for root
     const rootClone = createProxy(undefined, baseState)
     // execute the thunk
-    const maybeVoidReturn = thunk(rootClone)
+    const maybeVoidReturn = producer(rootClone)
     //values either than undefined will trigger warning;
     !Object.is(maybeVoidReturn, undefined) &&
         console.warn(
