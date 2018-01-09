@@ -15,7 +15,7 @@ let autoFreeze = true
  * @param {Function} thunk - function that receives a proxy of the base state as first argument and which can be freely modified
  * @returns {any} a new state, or the base state if nothing was modified
  */
-function immer(baseState, thunk) {
+function produce(baseState, thunk) {
     let finalizing = false
     let finished = false
     const descriptors = {}
@@ -252,5 +252,5 @@ function setAutoFreeze(enableAutoFreeze) {
 }
 
 createHiddenProperty(exports, "__esModule", true)
-module.exports.default = immer
+module.exports.default = produce
 module.exports.setAutoFreeze = setAutoFreeze

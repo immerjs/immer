@@ -8,7 +8,7 @@ runBaseTest("es5", immerEs5)
 
 function runBaseTest(name, lib) {
     describe("auto freeze - " + name, () => {
-        const immer = lib.default
+        const produce = lib.default
         const baseState = {
             object: {a: 1},
             array: [1, 2]
@@ -16,7 +16,7 @@ function runBaseTest(name, lib) {
 
         it("should freeze objects after modifications", () => {
             expect(Object.isFrozen(baseState.object)).toBe(false) // initially not frozen
-            const next = immer(baseState, draft => {
+            const next = produce(baseState, draft => {
                 draft.object.c = 2
             })
             expect(Object.isFrozen(next.object)).toBe(true)
@@ -30,7 +30,7 @@ function runBaseTest(name, lib) {
 
         it("should freeze arrays after modifications", () => {
             expect(Object.isFrozen(baseState.object)).toBe(false) // initially not frozen
-            const next = immer(baseState, draft => {
+            const next = produce(baseState, draft => {
                 draft.array.push(3)
             })
             expect(Object.isFrozen(next.object)).toBe(false) // not touched
@@ -47,7 +47,7 @@ function runBaseTest(name, lib) {
             const b = {a: a}
             Object.freeze(a)
             Object.freeze(b)
-            const n = immer(b, draft => {
+            const n = produce(b, draft => {
                 draft.c = true
                 draft.a.push(3)
             })

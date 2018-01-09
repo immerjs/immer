@@ -10,7 +10,7 @@ runBaseTest("es5 (autofreeze)", immerEs5, true)
 
 function runBaseTest(name, lib, freeze) {
     describe(`base functionality - ${name}`, () => {
-        const immer = lib.default
+        const produce = lib.default
         let baseState
         let origBaseState
 
@@ -20,12 +20,12 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should return the original without modifications", () => {
-            const nextState = immer(baseState, () => {})
+            const nextState = produce(baseState, () => {})
             expect(nextState).toBe(baseState)
         })
 
         it("should return the original without modifications when reading stuff", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 expect(s.aProp).toBe("hi")
                 expect(s.anObject.nested).toMatchObject({yummie: true})
             })
@@ -34,17 +34,17 @@ function runBaseTest(name, lib, freeze) {
 
         it("should not return any value: thunk", () => {
             const warning = jest.spyOn(console, "warn")
-            immer(baseState, () => ({bad: "don't do this"}))
-            immer(baseState, () => [1, 2, 3])
-            immer(baseState, () => false)
-            immer(baseState, () => "")
+            produce(baseState, () => ({bad: "don't do this"}))
+            produce(baseState, () => [1, 2, 3])
+            produce(baseState, () => false)
+            produce(baseState, () => "")
 
             expect(warning).toHaveBeenCalledTimes(4)
             warning.mockClear()
         })
 
         it("should return a copy when modifying stuff", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hello world"
             })
             expect(nextState).not.toBe(baseState)
@@ -57,7 +57,7 @@ function runBaseTest(name, lib, freeze) {
         if (
             ("should preserve type",
             () => {
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     expect(Array.isArray(s)).toBe(true)
                     expect(s.protoType).toBe(Object)
                     s.anArray.push(3)
@@ -70,7 +70,7 @@ function runBaseTest(name, lib, freeze) {
             })
         )
             it("deep change bubbles up", () => {
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     s.anObject.nested.yummie = false
                 })
                 expect(nextState).not.toBe(baseState)
@@ -81,7 +81,7 @@ function runBaseTest(name, lib, freeze) {
             })
 
         it("can add props", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anObject.cookie = {tasty: true}
             })
             expect(nextState).not.toBe(baseState)
@@ -91,7 +91,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("can delete props", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 delete s.anObject.nested
             })
             expect(nextState).not.toBe(baseState)
@@ -100,14 +100,14 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("ignores single non-modification", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hi"
             })
             expect(nextState).toBe(baseState)
         })
 
         it("processes single modification", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hello"
                 s.aProp = "hi"
             })
@@ -116,7 +116,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support reading arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.slice()
             })
             expect(nextState.anArray).toBe(baseState.anArray)
@@ -124,7 +124,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support changing arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[3] = true
             })
             expect(nextState).not.toBe(baseState)
@@ -133,7 +133,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support changing arrays - 2", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.splice(1, 1, "a", "b")
             })
             expect(nextState).not.toBe(baseState)
@@ -149,7 +149,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("can delete array items", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.length = 3
             })
             expect(nextState).not.toBe(baseState)
@@ -159,7 +159,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support sorting arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[2].c = 4
                 s.anArray.sort()
                 s.anArray[3].c = 5
@@ -170,7 +170,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should expose property descriptors", () => {
-            const nextState = immer([], s => {
+            const nextState = produce([], s => {
                 expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
                 s.unshift("x")
                 expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
@@ -192,7 +192,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support sorting arrays - 2", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.unshift("x")
                 s.anArray[3].c = 4
                 s.anArray.sort()
@@ -212,7 +212,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should updating inside arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[2].test = true
             })
             expect(nextState).not.toBe(baseState)
@@ -221,7 +221,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("reusing object should work", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 const obj = s.anObject
                 delete s.anObject
                 s.messy = obj
@@ -242,7 +242,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("refs should be transparent", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 const obj = s.anObject
                 s.aProp = "hello"
                 delete s.anObject
@@ -266,7 +266,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should allow setting to undefined a defined draft property", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = undefined
             })
             expect(nextState).not.toBe(baseState)
@@ -278,7 +278,7 @@ function runBaseTest(name, lib, freeze) {
         if (name === "proxy") {
             it("should revoke the proxy of the baseState after immer function is executed", () => {
                 let proxy
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     proxy = s
                     s.aProp = "hello"
                 })
@@ -301,7 +301,7 @@ function runBaseTest(name, lib, freeze) {
 
         it("should revoke the proxy of the baseState after immer function is executed - 2", () => {
             let proxy
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 proxy = s.anObject
             })
             expect(nextState).toBe(baseState)
@@ -315,7 +315,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should reflect all changes made in the draft immediately", () => {
-            immer(baseState, draft => {
+            produce(baseState, draft => {
                 draft.anArray[0] = 5
                 draft.anArray.unshift("test")
                 // sliced here; jest will also compare non-enumerable keys, which would include the immer Symbols

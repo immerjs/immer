@@ -81,7 +81,7 @@ const arrayTraps = {
  * @param {Function} thunk - function that receives a proxy of the base state as first argument and which can be freely modified
  * @returns {any} a new state, or the base state if nothing was modified
  */
-function immer(baseState, thunk) {
+function produce(baseState, thunk) {
     const revocableProxies = []
 
     class State {
@@ -233,7 +233,7 @@ function freeze(value) {
         Object.freeze(value)
     }
     * */
-    autoFreeze && Object.freeze(value);
+    autoFreeze && Object.freeze(value)
     return value
 }
 
@@ -252,5 +252,5 @@ function setAutoFreeze(enableAutoFreeze) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 })
-module.exports.default = immer
+module.exports.default = produce
 module.exports.setAutoFreeze = setAutoFreeze
