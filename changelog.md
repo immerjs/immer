@@ -1,4 +1,9 @@
 # Changelog
+
+### 0.3.1
+
+* Republished, somehow NPM still returned 0.2.2
+
 ### 0.3.0 (8-1-2018)
 
 * Increased performance of the proxy-based implementation by a factor 2x - 3x. [#38](https://github.com/mweststrate/immer/pull/38)
