@@ -3,10 +3,10 @@ import * as immerProxy from ".."
 import * as immerEs5 from "../es5"
 import deepFreeze from "deep-freeze"
 
-runBaseTest("proxy", immerProxy)
-runBaseTest("es5", immerEs5)
+runTests("proxy", immerProxy)
+runTests("es5", immerEs5)
 
-function runBaseTest(name, lib) {
+function runTests(name, lib) {
     describe("auto freeze - " + name, () => {
         const immer = lib.default
         const baseState = {
