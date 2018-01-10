@@ -1,5 +1,5 @@
 "use strict"
-import produceProxy, {setAutoFreeze as setAutoFreezeProxy} from ".."
+import produceProxy, {setAutoFreeze as setAutoFreezeProxy} from "../"
 import produceEs5, {setAutoFreeze as setAutoFreezeEs5} from "../es5"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"

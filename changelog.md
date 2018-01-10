@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.4.3
+
+* Make sure es5.js is transpiled
+
 ### 0.4.2
 
 * Fixed generating a wrong property descriptor for the `length` property of arrays. Fixes [#50](https://github.com/mweststrate/immer/issues/50)

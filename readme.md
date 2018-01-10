@@ -10,7 +10,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 ---
 
 * NPM / Yarn: `npm install immer`
-* CDN: https://unpkg.com/immer/immer.umd.js or https://unpkg.com/immer/es5.umd.js. Exposed global is `immer`.
+* CDN: https://unpkg.com/immer/dist/immer.umd.js or https://unpkg.com/immer/dist/es5.umd.js. Exposed global is `immer`.
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
@@ -123,11 +123,13 @@ const byId = (state, action) =>
   })
 ```
 
-Note that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
+Notice that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
 
-_Note, creating Redux reducer is just a sample application of the Immer package.
+Creating Redux reducer is just a sample application of the Immer package.
 Immer is not just designed to simplify Redux reducers.
-It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing)_
+It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing).
+
+_Note: it might be tempting after using producers a while, to just put `produce` in your root reducer, and then past the draft along to each reducer and work on that. Don't do that. It kills the point of Redux where each reducer is testable as pure reducer. Immer is best used when applying it to small individual pieces of logic._
 
 ## Currying
 

@@ -1,5 +1,5 @@
 "use strict"
-import produce from ".."
+import produce from "../src/immer"
 
 describe("readme example", () => {
     it("works", () => {

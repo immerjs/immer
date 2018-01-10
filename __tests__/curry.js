@@ -1,6 +1,6 @@
 "use strict"
-import * as immerProxy from ".."
-import * as immerEs5 from "../es5"
+import * as immerProxy from "../src/immer"
+import * as immerEs5 from "../src/es5"
 
 runTests("proxy", immerProxy)
 runTests("es5", immerEs5)
