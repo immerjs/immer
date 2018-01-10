@@ -154,13 +154,15 @@ function produce(baseState, producer) {
                 ? this.copy
                 : prop in this.proxies ? this.proxies : this.base
             const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
-            if (descriptor) descriptor.configurable = true // XXX: is this really needed?
+            if (descriptor && !(Array.isArray(owner) && prop === "length"))
+                descriptor.configurable = true
             return descriptor
         }
 
         defineProperty(property, descriptor) {
-            this.markChanged()
-            Object.defineProperty(this.copy, property, descriptor)
+            throw new Error(
+                "Immer does currently not support defining properties on draft objects"
+            )
         }
 
         markChanged() {

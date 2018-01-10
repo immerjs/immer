@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.4.2
+
+* Fixed generating a wrong property descriptor for the `length` property of arrays. Fixes [#50](https://github.com/mweststrate/immer/issues/50)
+* Defining custom properties on drafts is no longer supported
+
 ### 0.4.1
 
 * Added UMD build

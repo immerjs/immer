@@ -248,7 +248,6 @@ function runBaseTest(name, lib, freeze) {
                 delete s.anObject
                 obj.coffee = true
                 s.messy = obj
-                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
@@ -275,7 +274,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         // ES implementation does't protect against all outside modifications, just some..
-        if (name === "proxy") {
+        if (lib === immerProxy) {
             it("should revoke the proxy of the baseState after immer function is executed", () => {
                 let proxy
                 const nextState = produce(baseState, s => {
@@ -330,6 +329,104 @@ function runBaseTest(name, lib, freeze) {
                 expect(draft.stuffz).toBe("coffee")
             })
         })
+
+        it("should be able to get property descriptors from objects", () => {
+            produce({a: 1}, draft => {
+                expect("a" in draft).toBe(true)
+                expect("b" in draft).toBe(false)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["a"])
+
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "a")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                draft.a = 2
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "a")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "b")
+                ).toBeUndefined()
+                draft.b = 2
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "b")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                expect("a" in draft).toBe(true)
+                expect("b" in draft).toBe(true)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["a", "b"])
+            })
+        })
+
+        it("should be able to get property descriptors from arrays", () => {
+            produce([1], draft => {
+                expect(0 in draft).toBe(true)
+                expect(1 in draft).toBe(false)
+                expect("0" in draft).toBe(true)
+                expect("1" in draft).toBe(false)
+                expect(length in draft).toBe(true)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["0", "length"])
+
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "length")
+                ).toMatchObject({
+                    configurable: false,
+                    enumerable: false
+                })
+                draft[0] = 2
+                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, 1)
+                ).toBeUndefined()
+                draft[1] = 2
+                expect(Object.getOwnPropertyDescriptor(draft, 1)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["0", "1", "length"])
+            })
+        })
+
+        if (lib === immerProxy)
+            it("should not be possible to set property descriptors", () => {
+                expect(() => {
+                    produce({}, draft => {
+                        Object.defineProperty(draft, "xx", {
+                            enumerable: true,
+                            writeable: true,
+                            value: 2
+                        })
+                    })
+                }).toThrowError(/not support/)
+            })
 
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
