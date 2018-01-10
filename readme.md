@@ -12,6 +12,11 @@ _Create the next immutable state tree by simply modifying the current tree_
 * NPM / Yarn: `npm install immer`
 * CDN: https://unpkg.com/immer/dist/immer.umd.js or https://unpkg.com/immer/dist/es5.umd.js. Exposed global is `immer`.
 
+---
+
+* Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
+* Egghead lesson: [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
+
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
