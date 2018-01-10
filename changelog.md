@@ -1,6 +1,6 @@
 # Changelog
 
-### 0.4.3
+### 0.5.0
 
 * Make sure es5.js is transpiled
 
