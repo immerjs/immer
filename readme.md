@@ -182,11 +182,15 @@ One think to keep in mind; you cannot use this construction to initialize an uni
 By default `produce` tries to use proxies for optimal performance.
 However, on older JavaScript engines `Proxy` is not available.
 For example, Microsoft Internet Explorer or React Native on Android.
-In these cases, import the ES5 compatibile implementation first, which is a bit slower (see below) but semantically equivalent:
+In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
+However, if you want to slim down your bundle, you could only include the Proxy based implementation by importing from `immer/proxy`.
 
-```javascript
-import immer from "immer/es5"
-```
+An overview of the available builds:
+
+Immer exposes its functionality in 3 different ways:
+* `import produce from "immer"`, the default, ships with both the Proxy and ES5 compatible implementation, and picks at runtime the best matching one. This is the most convenient, but adds the most to the bundle size (~2KB)
+* `import produce from "immer/proxy"`: This build is optimized for modern browser, which support Proxies and other modern language features, and doesn't polyfill things like `Symbol`. Use this if you are targetting a modern environment only
+* `import produce from "immer/es5"`: Only bundle the ES5 compatible implementation (which of course also works for modern browsers)
 
 ## More reducer examples
 

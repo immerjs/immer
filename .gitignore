@@ -59,3 +59,4 @@ typings/
 
 .idea
 dist/
+proxy.js

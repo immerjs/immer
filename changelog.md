@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.6.0
+
+The default import now bundles both the es5 and proxy implementation as a convenient default. For more optimal bundle sizes, import `immer/proxy` or `immer/es5`
+
 ### 0.5.0
 
 * Make sure es5.js is transpiled

@@ -15,7 +15,7 @@ let autoFreeze = true
  * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
  * @returns {any} a new state, or the base state if nothing was modified
  */
-function produce(baseState, producer) {
+export default function produce(baseState, producer) {
     // curried invocation
     if (arguments.length === 1) {
         const producer = baseState
@@ -268,10 +268,6 @@ function shallowEqual(objA, objB) {
  *
  * @returns {void}
  */
-function setAutoFreeze(enableAutoFreeze) {
+export function setAutoFreeze(enableAutoFreeze) {
     autoFreeze = enableAutoFreeze
 }
-
-createHiddenProperty(exports, "__esModule", true)
-module.exports.default = produce
-module.exports.setAutoFreeze = setAutoFreeze

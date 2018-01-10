@@ -2,14 +2,14 @@
   "name": "immer",
   "version": "0.5.0",
   "description": "Create your next immutable state by mutating the current one",
-  "main": "dist/immer.js",
+  "main": "dist/index.js",
   "types": "./index.d.ts",
   "scripts": {
     "test": "jest",
     "test:perf": "yarn build:babel && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "yarn build:babel && yarn build:umd",
-    "build:babel": "cd src && babel -d ../dist immer.js && babel --no-babelrc --presets=es2015 -d ../dist es5.js",
+    "build:babel": "cd src && babel immer.js -o ../proxy.js && babel --no-babelrc --presets=es2015 -d ../dist *.js",
     "build:umd": "browserify dist/immer.js -o dist/immer.umd.js -s immer && browserify dist/es5.js -o dist/es5.umd.js -s immer",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
     "prepublish": "yarn build"
@@ -34,6 +34,7 @@
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
     "es5.js",
+    "proxy.js",
     "index.d.ts",
     "dist/"
   ],
