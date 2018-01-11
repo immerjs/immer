@@ -273,7 +273,7 @@ Read the (second part of the) [introduction blog](https://medium.com/@mweststrat
 
 ## Performance
 
-Here is a [simple benchmark](__tests__/performance.js) on the performance of Immer.
+Here is a [simple benchmark](__performance_tests__/todo.js) on the performance of Immer.
 This test takes 100.000 todo items, and updates 10.000 of them.
 _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
 
