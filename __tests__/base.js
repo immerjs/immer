@@ -3,6 +3,8 @@ import * as immerProxy from "../src/immer"
 import * as immerEs5 from "../src/es5"
 import deepFreeze from "deep-freeze"
 
+jest.setTimeout(1000)
+
 runBaseTest("proxy (no freeze)", immerProxy, false)
 runBaseTest("proxy (autofreeze)", immerProxy, true)
 runBaseTest("es5 (no freeze)", immerEs5, false)
@@ -465,8 +467,8 @@ function runBaseTest(name, lib, freeze) {
                     }
                 ]
             })
-            expect(result.newArr[0]).toBe(base.arr[2]) // isn't this weird? not sure
-            expect(result.arr[2]).toBe(base.arr[2]) // isn't this weird? not sure
+            expect(result.newArr[0]).toBe(base.arr[2])
+            expect(result.arr[2]).toBe(base.arr[2])
         })
 
         it("should not throw error, see #53 - 3", () => {
@@ -480,6 +482,98 @@ function runBaseTest(name, lib, freeze) {
                 newArr: [{count: 3}]
             })
             expect(result.newArr[0]).toBe(base.arr[2])
+        })
+
+        it("should not throw error, see #53 - 4", () => {
+            debugger
+            const base = {bear: {age: 10}}
+            const result = produce(base, draft => {
+                draft.bear.legs = 4
+                draft.room = {elephant: {kiddo: draft.bear}}
+            })
+            expect(result).toEqual({
+                bear: {age: 10, legs: 4},
+                room: {elephant: {kiddo: {age: 10, legs: 4}}}
+            })
+
+            const result2 = produce(result, draft => {
+                draft.bear.age = 11
+                draft.room.elephant.kiddo.legs = 5
+            })
+            expect(result2).toEqual({
+                bear: {age: 11, legs: 4},
+                room: {elephant: {kiddo: {age: 10, legs: 5}}}
+            })
+        })
+
+        it("should handle dates correctly", () => {
+            const data = {date: new Date()}
+            const next = produce(data, draft => {
+                draft.x = true
+            })
+            expect(next).toEqual({x: true, date: data.date})
+            expect(next.date).toBe(data.date)
+            const next2 = produce(next, draft => {
+                draft.date.setYear(2015)
+            })
+            // This still holds; because produce won't proxy Date objects
+            // and the original is actually modified!
+            expect(next2).toEqual({x: true, date: data.date})
+            expect(next2.date).toBe(next.date)
+            expect(next2.date).toBe(data.date)
+            expect(next2).toBe(next)
+        })
+
+        it("should handle equality correctly - 1", () => {
+            const base = {
+                y: 3 / 0,
+                z: NaN
+            }
+            const next = produce(base, draft => {
+                draft.y = 4 / 0
+                draft.z = NaN
+            })
+            expect(next).toEqual(base)
+            expect(next).toBe(base)
+        })
+
+        it("should handle equality correctly - 2", () => {
+            const base = {
+                x: -0
+            }
+            const next = produce(base, draft => {
+                draft.x = +1
+            })
+            expect(next).not.toEqual(base)
+            expect(next).not.toBe(base)
+        })
+
+        it("should handle nested immer calls correctly - 1", () => {
+            const bear = {paw: {honey: true}}
+            const next = produce(bear, draft => {
+                const paw2 = produce(bear.paw, draft => {
+                    draft.honey = false
+                })
+                expect(paw2.honey).toBe(false)
+                expect(draft.paw.honey).toBe(true) // effects should not be visible outside
+            })
+            expect(next.paw.honey).toBe(true)
+            expect(next).toBe(bear)
+        })
+
+        it("should handle nested immer calls correctly - 2", () => {
+            const bear = {paw: {honey: true}}
+            const next = produce(bear, draft => {
+                const paw2 = produce(bear.paw, draft => {
+                    draft.honey = false
+                })
+                expect(paw2.honey).toBe(false)
+                expect(draft.paw.honey).toBe(true)
+                draft.paw = paw2
+                expect(draft.paw.honey).toBe(false)
+            })
+            expect(next.paw.honey).toBe(false)
+            expect(next).not.toBe(bear)
         })
 
         afterEach(() => {
@@ -507,8 +601,3 @@ function enumerableOnly(x) {
     // this can be done better...
     return JSON.parse(JSON.stringify(x))
 }
-
-// TODO: test problem scenarios
-// nesting immmer
-// non-trees
-// complex objects / functions

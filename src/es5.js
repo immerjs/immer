@@ -69,7 +69,7 @@ export default function produce(baseState, producer) {
         set(prop, value) {
             assertUnfinished()
             if (!this.modified) {
-                if (this.source[prop] === value) return
+                if (Object.is(this.source[prop], value)) return
                 this.markChanged()
             }
             this.prepareCopy()

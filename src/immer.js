@@ -6,7 +6,7 @@ if (typeof Proxy === "undefined")
         "Immer requires `Proxy` to be available, but it seems to be not available on your platform. Consider requiring immer '\"immer/es5\"' instead."
     )
 
-const PROXY_STATE = Symbol("immer-proxy-state") // TODO: create per closure, to avoid sharing proxies between multiple immer version
+const PROXY_STATE = Symbol("immer-proxy-state")
 let autoFreeze = true
 
 const objectTraps = {
@@ -135,7 +135,7 @@ export default function produce(baseState, producer) {
         set(prop, value) {
             if (!this.modified) {
                 if (
-                    (prop in this.base && this.base[prop] === value) ||
+                    (prop in this.base && Object.is(this.base[prop], value)) ||
                     (prop in this.proxies && this.proxies[prop] === value)
                 )
                     return
@@ -201,6 +201,7 @@ export default function produce(baseState, producer) {
         } else if (base !== null && typeof base === "object") {
             // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
             // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
+            // TODO: optimize this; walk the tree without writing to find proxies
             if (Array.isArray(base)) {
                 for (let i = 0; i < base.length; i++)
                     base[i] = finalize(base[i])
