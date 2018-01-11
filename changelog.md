@@ -1,8 +1,12 @@
 # Changelog
 
+### 0.6.1
+
+* Fixed issue where proxies inside new objects where not cleaned up. Fixes Fixes [#53](https://github.com/mweststrate/immer/issues/53)
+
 ### 0.6.0
 
-The default import now bundles both the es5 and proxy implementation as a convenient default. For more optimal bundle sizes, import `immer/proxy` or `immer/es5`
+* The default import now bundles both the es5 and proxy implementation as a convenient default. For more optimal bundle sizes, import `immer/proxy` or `immer/es5`
 
 ### 0.5.0
 
