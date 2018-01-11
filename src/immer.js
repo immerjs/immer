@@ -46,7 +46,7 @@ const arrayTraps = {
         return target[0].get(prop)
     },
     has(target, prop) {
-        return prop in target[0].source
+        return prop === PROXY_STATE || prop in target[0].source
     },
     ownKeys(target) {
         return Reflect.ownKeys(target[0].source)
@@ -103,6 +103,11 @@ export default function produce(baseState, producer) {
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
     const revocableProxies = []
+    // for objects that are created in the producer we don't know anything
+    // those could contain proxies anywhere (see #53)
+    // we don't want to walk through the entire state tree to know which objects are unknown
+    // so, we keep a set of objects that the user visited so that we know that any object outside that need to be investigated further
+    const existingEdges = new Set()
 
     class State {
         constructor(parent, base) {
@@ -179,13 +184,24 @@ export default function produce(baseState, producer) {
 
     // creates a proxy for plain objects / arrays
     function createProxy(parentState, base) {
+        existingEdges.delete(base)
         const state = new State(parentState, base)
         let proxy
         if (Array.isArray(base)) {
+            for (let i = 0; i < base.length; i++) {
+                const value = base[i]
+                if (value !== null && typeof value === "object")
+                    existingEdges.add(value)
+            }
             // Proxy should be created with an array to make it an array for JS
             // so... here you have it!
             proxy = Proxy.revocable([state], arrayTraps)
         } else {
+            for (var key in base) {
+                const value = base[key]
+                if (value !== null && typeof value === "object")
+                    existingEdges.add(value)
+            }
             proxy = Proxy.revocable(state, objectTraps)
         }
         revocableProxies.push(proxy)
@@ -200,6 +216,25 @@ export default function produce(baseState, producer) {
                 if (Array.isArray(state.base)) return finalizeArray(state)
                 return finalizeObject(state)
             } else return state.base
+        } else if (
+            base !== null &&
+            typeof base === "object" &&
+            !existingEdges.has(base)
+        ) {
+            // This object was not part of the original tree, so anywhere deep inside it could be changed objects..
+            // TODO optimize: unless we processed all proxies
+            // TODO: first check deeply whether there are proxies in there?
+            if (Array.isArray(base)) return freeze(base.map(finalize))
+            const proto = Object.getPrototypeOf(base)
+            if (proto === null || proto === Object.prototype) {
+                // object
+                const res = Object.assign({}, base)
+                Object.keys(res).forEach(prop => {
+                    // TODO: optimize for loops
+                    res[prop] = finalize(res[prop])
+                })
+                return freeze(res)
+            }
         }
         return base
     }
@@ -245,7 +280,7 @@ function isProxyable(value) {
     if (typeof value !== "object") return false
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
-    return (proto === proto) === null || Object.prototype
+    return proto === null || proto === Object.prototype
 }
 
 function freeze(value) {

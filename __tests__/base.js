@@ -46,6 +46,7 @@ function runBaseTest(name, lib, freeze) {
         it("should return a copy when modifying stuff", () => {
             const nextState = produce(baseState, s => {
                 s.aProp = "hello world"
+                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(baseState.aProp).toBe("hi")
@@ -427,6 +428,17 @@ function runBaseTest(name, lib, freeze) {
                     })
                 }).toThrowError(/not support/)
             })
+
+        it("should not throw error, see #53", () => {
+            const result = produce(
+                {arr: [{count: 1}, {count: 2}, {count: 3}]},
+                draft => {
+                    debugger
+                    draft.arr = draft.arr.filter(item => item.count > 2)
+                }
+            )
+            expect(result.arr[0].count).toEqual(3)
+        })
 
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
