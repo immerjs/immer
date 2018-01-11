@@ -103,11 +103,6 @@ export default function produce(baseState, producer) {
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
     const revocableProxies = []
-    // for objects that are created in the producer we don't know anything
-    // those could contain proxies anywhere (see #53)
-    // we don't want to walk through the entire state tree to know which objects are unknown
-    // so, we keep a set of objects that the user visited so that we know that any object outside that need to be investigated further
-    const existingEdges = new Set()
 
     class State {
         constructor(parent, base) {
@@ -184,24 +179,11 @@ export default function produce(baseState, producer) {
 
     // creates a proxy for plain objects / arrays
     function createProxy(parentState, base) {
-        existingEdges.delete(base)
         const state = new State(parentState, base)
         let proxy
         if (Array.isArray(base)) {
-            for (let i = 0; i < base.length; i++) {
-                const value = base[i]
-                if (value !== null && typeof value === "object")
-                    existingEdges.add(value)
-            }
-            // Proxy should be created with an array to make it an array for JS
-            // so... here you have it!
             proxy = Proxy.revocable([state], arrayTraps)
         } else {
-            for (var key in base) {
-                const value = base[key]
-                if (value !== null && typeof value === "object")
-                    existingEdges.add(value)
-            }
             proxy = Proxy.revocable(state, objectTraps)
         }
         revocableProxies.push(proxy)
@@ -216,24 +198,18 @@ export default function produce(baseState, producer) {
                 if (Array.isArray(state.base)) return finalizeArray(state)
                 return finalizeObject(state)
             } else return state.base
-        } else if (
-            base !== null &&
-            typeof base === "object" &&
-            !existingEdges.has(base)
-        ) {
-            // This object was not part of the original tree, so anywhere deep inside it could be changed objects..
-            // TODO optimize: unless we processed all proxies
-            // TODO: first check deeply whether there are proxies in there?
-            if (Array.isArray(base)) return freeze(base.map(finalize))
+        } else if (base !== null && typeof base === "object") {
+            // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
+            // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
+            if (Array.isArray(base)) {
+                for (let i = 0; i < base.length; i++)
+                    base[i] = finalize(base[i])
+                return freeze(base)
+            }
             const proto = Object.getPrototypeOf(base)
             if (proto === null || proto === Object.prototype) {
-                // object
-                const res = Object.assign({}, base)
-                Object.keys(res).forEach(prop => {
-                    // TODO: optimize for loops
-                    res[prop] = finalize(res[prop])
-                })
-                return freeze(res)
+                for (let key in base) base[key] = finalize(base[key])
+                return freeze(base)
             }
         }
         return base
@@ -241,17 +217,19 @@ export default function produce(baseState, producer) {
 
     function finalizeObject(state) {
         const copy = state.copy
-        Object.keys(copy).forEach(prop => {
-            copy[prop] = finalize(copy[prop])
-        })
+        const base = state.base
+        for (var prop in copy) {
+            if (copy[prop] !== base[prop]) copy[prop] = finalize(copy[prop])
+        }
         return freeze(copy)
     }
 
     function finalizeArray(state) {
         const copy = state.copy
-        copy.forEach((value, index) => {
-            copy[index] = finalize(copy[index])
-        })
+        const base = state.base
+        for (let i = 0; i < copy.length; i++) {
+            if (copy[i] !== base[i]) copy[i] = finalize(copy[i])
+        }
         return freeze(copy)
     }
 

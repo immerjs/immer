@@ -46,7 +46,6 @@ function runBaseTest(name, lib, freeze) {
         it("should return a copy when modifying stuff", () => {
             const nextState = produce(baseState, s => {
                 s.aProp = "hello world"
-                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(baseState.aProp).toBe("hi")
@@ -429,15 +428,58 @@ function runBaseTest(name, lib, freeze) {
                 }).toThrowError(/not support/)
             })
 
-        it("should not throw error, see #53", () => {
-            const result = produce(
-                {arr: [{count: 1}, {count: 2}, {count: 3}]},
-                draft => {
-                    debugger
-                    draft.arr = draft.arr.filter(item => item.count > 2)
-                }
-            )
+        it("should not throw error, see #53 - 1", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.arr = draft.arr.filter(item => item.count > 2)
+            })
             expect(result.arr[0].count).toEqual(3)
+            expect(result).toEqual({
+                arr: [{count: 3}]
+            })
+            expect(result.arr[0]).toBe(base.arr[2])
+        })
+
+        it("should not throw error, see #53 - 2", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.newArr = draft.arr.filter(item => item.count > 2)
+            })
+            expect(result.newArr[0].count).toEqual(3)
+            expect(result.arr).toBe(base.arr)
+            expect(result).toEqual({
+                arr: [
+                    {
+                        count: 1
+                    },
+                    {
+                        count: 2
+                    },
+                    {
+                        count: 3
+                    }
+                ],
+                newArr: [
+                    {
+                        count: 3
+                    }
+                ]
+            })
+            expect(result.newArr[0]).toBe(base.arr[2]) // isn't this weird? not sure
+            expect(result.arr[2]).toBe(base.arr[2]) // isn't this weird? not sure
+        })
+
+        it("should not throw error, see #53 - 3", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.newArr = draft.arr.filter(item => item.count > 2)
+                delete draft.arr
+            })
+            expect(result.newArr[0].count).toEqual(3)
+            expect(result).toEqual({
+                newArr: [{count: 3}]
+            })
+            expect(result.newArr[0]).toBe(base.arr[2])
         })
 
         afterEach(() => {
