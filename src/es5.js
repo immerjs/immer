@@ -169,24 +169,47 @@ export default function produce(baseState, producer) {
     }
 
     function finalize(proxy) {
-        // given a base object, returns it if unmodified, or return the changed cloned if modified
-        if (!isProxy(proxy)) return proxy
-        const state = proxy[PROXY_STATE]
-        if (state.modified === false) return state.base // return the original target
-        if (Array.isArray(proxy)) return finalizeArray(proxy)
-        return finalizeObject(proxy)
+        // TODO: almost litterally same as Proxy impl; let's reduce code duplication and rollup
+        if (isProxy(proxy)) {
+            const state = proxy[PROXY_STATE]
+            if (state.modified === true) {
+                if (Array.isArray(state.base))
+                    return finalizeArray(proxy, state)
+                return finalizeObject(proxy, state)
+            } else return state.base
+        } else if (proxy !== null && typeof proxy === "object") {
+            // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
+            // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
+            if (Array.isArray(proxy)) {
+                for (let i = 0; i < proxy.length; i++)
+                    proxy[i] = finalize(proxy[i])
+                return freeze(proxy)
+            }
+            const proto = Object.getPrototypeOf(proxy)
+            if (proto === null || proto === Object.prototype) {
+                for (let key in proxy) proxy[key] = finalize(proxy[key])
+                return freeze(proxy)
+            }
+        }
+        return proxy
     }
 
-    function finalizeObject(proxy) {
+    function finalizeObject(proxy, state) {
         const res = Object.assign({}, proxy)
-        Object.keys(res).forEach(prop => {
-            res[prop] = finalize(res[prop])
-        })
+        const base = state.base
+        for (let prop in res) {
+            if (proxy[prop] !== base[prop]) res[prop] = finalize(res[prop])
+        }
         return freeze(res)
     }
 
-    function finalizeArray(proxy) {
-        return freeze(proxy.map(finalize))
+    function finalizeArray(proxy, state) {
+        const res = proxy.slice()
+        const base = state.base
+        for (let i = 0; i < res.length; i++) {
+            if (res[i] !== base[i]) res[i] = finalize(res[i])
+        }
+        return freeze(res)
     }
 
     // create proxy for root
@@ -217,7 +240,7 @@ function isProxyable(value) {
     if (typeof value !== "object") return false
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
-    return (proto === proto) === null || Object.prototype
+    return proto === null || proto === Object.prototype
 }
 
 function freeze(value) {
