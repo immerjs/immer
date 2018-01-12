@@ -33,7 +33,6 @@ const objectTraps = {
     },
     defineProperty(target, property, descriptor) {
         target.defineProperty(property, descriptor)
-        return true
     },
     setPrototypeOf() {
         throw new Error("Don't even try this...")
@@ -64,7 +63,6 @@ const arrayTraps = {
     },
     defineProperty(target, property, descriptor) {
         target[0].defineProperty(property, descriptor)
-        return true
     },
     setPrototypeOf() {
         throw new Error("Don't even try this...")
@@ -107,6 +105,7 @@ export default function produce(baseState, producer) {
     class State {
         constructor(parent, base) {
             this.modified = false
+            this.finalized = false
             this.parent = parent
             this.base = base
             this.copy = undefined
@@ -195,6 +194,8 @@ export default function produce(baseState, producer) {
         if (isProxy(base)) {
             const state = base[PROXY_STATE]
             if (state.modified === true) {
+                if (state.finalized === true) return state.copy
+                state.finalized = true
                 if (Array.isArray(state.base)) return finalizeArray(state)
                 return finalizeObject(state)
             } else return state.base

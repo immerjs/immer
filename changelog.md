@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.0
+
+* Immer will now use `Object.is` instead of `===` for equality checks
+
 ### 0.6.1
 
 * Fixed issue where proxies inside new objects where not cleaned up. Fixes Fixes [#53](https://github.com/mweststrate/immer/issues/53)
