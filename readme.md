@@ -24,7 +24,7 @@ The basic idea is that you will apply all your changes to a temporarily _draftSt
 Once all your mutations are completed, Immer will produce the _nextState_ based on the mutations to the draft state.
 This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
 
-![immer.png](images/immer.png)
+![immer-hd.png](images/hd/immer.png)
 
 Using Immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
