@@ -1,5 +1,5 @@
 import {minify} from "uglify-es"
-import babel from "rollup-plugin-babel"
+import buble from "rollup-plugin-buble"
 import commonjs from "rollup-plugin-commonjs"
 import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
@@ -31,10 +31,7 @@ function getConfig(input, file) {
                 jsnext: true
             }),
             commonjs(),
-            babel({
-                presets: [["es2015", {modules: false}]],
-                exclude: "node_modules/**"
-            }),
+            buble(),
             uglify({}, minify),
             filesize()
         ]
