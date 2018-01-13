@@ -52,7 +52,7 @@ const config = [
             file: "dist/index.js",
             format: "cjs"
         },
-        plugins: [uglify({}, minify)]
+        plugins: [uglify({}, minify), filesize()]
     }
 ]
 
