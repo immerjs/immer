@@ -42,7 +42,6 @@ const config = [
     getConfig("src/es5.js", "es5", "umd"),
     getConfig("src/immer.js", "immer", "cjs"),
     getConfig("src/immer.js", "immer", "umd"),
-
     {
         input: "src/index.js",
         output: {
