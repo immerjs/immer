@@ -5,24 +5,21 @@ import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
 import uglify from "rollup-plugin-uglify"
 
-const format = process.env.NODE_ENV
-const isUmd = format === "umd"
-
-function getFileName(file) {
-    if (isUmd) {
+function getFileName(file, format) {
+    if (format === "umd") {
         return `dist/${file}.umd.js`
     }
 
     return `dist/${file}.js`
 }
 
-function getConfig(input, file) {
+function getConfig(input, file, format) {
     const conf = {
         input,
         output: {
             exports: "named",
-            file: getFileName(file),
-            format: process.env.NODE_ENV,
+            file: getFileName(file, format),
+            format,
             name: "immer",
             sourcemap: true
         },
@@ -41,8 +38,11 @@ function getConfig(input, file) {
 }
 
 const config = [
-    getConfig("src/es5.js", "es5"),
-    getConfig("src/immer.js", "immer"),
+    getConfig("src/es5.js", "es5", "cjs"),
+    getConfig("src/es5.js", "es5", "umd"),
+    getConfig("src/immer.js", "immer", "cjs"),
+    getConfig("src/immer.js", "immer", "umd"),
+
     {
         input: "src/index.js",
         output: {
