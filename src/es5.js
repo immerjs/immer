@@ -42,54 +42,54 @@ export default function produce(baseState, producer) {
     const descriptors = {}
     const states = []
 
-    class State {
-        constructor(parent, proxy, base) {
-            this.modified = false
-            this.hasCopy = false
-            this.parent = parent
-            this.base = base
-            this.proxy = proxy
-            this.copy = undefined
+    function createState(parent, proxy, base) {
+        return {
+            modified: false,
+            hasCopy: false,
+            parent,
+            base,
+            proxy,
+            copy: undefined
         }
+    }
 
-        get source() {
-            return this.hasCopy ? this.copy : this.base
-        }
+    function source(state) {
+        return state.hasCopy ? state.copy : state.base
+    }
 
-        get(prop) {
-            assertUnfinished()
-            const value = this.source[prop]
-            if (!finalizing && !isProxy(value) && isProxyable(value)) {
-                this.prepareCopy()
-                return (this.copy[prop] = createProxy(this, value))
-            }
-            return value
+    function get(state, prop) {
+        assertUnfinished(state)
+        const value = source(state)[prop]
+        if (!finalizing && !isProxy(value) && isProxyable(value)) {
+            prepareCopy(state)
+            return (state.copy[prop] = createProxy(state, value))
         }
+        return value
+    }
 
-        set(prop, value) {
-            assertUnfinished()
-            if (!this.modified) {
-                if (Object.is(this.source[prop], value)) return
-                this.markChanged()
-            }
-            this.prepareCopy()
-            this.copy[prop] = value
+    function set(state, prop, value) {
+        assertUnfinished()
+        if (!state.modified) {
+            if (Object.is(source(state)[prop], value)) return
+            markChanged(state)
         }
+        prepareCopy(state)
+        state.copy[prop] = value
+    }
 
-        markChanged() {
-            if (!this.modified) {
-                this.modified = true
-                if (this.parent) this.parent.markChanged()
-            }
+    function markChanged(state) {
+        if (!state.modified) {
+            state.modified = true
+            if (state.parent) markChanged(state.parent)
         }
+    }
 
-        prepareCopy() {
-            if (this.hasCopy) return
-            this.hasCopy = true
-            this.copy = Array.isArray(this.base)
-                ? this.base.slice()
-                : Object.assign({}, this.base)
-        }
+    function prepareCopy(state) {
+        if (state.hasCopy) return
+        state.hasCopy = true
+        state.copy = Array.isArray(state.base)
+            ? state.base.slice()
+            : Object.assign({}, state.base)
     }
 
     // creates a proxy for plain objects / arrays
@@ -97,7 +97,7 @@ export default function produce(baseState, producer) {
         let proxy
         if (Array.isArray(base)) proxy = createArrayProxy(base)
         else proxy = createObjectProxy(base)
-        const state = new State(parent, proxy, base)
+        const state = createState(parent, proxy, base)
         createHiddenProperty(proxy, PROXY_STATE, state)
         states.push(state)
         return proxy
@@ -110,10 +110,10 @@ export default function produce(baseState, producer) {
                 configurable: true,
                 enumerable: true,
                 get() {
-                    return this[PROXY_STATE].get(prop)
+                    return get(this[PROXY_STATE], prop)
                 },
                 set(value) {
-                    this[PROXY_STATE].set(prop, value)
+                    set(this[PROXY_STATE], prop, value)
                 }
             })
         )
@@ -152,8 +152,8 @@ export default function produce(baseState, producer) {
             const state = states[i]
             if (state.modified === false) {
                 if (Array.isArray(state.base)) {
-                    if (hasArrayChanges(state)) state.markChanged()
-                } else if (hasObjectChanges(state)) state.markChanged()
+                    if (hasArrayChanges(state)) markChanged(state)
+                } else if (hasObjectChanges(state)) markChanged(state)
             }
         }
     }
