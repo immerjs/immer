@@ -35,14 +35,14 @@ for (let key in objectTraps) {
     }
 }
 
-class State {
-    constructor(parent, base) {
-        this.modified = false
-        this.finalized = false
-        this.parent = parent
-        this.base = base
-        this.copy = undefined
-        this.proxies = {}
+function createState(parent, base) {
+    return {
+        modified: false,
+        finalized: false,
+        parent,
+        base,
+        copy: undefined,
+        proxies: {}
     }
 }
 
@@ -114,7 +114,7 @@ function markChanged(state) {
 
 // creates a proxy for plain objects / arrays
 function createProxy(parentState, base) {
-    const state = new State(parentState, base)
+    const state = createState(parentState, base)
     let proxy
     if (Array.isArray(base)) {
         proxy = Proxy.revocable([state], arrayTraps)
