@@ -11,62 +11,27 @@ let autoFreeze = true
 let revocableProxies = null
 
 const objectTraps = {
-    get(target, prop) {
-        if (prop === PROXY_STATE) return target
-        return get(target, prop)
-    },
+    get,
     has(target, prop) {
         return prop in source(target)
     },
     ownKeys(target) {
         return Reflect.ownKeys(source(target))
     },
-    set(target, prop, value) {
-        set(target, prop, value) // TODO: eliminate these closures
-        return true
-    },
-    deleteProperty(target, prop) {
-        deleteProp(target, prop) // TODO: eliminate these closures
-        return true
-    },
-    getOwnPropertyDescriptor(target, prop) {
-        return getOwnPropertyDescriptor(target, prop)
-    },
-    defineProperty(target, property, descriptor) {
-        defineProperty(target, property, descriptor)
-    },
+    set,
+    deleteProperty,
+    getOwnPropertyDescriptor,
+    defineProperty,
     setPrototypeOf() {
         throw new Error("Don't even try this...")
     }
 }
 
-const arrayTraps = {
-    get(target, prop) {
-        if (prop === PROXY_STATE) return target[0]
-        return get(target[0], prop)
-    },
-    has(target, prop) {
-        return prop === PROXY_STATE || prop in source(target[0])
-    },
-    ownKeys(target) {
-        return Reflect.ownKeys(source(target[0]))
-    },
-    set(target, prop, value) {
-        set(target[0], prop, value)
-        return true
-    },
-    deleteProperty(target, prop) {
-        deleteProp(target[0], prop)
-        return true
-    },
-    getOwnPropertyDescriptor(target, prop) {
-        return getOwnPropertyDescriptor(target[0], prop)
-    },
-    defineProperty(target, property, descriptor) {
-        defineProperty(target[0], property, descriptor)
-    },
-    setPrototypeOf() {
-        throw new Error("Don't even try this...")
+const arrayTraps = {}
+for (let key in objectTraps) {
+    arrayTraps[key] = function() {
+        arguments[0] = arguments[0][0]
+        return objectTraps[key].apply(this, arguments)
     }
 }
 
@@ -86,6 +51,7 @@ function source(state) {
 }
 
 function get(state, prop) {
+    if (prop === PROXY_STATE) return state
     if (state.modified) {
         const value = state.copy[prop]
         if (!isProxy(value) && isProxyable(value))
@@ -106,15 +72,17 @@ function set(state, prop, value) {
             (prop in state.base && Object.is(state.base[prop], value)) ||
             (prop in state.proxies && state.proxies[prop] === value)
         )
-            return
+            return true
         markChanged(state)
     }
     state.copy[prop] = value
+    return true
 }
 
-function deleteProp(state, prop) {
+function deleteProperty(state, prop) {
     markChanged(state)
     delete state.copy[prop]
+    return true
 }
 
 function getOwnPropertyDescriptor(state, prop) {
