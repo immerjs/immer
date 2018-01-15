@@ -8,31 +8,32 @@ if (typeof Proxy === "undefined")
 
 const PROXY_STATE = Symbol("immer-proxy-state")
 let autoFreeze = true
+let revocableProxies = null
 
 const objectTraps = {
     get(target, prop) {
         if (prop === PROXY_STATE) return target
-        return target.get(prop)
+        return get(target, prop)
     },
     has(target, prop) {
-        return prop in target.source
+        return prop in source(target)
     },
     ownKeys(target) {
-        return Reflect.ownKeys(target.source)
+        return Reflect.ownKeys(source(target))
     },
     set(target, prop, value) {
-        target.set(prop, value)
+        set(target, prop, value) // TODO: eliminate these closures
         return true
     },
     deleteProperty(target, prop) {
-        target.deleteProp(prop)
+        deleteProp(target, prop) // TODO: eliminate these closures
         return true
     },
     getOwnPropertyDescriptor(target, prop) {
-        return target.getOwnPropertyDescriptor(prop)
+        return getOwnPropertyDescriptor(target, prop)
     },
     defineProperty(target, property, descriptor) {
-        target.defineProperty(property, descriptor)
+        defineProperty(target, property, descriptor)
     },
     setPrototypeOf() {
         throw new Error("Don't even try this...")
@@ -42,31 +43,163 @@ const objectTraps = {
 const arrayTraps = {
     get(target, prop) {
         if (prop === PROXY_STATE) return target[0]
-        return target[0].get(prop)
+        return get(target[0], prop)
     },
     has(target, prop) {
-        return prop === PROXY_STATE || prop in target[0].source
+        return prop === PROXY_STATE || prop in source(target[0])
     },
     ownKeys(target) {
-        return Reflect.ownKeys(target[0].source)
+        return Reflect.ownKeys(source(target[0]))
     },
     set(target, prop, value) {
-        target[0].set(prop, value)
+        set(target[0], prop, value)
         return true
     },
     deleteProperty(target, prop) {
-        target[0].deleteProp(prop)
+        deleteProp(target[0], prop)
         return true
     },
     getOwnPropertyDescriptor(target, prop) {
-        return target[0].getOwnPropertyDescriptor(prop)
+        return getOwnPropertyDescriptor(target[0], prop)
     },
     defineProperty(target, property, descriptor) {
-        target[0].defineProperty(property, descriptor)
+        defineProperty(target[0], property, descriptor)
     },
     setPrototypeOf() {
         throw new Error("Don't even try this...")
     }
+}
+
+class State {
+    constructor(parent, base) {
+        this.modified = false
+        this.finalized = false
+        this.parent = parent
+        this.base = base
+        this.copy = undefined
+        this.proxies = {}
+    }
+}
+
+function source(state) {
+    return state.modified === true ? state.copy : state.base
+}
+
+function get(state, prop) {
+    if (state.modified) {
+        const value = state.copy[prop]
+        if (!isProxy(value) && isProxyable(value))
+            return (state.copy[prop] = createProxy(state, value))
+        return value
+    } else {
+        if (prop in state.proxies) return state.proxies[prop]
+        const value = state.base[prop]
+        if (!isProxy(value) && isProxyable(value))
+            return (state.proxies[prop] = createProxy(state, value))
+        return value
+    }
+}
+
+function set(state, prop, value) {
+    if (!state.modified) {
+        if (
+            (prop in state.base && Object.is(state.base[prop], value)) ||
+            (prop in state.proxies && state.proxies[prop] === value)
+        )
+            return
+        markChanged(state)
+    }
+    state.copy[prop] = value
+}
+
+function deleteProp(state, prop) {
+    markChanged(state)
+    delete state.copy[prop]
+}
+
+function getOwnPropertyDescriptor(state, prop) {
+    const owner = state.modified
+        ? state.copy
+        : prop in state.proxies ? state.proxies : state.base
+    const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
+    if (descriptor && !(Array.isArray(owner) && prop === "length"))
+        descriptor.configurable = true
+    return descriptor
+}
+
+function defineProperty() {
+    throw new Error(
+        "Immer does currently not support defining properties on draft objects"
+    )
+}
+
+function markChanged(state) {
+    if (!state.modified) {
+        state.modified = true
+        state.copy = Array.isArray(state.base)
+            ? state.base.slice()
+            : Object.assign({}, state.base) // TODO: eliminate those isArray checks?
+        Object.assign(state.copy, state.proxies) // yup that works for arrays as well
+        if (state.parent) markChanged(state.parent)
+    }
+}
+
+// creates a proxy for plain objects / arrays
+function createProxy(parentState, base) {
+    const state = new State(parentState, base)
+    let proxy
+    if (Array.isArray(base)) {
+        proxy = Proxy.revocable([state], arrayTraps)
+    } else {
+        proxy = Proxy.revocable(state, objectTraps)
+    }
+    revocableProxies.push(proxy)
+    return proxy.proxy
+}
+
+// given a base object, returns it if unmodified, or return the changed cloned if modified
+function finalize(base) {
+    if (isProxy(base)) {
+        const state = base[PROXY_STATE]
+        if (state.modified === true) {
+            if (state.finalized === true) return state.copy
+            state.finalized = true
+            if (Array.isArray(state.base)) return finalizeArray(state)
+            return finalizeObject(state)
+        } else return state.base
+    } else if (base !== null && typeof base === "object") {
+        // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
+        // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
+        // TODO: optimize this; walk the tree without writing to find proxies
+        if (Array.isArray(base)) {
+            for (let i = 0; i < base.length; i++) base[i] = finalize(base[i])
+            return freeze(base)
+        }
+        const proto = Object.getPrototypeOf(base)
+        if (proto === null || proto === Object.prototype) {
+            for (let key in base) base[key] = finalize(base[key])
+            return freeze(base)
+        }
+    }
+    return base
+}
+
+function finalizeObject(state) {
+    const copy = state.copy
+    const base = state.base
+    for (var prop in copy) {
+        if (copy[prop] !== base[prop]) copy[prop] = finalize(copy[prop])
+    }
+    return freeze(copy)
+}
+
+function finalizeArray(state) {
+    const copy = state.copy
+    const base = state.base
+    for (let i = 0; i < copy.length; i++) {
+        if (copy[i] !== base[i]) copy[i] = finalize(copy[i])
+    }
+    return freeze(copy)
 }
 
 /**
@@ -100,155 +233,27 @@ export default function produce(baseState, producer) {
         if (!isProxyable(baseState)) throw new Error("the first argument to produce should be a plain object or array, got " + (typeof baseState))
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
-    const revocableProxies = []
 
-    class State {
-        constructor(parent, base) {
-            this.modified = false
-            this.finalized = false
-            this.parent = parent
-            this.base = base
-            this.copy = undefined
-            this.proxies = {}
-        }
-
-        get source() {
-            return this.modified === true ? this.copy : this.base
-        }
-
-        get(prop) {
-            if (this.modified) {
-                const value = this.copy[prop]
-                if (!isProxy(value) && isProxyable(value))
-                    return (this.copy[prop] = createProxy(this, value))
-                return value
-            } else {
-                if (prop in this.proxies) return this.proxies[prop]
-                const value = this.base[prop]
-                if (!isProxy(value) && isProxyable(value))
-                    return (this.proxies[prop] = createProxy(this, value))
-                return value
-            }
-        }
-
-        set(prop, value) {
-            if (!this.modified) {
-                if (
-                    (prop in this.base && Object.is(this.base[prop], value)) ||
-                    (prop in this.proxies && this.proxies[prop] === value)
-                )
-                    return
-                this.markChanged()
-            }
-            this.copy[prop] = value
-        }
-
-        deleteProp(prop) {
-            this.markChanged()
-            delete this.copy[prop]
-        }
-
-        getOwnPropertyDescriptor(prop) {
-            const owner = this.modified
-                ? this.copy
-                : prop in this.proxies ? this.proxies : this.base
-            const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
-            if (descriptor && !(Array.isArray(owner) && prop === "length"))
-                descriptor.configurable = true
-            return descriptor
-        }
-
-        defineProperty(property, descriptor) {
-            throw new Error(
-                "Immer does currently not support defining properties on draft objects"
+    const previousProxies = revocableProxies
+    revocableProxies = []
+    try {
+        // create proxy for root
+        const rootClone = createProxy(undefined, baseState)
+        // execute the thunk
+        const maybeVoidReturn = producer(rootClone)
+        //values either than undefined will trigger warning;
+        !Object.is(maybeVoidReturn, undefined) &&
+            console.warn(
+                `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
             )
-        }
-
-        markChanged() {
-            if (!this.modified) {
-                this.modified = true
-                this.copy = Array.isArray(this.base)
-                    ? this.base.slice()
-                    : Object.assign({}, this.base) // TODO: eliminate those isArray checks?
-                Object.assign(this.copy, this.proxies) // yup that works for arrays as well
-                if (this.parent) this.parent.markChanged()
-            }
-        }
+        // and finalize the modified proxy
+        const res = finalize(rootClone)
+        // revoke all proxies
+        revocableProxies.forEach(p => p.revoke())
+        return res
+    } finally {
+        revocableProxies = previousProxies
     }
-
-    // creates a proxy for plain objects / arrays
-    function createProxy(parentState, base) {
-        const state = new State(parentState, base)
-        let proxy
-        if (Array.isArray(base)) {
-            proxy = Proxy.revocable([state], arrayTraps)
-        } else {
-            proxy = Proxy.revocable(state, objectTraps)
-        }
-        revocableProxies.push(proxy)
-        return proxy.proxy
-    }
-
-    // given a base object, returns it if unmodified, or return the changed cloned if modified
-    function finalize(base) {
-        if (isProxy(base)) {
-            const state = base[PROXY_STATE]
-            if (state.modified === true) {
-                if (state.finalized === true) return state.copy
-                state.finalized = true
-                if (Array.isArray(state.base)) return finalizeArray(state)
-                return finalizeObject(state)
-            } else return state.base
-        } else if (base !== null && typeof base === "object") {
-            // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
-            // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
-            // TODO: optimize this; walk the tree without writing to find proxies
-            if (Array.isArray(base)) {
-                for (let i = 0; i < base.length; i++)
-                    base[i] = finalize(base[i])
-                return freeze(base)
-            }
-            const proto = Object.getPrototypeOf(base)
-            if (proto === null || proto === Object.prototype) {
-                for (let key in base) base[key] = finalize(base[key])
-                return freeze(base)
-            }
-        }
-        return base
-    }
-
-    function finalizeObject(state) {
-        const copy = state.copy
-        const base = state.base
-        for (var prop in copy) {
-            if (copy[prop] !== base[prop]) copy[prop] = finalize(copy[prop])
-        }
-        return freeze(copy)
-    }
-
-    function finalizeArray(state) {
-        const copy = state.copy
-        const base = state.base
-        for (let i = 0; i < copy.length; i++) {
-            if (copy[i] !== base[i]) copy[i] = finalize(copy[i])
-        }
-        return freeze(copy)
-    }
-
-    // create proxy for root
-    const rootClone = createProxy(undefined, baseState)
-    // execute the thunk
-    const maybeVoidReturn = producer(rootClone)
-    //values either than undefined will trigger warning;
-    !Object.is(maybeVoidReturn, undefined) &&
-        console.warn(
-            `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
-        )
-    // and finalize the modified proxy
-    const res = finalize(rootClone)
-    // revoke all proxies
-    revocableProxies.forEach(p => p.revoke())
-    return res
 }
 
 function isProxy(value) {
