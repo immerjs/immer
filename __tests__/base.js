@@ -419,7 +419,6 @@ function runBaseTest(name, useProxies, freeze) {
         if (useProxies === true) {
             it("should not be possible to set property descriptors", () => {
                 expect(() => {
-                    debugger
                     produce({}, draft => {
                         Object.defineProperty(draft, "xx", {
                             enumerable: true,
@@ -486,7 +485,6 @@ function runBaseTest(name, useProxies, freeze) {
         })
 
         it("should not throw error, see #53 - 4", () => {
-            debugger
             const base = {bear: {age: 10}}
             const result = produce(base, draft => {
                 draft.bear.legs = 4
