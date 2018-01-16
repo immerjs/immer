@@ -1,7 +1,14 @@
 "use strict"
 // @ts-check
 
-import {autoFreeze, isProxyable, isProxy, freeze, PROXY_STATE} from "./common"
+import {
+    autoFreeze,
+    isProxyable,
+    isProxy,
+    freeze,
+    PROXY_STATE,
+    finalizeNonProxiedObject
+} from "./common"
 
 const descriptors = {}
 let states = null
@@ -143,17 +150,7 @@ function finalize(proxy) {
             return finalizeObject(proxy, state)
         } else return state.base
     } else if (proxy !== null && typeof proxy === "object") {
-        // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
-        // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
-        if (Array.isArray(proxy)) {
-            for (let i = 0; i < proxy.length; i++) proxy[i] = finalize(proxy[i])
-            return freeze(proxy)
-        }
-        const proto = Object.getPrototypeOf(proxy)
-        if (proto === null || proto === Object.prototype) {
-            for (let key in proxy) proxy[key] = finalize(proxy[key])
-            return freeze(proxy)
-        }
+        finalizeNonProxiedObject(proxy, finalize)
     }
     return proxy
 }

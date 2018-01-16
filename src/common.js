@@ -31,3 +31,29 @@ export function freeze(value) {
 export function setAutoFreeze(enableAutoFreeze) {
     autoFreeze = enableAutoFreeze
 }
+
+export function finalizeNonProxiedObject(parent, finalizer) {
+    // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
+    // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
+    if (!isProxyable(parent)) return
+    if (Object.isFrozen(parent)) return
+    let modified = false
+    if (Array.isArray(parent)) {
+        for (let i = 0; i < parent.length; i++) {
+            const child = parent[i]
+            if (isProxy(child)) {
+                parent[i] = finalizer(child)
+                modified = true
+            } else finalizeNonProxiedObject(child, finalizer)
+        }
+    } else {
+        for (let key in parent) {
+            const child = parent[key]
+            if (isProxy(child)) {
+                parent[key] = finalizer(child)
+                modified = true
+            } else finalizeNonProxiedObject(child, finalizer)
+        }
+    }
+    if (modified) freeze(parent)
+}

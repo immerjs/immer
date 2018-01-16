@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.8.1
+
+* Fixed [#66](https://github.com/mweststrate/immer/pull/66), assigning an already frozen object to a state threw resulting in exceptions being thrown as Immer unnecessarily tried to rewrite them.
+
 ### 0.8.0
 
 * The built is now being rolled up [#64](https://github.com/mweststrate/immer/pull/64) by [Arthur Denner](https://github.com/arthurdenner). A minified gzipped built is only 2kb!
