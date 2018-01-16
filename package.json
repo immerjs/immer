@@ -2,8 +2,8 @@
   "name": "immer",
   "version": "0.7.0",
   "description": "Create your next immutable state by mutating the current one",
-  "main": "dist/index.js",
-  "types": "./index.d.ts",
+  "main": "dist/immer.js",
+  "types": "./immer.d.ts",
   "scripts": {
     "test": "jest",
     "test:perf": "yarn build:babel && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*'",
@@ -31,8 +31,6 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "es5.js",
-    "proxy.js",
     "index.d.ts",
     "dist/"
   ],

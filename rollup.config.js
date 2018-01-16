@@ -5,20 +5,12 @@ import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
 import uglify from "rollup-plugin-uglify"
 
-function getFileName(file, format) {
-    if (format === "umd") {
-        return `dist/${file}.umd.js`
-    }
-
-    return `dist/${file}.js`
-}
-
-function getConfig(input, file, format) {
+function getConfig(format) {
     const conf = {
-        input,
+        input: "src/index.js",
         output: {
             exports: "named",
-            file: getFileName(file, format),
+            file: `dist/immer${format === "umd" ? ".umd" : ""}.js`,
             format,
             name: "immer",
             sourcemap: true
@@ -29,7 +21,13 @@ function getConfig(input, file, format) {
             }),
             commonjs(),
             buble(),
-            uglify({}, minify),
+            uglify(
+                {
+                    warnings: true,
+                    toplevel: true
+                },
+                minify
+            ),
             filesize()
         ]
     }
@@ -37,19 +35,6 @@ function getConfig(input, file, format) {
     return conf
 }
 
-const config = [
-    getConfig("src/es5.js", "es5", "cjs"),
-    getConfig("src/es5.js", "es5", "umd"),
-    getConfig("src/immer.js", "immer", "cjs"),
-    getConfig("src/immer.js", "immer", "umd"),
-    {
-        input: "src/index.js",
-        output: {
-            file: "dist/index.js",
-            format: "cjs"
-        },
-        plugins: [uglify({}, minify), filesize()]
-    }
-]
+const config = [getConfig("cjs"), getConfig("umd")]
 
 export default config

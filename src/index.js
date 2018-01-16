@@ -1,6 +1,7 @@
 export {setAutoFreeze} from "./common"
+
 import {isProxyable} from "./common"
-import {produceProxy} from "./immer"
+import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
 
 let useProxies = typeof Proxy !== "undefined"
