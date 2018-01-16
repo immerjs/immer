@@ -1,16 +1,16 @@
 import {minify} from "uglify-es"
-import buble from "rollup-plugin-buble"
 import commonjs from "rollup-plugin-commonjs"
 import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
 import uglify from "rollup-plugin-uglify"
+import babel from "rollup-plugin-babel"
 
-function getConfig(format) {
+function getConfig(dest, format, ugly) {
     const conf = {
         input: "src/index.js",
         output: {
             exports: "named",
-            file: `dist/immer${format === "umd" ? ".umd" : ""}.js`,
+            file: dest,
             format,
             name: "immer",
             sourcemap: true
@@ -20,21 +20,37 @@ function getConfig(format) {
                 jsnext: true
             }),
             commonjs(),
-            buble(),
-            uglify(
-                {
-                    warnings: true,
-                    toplevel: true
-                },
-                minify
-            ),
+            babel({
+                babelrc: false,
+                presets: [
+                    [
+                        "env",
+                        {
+                            modules: false
+                        }
+                    ]
+                ],
+                plugins: ["external-helpers"]
+            }),
+            ugly &&
+                uglify(
+                    {
+                        warnings: true,
+                        toplevel: true
+                    },
+                    minify
+                ),
             filesize()
-        ]
+        ].filter(Boolean)
     }
 
     return conf
 }
 
-const config = [getConfig("cjs"), getConfig("umd")]
+const config = [
+    getConfig("dist/immer.js", "cjs", false),
+    getConfig("dist/immer.umd.js", "umd", true),
+    getConfig("dist/immer.module.js", "es", false)
+]
 
 export default config

@@ -10,7 +10,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 ---
 
 * NPM / Yarn: `npm install immer`
-* CDN: https://unpkg.com/immer/dist/immer.umd.js or https://unpkg.com/immer/dist/es5.umd.js. Exposed global is `immer`.
+* CDN: https://unpkg.com/immer/dist/immer.umd.js. Exposed global is `immer`.
 
 ---
 
@@ -86,6 +86,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 * Object freezing out of the box
 * Deep updates are a breeze
 * Boilerplate reduction. Less noise, more concise code.
+* Small: bundled and minified: 2KB.
 
 Read further to see all these benefits explained.
 
@@ -182,20 +183,12 @@ One think to keep in mind; you cannot use this construction to initialize an uni
  It is by default enabled.
  Use `setAutoFreeze(true / false)` to turn this feature on or off.
 
-## Using Immer on older JavaScript environments
+## Immer on older JavaScript environments?
 
 By default `produce` tries to use proxies for optimal performance.
 However, on older JavaScript engines `Proxy` is not available.
-For example, Microsoft Internet Explorer or React Native on Android.
+For example, when running Microsoft Internet Explorer or React Native on Android.
 In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
-However, if you want to slim down your bundle, you could only include the Proxy based implementation by importing from `immer/proxy`.
-
-An overview of the available builds:
-
-Immer exposes its functionality in 3 different ways:
-* `import produce from "immer"`, the default, ships with both the Proxy and ES5 compatible implementation, and picks at runtime the best matching one. This is the most convenient, but adds the most to the bundle size (~2KB)
-* `import produce from "immer/proxy"`: This build is optimized for modern browser, which support Proxies and other modern language features, and doesn't polyfill things like `Symbol`. Use this if you are targetting a modern environment only
-* `import produce from "immer/es5"`: Only bundle the ES5 compatible implementation (which of course also works for modern browsers)
 
 ## Pitfalls
 
