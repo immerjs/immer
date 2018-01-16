@@ -256,6 +256,10 @@ A: Yes
 
 A: Yes
 
+**Q: Idea! Can Immer freeze the state for me?**
+
+A: Yes
+
 ## Credits
 
 Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.
