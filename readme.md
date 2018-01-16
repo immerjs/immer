@@ -197,75 +197,13 @@ Immer exposes its functionality in 3 different ways:
 * `import produce from "immer/proxy"`: This build is optimized for modern browser, which support Proxies and other modern language features, and doesn't polyfill things like `Symbol`. Use this if you are targetting a modern environment only
 * `import produce from "immer/es5"`: Only bundle the ES5 compatible implementation (which of course also works for modern browsers)
 
-## More reducer examples
-
-Here are some typical reducer examples, take from the Redux [Immutable Update Patterns](https://redux.js.org/docs/recipes/reducers/ImmutableUpdatePatterns.html) page, and their Immer counter part.
-These examples are semantically equivalent and produce the exact same state.
-
-```javascript
-// Plain reducer
-function insertItem(array, action) {
-    return [
-        ...array.slice(0, action.index),
-        action.item,
-        ...array.slice(action.index)
-    ]
-}
-
-// With immer
-function insertItem(array, action) {
-    return produce(array, draft => {
-        draft.splice(action.index, 0, action.item)
-    })
-}
-
-// Plain reducer
-function removeItem(array, action) {
-    return [
-        ...array.slice(0, action.index),
-        ...array.slice(action.index + 1)
-    ];
-}
-
-// With immer
-function removeItem(array, action) {
-    return produce(array, draft => {
-        draft.splice(action.index, 1)
-    })
-}
-
-// Plain reducer
-function updateObjectInArray(array, action) {
-    return array.map( (item, index) => {
-        if(index !== action.index) {
-            // This isn't the item we care about - keep it as-is
-            return item;
-        }
-
-        // Otherwise, this is the one we want - return an updated value
-        return {
-            ...item,
-            ...action.item
-        };
-    });
-}
-
-// With immer
-function updateObjectInArray(array, action) {
-    return produce(array, draft => {
-        draft[action.index] = { ...item, ...action.item}
-        // Alternatively, since arbitrarily deep updates are supported:
-        // Object.assign(draft[action.index], action.item)
-    })
-}
-```
-
 ## Pitfalls
 
-* Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
-* Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer`  or whatever complex object from the draft state, it will be that very same object in both the base state as the next state. In such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
-* Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
-* Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
+1. Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
+2. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
+3. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
+4. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
+5. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 
 ## How does Immer work?
 
