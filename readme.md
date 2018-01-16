@@ -228,6 +228,34 @@ Some observations:
 * The ES5 implementation of Immer is significantly slower. For most reducers this won't matter, but reducers that process large amounts of data might benefit from not (or only partially) using an Immer producer. Luckily, Immer is fully opt-in.
 * The peeks in the _frozen_ versions of _just mutate_, _deepclone_ and _naive reducer_ come from the fact that they recursively freeze the full state tree, while the other test cases only freeze the modified parts of the tree.
 
+## FAQ
+
+_(for those who skimmed the above instead of actually reading)_
+
+**Q: Does Immer use structural sharing? So that my selectors can be memoized and such?**
+
+A: Yes
+
+**Q: Does Immer support deep updates?**
+
+A: Yes
+
+**Q: I can't rely on Proxies being present on my target environments. Can I use Immer?**
+
+A: Yes
+
+**Q: Can I typecheck my data structures when using Immer?**
+
+A: Yes
+
+**Q: Can I store `Date` objects, functions etc in my state tree when using Immer?**
+
+A: Yes
+
+**Q: Is it fast?**
+
+A: Yes
+
 ## Credits
 
 Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.
