@@ -1,7 +1,14 @@
 "use strict"
 // @ts-check
 
-import {autoFreeze, isProxyable, isProxy, freeze, PROXY_STATE} from "./common"
+import {
+    autoFreeze,
+    isProxyable,
+    isProxy,
+    freeze,
+    PROXY_STATE,
+    finalizeNonProxiedObject
+} from "./common"
 
 let revocableProxies = null
 
@@ -131,18 +138,7 @@ function finalize(base) {
             return finalizeObject(state)
         } else return state.base
     } else if (base !== null && typeof base === "object") {
-        // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
-        // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
-        // TODO: optimize this; walk the tree without writing to find proxies
-        if (Array.isArray(base)) {
-            for (let i = 0; i < base.length; i++) base[i] = finalize(base[i])
-            return freeze(base)
-        }
-        const proto = Object.getPrototypeOf(base)
-        if (proto === null || proto === Object.prototype) {
-            for (let key in base) base[key] = finalize(base[key])
-            return freeze(base)
-        }
+        finalizeNonProxiedObject(base, finalize)
     }
     return base
 }
