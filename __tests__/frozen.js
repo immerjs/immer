@@ -1,9 +1,6 @@
 "use strict"
-import produce, {setUseProxies} from "../src/"
-
-import * as immerProxy from "../src/immer"
-import * as immerEs5 from "../src/es5"
 import deepFreeze from "deep-freeze"
+import produce, {setUseProxies} from "../src/"
 
 runTests("proxy", true)
 runTests("es5", false)
