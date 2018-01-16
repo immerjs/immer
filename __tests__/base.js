@@ -1,6 +1,7 @@
 "use strict"
 import produce, {setAutoFreeze, setUseProxies} from "../src"
 import deepFreeze from "deep-freeze"
+import cloneDeep from "lodash.clonedeep"
 
 jest.setTimeout(1000)
 
@@ -419,7 +420,6 @@ function runBaseTest(name, useProxies, freeze) {
         if (useProxies === true) {
             it("should not be possible to set property descriptors", () => {
                 expect(() => {
-                    debugger
                     produce({}, draft => {
                         Object.defineProperty(draft, "xx", {
                             enumerable: true,
@@ -575,6 +575,30 @@ function runBaseTest(name, useProxies, freeze) {
             })
             expect(next.paw.honey).toBe(false)
             expect(next).not.toBe(bear)
+        })
+
+        it("should not try to change immutable data, see #66", () => {
+            const user = require("./test-data")
+
+            const base = {}
+            const next = produce(base, draft => {
+                draft.user = user
+            })
+            expect(next.user).toBe(user)
+            expect(next).not.toBe(base)
+            expect(next.user).toEqual(user)
+        })
+
+        it("should not try to change immutable data, see #66 - 2", () => {
+            const user = deepFreeze(cloneDeep(require("./test-data")))
+
+            const base = {}
+            const next = produce(base, draft => {
+                draft.user = user
+            })
+            expect(next.user).toBe(user)
+            expect(next).not.toBe(base)
+            expect(next.user).toEqual(user)
         })
 
         afterEach(() => {
