@@ -1,5 +1,4 @@
 "use strict"
-// TODO: import from rolled up source:
 import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.module.js"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
