@@ -1,14 +1,13 @@
 "use strict"
-import * as immerProxy from "../src/immer"
-import * as immerEs5 from "../src/es5"
 import deepFreeze from "deep-freeze"
+import produce, {setUseProxies} from "../src/"
 
-runTests("proxy", immerProxy)
-runTests("es5", immerEs5)
+runTests("proxy", true)
+runTests("es5", false)
 
-function runTests(name, lib) {
+function runTests(name, useProxies) {
     describe("auto freeze - " + name, () => {
-        const produce = lib.default
+        setUseProxies(useProxies)
         const baseState = {
             object: {a: 1},
             array: [1, 2]

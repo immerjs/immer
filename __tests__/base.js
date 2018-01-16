@@ -1,23 +1,22 @@
 "use strict"
-import * as immerProxy from "../src/immer"
-import * as immerEs5 from "../src/es5"
+import produce, {setAutoFreeze, setUseProxies} from "../src"
 import deepFreeze from "deep-freeze"
 
 jest.setTimeout(1000)
 
-runBaseTest("proxy (no freeze)", immerProxy, false)
-runBaseTest("proxy (autofreeze)", immerProxy, true)
-runBaseTest("es5 (no freeze)", immerEs5, false)
-runBaseTest("es5 (autofreeze)", immerEs5, true)
+runBaseTest("proxy (no freeze)", true, false)
+runBaseTest("proxy (autofreeze)", true, true)
+runBaseTest("es5 (no freeze)", false, false)
+runBaseTest("es5 (autofreeze)", false, true)
 
-function runBaseTest(name, lib, freeze) {
+function runBaseTest(name, useProxies, freeze) {
     describe(`base functionality - ${name}`, () => {
-        const produce = lib.default
         let baseState
         let origBaseState
 
         beforeEach(() => {
-            lib.setAutoFreeze(freeze)
+            setAutoFreeze(freeze)
+            setUseProxies(useProxies)
             origBaseState = baseState = createBaseState()
         })
 
@@ -276,7 +275,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         // ES implementation does't protect against all outside modifications, just some..
-        if (lib === immerProxy) {
+        if (useProxies) {
             it("should revoke the proxy of the baseState after immer function is executed", () => {
                 let proxy
                 const nextState = produce(baseState, s => {
@@ -417,9 +416,10 @@ function runBaseTest(name, lib, freeze) {
             })
         })
 
-        if (lib === immerProxy)
+        if (useProxies === true) {
             it("should not be possible to set property descriptors", () => {
                 expect(() => {
+                    debugger
                     produce({}, draft => {
                         Object.defineProperty(draft, "xx", {
                             enumerable: true,
@@ -429,6 +429,7 @@ function runBaseTest(name, lib, freeze) {
                     })
                 }).toThrowError(/not support/)
             })
+        }
 
         it("should not throw error, see #53 - 1", () => {
             const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}

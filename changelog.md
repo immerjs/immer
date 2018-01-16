@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.8.0
+
+* The built is now being rolled up [#64](https://github.com/mweststrate/immer/pull/64) by [Arthur Denner](https://github.com/arthurdenner). A minified gzipped built is only 2kb!
+* There are no longer separate builds available for the proxy and es5 implementation. The sources where merged to allow for more code reuse.
+* The package now exposes an ES module as well.
+
 ### 0.7.0
 
 * Immer will now use `Object.is` instead of `===` for equality checks
