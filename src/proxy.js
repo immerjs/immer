@@ -8,10 +8,12 @@ import {
     freeze,
     PROXY_STATE,
     finalizeNonProxiedObject,
-    shallowCopy
+    shallowCopy,
+    verifyReturnValue,
+    each
 } from "./common"
 
-let revocableProxies = null
+let proxies = null
 
 const objectTraps = {
     get,
@@ -31,12 +33,12 @@ const objectTraps = {
 }
 
 const arrayTraps = {}
-for (let key in objectTraps) {
+each(objectTraps, (key, fn) => {
     arrayTraps[key] = function() {
         arguments[0] = arguments[0][0]
-        return objectTraps[key].apply(this, arguments)
+        return fn.apply(this, arguments)
     }
-}
+})
 
 function createState(parent, base) {
     return {
@@ -108,6 +110,7 @@ function markChanged(state) {
     if (!state.modified) {
         state.modified = true
         state.copy = shallowCopy(state.base)
+        // copy the proxies over the base-copy
         Object.assign(state.copy, state.proxies) // yup that works for arrays as well
         if (state.parent) markChanged(state.parent)
     }
@@ -122,7 +125,7 @@ function createProxy(parentState, base) {
     } else {
         proxy = Proxy.revocable(state, objectTraps)
     }
-    revocableProxies.push(proxy)
+    proxies.push(proxy)
     return proxy.proxy
 }
 
@@ -145,40 +148,35 @@ function finalize(base) {
 function finalizeObject(state) {
     const copy = state.copy
     const base = state.base
-    for (var prop in copy) {
-        if (copy[prop] !== base[prop]) copy[prop] = finalize(copy[prop])
-    }
+    each(copy, (prop, value) => {
+        if (value !== base[prop]) copy[prop] = finalize(value)
+    })
     return freeze(copy)
 }
 
 function finalizeArray(state) {
     const copy = state.copy
     const base = state.base
-    for (let i = 0; i < copy.length; i++) {
-        if (copy[i] !== base[i]) copy[i] = finalize(copy[i])
-    }
+    each(copy, (i, value) => {
+        if (value !== base[i]) copy[i] = finalize(value)
+    })
     return freeze(copy)
 }
 
 export function produceProxy(baseState, producer) {
-    const previousProxies = revocableProxies
-    revocableProxies = []
+    const previousProxies = proxies
+    proxies = []
     try {
         // create proxy for root
         const rootClone = createProxy(undefined, baseState)
         // execute the thunk
-        const maybeVoidReturn = producer(rootClone)
-        //values either than undefined will trigger warning;
-        !Object.is(maybeVoidReturn, undefined) &&
-            console.warn(
-                `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
-            )
+        verifyReturnValue(producer(rootClone))
         // and finalize the modified proxy
         const res = finalize(rootClone)
         // revoke all proxies
-        revocableProxies.forEach(p => p.revoke())
+        each(proxies, (_, p) => p.revoke())
         return res
     } finally {
-        revocableProxies = previousProxies
+        proxies = previousProxies
     }
 }

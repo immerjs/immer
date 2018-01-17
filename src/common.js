@@ -36,6 +36,14 @@ export function shallowCopy(value) {
     return Array.isArray(value) ? value.slice() : Object.assign({}, value) // TODO: eliminate those isArray checks?
 }
 
+export function each(value, cb) {
+    if (Array.isArray(value)) {
+        for (let i = 0; i < value.length; i++) cb(i, value[i])
+    } else {
+        for (let key in value) cb(key, value[key])
+    }
+}
+
 export function finalizeNonProxiedObject(parent, finalizer) {
     // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
@@ -60,4 +68,12 @@ export function finalizeNonProxiedObject(parent, finalizer) {
         }
     }
     if (modified) freeze(parent)
+}
+
+export function verifyReturnValue(value) {
+    //values either than undefined will trigger warning;
+    if (value !== undefined)
+        console.warn(
+            `Immer callback expects no return value. However ${typeof value} was returned`
+        )
 }

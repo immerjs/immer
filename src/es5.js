@@ -8,7 +8,9 @@ import {
     freeze,
     PROXY_STATE,
     finalizeNonProxiedObject,
-    shallowCopy
+    shallowCopy,
+    verifyReturnValue,
+    each
 } from "./common"
 
 const descriptors = {}
@@ -93,16 +95,17 @@ function createPropertyProxy(prop) {
 
 function createObjectProxy(base) {
     const proxy = Object.assign({}, base)
-    Object.keys(base).forEach(prop =>
+    each(base, prop => {
         Object.defineProperty(proxy, prop, createPropertyProxy(prop))
-    )
+    })
     return proxy
 }
 
 function createArrayProxy(base) {
     const proxy = new Array(base.length)
-    for (let i = 0; i < base.length; i++)
+    each(base, i => {
         Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
+    })
     return proxy
 }
 
@@ -157,18 +160,18 @@ function finalize(proxy) {
 function finalizeObject(proxy, state) {
     const res = Object.assign({}, proxy)
     const base = state.base
-    for (let prop in res) {
-        if (proxy[prop] !== base[prop]) res[prop] = finalize(res[prop])
-    }
+    each(res, (prop, value) => {
+        if (value !== base[prop]) res[prop] = finalize(value)
+    })
     return freeze(res)
 }
 
 function finalizeArray(proxy, state) {
     const res = proxy.slice()
     const base = state.base
-    for (let i = 0; i < res.length; i++) {
-        if (res[i] !== base[i]) res[i] = finalize(res[i])
-    }
+    each(res, (i, value) => {
+        if (value !== base[i]) res[i] = finalize(value)
+    })
     return freeze(res)
 }
 
@@ -179,19 +182,18 @@ export function produceEs5(baseState, producer) {
         // create proxy for root
         const rootClone = createProxy(undefined, baseState)
         // execute the thunk
-        const maybeVoidReturn = producer(rootClone)
-        //values either than undefined will trigger warning;
-        !Object.is(maybeVoidReturn, undefined) &&
-            console.warn(
-                `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
-            )
+        verifyReturnValue(producer(rootClone))
         // and finalize the modified proxy
-        for (let i = 0; i < states.length; i++) states[i].finalizing = true
+        each(states, (_, state) => {
+            state.finalizing = true
+        })
         // find and mark all changes (for parts not done yet)
         markChanges()
         const res = finalize(rootClone)
         // make sure all proxies become unusable
-        for (let i = 0; i < states.length; i++) states[i].finished = true
+        each(states, (_, state) => {
+            state.finished = true
+        })
         return res
     } finally {
         states = prevStates
