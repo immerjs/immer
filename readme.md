@@ -10,7 +10,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 ---
 
 * NPM / Yarn: `npm install immer`
-* CDN: https://unpkg.com/immer/dist/immer.umd.js. Exposed global is `immer`.
+* CDN: https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.min.js. Exposed global is `immer`.
 
 ---
 
