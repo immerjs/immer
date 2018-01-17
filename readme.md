@@ -164,8 +164,9 @@ import produce from 'immer'
 const byId = produce((draft, action) => {
   switch (action.type) {
     case RECEIVE_PRODUCTS:
-    action.products.forEach(product => {
+      action.products.forEach(product => {
         draft[product.id] = product
+      })
     })
   }
 })
