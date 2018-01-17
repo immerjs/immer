@@ -32,6 +32,10 @@ export function setAutoFreeze(enableAutoFreeze) {
     autoFreeze = enableAutoFreeze
 }
 
+export function shallowCopy(value) {
+    return Array.isArray(value) ? value.slice() : Object.assign({}, value) // TODO: eliminate those isArray checks?
+}
+
 export function finalizeNonProxiedObject(parent, finalizer) {
     // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well

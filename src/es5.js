@@ -7,7 +7,8 @@ import {
     isProxy,
     freeze,
     PROXY_STATE,
-    finalizeNonProxiedObject
+    finalizeNonProxiedObject,
+    shallowCopy
 } from "./common"
 
 const descriptors = {}
@@ -45,8 +46,8 @@ function set(state, prop, value) {
     if (!state.modified) {
         if (Object.is(source(state)[prop], value)) return
         markChanged(state)
+        prepareCopy(state)
     }
-    prepareCopy(state)
     state.copy[prop] = value
 }
 
@@ -60,9 +61,7 @@ function markChanged(state) {
 function prepareCopy(state) {
     if (state.hasCopy) return
     state.hasCopy = true
-    state.copy = Array.isArray(state.base)
-        ? state.base.slice()
-        : Object.assign({}, state.base)
+    state.copy = shallowCopy(state.base)
 }
 
 // creates a proxy for plain objects / arrays

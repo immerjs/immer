@@ -7,7 +7,8 @@ import {
     isProxy,
     freeze,
     PROXY_STATE,
-    finalizeNonProxiedObject
+    finalizeNonProxiedObject,
+    shallowCopy
 } from "./common"
 
 let revocableProxies = null
@@ -106,9 +107,7 @@ function defineProperty() {
 function markChanged(state) {
     if (!state.modified) {
         state.modified = true
-        state.copy = Array.isArray(state.base)
-            ? state.base.slice()
-            : Object.assign({}, state.base) // TODO: eliminate those isArray checks?
+        state.copy = shallowCopy(state.base)
         Object.assign(state.copy, state.proxies) // yup that works for arrays as well
         if (state.parent) markChanged(state.parent)
     }
