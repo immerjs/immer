@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.8.2
+
+* Fixed: TS typings were no longer exposed
+
 ### 0.8.1
 
 * Fixed [#66](https://github.com/mweststrate/immer/pull/66), assigning an already frozen object to a state threw resulting in exceptions being thrown as Immer unnecessarily tried to rewrite them.

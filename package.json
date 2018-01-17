@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "index.d.ts",
+    "immer.d.ts",
     "dist/"
   ],
   "devDependencies": {
