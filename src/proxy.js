@@ -119,12 +119,9 @@ function markChanged(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parentState, base) {
     const state = createState(parentState, base)
-    let proxy
-    if (Array.isArray(base)) {
-        proxy = Proxy.revocable([state], arrayTraps)
-    } else {
-        proxy = Proxy.revocable(state, objectTraps)
-    }
+    const proxy = Array.isArray(base)
+        ? Proxy.revocable([state], arrayTraps)
+        : Proxy.revocable(state, objectTraps)
     proxies.push(proxy)
     return proxy.proxy
 }

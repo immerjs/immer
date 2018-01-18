@@ -68,9 +68,9 @@ function prepareCopy(state) {
 
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
-    let proxy
-    if (Array.isArray(base)) proxy = createArrayProxy(base)
-    else proxy = createObjectProxy(base)
+    const proxy = Array.isArray(base)
+        ? createArrayProxy(base)
+        : createObjectProxy(base)
     const state = createState(parent, proxy, base)
     createHiddenProperty(proxy, PROXY_STATE, state)
     states.push(state)
@@ -188,6 +188,7 @@ export function produceEs5(baseState, producer) {
             state.finalizing = true
         })
         // find and mark all changes (for parts not done yet)
+        // TODO: store states by depth, to be able guarantee processing leaves first
         markChanges()
         const res = finalize(rootClone)
         // make sure all proxies become unusable
