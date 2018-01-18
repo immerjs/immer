@@ -2,12 +2,11 @@
 // @ts-check
 
 import {
-    autoFreeze,
     isProxyable,
     isProxy,
     freeze,
     PROXY_STATE,
-    finalizeNonProxiedObject,
+    finalize,
     shallowCopy,
     verifyReturnValue,
     each
@@ -126,23 +125,7 @@ function createProxy(parentState, base) {
     return proxy.proxy
 }
 
-// given a base object, returns it if unmodified, or return the changed cloned if modified
-function finalize(base) {
-    if (isProxy(base)) {
-        const state = base[PROXY_STATE]
-        if (state.modified === true) {
-            if (state.finalized === true) return state.copy
-            state.finalized = true
-            if (Array.isArray(state.base)) return finalizeArray(state)
-            return finalizeObject(state)
-        } else return state.base
-    } else if (base !== null && typeof base === "object") {
-        finalizeNonProxiedObject(base, finalize)
-    }
-    return base
-}
-
-function finalizeObject(state) {
+export function finalizeObject(state) {
     const copy = state.copy
     const base = state.base
     each(copy, (prop, value) => {
@@ -151,7 +134,7 @@ function finalizeObject(state) {
     return freeze(copy)
 }
 
-function finalizeArray(state) {
+export function finalizeArray(state) {
     const copy = state.copy
     const base = state.base
     each(copy, (i, value) => {

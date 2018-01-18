@@ -2,15 +2,14 @@
 // @ts-check
 
 import {
-    autoFreeze,
     isProxyable,
     isProxy,
     freeze,
     PROXY_STATE,
-    finalizeNonProxiedObject,
     shallowCopy,
     verifyReturnValue,
-    each
+    each,
+    finalize
 } from "./common"
 
 const descriptors = {}
@@ -144,23 +143,7 @@ function hasArrayChanges(state) {
     return state.proxy.length !== state.base.length
 }
 
-function finalize(proxy) {
-    // TODO: almost litterally same as Proxy impl; let's reduce code duplication and rollup
-    if (isProxy(proxy)) {
-        const state = proxy[PROXY_STATE]
-        if (state.modified === true) {
-            if (state.finalized === true) return state.copy
-            state.finalized = true
-            if (Array.isArray(state.base)) return finalizeArray(proxy, state)
-            return finalizeObject(proxy, state)
-        } else return state.base
-    } else if (proxy !== null && typeof proxy === "object") {
-        finalizeNonProxiedObject(proxy, finalize)
-    }
-    return proxy
-}
-
-function finalizeObject(proxy, state) {
+export function finalizeObject(proxy, state) {
     const res = (state.copy = shallowCopy(proxy))
     const base = state.base
     each(res, (prop, value) => {
@@ -169,7 +152,7 @@ function finalizeObject(proxy, state) {
     return freeze(res)
 }
 
-function finalizeArray(proxy, state) {
+export function finalizeArray(proxy, state) {
     const res = (state.copy = shallowCopy(proxy))
     const base = state.base
     each(res, (i, value) => {
