@@ -600,6 +600,18 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next.user).toEqual(user)
         })
 
+        if (freeze)
+            it("should freeze new data well", () => {
+                const base = {}
+                const next = produce(base, draft => {
+                    draft.x = {y: [{z: true}]}
+                })
+                expect(Object.isFrozen(next)).toBe(true)
+                expect(Object.isFrozen(next.x)).toBe(true)
+                expect(Object.isFrozen(next.x.y)).toBe(true)
+                expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
+            })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
