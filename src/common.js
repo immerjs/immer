@@ -49,13 +49,11 @@ export function finalizeNonProxiedObject(parent, finalizer) {
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
     if (!isProxyable(parent)) return
     if (Object.isFrozen(parent)) return
-    let modified = false
     if (Array.isArray(parent)) {
         for (let i = 0; i < parent.length; i++) {
             const child = parent[i]
             if (isProxy(child)) {
                 parent[i] = finalizer(child)
-                modified = true
             } else finalizeNonProxiedObject(child, finalizer)
         }
     } else {
@@ -63,15 +61,15 @@ export function finalizeNonProxiedObject(parent, finalizer) {
             const child = parent[key]
             if (isProxy(child)) {
                 parent[key] = finalizer(child)
-                modified = true
             } else finalizeNonProxiedObject(child, finalizer)
         }
     }
-    if (modified) freeze(parent)
+    // always freeze completely new data
+    freeze(parent)
 }
 
 export function verifyReturnValue(value) {
-    //values either than undefined will trigger warning;
+    // values either than undefined will trigger warning;
     if (value !== undefined)
         console.warn(
             `Immer callback expects no return value. However ${typeof value} was returned`
