@@ -612,6 +612,26 @@ function runBaseTest(name, useProxies, freeze) {
                 expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
             })
 
+        it("should structurally share identical objects in the tree", () => {
+            const base = {bear: {legs: 4}, eagle: {legs: 3}}
+            const next = produce(base, draft => {
+                const animal = draft.bear
+                animal.legs = animal.legs + 1
+                draft.bear = animal
+                draft.eagle = animal
+                draft.cow = animal
+                draft.kiddo = animal
+            })
+            expect(next).toEqual({
+                bear: {legs: 5},
+                eagle: {legs: 5},
+                cow: {legs: 5},
+                kiddo: {legs: 5}
+            })
+            expect(next.bear).toBe(next.cow)
+            expect(next.kiddo).toBe(next.cow)
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

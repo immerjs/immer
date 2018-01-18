@@ -25,7 +25,8 @@ function createState(parent, proxy, base) {
         proxy,
         copy: undefined,
         finished: false,
-        finalizing: false
+        finalizing: false,
+        finalized: false
     }
 }
 
@@ -148,6 +149,8 @@ function finalize(proxy) {
     if (isProxy(proxy)) {
         const state = proxy[PROXY_STATE]
         if (state.modified === true) {
+            if (state.finalized === true) return state.copy
+            state.finalized = true
             if (Array.isArray(state.base)) return finalizeArray(proxy, state)
             return finalizeObject(proxy, state)
         } else return state.base
@@ -158,7 +161,7 @@ function finalize(proxy) {
 }
 
 function finalizeObject(proxy, state) {
-    const res = Object.assign({}, proxy)
+    const res = (state.copy = shallowCopy(proxy))
     const base = state.base
     each(res, (prop, value) => {
         if (value !== base[prop]) res[prop] = finalize(value)
@@ -167,7 +170,7 @@ function finalizeObject(proxy, state) {
 }
 
 function finalizeArray(proxy, state) {
-    const res = proxy.slice()
+    const res = (state.copy = shallowCopy(proxy))
     const base = state.base
     each(res, (i, value) => {
         if (value !== base[i]) res[i] = finalize(value)
