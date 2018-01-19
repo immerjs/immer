@@ -2,6 +2,7 @@
 // @ts-check
 
 import {
+    is,
     isProxyable,
     isProxy,
     freeze,
@@ -73,7 +74,7 @@ function get(state, prop) {
 function set(state, prop, value) {
     if (!state.modified) {
         if (
-            (prop in state.base && Object.is(state.base[prop], value)) ||
+            (prop in state.base && is(state.base[prop], value)) ||
             (prop in state.proxies && state.proxies[prop] === value)
         )
             return true
