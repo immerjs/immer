@@ -4,6 +4,12 @@
 
 * Fixed: TS typings were no longer exposed
 
+### 0.8.2
+
+* Several general improvements: if an instances of an object are in the tree they will now be one instance in the resulting tree as well, also in the ES5 impl
+* Always freeze data that is newly added to the draft
+* Fixed [#75](https://github.com/mweststrate/immer/issues/75), don't use Symbols if not available.
+
 ### 0.8.1
 
 * Fixed [#66](https://github.com/mweststrate/immer/pull/66), assigning an already frozen object to a state threw resulting in exceptions being thrown as Immer unnecessarily tried to rewrite them.

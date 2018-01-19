@@ -7,7 +7,10 @@ import {
     finalizeObject as finalizeObjectEs5
 } from "./es5"
 
-export const PROXY_STATE = Symbol("immer-proxy-state")
+export const PROXY_STATE =
+    typeof Symbol !== "undefined"
+        ? Symbol("immer-proxy-state")
+        : "__$immer_state"
 
 let autoFreeze = true
 let useProxies = typeof Proxy !== "undefined"
