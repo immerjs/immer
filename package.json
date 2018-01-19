@@ -7,12 +7,12 @@
   "module": "dist/immer.module.js",
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
-  "types": "./immer.d.ts",
+  "types": "./dist/immer.d.ts",
   "scripts": {
     "test": "jest",
     "test:perf": "yarn-or-npm build && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*?js$'",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
-    "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c",
+    "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx \"src/immer.{d.ts,js.flow}\" dist",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
     "prepublish": "yarn-or-npm run build"
   },
@@ -35,7 +35,6 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "immer.d.ts",
     "dist/"
   ],
   "devDependencies": {
@@ -71,5 +70,8 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     }
+  },
+  "dependencies": {
+    "cpx": "^1.5.0"
   }
 }
