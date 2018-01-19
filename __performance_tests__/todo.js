@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.module.js"
+import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
 import deepFreeze from "deep-freeze"
