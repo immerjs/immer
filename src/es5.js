@@ -2,6 +2,7 @@
 // @ts-check
 
 import {
+    is,
     isProxyable,
     isProxy,
     freeze,
@@ -46,7 +47,7 @@ function get(state, prop) {
 function set(state, prop, value) {
     assertUnfinished(state)
     if (!state.modified) {
-        if (Object.is(source(state)[prop], value)) return
+        if (is(source(state)[prop], value)) return
         markChanged(state)
         prepareCopy(state)
     }
@@ -188,7 +189,7 @@ export function produceEs5(baseState, producer) {
 
 function shallowEqual(objA, objB) {
     //From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
-    if (Object.is(objA, objB)) return true
+    if (is(objA, objB)) return true
     if (
         typeof objA !== "object" ||
         objA === null ||
@@ -203,7 +204,7 @@ function shallowEqual(objA, objB) {
     for (let i = 0; i < keysA.length; i++) {
         if (
             !hasOwnProperty.call(objB, keysA[i]) ||
-            !Object.is(objA[keysA[i]], objB[keysA[i]])
+            !is(objA[keysA[i]], objB[keysA[i]])
         ) {
             return false
         }
