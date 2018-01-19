@@ -632,6 +632,35 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next.kiddo).toBe(next.cow)
         })
 
+        if (useProxies)
+            it("should not allow changing prototype", () => {
+                produce({}, draft => {
+                    expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
+                        /try this/
+                    )
+                })
+            })
+
+        it("in should work", () => {
+            produce(createBaseState(), draft => {
+                expect("anArray" in draft).toBe(true)
+                expect(Reflect.has(draft, "anArray")).toBe(true)
+
+                expect("bla" in draft).toBe(false)
+                expect(Reflect.has(draft, "bla")).toBe(false)
+
+                expect(0 in draft.anArray).toBe(true)
+                expect("0" in draft.anArray).toBe(true)
+                expect(Reflect.has(draft.anArray, 0)).toBe(true)
+                expect(Reflect.has(draft.anArray, "0")).toBe(true)
+
+                expect(17 in draft.anArray).toBe(false)
+                expect("17" in draft.anArray).toBe(false)
+                expect(Reflect.has(draft.anArray, 17)).toBe(false)
+                expect(Reflect.has(draft.anArray, "17")).toBe(false)
+            })
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
