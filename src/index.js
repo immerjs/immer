@@ -1,10 +1,8 @@
-export {setAutoFreeze} from "./common"
+export {setAutoFreeze, setUseProxies} from "./common"
 
-import {isProxyable} from "./common"
+import {isProxyable, getUseProxies} from "./common"
 import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
-
-let useProxies = typeof Proxy !== "undefined"
 
 /**
  * produce takes a state, and runs a function against it.
@@ -38,11 +36,7 @@ export default function produce(baseState, producer) {
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
 
-    return useProxies
+    return getUseProxies()
         ? produceProxy(baseState, producer)
         : produceEs5(baseState, producer)
-}
-
-export function setUseProxies(value) {
-    useProxies = value
 }

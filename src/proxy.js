@@ -2,15 +2,17 @@
 // @ts-check
 
 import {
-    autoFreeze,
     isProxyable,
     isProxy,
     freeze,
     PROXY_STATE,
-    finalizeNonProxiedObject
+    finalize,
+    shallowCopy,
+    verifyReturnValue,
+    each
 } from "./common"
 
-let revocableProxies = null
+let proxies = null
 
 const objectTraps = {
     get,
@@ -30,12 +32,12 @@ const objectTraps = {
 }
 
 const arrayTraps = {}
-for (let key in objectTraps) {
+each(objectTraps, (key, fn) => {
     arrayTraps[key] = function() {
         arguments[0] = arguments[0][0]
-        return objectTraps[key].apply(this, arguments)
+        return fn.apply(this, arguments)
     }
-}
+})
 
 function createState(parent, base) {
     return {
@@ -106,9 +108,8 @@ function defineProperty() {
 function markChanged(state) {
     if (!state.modified) {
         state.modified = true
-        state.copy = Array.isArray(state.base)
-            ? state.base.slice()
-            : Object.assign({}, state.base) // TODO: eliminate those isArray checks?
+        state.copy = shallowCopy(state.base)
+        // copy the proxies over the base-copy
         Object.assign(state.copy, state.proxies) // yup that works for arrays as well
         if (state.parent) markChanged(state.parent)
     }
@@ -117,69 +118,45 @@ function markChanged(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parentState, base) {
     const state = createState(parentState, base)
-    let proxy
-    if (Array.isArray(base)) {
-        proxy = Proxy.revocable([state], arrayTraps)
-    } else {
-        proxy = Proxy.revocable(state, objectTraps)
-    }
-    revocableProxies.push(proxy)
+    const proxy = Array.isArray(base)
+        ? Proxy.revocable([state], arrayTraps)
+        : Proxy.revocable(state, objectTraps)
+    proxies.push(proxy)
     return proxy.proxy
 }
 
-// given a base object, returns it if unmodified, or return the changed cloned if modified
-function finalize(base) {
-    if (isProxy(base)) {
-        const state = base[PROXY_STATE]
-        if (state.modified === true) {
-            if (state.finalized === true) return state.copy
-            state.finalized = true
-            if (Array.isArray(state.base)) return finalizeArray(state)
-            return finalizeObject(state)
-        } else return state.base
-    } else if (base !== null && typeof base === "object") {
-        finalizeNonProxiedObject(base, finalize)
-    }
-    return base
-}
-
-function finalizeObject(state) {
+export function finalizeObject(state) {
     const copy = state.copy
     const base = state.base
-    for (var prop in copy) {
-        if (copy[prop] !== base[prop]) copy[prop] = finalize(copy[prop])
-    }
+    each(copy, (prop, value) => {
+        if (value !== base[prop]) copy[prop] = finalize(value)
+    })
     return freeze(copy)
 }
 
-function finalizeArray(state) {
+export function finalizeArray(state) {
     const copy = state.copy
     const base = state.base
-    for (let i = 0; i < copy.length; i++) {
-        if (copy[i] !== base[i]) copy[i] = finalize(copy[i])
-    }
+    each(copy, (i, value) => {
+        if (value !== base[i]) copy[i] = finalize(value)
+    })
     return freeze(copy)
 }
 
 export function produceProxy(baseState, producer) {
-    const previousProxies = revocableProxies
-    revocableProxies = []
+    const previousProxies = proxies
+    proxies = []
     try {
         // create proxy for root
         const rootClone = createProxy(undefined, baseState)
         // execute the thunk
-        const maybeVoidReturn = producer(rootClone)
-        //values either than undefined will trigger warning;
-        !Object.is(maybeVoidReturn, undefined) &&
-            console.warn(
-                `Immer callback expects no return value. However ${typeof maybeVoidReturn} was returned`
-            )
+        verifyReturnValue(producer(rootClone))
         // and finalize the modified proxy
         const res = finalize(rootClone)
         // revoke all proxies
-        revocableProxies.forEach(p => p.revoke())
+        each(proxies, (_, p) => p.revoke())
         return res
     } finally {
-        revocableProxies = previousProxies
+        proxies = previousProxies
     }
 }

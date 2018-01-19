@@ -486,7 +486,6 @@ function runBaseTest(name, useProxies, freeze) {
         })
 
         it("should not throw error, see #53 - 4", () => {
-            debugger
             const base = {bear: {age: 10}}
             const result = produce(base, draft => {
                 draft.bear.legs = 4
@@ -599,6 +598,67 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next.user).toBe(user)
             expect(next).not.toBe(base)
             expect(next.user).toEqual(user)
+        })
+
+        if (freeze)
+            it("should freeze new data well", () => {
+                const base = {}
+                const next = produce(base, draft => {
+                    draft.x = {y: [{z: true}]}
+                })
+                expect(Object.isFrozen(next)).toBe(true)
+                expect(Object.isFrozen(next.x)).toBe(true)
+                expect(Object.isFrozen(next.x.y)).toBe(true)
+                expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
+            })
+
+        it("should structurally share identical objects in the tree", () => {
+            const base = {bear: {legs: 4}, eagle: {legs: 3}}
+            const next = produce(base, draft => {
+                const animal = draft.bear
+                animal.legs = animal.legs + 1
+                draft.bear = animal
+                draft.eagle = animal
+                draft.cow = animal
+                draft.kiddo = animal
+            })
+            expect(next).toEqual({
+                bear: {legs: 5},
+                eagle: {legs: 5},
+                cow: {legs: 5},
+                kiddo: {legs: 5}
+            })
+            expect(next.bear).toBe(next.cow)
+            expect(next.kiddo).toBe(next.cow)
+        })
+
+        if (useProxies)
+            it("should not allow changing prototype", () => {
+                produce({}, draft => {
+                    expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
+                        /try this/
+                    )
+                })
+            })
+
+        it("in should work", () => {
+            produce(createBaseState(), draft => {
+                expect("anArray" in draft).toBe(true)
+                expect(Reflect.has(draft, "anArray")).toBe(true)
+
+                expect("bla" in draft).toBe(false)
+                expect(Reflect.has(draft, "bla")).toBe(false)
+
+                expect(0 in draft.anArray).toBe(true)
+                expect("0" in draft.anArray).toBe(true)
+                expect(Reflect.has(draft.anArray, 0)).toBe(true)
+                expect(Reflect.has(draft.anArray, "0")).toBe(true)
+
+                expect(17 in draft.anArray).toBe(false)
+                expect("17" in draft.anArray).toBe(false)
+                expect(Reflect.has(draft.anArray, 17)).toBe(false)
+                expect(Reflect.has(draft.anArray, "17")).toBe(false)
+            })
         })
 
         afterEach(() => {
