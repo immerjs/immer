@@ -1,31 +1,33 @@
 "use strict"
-import * as immerProxy from ".."
-import * as immerEs5 from "../es5"
+import produce, {setAutoFreeze, setUseProxies} from "../src"
 import deepFreeze from "deep-freeze"
+import cloneDeep from "lodash.clonedeep"
 
-runBaseTest("proxy (no freeze)", immerProxy, false)
-runBaseTest("proxy (autofreeze)", immerProxy, true)
-runBaseTest("es5 (no freeze)", immerEs5, false)
-runBaseTest("es5 (autofreeze)", immerEs5, true)
+jest.setTimeout(1000)
 
-function runBaseTest(name, lib, freeze) {
+runBaseTest("proxy (no freeze)", true, false)
+runBaseTest("proxy (autofreeze)", true, true)
+runBaseTest("es5 (no freeze)", false, false)
+runBaseTest("es5 (autofreeze)", false, true)
+
+function runBaseTest(name, useProxies, freeze) {
     describe(`base functionality - ${name}`, () => {
-        const immer = lib.default
         let baseState
         let origBaseState
 
         beforeEach(() => {
-            lib.setAutoFreeze(freeze)
+            setAutoFreeze(freeze)
+            setUseProxies(useProxies)
             origBaseState = baseState = createBaseState()
         })
 
         it("should return the original without modifications", () => {
-            const nextState = immer(baseState, () => {})
+            const nextState = produce(baseState, () => {})
             expect(nextState).toBe(baseState)
         })
 
         it("should return the original without modifications when reading stuff", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 expect(s.aProp).toBe("hi")
                 expect(s.anObject.nested).toMatchObject({yummie: true})
             })
@@ -34,17 +36,17 @@ function runBaseTest(name, lib, freeze) {
 
         it("should not return any value: thunk", () => {
             const warning = jest.spyOn(console, "warn")
-            immer(baseState, () => ({bad: "don't do this"}))
-            immer(baseState, () => [1, 2, 3])
-            immer(baseState, () => false)
-            immer(baseState, () => "")
+            produce(baseState, () => ({bad: "don't do this"}))
+            produce(baseState, () => [1, 2, 3])
+            produce(baseState, () => false)
+            produce(baseState, () => "")
 
             expect(warning).toHaveBeenCalledTimes(4)
             warning.mockClear()
         })
 
         it("should return a copy when modifying stuff", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hello world"
             })
             expect(nextState).not.toBe(baseState)
@@ -57,7 +59,7 @@ function runBaseTest(name, lib, freeze) {
         if (
             ("should preserve type",
             () => {
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     expect(Array.isArray(s)).toBe(true)
                     expect(s.protoType).toBe(Object)
                     s.anArray.push(3)
@@ -70,7 +72,7 @@ function runBaseTest(name, lib, freeze) {
             })
         )
             it("deep change bubbles up", () => {
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     s.anObject.nested.yummie = false
                 })
                 expect(nextState).not.toBe(baseState)
@@ -81,7 +83,7 @@ function runBaseTest(name, lib, freeze) {
             })
 
         it("can add props", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anObject.cookie = {tasty: true}
             })
             expect(nextState).not.toBe(baseState)
@@ -91,7 +93,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("can delete props", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 delete s.anObject.nested
             })
             expect(nextState).not.toBe(baseState)
@@ -100,14 +102,14 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("ignores single non-modification", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hi"
             })
             expect(nextState).toBe(baseState)
         })
 
         it("processes single modification", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = "hello"
                 s.aProp = "hi"
             })
@@ -116,7 +118,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support reading arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.slice()
             })
             expect(nextState.anArray).toBe(baseState.anArray)
@@ -124,7 +126,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support changing arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[3] = true
             })
             expect(nextState).not.toBe(baseState)
@@ -133,7 +135,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support changing arrays - 2", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.splice(1, 1, "a", "b")
             })
             expect(nextState).not.toBe(baseState)
@@ -149,7 +151,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("can delete array items", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.length = 3
             })
             expect(nextState).not.toBe(baseState)
@@ -159,7 +161,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support sorting arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[2].c = 4
                 s.anArray.sort()
                 s.anArray[3].c = 5
@@ -170,7 +172,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should expose property descriptors", () => {
-            const nextState = immer([], s => {
+            const nextState = produce([], s => {
                 expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
                 s.unshift("x")
                 expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
@@ -192,7 +194,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should support sorting arrays - 2", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray.unshift("x")
                 s.anArray[3].c = 4
                 s.anArray.sort()
@@ -212,7 +214,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should updating inside arrays", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.anArray[2].test = true
             })
             expect(nextState).not.toBe(baseState)
@@ -221,7 +223,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("reusing object should work", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 const obj = s.anObject
                 delete s.anObject
                 s.messy = obj
@@ -242,13 +244,12 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("refs should be transparent", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 const obj = s.anObject
                 s.aProp = "hello"
                 delete s.anObject
                 obj.coffee = true
                 s.messy = obj
-                debugger
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
@@ -266,7 +267,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should allow setting to undefined a defined draft property", () => {
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 s.aProp = undefined
             })
             expect(nextState).not.toBe(baseState)
@@ -275,10 +276,10 @@ function runBaseTest(name, lib, freeze) {
         })
 
         // ES implementation does't protect against all outside modifications, just some..
-        if (name === "proxy") {
+        if (useProxies) {
             it("should revoke the proxy of the baseState after immer function is executed", () => {
                 let proxy
-                const nextState = immer(baseState, s => {
+                const nextState = produce(baseState, s => {
                     proxy = s
                     s.aProp = "hello"
                 })
@@ -301,7 +302,7 @@ function runBaseTest(name, lib, freeze) {
 
         it("should revoke the proxy of the baseState after immer function is executed - 2", () => {
             let proxy
-            const nextState = immer(baseState, s => {
+            const nextState = produce(baseState, s => {
                 proxy = s.anObject
             })
             expect(nextState).toBe(baseState)
@@ -315,7 +316,7 @@ function runBaseTest(name, lib, freeze) {
         })
 
         it("should reflect all changes made in the draft immediately", () => {
-            immer(baseState, draft => {
+            produce(baseState, draft => {
                 draft.anArray[0] = 5
                 draft.anArray.unshift("test")
                 // sliced here; jest will also compare non-enumerable keys, which would include the immer Symbols
@@ -328,6 +329,335 @@ function runBaseTest(name, lib, freeze) {
                 ])
                 draft.stuffz = "coffee"
                 expect(draft.stuffz).toBe("coffee")
+            })
+        })
+
+        it("should be able to get property descriptors from objects", () => {
+            produce({a: 1}, draft => {
+                expect("a" in draft).toBe(true)
+                expect("b" in draft).toBe(false)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["a"])
+
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "a")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                draft.a = 2
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "a")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "b")
+                ).toBeUndefined()
+                draft.b = 2
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "b")
+                ).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                expect("a" in draft).toBe(true)
+                expect("b" in draft).toBe(true)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["a", "b"])
+            })
+        })
+
+        it("should be able to get property descriptors from arrays", () => {
+            produce([1], draft => {
+                expect(0 in draft).toBe(true)
+                expect(1 in draft).toBe(false)
+                expect("0" in draft).toBe(true)
+                expect("1" in draft).toBe(false)
+                expect(length in draft).toBe(true)
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["0", "length"])
+
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, "length")
+                ).toMatchObject({
+                    configurable: false,
+                    enumerable: false
+                })
+                draft[0] = 2
+                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(
+                    Object.getOwnPropertyDescriptor(draft, 1)
+                ).toBeUndefined()
+                draft[1] = 2
+                expect(Object.getOwnPropertyDescriptor(draft, 1)).toMatchObject(
+                    {
+                        configurable: true,
+                        enumerable: true
+                    }
+                )
+                expect(
+                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
+                ).toEqual(["0", "1", "length"])
+            })
+        })
+
+        if (useProxies === true) {
+            it("should not be possible to set property descriptors", () => {
+                expect(() => {
+                    produce({}, draft => {
+                        Object.defineProperty(draft, "xx", {
+                            enumerable: true,
+                            writeable: true,
+                            value: 2
+                        })
+                    })
+                }).toThrowError(/not support/)
+            })
+        }
+
+        it("should not throw error, see #53 - 1", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.arr = draft.arr.filter(item => item.count > 2)
+            })
+            expect(result.arr[0].count).toEqual(3)
+            expect(result).toEqual({
+                arr: [{count: 3}]
+            })
+            expect(result.arr[0]).toBe(base.arr[2])
+        })
+
+        it("should not throw error, see #53 - 2", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.newArr = draft.arr.filter(item => item.count > 2)
+            })
+            expect(result.newArr[0].count).toEqual(3)
+            expect(result.arr).toBe(base.arr)
+            expect(result).toEqual({
+                arr: [
+                    {
+                        count: 1
+                    },
+                    {
+                        count: 2
+                    },
+                    {
+                        count: 3
+                    }
+                ],
+                newArr: [
+                    {
+                        count: 3
+                    }
+                ]
+            })
+            expect(result.newArr[0]).toBe(base.arr[2])
+            expect(result.arr[2]).toBe(base.arr[2])
+        })
+
+        it("should not throw error, see #53 - 3", () => {
+            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
+            const result = produce(base, draft => {
+                draft.newArr = draft.arr.filter(item => item.count > 2)
+                delete draft.arr
+            })
+            expect(result.newArr[0].count).toEqual(3)
+            expect(result).toEqual({
+                newArr: [{count: 3}]
+            })
+            expect(result.newArr[0]).toBe(base.arr[2])
+        })
+
+        it("should not throw error, see #53 - 4", () => {
+            const base = {bear: {age: 10}}
+            const result = produce(base, draft => {
+                draft.bear.legs = 4
+                draft.room = {elephant: {kiddo: draft.bear}}
+            })
+            expect(result).toEqual({
+                bear: {age: 10, legs: 4},
+                room: {elephant: {kiddo: {age: 10, legs: 4}}}
+            })
+
+            const result2 = produce(result, draft => {
+                draft.bear.age = 11
+                draft.room.elephant.kiddo.legs = 5
+            })
+            expect(result2).toEqual({
+                bear: {age: 11, legs: 4},
+                room: {elephant: {kiddo: {age: 10, legs: 5}}}
+            })
+        })
+
+        it("should handle dates correctly", () => {
+            const data = {date: new Date()}
+            const next = produce(data, draft => {
+                draft.x = true
+            })
+            expect(next).toEqual({x: true, date: data.date})
+            expect(next.date).toBe(data.date)
+            const next2 = produce(next, draft => {
+                draft.date.setYear(2015)
+            })
+            // This still holds; because produce won't proxy Date objects
+            // and the original is actually modified!
+            expect(next2).toEqual({x: true, date: data.date})
+            expect(next2.date).toBe(next.date)
+            expect(next2.date).toBe(data.date)
+            expect(next2).toBe(next)
+        })
+
+        it("should handle equality correctly - 1", () => {
+            const base = {
+                y: 3 / 0,
+                z: NaN
+            }
+            const next = produce(base, draft => {
+                draft.y = 4 / 0
+                draft.z = NaN
+            })
+            expect(next).toEqual(base)
+            expect(next).toBe(base)
+        })
+
+        it("should handle equality correctly - 2", () => {
+            const base = {
+                x: -0
+            }
+            const next = produce(base, draft => {
+                draft.x = +1
+            })
+            expect(next).not.toEqual(base)
+            expect(next).not.toBe(base)
+        })
+
+        it("should handle nested immer calls correctly - 1", () => {
+            const bear = {paw: {honey: true}}
+            const next = produce(bear, draft => {
+                const paw2 = produce(bear.paw, draft => {
+                    draft.honey = false
+                })
+                expect(paw2.honey).toBe(false)
+                expect(draft.paw.honey).toBe(true) // effects should not be visible outside
+            })
+            expect(next.paw.honey).toBe(true)
+            expect(next).toBe(bear)
+        })
+
+        it("should handle nested immer calls correctly - 2", () => {
+            const bear = {paw: {honey: true}}
+            const next = produce(bear, draft => {
+                const paw2 = produce(bear.paw, draft => {
+                    draft.honey = false
+                })
+                expect(paw2.honey).toBe(false)
+                expect(draft.paw.honey).toBe(true)
+                draft.paw = paw2
+                expect(draft.paw.honey).toBe(false)
+            })
+            expect(next.paw.honey).toBe(false)
+            expect(next).not.toBe(bear)
+        })
+
+        it("should not try to change immutable data, see #66", () => {
+            const user = require("./test-data")
+
+            const base = {}
+            const next = produce(base, draft => {
+                draft.user = user
+            })
+            expect(next.user).toBe(user)
+            expect(next).not.toBe(base)
+            expect(next.user).toEqual(user)
+        })
+
+        it("should not try to change immutable data, see #66 - 2", () => {
+            const user = deepFreeze(cloneDeep(require("./test-data")))
+
+            const base = {}
+            const next = produce(base, draft => {
+                draft.user = user
+            })
+            expect(next.user).toBe(user)
+            expect(next).not.toBe(base)
+            expect(next.user).toEqual(user)
+        })
+
+        if (freeze)
+            it("should freeze new data well", () => {
+                const base = {}
+                const next = produce(base, draft => {
+                    draft.x = {y: [{z: true}]}
+                })
+                expect(Object.isFrozen(next)).toBe(true)
+                expect(Object.isFrozen(next.x)).toBe(true)
+                expect(Object.isFrozen(next.x.y)).toBe(true)
+                expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
+            })
+
+        it("should structurally share identical objects in the tree", () => {
+            const base = {bear: {legs: 4}, eagle: {legs: 3}}
+            const next = produce(base, draft => {
+                const animal = draft.bear
+                animal.legs = animal.legs + 1
+                draft.bear = animal
+                draft.eagle = animal
+                draft.cow = animal
+                draft.kiddo = animal
+            })
+            expect(next).toEqual({
+                bear: {legs: 5},
+                eagle: {legs: 5},
+                cow: {legs: 5},
+                kiddo: {legs: 5}
+            })
+            expect(next.bear).toBe(next.cow)
+            expect(next.kiddo).toBe(next.cow)
+        })
+
+        if (useProxies)
+            it("should not allow changing prototype", () => {
+                produce({}, draft => {
+                    expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
+                        /try this/
+                    )
+                })
+            })
+
+        it("in should work", () => {
+            produce(createBaseState(), draft => {
+                expect("anArray" in draft).toBe(true)
+                expect(Reflect.has(draft, "anArray")).toBe(true)
+
+                expect("bla" in draft).toBe(false)
+                expect(Reflect.has(draft, "bla")).toBe(false)
+
+                expect(0 in draft.anArray).toBe(true)
+                expect("0" in draft.anArray).toBe(true)
+                expect(Reflect.has(draft.anArray, 0)).toBe(true)
+                expect(Reflect.has(draft.anArray, "0")).toBe(true)
+
+                expect(17 in draft.anArray).toBe(false)
+                expect("17" in draft.anArray).toBe(false)
+                expect(Reflect.has(draft.anArray, 17)).toBe(false)
+                expect(Reflect.has(draft.anArray, "17")).toBe(false)
             })
         })
 
@@ -356,8 +686,3 @@ function enumerableOnly(x) {
     // this can be done better...
     return JSON.parse(JSON.stringify(x))
 }
-
-// TODO: test problem scenarios
-// nesting immmer
-// non-trees
-// complex objects / functions

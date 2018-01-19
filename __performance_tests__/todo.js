@@ -1,6 +1,5 @@
 "use strict"
-import immerProxy, {setAutoFreeze as setAutoFreezeProxy} from ".."
-import immerEs5, {setAutoFreeze as setAutoFreezeEs5} from "../es5"
+import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
 import deepFreeze from "deep-freeze"
@@ -142,18 +141,19 @@ describe("performance", () => {
     })
 
     measure("immer (proxy) - without autofreeze", () => {
-        setAutoFreezeProxy(false)
-        immerProxy(baseState, draft => {
+        setUseProxies(true)
+        setAutoFreeze(false)
+        produce(baseState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
         })
-        setAutoFreezeProxy(true)
     })
 
     measure("immer (proxy) - with autofreeze", () => {
-        setAutoFreezeProxy(true)
-        immerProxy(frozenBazeState, draft => {
+        setUseProxies(true)
+        setAutoFreeze(true)
+        produce(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
@@ -161,18 +161,19 @@ describe("performance", () => {
     })
 
     measure("immer (es5) - without autofreeze", () => {
-        setAutoFreezeEs5(false)
-        immerEs5(baseState, draft => {
+        setUseProxies(false)
+        setAutoFreeze(false)
+        produce(baseState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }
         })
-        setAutoFreezeEs5(true)
     })
 
     measure("immer (es5) - with autofreeze", () => {
-        setAutoFreezeEs5(true)
-        immerEs5(frozenBazeState, draft => {
+        setUseProxies(false)
+        setAutoFreeze(true)
+        produce(frozenBazeState, draft => {
             for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
                 draft[i].done = true
             }

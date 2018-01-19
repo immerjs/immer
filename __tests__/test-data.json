@@ -1,0 +1,56 @@
+  {
+    "_id": "5a5e59f1bc9132a90101f521",
+    "index": 0,
+    "guid": "8dc96fdb-0526-4bc4-a0ef-fb08e6c06e77",
+    "isActive": true,
+    "balance": "$3,359.66",
+    "picture": "http://placehold.it/32x32",
+    "age": 40,
+    "eyeColor": "blue",
+    "name": "Samantha Richardson",
+    "gender": "female",
+    "company": "COWTOWN",
+    "email": "samantharichardson@cowtown.com",
+    "phone": "+1 (847) 556-2336",
+    "address": "419 Bergen Street, Emison, Nebraska, 554",
+    "about": "Enim magna ut do esse voluptate et commodo anim laborum proident aute. Nulla non sit in incididunt minim velit. Laboris et tempor enim cillum ex adipisicing excepteur. Dolore consectetur eiusmod eu ad eu. Veniam qui sunt est reprehenderit et ut occaecat eiusmod pariatur aliquip officia ipsum.\r\n",
+    "registered": "2017-07-09T02:30:48 -02:00",
+    "latitude": -38.375287,
+    "longitude": -27.090184,
+    "tags": [
+      "ex",
+      "cillum",
+      "cillum",
+      "Lorem",
+      "fugiat",
+      "dolore",
+      "nulla",
+      "anim",
+      "aliqua",
+      "sint"
+    ],
+    "friends": [
+      {
+        "id": 0,
+        "name": "Adrian Dunlap"
+      },
+      {
+        "id": 1,
+        "name": "Salinas Copeland"
+      },
+      {
+        "id": 2,
+        "name": "Doreen Emerson"
+      },
+      {
+        "id": 3,
+        "name": "Willis Long"
+      },
+      {
+        "id": 4,
+        "name": "Josefina Garza"
+      }
+    ],
+    "greeting": "Hello, Samantha Richardson! You have 8 unread messages.",
+    "favoriteFruit": "banana"
+  }

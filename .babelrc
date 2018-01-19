@@ -1,9 +1,3 @@
 {
-    "presets": [
-      ["env", {
-        "targets": {
-          "node": "6"
-        }
-      }]
-    ]
-  }
+    "presets": ["modern-browsers"]
+}

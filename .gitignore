@@ -58,3 +58,4 @@ typings/
 .env
 
 .idea
+dist/

@@ -25,6 +25,87 @@
 
 * Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/issue/18).
 
+### 0.8.2
+
+* Fixed: TS typings were no longer exposed
+
+### 0.8.2
+
+* Several general improvements: if an instances of an object are in the tree they will now be one instance in the resulting tree as well, also in the ES5 impl
+* Always freeze data that is newly added to the draft
+* Fixed [#75](https://github.com/mweststrate/immer/issues/75), don't use Symbols if not available.
+
+### 0.8.1
+
+* Fixed [#66](https://github.com/mweststrate/immer/pull/66), assigning an already frozen object to a state threw resulting in exceptions being thrown as Immer unnecessarily tried to rewrite them.
+
+### 0.8.0
+
+* The built is now being rolled up [#64](https://github.com/mweststrate/immer/pull/64) by [Arthur Denner](https://github.com/arthurdenner). A minified gzipped built is only 2kb!
+* There are no longer separate builds available for the proxy and es5 implementation. The sources where merged to allow for more code reuse.
+* The package now exposes an ES module as well.
+
+### 0.7.0
+
+* Immer will now use `Object.is` instead of `===` for equality checks
+
+### 0.6.1
+
+* Fixed issue where proxies inside new objects where not cleaned up. Fixes Fixes [#53](https://github.com/mweststrate/immer/issues/53)
+
+### 0.6.0
+
+* The default import now bundles both the es5 and proxy implementation as a convenient default. For more optimal bundle sizes, import `immer/proxy` or `immer/es5`
+
+### 0.5.0
+
+* Make sure es5.js is transpiled
+
+### 0.4.2
+
+* Fixed generating a wrong property descriptor for the `length` property of arrays. Fixes [#50](https://github.com/mweststrate/immer/issues/50)
+* Defining custom properties on drafts is no longer supported
+
+### 0.4.1
+
+* Added UMD build
+
+### 0.4.0
+
+* Introduce support for [currying](https://github.com/mweststrate/immer#currying). [#37](https://github.com/mweststrate/immer/pull/37)
+* Added argument checking
+* The name of the immer import is now idiomatically `produce`. So the recommend import statement is: `import produce from "immer"`.
+
+### 0.3.1
+
+* Republished, somehow NPM still returned 0.2.2
+
+### 0.3.0 (8-1-2018)
+
+* Increased performance of the proxy-based implementation by a factor 2x - 3x. [#38](https://github.com/mweststrate/immer/pull/38)
+* Improved typescript typings [#40](https://github.com/mweststrate/immer/pull/40) by [Julien Cavaleiro](https://github.com/Julienng)
+* Added badges, coverage and typical project shizzle. [#25](https://github.com/mweststrate/immer/pull/25) by [Gregory Assasie](https://github.com/Gregjarvez) and [#39](https://github.com/mweststrate/immer/pull/39) by [Fadi Khadra](https://github.com/fkhadra)
+
+### 0.2.2
+
+* Fixed [#32](https://github.com/mweststrate/immer/issue/32): changes are not properly reflected in proxies when using for example `console.dir`
+
+### 0.2.1
+
+* Fixed: `immer/es5.js` was not packed into the package. PR [#28](https://github.com/mweststrate/immer/pull/28) by [Nicolas Lepage](https://github.com/nlepage)
+
+### 0.2.0
+
+* Immer now supports JavaScript engines without Proxies as well! Just require `immer` from `"immer/es5"`. See [#22](https://github.com/mweststrate/immer/pull/22)
+
+### 0.1.2 (2-1-2018)
+
+* Fixed issue where trailing commas could break consumers. Fixes [#21](https://github.com/mweststrate/immer/pull/21).
+
+### 0.1.1 (2-1-2018)
+
+* Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/issue/18).
+
 ### 0.1.0 (1-1-2018)
 
 * Fixed `immer` function export, it is now properly exposed as the `default` export. So `import immer from "immer"`. See [#15](https://github.com/mweststrate/immer/pull/15)

@@ -7,12 +7,12 @@
         {
             // Note; this config requires node 8.4 or higher
             "type": "node",
-            "protocol": "inspector",
+            "protocol": "auto",
             "request": "launch",
             "name": "debug unit test",
             "stopOnEntry": false,
             "program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-            "args": ["-i", "${file}"],
+            "args": ["--verbose", "--testRegex",".*", "-i", "${file}"],
             "runtimeArgs": [
                 "--nolazy"
             ]
