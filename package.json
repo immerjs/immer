@@ -10,11 +10,11 @@
   "types": "./immer.d.ts",
   "scripts": {
     "test": "jest",
-    "test:perf": "yarn build && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*?js$'",
+    "test:perf": "yarn-or-npm build && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*?js$'",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
-    "prepublish": "yarn build"
+    "prepublish": "yarn-or-npm run build"
   },
   "pre-commit": [
     "prettier"
@@ -64,7 +64,8 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
     "typescript": "^2.6.2",
-    "uglify-es": "^3.3.6"
+    "uglify-es": "^3.3.6",
+    "yarn-or-npm": "^2.0.4"
   },
   "jest": {
     "transform": {
