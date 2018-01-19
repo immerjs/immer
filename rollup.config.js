@@ -36,7 +36,20 @@ function getConfig(dest, format, ugly) {
                 uglify(
                     {
                         warnings: true,
-                        toplevel: true
+                        toplevel: true,
+                        sourceMap: true,
+                        mangle: {
+                            properties: false /* {
+                                    reserved: [
+                                        "module",
+                                        "exports",
+                                        "default",
+                                        "value", // for the esModule = true defintion
+                                        "setUseProxies",
+                                        "setAutoFreeze"
+                                    ]
+                                } */
+                        }
                     },
                     minify
                 ),

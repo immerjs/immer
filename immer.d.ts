@@ -35,3 +35,9 @@ export default function<S = any>(
  * It is by default enabled.
  */
 export function setAutoFreeze(autoFreeze: boolean): void
+
+/**
+ * Manually override whether proxies should be used.
+ * By default done by using feature detection
+ */
+export function setUseProxies(useProxies: boolean): void

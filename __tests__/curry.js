@@ -19,6 +19,10 @@ function runTests(name, useProxies) {
             expect(() => produce({}, () => {}, [])).toThrow(
                 /produce expects 1 or 2 arguments/
             )
+            expect(() => produce({}, {})).toThrow(/should be a function/)
+            expect(() => produce({})).toThrow(
+                /first argument should be a function/
+            )
         })
 
         it("should support currying", () => {
