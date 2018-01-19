@@ -1,5 +1,14 @@
 # Changelog
 
+### 0.8.4
+
+* Added flow typings
+* Added polyfill for `Object.is`, fixes [#77](https://github.com/mweststrate/immer/issues/77)
+
+### 0.8.3
+
+* Added 'polyfill' for `Symbol`, fixes  [#75](https://github.com/mweststrate/immer/issues/75)
+
 ### 0.8.2
 
 * Fixed: TS typings were no longer exposed
