@@ -138,7 +138,11 @@ export function finalizeArray(state) {
     const copy = state.copy
     const base = state.base
     each(copy, (i, value) => {
-        if (value !== base[i]) copy[i] = finalize(value)
+        if (value !== base[i]) {
+            copy[i] = finalize(value)
+        } else {
+            copy[i] = finalize(copy[i])
+        }
     })
     return freeze(copy)
 }
