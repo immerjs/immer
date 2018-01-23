@@ -136,7 +136,6 @@ export function finalizeObject(state) {
 
 export function finalizeArray(state) {
     const copy = state.copy
-    const base = state.base
     each(copy, (i, value) => {
         copy[i] = finalize(value)
     })

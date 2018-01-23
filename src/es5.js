@@ -154,7 +154,6 @@ export function finalizeObject(proxy, state) {
 
 export function finalizeArray(proxy, state) {
     const res = (state.copy = shallowCopy(proxy))
-    const base = state.base
     each(res, (i, value) => {
         res[i] = finalize(value)
     })
