@@ -156,11 +156,7 @@ export function finalizeArray(proxy, state) {
     const res = (state.copy = shallowCopy(proxy))
     const base = state.base
     each(res, (i, value) => {
-        if (value !== base[i]) {
-            res[i] = finalize(value)
-        } else {
-            res[i] = finalize(res[i])
-        }
+        res[i] = finalize(value)
     })
     return freeze(res)
 }
