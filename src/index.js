@@ -24,7 +24,7 @@ export default function produce(baseState, producer) {
             const args = arguments
             return produce(args[0], draft => {
                 args[0] = draft // blegh!
-                baseState.apply(null, args)
+                producer.apply(null, args)
             })
         }
     }
