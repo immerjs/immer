@@ -37,7 +37,9 @@ function source(state) {
 function get(state, prop) {
     assertUnfinished(state)
     const value = source(state)[prop]
-    if (!state.finalizing && !isProxy(value) && isProxyable(value)) {
+    if (!state.finalizing && value === state.base[prop] && isProxyable(value)) {
+        // only create a proxy if the value is proxyable, and the value was in the base state
+        // if it wasn't in the base state, the object is already modified and we will process it in finalize
         prepareCopy(state)
         return (state.copy[prop] = createProxy(state, value))
     }
@@ -153,10 +155,12 @@ export function finalizeObject(proxy, state) {
     return freeze(res)
 }
 
+// TODO: unduplicate
 export function finalizeArray(proxy, state) {
     const res = (state.copy = shallowCopy(proxy))
+    const base = state.base
     each(res, (i, value) => {
-        res[i] = finalize(value)
+        if (value !== base[i]) res[i] = finalize(value)
     })
     return freeze(res)
 }

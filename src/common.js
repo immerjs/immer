@@ -80,33 +80,24 @@ export function finalize(base) {
             return useProxies
                 ? finalizeObjectProxy(state)
                 : finalizeObjectEs5(base, state)
-        } else return state.base
-    } else if (base !== null && typeof base === "object") {
-        finalizeNonProxiedObject(base)
+        } else {
+            return state.base
+        }
     }
+    finalizeNonProxiedObject(base)
     return base
 }
 
-function finalizeNonProxiedObject(parent) {
+export function finalizeNonProxiedObject(parent) {
     // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
     if (!isProxyable(parent)) return
     if (Object.isFrozen(parent)) return
-    if (Array.isArray(parent)) {
-        for (let i = 0; i < parent.length; i++) {
-            const child = parent[i]
-            if (isProxy(child)) {
-                parent[i] = finalize(child)
-            } else finalizeNonProxiedObject(child)
-        }
-    } else {
-        for (let key in parent) {
-            const child = parent[key]
-            if (isProxy(child)) {
-                parent[key] = finalize(child)
-            } else finalizeNonProxiedObject(child)
-        }
-    }
+    each(parent, (i, child) => {
+        if (isProxy(child)) {
+            parent[i] = finalize(child)
+        } else finalizeNonProxiedObject(child)
+    })
     // always freeze completely new data
     freeze(parent)
 }

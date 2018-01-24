@@ -10,7 +10,8 @@ import {
     finalize,
     shallowCopy,
     verifyReturnValue,
-    each
+    each,
+    finalizeNonProxiedObject
 } from "./common"
 
 let proxies = null
@@ -59,7 +60,9 @@ function get(state, prop) {
     if (prop === PROXY_STATE) return state
     if (state.modified) {
         const value = state.copy[prop]
-        if (!isProxy(value) && isProxyable(value))
+        if (value === state.base[prop] && isProxyable(value))
+            // only create proxy if it is not yet a proxy, and not a new object
+            // (new objects don't need proxying, they will be processed in finalize anyway)
             return (state.copy[prop] = createProxy(state, value))
         return value
     } else {
@@ -138,7 +141,7 @@ export function finalizeObject(state) {
 export function finalizeArray(state) {
     const copy = state.copy
     each(copy, (i, value) => {
-        copy[i] = finalize(value)
+        if (state.base[i] !== value) copy[i] = finalize(value)
     })
     return freeze(copy)
 }
