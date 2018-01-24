@@ -3,7 +3,13 @@ export const PROXY_STATE =
         ? Symbol("immer-proxy-state")
         : "__$immer_state"
 
-let autoFreeze = true
+function verifyMinified() {}
+
+const inProduction =
+    (typeof process !== "undefined" && process.env.NODE_ENV === "production") ||
+    verifyMinified.name === "verifyMinified"
+let autoFreeze = !inProduction
+
 let useProxies = typeof Proxy !== "undefined"
 
 /**

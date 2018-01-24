@@ -2,6 +2,7 @@
 
 ### 0.8.5
 
+* Immer will automatically turn auto-freezing of in production. Use `setAutoFreeze` to manually control it. See [#46](https://github.com/mweststrate/immer/issues/78), [#76](https://github.com/mweststrate/immer/pull/76)
 * Fixed issue where objects were unnecessary proxied, causing exceptions. See [#78](https://github.com/mweststrate/immer/issues/78)
 
 ### 0.8.4

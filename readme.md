@@ -183,6 +183,7 @@ One think to keep in mind; you cannot use this construction to initialize an uni
  This comes with a performance impact, so it is recommended to disable this option in production.
  It is by default enabled.
  Use `setAutoFreeze(true / false)` to turn this feature on or off.
+ By default it is turned on during local development, and turned off in production.
 
 ## Immer on older JavaScript environments?
 
