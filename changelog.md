@@ -1,4 +1,29 @@
 # Changelog
+### 0.3.0 (8-1-2018)
+
+* Increased performance of the proxy-based implementation by a factor 2x - 3x. [#38](https://github.com/mweststrate/immer/pull/38)
+* Improved typescript typings [#40](https://github.com/mweststrate/immer/pull/40) by [Julien Cavaleiro](https://github.com/Julienng)
+* Added badges, coverage and typical project shizzle. [#25](https://github.com/mweststrate/immer/pull/25) by [Gregory Assasie](https://github.com/Gregjarvez) and [#39](https://github.com/mweststrate/immer/pull/39) by [Fadi Khadra](https://github.com/fkhadra)
+
+### 0.2.2
+
+* Fixed [#32](https://github.com/mweststrate/immer/issue/32): changes are not properly reflected in proxies when using for example `console.dir`
+
+### 0.2.1
+
+* Fixed: `immer/es5.js` was not packed into the package. PR [#28](https://github.com/mweststrate/immer/pull/28) by [Nicolas Lepage](https://github.com/nlepage)
+
+### 0.2.0
+
+* Immer now supports JavaScript engines without Proxies as well! Just require `immer` from `"immer/es5"`. See [#22](https://github.com/mweststrate/immer/pull/22)
+
+### 0.1.2 (2-1-2018)
+
+* Fixed issue where trailing commas could break consumers. Fixes [#21](https://github.com/mweststrate/immer/pull/21).
+
+### 0.1.1 (2-1-2018)
+
+* Fixed issue where TypeScript typings were not correctly exposed. Fixes [#18](https://github.com/mweststrate/immer/issue/18).
 
 ### 0.8.5
 
