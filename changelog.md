@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.8.5
+
+* Fixed issue where objects were unnecessary proxied, causing exceptions. See [#78](https://github.com/mweststrate/immer/issues/78)
+
 ### 0.8.4
 
 * Added flow typings

@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
