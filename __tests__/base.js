@@ -506,6 +506,56 @@ function runBaseTest(name, useProxies, freeze) {
             })
         })
 
+        it("should not throw error #78", () => {
+            const base = {
+                arr: [
+                    {
+                        id: "100",
+                        arr: [{id: "1", no: 1}, {id: "2", no: 2}]
+                    },
+                    {id: "3", no: 3}
+                ]
+            }
+            const result = produce(base, draft => {
+                const base = draft.arr[0]
+                draft.arr = draft.arr.slice(0, 1)
+                const newArr = {
+                    id: "101",
+                    arr: [base, {id: "3"}]
+                }
+                draft.arr.splice(0, 1, newArr)
+                draft.arr[0].arr[1].no = 3
+            })
+            expect(result).toEqual({
+                arr: [
+                    {
+                        id: "101",
+                        arr: [
+                            {
+                                id: "100",
+                                arr: [{id: "1", no: 1}, {id: "2", no: 2}]
+                            },
+                            {id: "3", no: 3}
+                        ]
+                    }
+                ]
+            })
+        })
+
+        it("should not throw error #78 - 2", () => {
+            const base = {
+                arr: [{count: 1}, {count: 2}]
+            }
+            const result = produce(base, draft => {
+                debugger
+                draft.arr = [draft.arr[1]]
+                draft.arr[0].count = 1
+            })
+            expect(result).toEqual({
+                arr: [{count: 1}]
+            })
+        })
+
         it("should handle dates correctly", () => {
             const data = {date: new Date()}
             const next = produce(data, draft => {

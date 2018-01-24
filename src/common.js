@@ -1,12 +1,3 @@
-import {
-    finalizeArray as finalizeArrayProxy,
-    finalizeObject as finalizeObjectProxy
-} from "./proxy"
-import {
-    finalizeArray as finalizeArrayEs5,
-    finalizeObject as finalizeObjectEs5
-} from "./es5"
-
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
         ? Symbol("immer-proxy-state")
@@ -73,18 +64,24 @@ export function finalize(base) {
         if (state.modified === true) {
             if (state.finalized === true) return state.copy
             state.finalized = true
-            if (Array.isArray(state.base))
-                return useProxies
-                    ? finalizeArrayProxy(state)
-                    : finalizeArrayEs5(base, state)
-            return useProxies
-                ? finalizeObjectProxy(state)
-                : finalizeObjectEs5(base, state)
-        } else return state.base
-    } else if (base !== null && typeof base === "object") {
-        finalizeNonProxiedObject(base)
+            return finalizeObject(
+                useProxies ? state.copy : (state.copy = shallowCopy(base)),
+                state
+            )
+        } else {
+            return state.base
+        }
     }
+    finalizeNonProxiedObject(base)
     return base
+}
+
+function finalizeObject(copy, state) {
+    const base = state.base
+    each(copy, (prop, value) => {
+        if (value !== base[prop]) copy[prop] = finalize(value)
+    })
+    return freeze(copy)
 }
 
 function finalizeNonProxiedObject(parent) {
@@ -92,21 +89,11 @@ function finalizeNonProxiedObject(parent) {
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
     if (!isProxyable(parent)) return
     if (Object.isFrozen(parent)) return
-    if (Array.isArray(parent)) {
-        for (let i = 0; i < parent.length; i++) {
-            const child = parent[i]
-            if (isProxy(child)) {
-                parent[i] = finalize(child)
-            } else finalizeNonProxiedObject(child)
-        }
-    } else {
-        for (let key in parent) {
-            const child = parent[key]
-            if (isProxy(child)) {
-                parent[key] = finalize(child)
-            } else finalizeNonProxiedObject(child)
-        }
-    }
+    each(parent, (i, child) => {
+        if (isProxy(child)) {
+            parent[i] = finalize(child)
+        } else finalizeNonProxiedObject(child)
+    })
     // always freeze completely new data
     freeze(parent)
 }

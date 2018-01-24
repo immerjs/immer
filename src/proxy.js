@@ -59,7 +59,9 @@ function get(state, prop) {
     if (prop === PROXY_STATE) return state
     if (state.modified) {
         const value = state.copy[prop]
-        if (!isProxy(value) && isProxyable(value))
+        if (value === state.base[prop] && isProxyable(value))
+            // only create proxy if it is not yet a proxy, and not a new object
+            // (new objects don't need proxying, they will be processed in finalize anyway)
             return (state.copy[prop] = createProxy(state, value))
         return value
     } else {
@@ -124,24 +126,6 @@ function createProxy(parentState, base) {
         : Proxy.revocable(state, objectTraps)
     proxies.push(proxy)
     return proxy.proxy
-}
-
-export function finalizeObject(state) {
-    const copy = state.copy
-    const base = state.base
-    each(copy, (prop, value) => {
-        if (value !== base[prop]) copy[prop] = finalize(value)
-    })
-    return freeze(copy)
-}
-
-export function finalizeArray(state) {
-    const copy = state.copy
-    const base = state.base
-    each(copy, (i, value) => {
-        if (value !== base[i]) copy[i] = finalize(value)
-    })
-    return freeze(copy)
 }
 
 export function produceProxy(baseState, producer) {
