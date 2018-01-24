@@ -131,15 +131,6 @@ function hasArrayChanges(state) {
     return state.proxy.length !== state.base.length
 }
 
-export function finalizeObject(proxy, state) {
-    const res = (state.copy = shallowCopy(proxy))
-    const base = state.base
-    each(res, (prop, value) => {
-        if (value !== base[prop]) res[prop] = finalize(value)
-    })
-    return freeze(res)
-}
-
 export function produceEs5(baseState, producer) {
     const prevStates = states
     states = []

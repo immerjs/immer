@@ -10,8 +10,7 @@ import {
     finalize,
     shallowCopy,
     verifyReturnValue,
-    each,
-    finalizeNonProxiedObject
+    each
 } from "./common"
 
 let proxies = null
@@ -127,15 +126,6 @@ function createProxy(parentState, base) {
         : Proxy.revocable(state, objectTraps)
     proxies.push(proxy)
     return proxy.proxy
-}
-
-export function finalizeObject(state) {
-    const copy = state.copy
-    const base = state.base
-    each(copy, (prop, value) => {
-        if (value !== base[prop]) copy[prop] = finalize(value)
-    })
-    return freeze(copy)
 }
 
 export function produceProxy(baseState, producer) {

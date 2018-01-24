@@ -1,6 +1,3 @@
-import {finalizeObject as finalizeObjectProxy} from "./proxy"
-import {finalizeObject as finalizeObjectEs5} from "./es5"
-
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
         ? Symbol("immer-proxy-state")
@@ -67,9 +64,10 @@ export function finalize(base) {
         if (state.modified === true) {
             if (state.finalized === true) return state.copy
             state.finalized = true
-            return useProxies
-                ? finalizeObjectProxy(state)
-                : finalizeObjectEs5(base, state)
+            return finalizeObject(
+                useProxies ? state.copy : (state.copy = shallowCopy(base)),
+                state
+            )
         } else {
             return state.base
         }
@@ -78,7 +76,15 @@ export function finalize(base) {
     return base
 }
 
-export function finalizeNonProxiedObject(parent) {
+function finalizeObject(copy, state) {
+    const base = state.base
+    each(copy, (prop, value) => {
+        if (value !== base[prop]) copy[prop] = finalize(value)
+    })
+    return freeze(copy)
+}
+
+function finalizeNonProxiedObject(parent) {
     // If finalize is called on an object that was not a proxy, it means that it is an object that was not there in the original
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
     if (!isProxyable(parent)) return
