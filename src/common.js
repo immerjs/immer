@@ -1,11 +1,5 @@
-import {
-    finalizeArray as finalizeArrayProxy,
-    finalizeObject as finalizeObjectProxy
-} from "./proxy"
-import {
-    finalizeArray as finalizeArrayEs5,
-    finalizeObject as finalizeObjectEs5
-} from "./es5"
+import {finalizeObject as finalizeObjectProxy} from "./proxy"
+import {finalizeObject as finalizeObjectEs5} from "./es5"
 
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
@@ -73,10 +67,6 @@ export function finalize(base) {
         if (state.modified === true) {
             if (state.finalized === true) return state.copy
             state.finalized = true
-            if (Array.isArray(state.base))
-                return useProxies
-                    ? finalizeArrayProxy(state)
-                    : finalizeArrayEs5(base, state)
             return useProxies
                 ? finalizeObjectProxy(state)
                 : finalizeObjectEs5(base, state)

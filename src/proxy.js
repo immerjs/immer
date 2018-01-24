@@ -138,14 +138,6 @@ export function finalizeObject(state) {
     return freeze(copy)
 }
 
-export function finalizeArray(state) {
-    const copy = state.copy
-    each(copy, (i, value) => {
-        if (state.base[i] !== value) copy[i] = finalize(value)
-    })
-    return freeze(copy)
-}
-
 export function produceProxy(baseState, producer) {
     const previousProxies = proxies
     proxies = []

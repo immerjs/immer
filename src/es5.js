@@ -71,9 +71,10 @@ function prepareCopy(state) {
 
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
-    const proxy = Array.isArray(base)
-        ? createArrayProxy(base)
-        : createObjectProxy(base)
+    const proxy = shallowCopy(base)
+    each(base, i => {
+        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
+    })
     const state = createState(parent, proxy, base)
     createHiddenProperty(proxy, PROXY_STATE, state)
     states.push(state)
@@ -94,22 +95,6 @@ function createPropertyProxy(prop) {
             }
         })
     )
-}
-
-function createObjectProxy(base) {
-    const proxy = Object.assign({}, base)
-    each(base, prop => {
-        Object.defineProperty(proxy, prop, createPropertyProxy(prop))
-    })
-    return proxy
-}
-
-function createArrayProxy(base) {
-    const proxy = new Array(base.length)
-    each(base, i => {
-        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
-    })
-    return proxy
 }
 
 function assertUnfinished(state) {
@@ -151,16 +136,6 @@ export function finalizeObject(proxy, state) {
     const base = state.base
     each(res, (prop, value) => {
         if (value !== base[prop]) res[prop] = finalize(value)
-    })
-    return freeze(res)
-}
-
-// TODO: unduplicate
-export function finalizeArray(proxy, state) {
-    const res = (state.copy = shallowCopy(proxy))
-    const base = state.base
-    each(res, (i, value) => {
-        if (value !== base[i]) res[i] = finalize(value)
     })
     return freeze(res)
 }
