@@ -555,6 +555,19 @@ function runBaseTest(name, useProxies, freeze) {
             })
         })
 
+        it("should handle constructor correctly", () => {
+            const base = {
+                arr: new Array(),
+                obj: new Object()
+            }
+            const result = produce(base, draft => {
+                draft.arrConstructed = draft.arr.constructor(1)
+                draft.objConstructed = draft.obj.constructor(1)
+            })
+            expect(result.arrConstructed).toEqual(new Array().constructor(1))
+            expect(result.objConstructed).toEqual(new Object().constructor(1))
+        })
+
         it("should handle dates correctly", () => {
             const data = {date: new Date()}
             const next = produce(data, draft => {
