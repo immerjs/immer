@@ -547,7 +547,6 @@ function runBaseTest(name, useProxies, freeze) {
                 arr: [{count: 1}, {count: 2}]
             }
             const result = produce(base, draft => {
-                debugger
                 draft.arr = [draft.arr[1]]
                 draft.arr[0].count = 1
             })
