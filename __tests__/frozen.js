@@ -1,6 +1,6 @@
 "use strict"
 import deepFreeze from "deep-freeze"
-import produce, {setUseProxies} from "../src/"
+import produce, {setUseProxies, setAutoFreeze} from "../src/"
 
 runTests("proxy", true)
 runTests("es5", false)
@@ -8,6 +8,8 @@ runTests("es5", false)
 function runTests(name, useProxies) {
     describe("auto freeze - " + name, () => {
         setUseProxies(useProxies)
+        setAutoFreeze(true)
+
         const baseState = {
             object: {a: 1},
             array: [1, 2]
