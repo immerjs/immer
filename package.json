@@ -11,6 +11,7 @@
   "scripts": {
     "test": "jest",
     "test:perf": "yarn-or-npm build && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*?js$'",
+    "test:flow": "yarn-or-npm flow check",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx \"src/immer.{d.ts,js.flow}\" dist",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
@@ -72,6 +73,7 @@
     }
   },
   "dependencies": {
-    "cpx": "^1.5.0"
+    "cpx": "^1.5.0",
+    "flow-bin": "^0.64.0"
   }
 }

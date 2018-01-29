@@ -1,0 +1,8 @@
+[ignore]
+.*/node_modules
+
+[include]
+__tests__/flow
+
+[options]
+suppress_comment= \\(.\\|\n\\)*\\$ExpectError
