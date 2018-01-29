@@ -3,6 +3,7 @@
 
 import {
     is,
+    has,
     isProxyable,
     isProxy,
     freeze,
@@ -65,8 +66,7 @@ function get(state, prop) {
             return (state.copy[prop] = createProxy(state, value))
         return value
     } else {
-        if (prop !== "constructor" && prop in state.proxies)
-            return state.proxies[prop]
+        if (has(state.proxies, prop)) return state.proxies[prop]
         const value = state.base[prop]
         if (!isProxy(value) && isProxyable(value))
             return (state.proxies[prop] = createProxy(state, value))
@@ -78,7 +78,7 @@ function set(state, prop, value) {
     if (!state.modified) {
         if (
             (prop in state.base && is(state.base[prop], value)) ||
-            (prop in state.proxies && state.proxies[prop] === value)
+            (has(state.proxies, prop) && state.proxies[prop] === value)
         )
             return true
         markChanged(state)
@@ -96,7 +96,7 @@ function deleteProperty(state, prop) {
 function getOwnPropertyDescriptor(state, prop) {
     const owner = state.modified
         ? state.copy
-        : prop in state.proxies ? state.proxies : state.base
+        : has(state.proxies, prop) ? state.proxies : state.base
     const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
         descriptor.configurable = true
