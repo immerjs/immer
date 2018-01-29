@@ -63,6 +63,10 @@ export function each(value, cb) {
     }
 }
 
+export function has(thing, prop) {
+    return Object.hasOwnProperty(thing, prop)
+}
+
 // given a base object, returns it if unmodified, or return the changed cloned if modified
 export function finalize(base) {
     if (isProxy(base)) {
