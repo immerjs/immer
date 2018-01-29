@@ -1,3 +1,5 @@
+// @flow
+
 declare export function extendShallowObservable(target: any): any
 
 /**
@@ -12,21 +14,21 @@ declare export function extendShallowObservable(target: any): any
  * @param thunk - function that receives a proxy of the current state as first argument and which can be freely modified
  * @returns The next state: a new state, or the current state if nothing was modified
  */
-declare export default function<S>(
+declare export default function produce<S>(
     currentState: S,
     recipe: (draftState: S) => void
 ): S
 // curried invocations
-declare export default function<S, A, B, C>(
+declare export default function produce<S, A, B, C>(
     recipe: (draftState: S, a: A, b: B, c: C) => void
 ): (currentState: S, a: A, b: B, c: C) => S
-declare export default function<S, A, B>(
+declare export default function produce<S, A, B>(
     recipe: (draftState: S, a: A, b: B) => void
 ): (currentState: S, a: A, b: B) => S
-declare export default function<S, A>(
+declare export default function produce<S, A>(
     recipe: (draftState: S, a: A) => void
 ): (currentState: S) => S
-declare export default function<S>(
+declare export default function produce<S>(
     recipe: (draftState: S, ...extraArgs: any[]) => void
 ): (currentState: S, ...extraArgs: any[]) => S
 
