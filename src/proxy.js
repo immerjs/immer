@@ -65,7 +65,8 @@ function get(state, prop) {
             return (state.copy[prop] = createProxy(state, value))
         return value
     } else {
-        if (prop in state.proxies) return state.proxies[prop]
+        if (prop !== "constructor" && prop in state.proxies)
+            return state.proxies[prop]
         const value = state.base[prop]
         if (!isProxy(value) && isProxyable(value))
             return (state.proxies[prop] = createProxy(state, value))
