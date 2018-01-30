@@ -1,7 +1,5 @@
 // @flow
 
-declare export function extendShallowObservable(target: any): any
-
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
