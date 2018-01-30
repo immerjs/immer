@@ -138,7 +138,7 @@ export function produceEs5(baseState, producer) {
         // create proxy for root
         const rootClone = createProxy(undefined, baseState)
         // execute the thunk
-        verifyReturnValue(producer(rootClone))
+        verifyReturnValue(producer.call(rootClone, rootClone))
         // and finalize the modified proxy
         each(states, (_, state) => {
             state.finalizing = true

@@ -136,7 +136,7 @@ export function produceProxy(baseState, producer) {
         // create proxy for root
         const rootClone = createProxy(undefined, baseState)
         // execute the thunk
-        verifyReturnValue(producer(rootClone))
+        verifyReturnValue(producer.call(rootClone, rootClone))
         // and finalize the modified proxy
         const res = finalize(rootClone)
         // revoke all proxies

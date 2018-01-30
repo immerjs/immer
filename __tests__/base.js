@@ -703,7 +703,7 @@ function runBaseTest(name, useProxies, freeze) {
                 })
             })
 
-        it("in should work", () => {
+        it("'in' should work", () => {
             produce(createBaseState(), draft => {
                 expect("anArray" in draft).toBe(true)
                 expect(Reflect.has(draft, "anArray")).toBe(true)
@@ -721,6 +721,25 @@ function runBaseTest(name, useProxies, freeze) {
                 expect(Reflect.has(draft.anArray, 17)).toBe(false)
                 expect(Reflect.has(draft.anArray, "17")).toBe(false)
             })
+        })
+
+        it("'this' should work - 1", () => {
+            const base = {x: 3}
+            const next1 = produce(base, function() {
+                this.x = 4
+            })
+            expect(next1).not.toBe(base)
+            expect(next1.x).toBe(4)
+        })
+
+        it("'this' should work - 1", () => {
+            const base = {x: 3}
+            const incrementor = produce(function() {
+                this.x = 4
+            })
+            const next1 = incrementor(base)
+            expect(next1).not.toBe(base)
+            expect(next1.x).toBe(4)
         })
 
         afterEach(() => {

@@ -12,20 +12,20 @@
  */
 export default function<S = any>(
     currentState: S,
-    recipe: (draftState: S) => void
+    recipe: (this: S, draftState: S) => void
 ): S
 // curried invocations
 export default function<S = any, A = any, B = any, C = any>(
-    recipe: (draftState: S, a: A, b: B, c: C) => void
+    recipe: (this: S, draftState: S, a: A, b: B, c: C) => void
 ): (currentState: S, a: A, b: B, c: C) => S
 export default function<S = any, A = any, B = any>(
-    recipe: (draftState: S, a: A, b: B) => void
+    recipe: (this: S, draftState: S, a: A, b: B) => void
 ): (currentState: S, a: A, b: B) => S
 export default function<S = any, A = any>(
-    recipe: (draftState: S, a: A) => void
+    recipe: (this: S, draftState: S, a: A) => void
 ): (currentState: S) => S
 export default function<S = any>(
-    recipe: (draftState: S, ...extraArgs: any[]) => void
+    recipe: (this: S, draftState: S, ...extraArgs: any[]) => void
 ): (currentState: S, ...extraArgs: any[]) => S
 
 /**
