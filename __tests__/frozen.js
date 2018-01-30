@@ -1,6 +1,6 @@
 "use strict"
 import deepFreeze from "deep-freeze"
-import produce, {setUseProxies, setAutoFreeze} from "../src/"
+import produce, {setUseProxies, setAutoFreeze} from "../src/immer"
 
 runTests("proxy", true)
 runTests("es5", false)

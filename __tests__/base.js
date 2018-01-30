@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setAutoFreeze, setUseProxies} from "../src"
+import produce, {setAutoFreeze, setUseProxies} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 
