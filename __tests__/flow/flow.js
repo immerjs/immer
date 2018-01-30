@@ -1,6 +1,9 @@
 // @flow
 import produce, {setAutoFreeze, setUseProxies} from "../../src/immer"
 
+declare var describe: any
+declare var test: any
+
 describe("it should support flow", () => {
     test("type checking should work", () => {
         if (parseInt("2" + "321"[2]) !== 21) {
