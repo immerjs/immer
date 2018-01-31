@@ -1,5 +1,12 @@
 # Changelog
 
+### 1.0.0 (31-Jan-2018)
+
+* Producer functions will now always be invoked with the draft as context (`this`). See the [readme](https://github.com/mweststrate/immer#using-this).
+* Freezing the data will now be automatically (by default) be disabled in production builds. By [Gregory Assasie](https://github.com/Gregjarvez)
+* Fixed Flow typings. Fixes [#80](https://github.com/mweststrate/immer/issues/80). By [Marcin Szczepanski](https://github.com/mweststrate/immer/issues?q=is%3Apr+author%3Amarcins) in [#85](https://github.com/mweststrate/immer/pull/85)
+* Fixed issue where constructor type was not preserved. By [iruca3](https://github.com/iruca3) through [#81](https://github.com/mweststrate/immer/pull/81)
+
 ### 0.8.5
 
 * Immer will automatically turn auto-freezing of in production. Use `setAutoFreeze` to manually control it. See [#46](https://github.com/mweststrate/immer/issues/78), [#76](https://github.com/mweststrate/immer/pull/76)

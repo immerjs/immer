@@ -175,15 +175,39 @@ const byId = produce((draft, action) => {
 Note that `state` is now factored out (the created reducer will accept a state, and invoke the bound producer with it).
 One think to keep in mind; you cannot use this construction to initialize an uninitialized state. E.g. `draft = {}` doesn't do anything useful.
 
-
 ## Auto freezing
 
  Immer automatically freezes any state trees that are modified using `produce`.
  This protects against accidental modifications of the state tree outside of a producer.
  This comes with a performance impact, so it is recommended to disable this option in production.
  It is by default enabled.
- Use `setAutoFreeze(true / false)` to turn this feature on or off.
  By default it is turned on during local development, and turned off in production.
+ Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
+
+## Using `this`
+
+The recipe will be always invoked with the `draft` as `this` context.
+
+This means that the following constructions are also valid:
+
+```javascript
+const base = { counter: 0 }
+
+const next = produce(base, function() {
+  this.counter++
+})
+console.log(next.counter) // 1
+
+// OR
+const increment = produce(function() {
+  this.counter++
+})
+console.log(increment(base).counter) // 1
+```
+
+## TypeScript or Flow
+
+The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
 
 ## Immer on older JavaScript environments?
 
@@ -216,6 +240,7 @@ Use `yarn test:perf`  to reproduce them locally.
 ![performance.png](images/performance.png)
 
 Some observations:
+* From `immer` perspective, this benchmark is a _worst case_ scenario, because the root collection it has to proxy is really large relatively to the rest of the data set.
 * The _mutate_, and _deepclone, mutate_ benchmarks establish a baseline on how expensive changing the data is, without immutability (or structural sharing in the deep clone case).
 * The _reducer_ and _naive reducer_ are implemented in typical Redux style reducers. The "smart" implementation slices the collection first, and then maps and freezes only the relevant todos. The "naive" implementation just maps over and processes the entire collection.
 * Immer with proxies is roughly speaking twice as slow as a hand written reducer. This is in practice negligible.

@@ -33,4 +33,19 @@ describe("readme example", () => {
         // changed data not (dûh)
         expect(nextState[1]).not.toBe(baseState[1])
     })
+
+    it("it can use this", () => {
+        const base = {counter: 0}
+
+        const next = produce(base, function() {
+            this.counter++
+        })
+        expect(next.counter).toBe(1)
+
+        // OR
+        const increment = produce(function() {
+            this.counter++
+        })
+        expect(increment(base).counter).toBe(1)
+    })
 })
