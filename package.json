@@ -53,6 +53,7 @@
     "immutable": "^3.8.2",
     "jest": "^22.0.4",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.find": "^4.6.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.9.2",
     "regenerator-runtime": "^0.11.1",
