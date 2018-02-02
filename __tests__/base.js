@@ -117,6 +117,42 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).toEqual(baseState)
         })
 
+        it("processes with for loop", () => {
+            const base = [{id: 1, a: 1}, {id: 2, a: 1}]
+            const findById = (collection, id) => {
+                for (const item of collection) {
+                    if (item.id === id) return item
+                }
+                return null
+            }
+            const result = produce(base, draft => {
+                const obj1 = findById(draft, 1)
+                const obj2 = findById(draft, 2)
+                obj1.a = 2
+                obj2.a = 2
+            })
+            expect(result[0].a).toEqual(2)
+            expect(result[1].a).toEqual(2)
+        })
+
+        it("works with objects without proto", () => {
+            const base = Object.create(null)
+            base.x = 1
+            base.y = Object.create(null)
+            base.y.y = 2
+            expect(base.__proto__).toBe(undefined)
+            const next = produce(base, draft => {
+                draft.y.z = 3
+                draft.y.y++
+                draft.x++
+            })
+            expect(next).toEqual({
+                x: 2,
+                y: {y: 3, z: 3}
+            })
+            expect(next.__proto__).toBe(undefined)
+        })
+
         it("should support reading arrays", () => {
             const nextState = produce(baseState, s => {
                 s.anArray.slice()
