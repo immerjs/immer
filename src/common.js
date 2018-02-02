@@ -52,7 +52,10 @@ export function freeze(value) {
 }
 
 export function shallowCopy(value) {
-    return Array.isArray(value) ? value.slice() : Object.assign({}, value) // TODO: eliminate those isArray checks?
+    if (Array.isArray(value)) return value.slice()
+    if (value.__proto__ === undefined)
+        return Object.assign(Object.create(null), value)
+    return Object.assign({}, value)
 }
 
 export function each(value, cb) {
@@ -64,7 +67,7 @@ export function each(value, cb) {
 }
 
 export function has(thing, prop) {
-    return thing.hasOwnProperty(prop)
+    return Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
 // given a base object, returns it if unmodified, or return the changed cloned if modified

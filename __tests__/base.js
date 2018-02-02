@@ -135,6 +135,24 @@ function runBaseTest(name, useProxies, freeze) {
             expect(result[1].a).toEqual(2)
         })
 
+        it("works with objects without proto", () => {
+            const base = Object.create(null)
+            base.x = 1
+            base.y = Object.create(null)
+            base.y.y = 2
+            expect(base.__proto__).toBe(undefined)
+            const next = produce(base, draft => {
+                draft.y.z = 3
+                draft.y.y++
+                draft.x++
+            })
+            expect(next).toEqual({
+                x: 2,
+                y: {y: 3, z: 3}
+            })
+            expect(next.__proto__).toBe(undefined)
+        })
+
         it("should support reading arrays", () => {
             const nextState = produce(baseState, s => {
                 s.anArray.slice()
