@@ -64,7 +64,7 @@ export function each(value, cb) {
 }
 
 export function has(thing, prop) {
-    return Object.hasOwnProperty(thing, prop)
+    return thing.hasOwnProperty(prop)
 }
 
 // given a base object, returns it if unmodified, or return the changed cloned if modified

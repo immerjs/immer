@@ -2,7 +2,6 @@
 import produce, {setAutoFreeze, setUseProxies} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
-import find from "lodash.find"
 
 jest.setTimeout(1000)
 
@@ -118,11 +117,17 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).toEqual(baseState)
         })
 
-        it("processes with lodash.find", () => {
+        it("processes with for loop", () => {
             const base = [{id: 1, a: 1}, {id: 2, a: 1}]
+            const findById = (collection, id) => {
+                for (const item of collection) {
+                    if (item.id === id) return item
+                }
+                return null
+            }
             const result = produce(base, draft => {
-                const obj1 = find(draft, {id: 1})
-                const obj2 = find(draft, {id: 2})
+                const obj1 = findById(draft, 1)
+                const obj2 = findById(draft, 2)
                 obj1.a = 2
                 obj2.a = 2
             })
