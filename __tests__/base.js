@@ -778,6 +778,31 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next1.x).toBe(4)
         })
 
+        it("issue #89", () => {
+            const state = {
+                users: {
+                    existingID: {
+                        loading: false,
+                        value: "val"
+                    }
+                }
+            }
+            const nextState = produce(state, draft => {
+                draft.users.existingID = {
+                    ...draft.users.existingID,
+                    loading: true
+                }
+            })
+            expect(nextState).toEqual({
+                users: {
+                    existingID: {
+                        loading: true,
+                        value: "val"
+                    }
+                }
+            })
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.0.1 (2-Feb-2018)
+
+* Fixed an issue in checking property existence. See [#86](https://github.com/mweststrate/immer/pull/88) by [iruca3](https://github.com/iruca3). Also fixes [#89](https://github.com/mweststrate/immer/issues/89)
+
 ### 1.0.0 (31-Jan-2018)
 
 * Producer functions will now always be invoked with the draft as context (`this`). See the [readme](https://github.com/mweststrate/immer#using-this).
