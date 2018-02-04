@@ -2,6 +2,7 @@
 import produce, {setAutoFreeze, setUseProxies} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
+import * as lodash from "lodash"
 
 jest.setTimeout(1000)
 
@@ -801,6 +802,25 @@ function runBaseTest(name, useProxies, freeze) {
                     }
                 }
             })
+        })
+
+        it("processes with lodash.set", () => {
+            const base = [{id: 1, a: 1}]
+            const result = produce(base, draft => {
+                lodash.set(draft, "[0].a", 2)
+            })
+            expect(base[0].a).toEqual(1)
+            expect(result[0].a).toEqual(2)
+        })
+
+        it("processes with lodash.find", () => {
+            const base = [{id: 1, a: 1}]
+            const result = produce(base, draft => {
+                const obj1 = lodash.find(draft, {id: 1})
+                lodash.set(obj1, "a", 2)
+            })
+            expect(base[0].a).toEqual(1)
+            expect(result[0].a).toEqual(2)
         })
 
         afterEach(() => {

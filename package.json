@@ -52,6 +52,7 @@
     "immutable": "^3.8.2",
     "jest": "^22.0.4",
     "lint-staged": "^6.1.0",
+    "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
     "prettier": "^1.9.2",
     "regenerator-runtime": "^0.11.1",
