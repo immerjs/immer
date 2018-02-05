@@ -140,8 +140,8 @@ _Note: it might be tempting after using producers a while, to just put `produce`
 ## Currying
 
 `produce` can be called with one or two arguments.
-The one argument version is intended to be used as currying. This means that you get a pre-pound producer, that only needs a state to produce the value from.
-The producer function get's passed in the draft, and any further arguments that were passed to the curried function.
+The one argument version is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from.
+The producer function gets passed in the draft, and any further arguments that were passed to the curried function.
 
 For example:
 
