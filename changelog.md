@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.0.2 (13-Feb-2018)
+
+* `flow-bin` and `cpx` were accidentally dependencies instead of dev-dependencies. Fixed
+
 ### 1.0.1 (2-Feb-2018)
 
 * Fixed an issue in checking property existence. See [#86](https://github.com/mweststrate/immer/pull/88) by [iruca3](https://github.com/iruca3). Also fixes [#89](https://github.com/mweststrate/immer/issues/89)
