@@ -1,3 +1,7 @@
+type Mutable<T extends {[x: string]: any}, K extends string> = {
+	[P in K]: T[P];
+}
+
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
@@ -12,7 +16,7 @@
  */
 export default function<S = any>(
     currentState: S,
-    recipe: (this: S, draftState: S) => void
+    recipe?: (this: S, draftState: Mutable<S, keyof S>) => void
 ): S
 // curried invocations
 export default function<S = any, A = any, B = any, C = any>(
