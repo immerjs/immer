@@ -1,6 +1,8 @@
-type Mutable<T extends {[x: string]: any}, K extends string> = {
+export type MutableState<T extends {[x: string]: any}, K extends string> = {
 	[P in K]: T[P];
 }
+
+export type Recipe<S> = (this: S, draftState: MutableState<S, keyof S>) => void;
 
 /**
  * Immer takes a state, and runs a function against it.
@@ -11,12 +13,12 @@ type Mutable<T extends {[x: string]: any}, K extends string> = {
  * any time it is called with a base state
  *
  * @param currentState - the state to start with
- * @param thunk - function that receives a proxy of the current state as first argument and which can be freely modified
+ * @param recipe - function that receives a proxy of the current state as first argument and which can be freely modified
  * @returns The next state: a new state, or the current state if nothing was modified
  */
 export default function<S = any>(
     currentState: S,
-    recipe?: (this: S, draftState: Mutable<S, keyof S>) => void
+    recipe?: Recipe<S>
 ): S
 // curried invocations
 export default function<S = any, A = any, B = any, C = any>(
