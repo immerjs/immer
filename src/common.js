@@ -7,7 +7,7 @@ function verifyMinified() {}
 
 const inProduction =
     (typeof process !== "undefined" && process.env.NODE_ENV === "production") ||
-    verifyMinified.name === "verifyMinified"
+    verifyMinified.name !== "verifyMinified"
 let autoFreeze = !inProduction
 
 let useProxies = typeof Proxy !== "undefined"

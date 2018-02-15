@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.0.3 (15-Feb-2018)
+
+* Fixed dectection of production mode. Fixes [#95](https://github.com/mweststrate/immer/issues/95)
+
 ### 1.0.2 (13-Feb-2018)
 
 * `flow-bin` and `cpx` were accidentally dependencies instead of dev-dependencies. Fixed
