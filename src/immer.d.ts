@@ -23,7 +23,7 @@ export default function<S = any, A = any, B = any>(
 ): (currentState: S, a: A, b: B) => S
 export default function<S = any, A = any>(
     recipe: (this: S, draftState: S, a: A) => void
-): (currentState: S) => S
+): (currentState: S, a: A) => S
 export default function<S = any>(
     recipe: (this: S, draftState: S, ...extraArgs: any[]) => void
 ): (currentState: S, ...extraArgs: any[]) => S
