@@ -137,6 +137,35 @@ It can be used in any context where you have an immutable data tree that you wan
 
 _Note: it might be tempting after using producers a while, to just put `produce` in your root reducer, and then past the draft along to each reducer and work on that. Don't do that. It kills the point of Redux where each reducer is testable as pure reducer. Immer is best used when applying it to small individual pieces of logic._
 
+## React.setState example
+
+Deep updates in the state of React components can be greatly simplified as well by using immer.
+Take for example the following onClick handlers (Try in [codesandbox](https://codesandbox.io/s/m4yp57632j)):
+
+```javascript
+/**
+ * Classic React.setState with a deep merge
+ */
+onBirthDayClick1 = () => {
+    this.setState({
+        user: {
+            ...this.state.user,
+            age: this.state.user.age + 1
+        }
+    })
+}
+
+/**
+ * ...But, since setState accepts functions,
+ * we can just create curried producer and simplify this!
+*/
+onBirthDayClick2 = () => {
+    this.setState(produce(draft => {
+        draft.user.age += 1
+    })
+}
+```
+
 ## Currying
 
 `produce` can be called with one or two arguments.
