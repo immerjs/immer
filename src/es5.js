@@ -8,7 +8,7 @@ import {
     freeze,
     PROXY_STATE,
     shallowCopy,
-    verifyReturnValue,
+    RETURNED_AND_MODIFIED_ERROR,
     each,
     finalize
 } from "./common"
@@ -136,9 +136,9 @@ export function produceEs5(baseState, producer) {
     states = []
     try {
         // create proxy for root
-        const rootClone = createProxy(undefined, baseState)
+        const rootProxy = createProxy(undefined, baseState)
         // execute the thunk
-        verifyReturnValue(producer.call(rootClone, rootClone))
+        const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
         each(states, (_, state) => {
             state.finalizing = true
@@ -146,12 +146,19 @@ export function produceEs5(baseState, producer) {
         // find and mark all changes (for parts not done yet)
         // TODO: store states by depth, to be able guarantee processing leaves first
         markChanges()
-        const res = finalize(rootClone)
+        let result = finalize(rootProxy)
+        // check whether the draft was modified and/or a value was returned
+        if (returnValue !== undefined && returnValue !== rootProxy) {
+            // something was returned, and it wasn't the proxy itself
+            if (rootProxy[PROXY_STATE].modified)
+                throw new Error(RETURNED_AND_MODIFIED_ERROR)
+            result = returnValue
+        }
         // make sure all proxies become unusable
         each(states, (_, state) => {
             state.finished = true
         })
-        return res
+        return result
     } finally {
         states = prevStates
     }

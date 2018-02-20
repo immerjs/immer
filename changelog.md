@@ -1,8 +1,12 @@
 # Changelog
 
+### 1.1.0
+
+* It is now possible to return an entirely new state from a producer as well. Immer will verify that you didn't both change the draft and returned a new state. Implements [#103](https://github.com/mweststrate/immer/issues/103)
+
 ### 1.0.3 (15-Feb-2018)
 
-* Fixed dectection of production mode. Fixes [#95](https://github.com/mweststrate/immer/issues/95)
+* Fixed detection of production mode. Fixes [#95](https://github.com/mweststrate/immer/issues/95)
 
 ### 1.0.2 (13-Feb-2018)
 

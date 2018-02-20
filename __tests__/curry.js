@@ -11,10 +11,10 @@ function runTests(name, useProxies) {
         it("should check arguments", () => {
             expect(() => produce()).toThrow(/produce expects 1 or 2 arguments/)
             expect(() => produce(() => {}, {})).toThrow(
-                /the first argument to produce should be a plain object or array/
+                /the second argument to produce should be a function/
             )
-            expect(() => produce(1, () => {})).toThrow(
-                /the first argument to produce should be a plain object or array/
+            expect(() => produce(new Buffer(""), () => {})).toThrow(
+                /the first argument to an immer producer should be a primitive, plain object or array/
             )
             expect(() => produce({}, () => {}, [])).toThrow(
                 /produce expects 1 or 2 arguments/

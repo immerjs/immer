@@ -35,17 +35,6 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).toBe(baseState)
         })
 
-        it("should not return any value: thunk", () => {
-            const warning = jest.spyOn(console, "warn")
-            produce(baseState, () => ({bad: "don't do this"}))
-            produce(baseState, () => [1, 2, 3])
-            produce(baseState, () => false)
-            produce(baseState, () => "")
-
-            expect(warning).toHaveBeenCalledTimes(4)
-            warning.mockClear()
-        })
-
         it("should return a copy when modifying stuff", () => {
             const nextState = produce(baseState, s => {
                 s.aProp = "hello world"
@@ -821,6 +810,44 @@ function runBaseTest(name, useProxies, freeze) {
             })
             expect(base[0].a).toEqual(1)
             expect(result[0].a).toEqual(2)
+        })
+
+        it("can produce from no state", () => {
+            expect(
+                produce(3, draft => {
+                    expect(draft).toBe(3)
+                    return 5
+                })
+            ).toBe(5)
+        })
+
+        it("can return something new ", () => {
+            const base = {x: 3}
+            const res = produce(base, draft => {
+                return {x: draft.x + 1}
+            })
+            expect(res).not.toBe(base)
+            expect(res).toEqual({x: 4})
+        })
+
+        it("can return the draft new ", () => {
+            const base = {x: 3}
+            const res = produce(base, draft => {
+                draft.x = 4
+                return draft
+            })
+            expect(res).not.toBe(base)
+            expect(res).toEqual({x: 4})
+        })
+
+        it("should throw if modifying the draft and returning something new", () => {
+            const base = {x: 3}
+            expect(() => {
+                produce(base, draft => {
+                    draft.x = 4
+                    return {x: 5}
+                })
+            }).toThrow(/An immer producer returned a new value/)
         })
 
         afterEach(() => {

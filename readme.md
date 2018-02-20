@@ -157,7 +157,7 @@ onBirthDayClick1 = () => {
 
 /**
  * ...But, since setState accepts functions,
- * we can just create curried producer and simplify this!
+ * we can just create a curried producer and further simplify!
 */
 onBirthDayClick2 = () => {
     this.setState(produce(draft => {
@@ -213,6 +213,49 @@ One think to keep in mind; you cannot use this construction to initialize an uni
  By default it is turned on during local development, and turned off in production.
  Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
 
+## Returning data from producers
+
+It is not needed to return anything from a producer, as Immer will return the (finalized) version of the `draft` anyway.
+However, it allowed to just `return draft`.
+
+It is also allowed to return abritrarily other data from the producer function. But _only_ if you didn't modify the draft.
+This can be useful to produce an entirely new state. Some examples:
+
+```javascript
+const userReducer = produce((draft, action) => {
+  switch (action.type) {
+    case "renameUser":
+      // OK: we modify the current state
+      draft.users[action.payload.id].name = action.payload.name
+      return draft // same as just 'return'
+    case "loadUsers":
+      // OK: we return an entirely new state
+      return action.payload
+    case "adduser-1":
+      // NOT OK: This doesn't do change the draft nor return a new state!
+      // It doesn't modify the draft (it just redeclares it)
+      // In fact, this just doesn't do anything at all
+      draft = { users: [...draft.users, action.payload]}
+      return
+    case "adduser-2":
+      // NOT OK: modifying draft *and* returning a new state
+      draft.userCount += 1
+      return { users: [...draft.users, action.payload] }
+    case "adduser-3":
+      // OK: returning a new state. But, unnecessary complex and expensive
+      return {
+        userCount: draft.userCount + 1,
+        users: [...draft.users, action.payload]
+      }
+    case "adduser-4":
+      // OK: the immer way
+      draft.userCount += 1
+      draft.push(action.payload)
+      return
+  }
+})
+```
+
 ## Using `this`
 
 The recipe will be always invoked with the `draft` as `this` context.
@@ -247,6 +290,7 @@ In such cases Immer will fallback to an ES5 compatible implementation which work
 
 ## Pitfalls
 
+1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
 1. Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
 2. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
 3. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.

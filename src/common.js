@@ -3,13 +3,16 @@ export const PROXY_STATE =
         ? Symbol("immer-proxy-state")
         : "__$immer_state"
 
+export const RETURNED_AND_MODIFIED_ERROR =
+    "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."
+
 function verifyMinified() {}
 
 const inProduction =
     (typeof process !== "undefined" && process.env.NODE_ENV === "production") ||
     verifyMinified.name !== "verifyMinified"
-let autoFreeze = !inProduction
 
+let autoFreeze = !inProduction
 let useProxies = typeof Proxy !== "undefined"
 
 /**
@@ -111,12 +114,14 @@ function finalizeNonProxiedObject(parent) {
     freeze(parent)
 }
 
-export function verifyReturnValue(value) {
-    // values either than undefined will trigger warning;
-    if (value !== undefined)
-        console.warn(
-            `Immer callback expects no return value. However ${typeof value} was returned`
-        )
+export function verifyReturnValue(returnedValue, proxy, isProxyModified) {
+    if (returnedValue !== undefined && returnedValue !== proxy) {
+        // something was returned, and it wasn't the proxy itself
+        if (isProxyModified)
+            throw new Error(
+                "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."
+            )
+    }
 }
 
 export function is(x, y) {

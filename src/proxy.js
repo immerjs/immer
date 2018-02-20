@@ -10,7 +10,7 @@ import {
     PROXY_STATE,
     finalize,
     shallowCopy,
-    verifyReturnValue,
+    RETURNED_AND_MODIFIED_ERROR,
     each
 } from "./common"
 
@@ -134,14 +134,21 @@ export function produceProxy(baseState, producer) {
     proxies = []
     try {
         // create proxy for root
-        const rootClone = createProxy(undefined, baseState)
+        const rootProxy = createProxy(undefined, baseState)
         // execute the thunk
-        verifyReturnValue(producer.call(rootClone, rootClone))
+        const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
-        const res = finalize(rootClone)
+        let result = finalize(rootProxy)
+        // check whether the draft was modified and/or a value was returned
+        if (returnValue !== undefined && returnValue !== rootProxy) {
+            // something was returned, and it wasn't the proxy itself
+            if (rootProxy[PROXY_STATE].modified)
+                throw new Error(RETURNED_AND_MODIFIED_ERROR)
+            result = returnValue
+        }
         // revoke all proxies
         each(proxies, (_, p) => p.revoke())
-        return res
+        return result
     } finally {
         proxies = previousProxies
     }

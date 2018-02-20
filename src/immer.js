@@ -32,10 +32,16 @@ export default function produce(baseState, producer) {
     // prettier-ignore
     {
         if (arguments.length !== 2)  throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
-        if (!isProxyable(baseState)) throw new Error("the first argument to produce should be a plain object or array, got " + (typeof baseState))
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
 
+    // it state is a primitive, don't bother proxying at all and just return whatever the producer returns on that value
+    if (typeof baseState !== "object" || baseState === null)
+        return producer(baseState)
+    if (!isProxyable(baseState))
+        throw new Error(
+            `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
+        )
     return getUseProxies()
         ? produceProxy(baseState, producer)
         : produceEs5(baseState, producer)
