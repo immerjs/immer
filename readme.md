@@ -147,12 +147,12 @@ Take for example the following onClick handlers (Try in [codesandbox](https://co
  * Classic React.setState with a deep merge
  */
 onBirthDayClick1 = () => {
-    this.setState({
+    this.setState((prevState)=>({
         user: {
-            ...this.state.user,
-            age: this.state.user.age + 1
+            ...prevState.user,
+            age: prevState.user.age + 1
         }
-    })
+    }))
 }
 
 /**
