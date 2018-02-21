@@ -162,7 +162,7 @@ onBirthDayClick1 = () => {
 onBirthDayClick2 = () => {
     this.setState(produce(draft => {
         draft.user.age += 1
-    })
+    }))
 }
 ```
 
