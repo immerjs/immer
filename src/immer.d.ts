@@ -1,8 +1,4 @@
-export type MutableState<T extends {[x: string]: any}, K extends string> = {
-    [P in K]: T[P];
-}
-
-export type Recipe<S> = (this: S, draftState: MutableState<S, keyof S>) => void;
+export type Recipe<S> = (this: S, draftState: S | any) => void;
 
 /**
  * Immer takes a state, and runs a function against it.
