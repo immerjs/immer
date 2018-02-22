@@ -1,5 +1,10 @@
 # Changelog
 
+
+### 1.1.1
+
+* Fixed curried reducers not return new states correctly. Fixes [#105](https://github.com/mweststrate/immer/issues/105)
+
 ### 1.1.0
 
 * It is now possible to return an entirely new state from a producer as well. Immer will verify that you didn't both change the draft and returned a new state. Implements [#103](https://github.com/mweststrate/immer/issues/103)
