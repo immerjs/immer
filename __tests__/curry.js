@@ -39,5 +39,17 @@ function runTests(name, useProxies) {
             ])
             expect(state).toEqual([{}, {}, {}])
         })
+
+        it("should support returning new states from curring", () => {
+            const reducer = produce((item, index) => {
+                if (!item) {
+                    return {hello: "world"}
+                }
+                item.index = index
+            })
+
+            expect(reducer(undefined, 3)).toEqual({hello: "world"})
+            expect(reducer({}, 3)).toEqual({index: 3})
+        })
     })
 }
