@@ -6,7 +6,6 @@ import {
     has,
     isProxyable,
     isProxy,
-    freeze,
     PROXY_STATE,
     finalize,
     shallowCopy,
