@@ -35,7 +35,7 @@ export default function produce(baseState, producer) {
         if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
     }
 
-    // it state is a primitive, don't bother proxying at all and just return whatever the producer returns on that value
+    // if state is a primitive, don't bother proxying at all and just return whatever the producer returns on that value
     if (typeof baseState !== "object" || baseState === null)
         return producer(baseState)
     if (!isProxyable(baseState))
