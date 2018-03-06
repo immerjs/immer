@@ -1,3 +1,5 @@
+export type Recipe<S> = (this: S, draftState: S | any) => void;
+
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
@@ -7,12 +9,12 @@
  * any time it is called with a base state
  *
  * @param currentState - the state to start with
- * @param thunk - function that receives a proxy of the current state as first argument and which can be freely modified
+ * @param recipe - function that receives a proxy of the current state as first argument and which can be freely modified
  * @returns The next state: a new state, or the current state if nothing was modified
  */
 export default function<S = any>(
     currentState: S,
-    recipe: (this: S, draftState: S) => void
+    recipe?: Recipe<S>
 ): S
 // curried invocations
 export default function<S = any>(
