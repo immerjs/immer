@@ -905,6 +905,10 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next).toEqual({dots: base.availableStartingDots})
         })
 
+        it("immer should have no dependencies", () => {
+            expect(require("../package.json").dependencies).toEqual(undefined)
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
