@@ -137,13 +137,19 @@ export function produceProxy(baseState, producer) {
         // execute the thunk
         const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
-        let result = finalize(rootProxy)
+        let result
         // check whether the draft was modified and/or a value was returned
         if (returnValue !== undefined && returnValue !== rootProxy) {
             // something was returned, and it wasn't the proxy itself
             if (rootProxy[PROXY_STATE].modified)
                 throw new Error(RETURNED_AND_MODIFIED_ERROR)
-            result = returnValue
+
+            // See #117
+            // Should we just throw when returning a proxy which is not the root, but a subset of the original state?
+            // Looks like a wrongly modeled reducer
+            result = finalize(returnValue)
+        } else {
+            result = finalize(rootProxy)
         }
         // revoke all proxies
         each(proxies, (_, p) => p.revoke())

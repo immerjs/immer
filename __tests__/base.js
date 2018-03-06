@@ -858,6 +858,53 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).toEqual([1, 2, 100])
         })
 
+        it("should fix #117", () => {
+            const reducer = (state, action) =>
+                produce(state, draft => {
+                    switch (action.type) {
+                        case "SET_STARTING_DOTS":
+                            return draft.availableStartingDots.map(a => a)
+                        default:
+                            break
+                    }
+                })
+            const base = {
+                availableStartingDots: [
+                    {dots: 4, count: 1},
+                    {dots: 3, count: 2},
+                    {dots: 2, count: 3},
+                    {dots: 1, count: 4}
+                ]
+            }
+            const next = reducer(base, {type: "SET_STARTING_DOTS"})
+            expect(next).toEqual(base.availableStartingDots)
+            expect(next).not.toBe(base.availableStartingDots)
+        })
+
+        it("should fix #117 - 2", () => {
+            const reducer = (state, action) =>
+                produce(state, draft => {
+                    switch (action.type) {
+                        case "SET_STARTING_DOTS":
+                            return {
+                                dots: draft.availableStartingDots.map(a => a)
+                            }
+                        default:
+                            break
+                    }
+                })
+            const base = {
+                availableStartingDots: [
+                    {dots: 4, count: 1},
+                    {dots: 3, count: 2},
+                    {dots: 2, count: 3},
+                    {dots: 1, count: 4}
+                ]
+            }
+            const next = reducer(base, {type: "SET_STARTING_DOTS"})
+            expect(next).toEqual({dots: base.availableStartingDots})
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

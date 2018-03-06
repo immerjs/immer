@@ -2,6 +2,7 @@
 
 # Next
 
+* Fixed [#117](https://github.com/mweststrate/immer/issues/117), proxy was not finalized when returning a subset of the state
 * Fixed [#116](https://github.com/mweststrate/immer/issues/116), changes to arrays that ended up with the same length were not properly detected.
 
 ### 1.1.1

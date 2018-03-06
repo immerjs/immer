@@ -134,7 +134,10 @@ function hasArrayChanges(state) {
     // If after that new items are added, result in the same original length,
     // those last items will have no intercepting property.
     // So if there is no own descriptor on the last position, we know that items were removed and added
+    // N.B.: splice, unshift, etc only shift values around, but not prop descriptors, so we only have to check
+    // the last one
     const descriptor = Object.getOwnPropertyDescriptor(proxy, proxy.length - 1)
+    // descriptor can be null, but only for newly created sparse arrays, eg. new Array(10)
     if (descriptor && !descriptor.get) return true
     // For all other cases, we don't have to compare, as they would have been picked up by the index setters
     return false
@@ -155,14 +158,14 @@ export function produceEs5(baseState, producer) {
         // find and mark all changes (for parts not done yet)
         // TODO: store states by depth, to be able guarantee processing leaves first
         markChanges()
-        let result = finalize(rootProxy)
+        let result
         // check whether the draft was modified and/or a value was returned
         if (returnValue !== undefined && returnValue !== rootProxy) {
             // something was returned, and it wasn't the proxy itself
             if (rootProxy[PROXY_STATE].modified)
                 throw new Error(RETURNED_AND_MODIFIED_ERROR)
-            result = returnValue
-        }
+            result = finalize(returnValue)
+        } else result = finalize(rootProxy)
         // make sure all proxies become unusable
         each(states, (_, state) => {
             state.finished = true
