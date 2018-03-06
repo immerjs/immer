@@ -306,6 +306,58 @@ In such cases Immer will fallback to an ES5 compatible implementation which work
 
 Read the (second part of the) [introduction blog](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3).
 
+## Example patterns.
+
+_For those who have to go back to thinking in object updates :-)_
+
+```javscript
+import produce from "immer";
+
+// object mutations
+const todosObj = {
+  id1: { done: false, body: "Take out the trash" },
+  id2: { done: false, body: "Check Email" }
+};
+
+// add
+const addedTodosObj = produce(todosObj, draft => {
+  draft["id3"] = { done: false, body: "Buy bananas" };
+});
+
+// delete
+const deletedTodosObj = produce(todosObj, draft => {
+  delete draft["id1"];
+});
+
+// update
+const updatedTodosObj = produce(todosObj, draft => {
+  draft["id1"].done = true;
+});
+
+// array mutations
+const todosArray = [
+  { id: "id1", done: false, body: "Take out the trash" },
+  { id: "id2", done: false, body: "Check Email" }
+];
+
+// add
+const addedTodosArray = produce(todosArray, draft => {
+  draft.push({ id: "id3", done: false, body: "Buy bananas" });
+});
+
+// delete
+const deletedTodosArray = produce(todosArray, draft => {
+  draft.splice(draft.findIndex(todo => todo.id === "id1"), 1);
+  // or (slower):
+  // return draft.filter(todo => todo.id !== "id1")
+});
+
+// update
+const updatedTodosArray = produce(todosArray, draft => {
+  draft[draft.findIndex(todo => todo.id === "id1")].done = true;
+});
+```
+
 ## Performance
 
 Here is a [simple benchmark](__performance_tests__/todo.js) on the performance of Immer.
