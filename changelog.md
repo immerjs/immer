@@ -1,5 +1,8 @@
 # Changelog
 
+# Next
+
+* Fixed [#116](https://github.com/mweststrate/immer/issues/116), changes to arrays that ended up with the same length were not properly detected.
 
 ### 1.1.1
 

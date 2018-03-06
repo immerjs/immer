@@ -850,6 +850,14 @@ function runBaseTest(name, useProxies, freeze) {
             }).toThrow(/An immer producer returned a new value/)
         })
 
+        it("should fix #116", () => {
+            const nextState = produce([1, 2, 3], s => {
+                s.pop()
+                s.push(100)
+            })
+            expect(nextState).toEqual([1, 2, 100])
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

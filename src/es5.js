@@ -127,7 +127,17 @@ function hasObjectChanges(state) {
 }
 
 function hasArrayChanges(state) {
-    return state.proxy.length !== state.base.length
+    const {proxy} = state
+    if (proxy.length !== state.base.length) return true
+    // See #116
+    // If we first shorten the length, our array interceptors will be removed.
+    // If after that new items are added, result in the same original length,
+    // those last items will have no intercepting property.
+    // So if there is no own descriptor on the last position, we know that items were removed and added
+    const descriptor = Object.getOwnPropertyDescriptor(proxy, proxy.length - 1)
+    if (descriptor && !descriptor.get) return true
+    // For all other cases, we don't have to compare, as they would have been picked up by the index setters
+    return false
 }
 
 export function produceEs5(baseState, producer) {
