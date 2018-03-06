@@ -135,7 +135,7 @@ Creating Redux reducer is just a sample application of the Immer package.
 Immer is not just designed to simplify Redux reducers.
 It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing).
 
-_Note: it might be tempting after using producers a while, to just put `produce` in your root reducer, and then past the draft along to each reducer and work on that. Don't do that. It kills the point of Redux where each reducer is testable as pure reducer. Immer is best used when applying it to small individual pieces of logic._
+_Note: it might be tempting after using producers for a while, to just place `produce` in your root reducer and then pass the draft to each reducer and work directly over such draft. Don't do that. It kills the point of Redux where each reducer is testable as pure reducer. Immer is best used when applying it to small individual pieces of logic._
 
 ## React.setState example
 
