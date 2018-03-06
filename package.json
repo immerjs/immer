@@ -15,9 +15,9 @@
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx \"src/immer.{d.ts,js.flow}\" dist",
     "prettier": "prettier \"*/**/*.js\" --ignore-path ./.prettierignore --write",
-    "prepublish": "yarn-or-npm run build",
     "precommit": "lint-staged",
-    "release": "np"
+    "prepublish": "yarn-or-npm run build",
+    "release": "np --no-cleanup"
   },
   "repository": {
     "type": "git",
