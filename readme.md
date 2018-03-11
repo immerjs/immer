@@ -36,7 +36,7 @@ The Immer package exposes a default function that does all the work.
 
 `produce(currentState, producer: (draftState) => void): nextState`
 
-There is also a curried overload that is explained [below](#currying)
+There is also a curried overload that is explained [below](#currying).
 
 ## Example
 
@@ -168,8 +168,7 @@ onBirthDayClick2 = () => {
 
 ## Currying
 
-`produce` can be called with one or two arguments.
-The one argument version is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from.
+Passing a function as the first argument to `produce` is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from.
 The producer function gets passed in the draft, and any further arguments that were passed to the curried function.
 
 For example:
@@ -202,7 +201,22 @@ const byId = produce((draft, action) => {
 ```
 
 Note that `state` is now factored out (the created reducer will accept a state, and invoke the bound producer with it).
-One think to keep in mind; you cannot use this construction to initialize an uninitialized state. E.g. `draft = {}` doesn't do anything useful.
+
+If you want to initialize an uninitialized state using this construction, you can do so by passing the initial state as second argument to `produce`:
+
+```javascript
+import produce from 'immer'
+
+const byId = produce((draft, action) => {
+  switch (action.type) {
+    case RECEIVE_PRODUCTS:
+      action.products.forEach(product => {
+        draft[product.id] = product
+      })
+    })
+  }
+}, { 1: { id: 1, name: "product-1" } })
+```
 
 ## Auto freezing
 
@@ -216,9 +230,9 @@ One think to keep in mind; you cannot use this construction to initialize an uni
 ## Returning data from producers
 
 It is not needed to return anything from a producer, as Immer will return the (finalized) version of the `draft` anyway.
-However, it allowed to just `return draft`.
+However, it is allowed to just `return draft`.
 
-It is also allowed to return abritrarily other data from the producer function. But _only_ if you didn't modify the draft.
+It is also allowed to return arbitrarily other data from the producer function. But _only_ if you didn't modify the draft.
 This can be useful to produce an entirely new state. Some examples:
 
 ```javascript

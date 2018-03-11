@@ -15,24 +15,35 @@ import {produceEs5} from "./es5"
  * @returns {any} a new state, or the base state if nothing was modified
  */
 export default function produce(baseState, producer) {
+    // prettier-ignore
+    if (arguments.length !== 1 && arguments.length !== 2) throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
+
     // curried invocation
-    if (arguments.length === 1) {
-        const producer = baseState
+    if (typeof baseState === "function") {
         // prettier-ignore
-        if (typeof producer !== "function") throw new Error("if produce is called with 1 argument, the first argument should be a function")
+        if (typeof producer === "function") throw new Error("if first argument is a function (curried invocation), the second argument to produce cannot be a function")
+
+        const initialState = producer
+        const recipe = baseState
+
         return function() {
             const args = arguments
-            return produce(args[0], draft => {
+
+            const currentState =
+                args[0] === undefined && initialState !== undefined
+                    ? initialState
+                    : args[0]
+
+            return produce(currentState, draft => {
                 args[0] = draft // blegh!
-                return producer.apply(draft, args)
+                return recipe.apply(draft, args)
             })
         }
     }
 
     // prettier-ignore
     {
-        if (arguments.length !== 2)  throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
-        if (typeof producer !== "function") throw new Error("the second argument to produce should be a function")
+        if (typeof producer !== "function") throw new Error("if first argument is not a function, the second argument to produce should be a function")
     }
 
     // if state is a primitive, don't bother proxying at all and just return whatever the producer returns on that value
