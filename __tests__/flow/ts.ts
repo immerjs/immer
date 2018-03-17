@@ -1,4 +1,3 @@
-// @flow
 import produce, {setAutoFreeze, setUseProxies} from "../../src/immer"
 
 setAutoFreeze(true)
