@@ -337,7 +337,7 @@ Read the (second part of the) [introduction blog](https://medium.com/@mweststrat
 
 _For those who have to go back to thinking in object updates :-)_
 
-```javscript
+```javascript
 import produce from "immer";
 
 // object mutations
