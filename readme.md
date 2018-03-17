@@ -1,5 +1,7 @@
 # Immer
 
+[![npm](https://img.shields.io/npm/v/copee.svg)](https://www.npmjs.com/package/immer)
+[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js)
 [![Build Status](https://travis-ci.org/mweststrate/immer.svg?branch=master)](https://travis-ci.org/mweststrate/immer)
 [![Coverage Status](https://coveralls.io/repos/github/mweststrate/immer/badge.svg?branch=master)](https://coveralls.io/github/mweststrate/immer?branch=master)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -9,9 +11,12 @@ _Create the next immutable state tree by simply modifying the current tree_
 
 ---
 
-* NPM / Yarn: `npm install immer`
-* CDN: https://unpkg.com/immer/dist/immer.umd.js. Exposed global is `immer`.
-
+* NPM: `npm install immer`
+* Yarn: `yarn add immer`
+* CDN: Exposed global is `immer`
+    * Unpkg: `<script src="https://unpkg.com/immer/dist/immer.umd.js"></script>`
+    * JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"></script>`
+    
 ---
 
 * Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
