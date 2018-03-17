@@ -10,9 +10,6 @@ function runTests(name, useProxies) {
 
         it("should check arguments", () => {
             expect(() => produce()).toThrow(/produce expects 1 or 2 arguments/)
-            expect(() => produce(() => {}, {})).toThrow(
-                /the second argument to produce should be a function/
-            )
             expect(() => produce(new Buffer(""), () => {})).toThrow(
                 /the first argument to an immer producer should be a primitive, plain object or array/
             )
@@ -21,7 +18,10 @@ function runTests(name, useProxies) {
             )
             expect(() => produce({}, {})).toThrow(/should be a function/)
             expect(() => produce({})).toThrow(
-                /first argument should be a function/
+                /if first argument is not a function, the second argument to produce should be a function/
+            )
+            expect(() => produce(() => {}, () => {})).toThrow(
+                /if first argument is a function .* the second argument to produce cannot be a function/
             )
         })
 
@@ -49,6 +49,18 @@ function runTests(name, useProxies) {
             })
 
             expect(reducer(undefined, 3)).toEqual({hello: "world"})
+            expect(reducer({}, 3)).toEqual({index: 3})
+        })
+
+        it("should support passing an initial state as second argument", () => {
+            const reducer = produce(
+                (item, index) => {
+                    item.index = index
+                },
+                {hello: "world"}
+            )
+
+            expect(reducer(undefined, 3)).toEqual({hello: "world", index: 3})
             expect(reducer({}, 3)).toEqual({index: 3})
         })
     })
