@@ -16,7 +16,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 * CDN: Exposed global is `immer`
     * Unpkg: `<script src="https://unpkg.com/immer/dist/immer.umd.js"></script>`
     * JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"></script>`
-    
+
 ---
 
 * Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
@@ -200,6 +200,7 @@ const byId = produce((draft, action) => {
       action.products.forEach(product => {
         draft[product.id] = product
       })
+      return
     })
   }
 })
@@ -212,15 +213,20 @@ If you want to initialize an uninitialized state using this construction, you ca
 ```javascript
 import produce from 'immer'
 
-const byId = produce((draft, action) => {
-  switch (action.type) {
-    case RECEIVE_PRODUCTS:
-      action.products.forEach(product => {
-        draft[product.id] = product
-      })
-    })
+const byId = produce(
+  (draft, action) => {
+    switch (action.type) {
+      case RECEIVE_PRODUCTS:
+        action.products.forEach(product => {
+          draft[product.id] = product
+        })
+        return
+    }
+  },
+  {
+    1: { id: 1, name: "product-1" }
   }
-}, { 1: { id: 1, name: "product-1" } })
+)
 ```
 
 ## Auto freezing
@@ -318,6 +324,7 @@ In such cases Immer will fallback to an ES5 compatible implementation which work
 
 ## Cool things built with immer
 
+* [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
 * [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
 * [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 * [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux developement quicker and easier_
