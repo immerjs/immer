@@ -1,13 +1,14 @@
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
- * This means that the original state will stay unchanged, and once the function finishes, the modified state is returned
+ * This means that the original state will stay unchanged, and once the function finishes, the modified state is returned.
  *
- * If only one argument is passed, this is interpreted as the recipe, and will create a curried function that will execute the recipe
- * any time it is called with a base state
+ * If the first argument is a function, this is interpreted as the recipe, and will create a curried function that will execute the recipe
+ * any time it is called with the current state.
  *
  * @param currentState - the state to start with
- * @param thunk - function that receives a proxy of the current state as first argument and which can be freely modified
+ * @param recipe - function that receives a proxy of the current state as first argument and which can be freely modified
+ * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
  * @returns The next state: a new state, or the current state if nothing was modified
  */
 export default function<S = any>(
@@ -16,16 +17,20 @@ export default function<S = any>(
 ): S
 // curried invocations
 export default function<S = any>(
-    recipe: (this: S, draftState: S, ...extraArgs: any[]) => void
+    recipe: (this: S, draftState: S, ...extraArgs: any[]) => void,
+    initialState?: S
 ): (currentState: S, ...extraArgs: any[]) => S
 export default function<S = any, A = any>(
-    recipe: (this: S, draftState: S, a: A) => void
+    recipe: (this: S, draftState: S, a: A) => void,
+    initialState?: S
 ): (currentState: S, a: A) => S
 export default function<S = any, A = any, B = any>(
-    recipe: (this: S, draftState: S, a: A, b: B) => void
+    recipe: (this: S, draftState: S, a: A, b: B) => void,
+    initialState?: S
 ): (currentState: S, a: A, b: B) => S
 export default function<S = any, A = any, B = any, C = any>(
-    recipe: (this: S, draftState: S, a: A, b: B, c: C) => void
+    recipe: (this: S, draftState: S, a: A, b: B, c: C) => void,
+    initialState?: S
 ): (currentState: S, a: A, b: B, c: C) => S
 
 /**
