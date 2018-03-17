@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.2
+
+* It is now possible to pass an _initial state_ to a _curried producer_. This makes it simpler to write Redux reducers that have a default initial state. See [#121](https://github.com/mweststrate/immer/pull/121) by (@pkerschbaum)[https://github.com/pkerschbaum]. Implements [#111](https://github.com/mweststrate/immer/issues/111).
+* Improved TypeScript & Flow typings. See [#109]](https://github.com/mweststrate/immer/pull/109) by [ogwh](https://github.com/ogwh).
+
 ### 1.1.2
 
 * Fixed [#117](https://github.com/mweststrate/immer/issues/117), proxy was not finalized when returning a subset of the state
