@@ -1,6 +1,6 @@
 # Immer
 
-[![npm](https://img.shields.io/npm/v/copee.svg)](https://www.npmjs.com/package/immer)
+[![npm](https://img.shields.io/npm/v/immer.svg)](https://www.npmjs.com/package/immer)
 [![size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js)
 [![Build Status](https://travis-ci.org/mweststrate/immer.svg?branch=master)](https://travis-ci.org/mweststrate/immer)
 [![Coverage Status](https://coveralls.io/repos/github/mweststrate/immer/badge.svg?branch=master)](https://coveralls.io/github/mweststrate/immer?branch=master)
