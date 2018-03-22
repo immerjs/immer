@@ -9,6 +9,7 @@
   "react-native": "dist/immer.module.js",
   "types": "./dist/immer.d.ts",
   "scripts": {
+    "watch": "jest --watch",
     "test": "jest",
     "test:perf": "yarn-or-npm build && node --expose-gc node_modules/jest-cli/bin/jest.js --verbose --testRegex '__performance_tests__/.*?js$'",
     "test:flow": "yarn-or-npm flow check",
