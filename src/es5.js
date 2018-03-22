@@ -99,7 +99,8 @@ function createPropertyProxy(prop) {
 function assertUnfinished(state) {
     if (state.finished === true)
         throw new Error(
-            "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process?"
+            "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
+                JSON.stringify(state.copy || state.base)
         )
 }
 
@@ -144,6 +145,11 @@ function hasArrayChanges(state) {
 }
 
 export function produceEs5(baseState, producer) {
+    if (isProxy(baseState)) {
+        // See #100, don't nest producers
+        const returnValue = producer.call(baseState, baseState)
+        return returnValue === undefined ? baseState : returnValue
+    }
     const prevStates = states
     states = []
     try {
