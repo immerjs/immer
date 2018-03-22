@@ -14,7 +14,16 @@ const result = produce({x: 3}, draft => {
 
 console.log(result.x)
 
-const f2 = produce(draft => {})
+const result2 = produce({x: 3}, draft => {
+    return {x: 4};
+})
+
+console.log(result2.x)
+
+const f = produce((draft): ({x: number}) => { return {x: 4}; });
+f({x: 3});
+
+const f2 = produce((draft): void => {})
 f2({x: 3})
 
 // $ExpectError
@@ -34,7 +43,7 @@ produce({x: 3}, [])
 
 {
     // curried & initial arg
-    const f = produce((state, increment: number) => {
+    const f = produce((state, increment: number): void => {
         state.x += increment
     }, { x: 3})
 
@@ -51,7 +60,7 @@ produce({x: 3}, [])
 
 {
     // curried f & no initial arg
-    const f2 = produce((state: {x:number}, increment: number) => {
+    const f2 = produce((state: {x:number}, increment: number): void => {
         state.x += increment
     })
 
