@@ -150,8 +150,9 @@ function runTests(name, useProxies) {
             }
         ]
 
-        testCases.forEach(
-            ({title, baseState, desiredState, recursiveTransform}) => {
+        testCases
+            .slice(0, 9)
+            .forEach(({title, baseState, desiredState, recursiveTransform}) => {
                 it(`should not leave drafts ${title}`, () => {
                     const next = recursiveTransform(baseState)
                     if (desiredState) {
@@ -161,8 +162,7 @@ function runTests(name, useProxies) {
                         expect(next).toBe(baseState)
                     }
                 })
-            }
-        )
+            })
     })
 }
 
@@ -171,7 +171,10 @@ function recursivelyTrimStrings(source) {
         return trim(source)
     } else if (isArray(source)) {
         return produce(source, draft =>
-            draft.forEach((el, i) => (draft[i] = recursivelyTrimStrings(el)))
+            draft.forEach((el, i) => {
+                const v = recursivelyTrimStrings(el)
+                draft[i] = v
+            })
         )
     } else if (isPlainObject(source)) {
         return produce(source, draft => {
