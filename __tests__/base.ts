@@ -1,7 +1,7 @@
 "use strict"
 import produce, {setAutoFreeze, setUseProxies} from "../src/immer"
-import deepFreeze from "deep-freeze"
-import cloneDeep from "lodash.clonedeep"
+import deepFreeze = require("deep-freeze")
+import cloneDeep = require("lodash.clonedeep")
 import * as lodash from "lodash"
 
 jest.setTimeout(1000)
