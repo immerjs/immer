@@ -4,10 +4,10 @@
 import {
     is,
     isProxyable,
-    isProxy,
     PROXY_STATE,
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
+    has,
     each,
     finalize
 } from "./common"
@@ -191,10 +191,7 @@ function shallowEqual(objA, objB) {
     const keysB = Object.keys(objB)
     if (keysA.length !== keysB.length) return false
     for (let i = 0; i < keysA.length; i++) {
-        if (
-            !hasOwnProperty.call(objB, keysA[i]) ||
-            !is(objA[keysA[i]], objB[keysA[i]])
-        ) {
+        if (!has(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
             return false
         }
     }
