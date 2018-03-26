@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.2.1
+
+* Improved TypeScript and Flow typings to support return a new state from a producer. Trough [#131](https://github.com/mweststrate/immer/pull/131) by [dmorosinotto](https://github.com/mweststrate/immer/issues?q=is%3Apr+author%3Admorosinotto) resp [#127](https://github.com/mweststrate/immer/pull/127) by [bugzpodder](https://github.com/mweststrate/immer/pull/127)
+
 ### 1.2
 
 * It is now possible to pass an _initial state_ to a _curried producer_. This makes it simpler to write Redux reducers that have a default initial state. See [#121](https://github.com/mweststrate/immer/pull/121) by (@pkerschbaum)[https://github.com/pkerschbaum]. Implements [#111](https://github.com/mweststrate/immer/issues/111).
