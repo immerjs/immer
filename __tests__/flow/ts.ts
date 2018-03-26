@@ -33,29 +33,47 @@ produce({x: 3}, [])
 
 {
     // curried & initial arg
-    const f = produce((state, increment: number) => {
-        state.x += increment
-    }, { x: 3})
+    const f = produce(
+        (state, increment: number) => {
+            state.x += increment
+        },
+        {x: 3}
+    )
 
     // $ExpectError Too few arguments
-    f({x : 5})
+    f({x: 5})
 
     // $ExpectError
-    f({x : 5}, "test")
+    f({x: 5}, "test")
 
-    f({x : 5}, 3)
+    f({x: 5}, 3)
 
     f(undefined, 3)
 }
 
 {
     // curried f & no initial arg
-    const f2 = produce((state: {x:number}, increment: number) => {
+    const f2 = produce((state: {x: number}, increment: number) => {
         state.x += increment
     })
 
-    f2({x : 5}, 3)
+    f2({x: 5}, 3)
 
     // $ExpectError
     f2(undefined, 3)
+}
+
+{
+    // Issue #129
+    const handlers = {
+        ["TEST"]: (draft: {}, {id, value}: {id: string; value: string}) => {
+            draft[id] = {...draft[id], value}
+            return draft
+        }
+    }
+
+    const reducer = (state = {}, {type, payload}: any): any =>
+        handlers[type]
+            ? produce<any, any>(handlers[type])(state, payload)
+            : state
 }
