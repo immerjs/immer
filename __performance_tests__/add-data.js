@@ -3,6 +3,7 @@
 import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
 import cloneDeep from "lodash.clonedeep"
 import {fromJS} from "immutable"
+import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
 
 describe("loading large set of data", () => {
@@ -12,6 +13,7 @@ describe("loading large set of data", () => {
     }
     const frozenBazeState = deepFreeze(cloneDeep(baseState))
     const immutableJsBaseState = fromJS(baseState)
+    const seamlessBaseState = Seamless.from(baseState)
 
     function measure(name, fn) {
         global.gc && global.gc()
@@ -59,6 +61,14 @@ describe("loading large set of data", () => {
                 state.setIn(["data"], fromJS(dataSet))
             })
             .toJS()
+    })
+
+    measure("seamless-immutable", () => {
+        seamlessBaseState.set("data", dataSet)
+    })
+
+    measure("seamless-immutable + asMutable", () => {
+        seamlessBaseState.set("data", dataSet).asMutable({deep: true})
     })
 
     measure("immer (proxy) - without autofreeze", () => {

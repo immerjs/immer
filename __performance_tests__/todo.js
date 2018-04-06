@@ -2,6 +2,7 @@
 import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
+import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
 
 function freeze(x) {
@@ -10,11 +11,12 @@ function freeze(x) {
 }
 
 describe("performance", () => {
-    const MAX = 100000
+    const MAX = 10000
     const MODIFY_FACTOR = 0.1
     const baseState = []
     let frozenBazeState
     let immutableJsBaseState
+    let seamlessBaseState
 
     // produce the base state
     for (let i = 0; i < MAX; i++) {
@@ -35,6 +37,9 @@ describe("performance", () => {
         someThingCompletelyIrrelevant: []
     })
     immutableJsBaseState = List(baseState.map(todo => todoRecord(todo)))
+
+    // generate seamless-immutable base state
+    seamlessBaseState = Seamless.from(baseState)
 
     function measure(name, fn) {
         global.gc && global.gc()
@@ -138,6 +143,21 @@ describe("performance", () => {
                 }
             })
             .toJS()
+    })
+
+    measure("seamless-immutable", () => {
+        let state = seamlessBaseState
+        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+            state = state.setIn([i, "done"], true)
+        }
+    })
+
+    measure("seamless-immutable + asMutable", () => {
+        let state = seamlessBaseState
+        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+            state = state.setIn([i, "done"], true)
+        }
+        state.asMutable({deep: true})
     })
 
     measure("immer (proxy) - without autofreeze", () => {
