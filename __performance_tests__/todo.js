@@ -11,7 +11,7 @@ function freeze(x) {
 }
 
 describe("performance", () => {
-    const MAX = 10000
+    const MAX = 100000
     const MODIFY_FACTOR = 0.1
     const baseState = []
     let frozenBazeState
@@ -146,18 +146,21 @@ describe("performance", () => {
     })
 
     measure("seamless-immutable", () => {
-        let state = seamlessBaseState
-        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-            state = state.setIn([i, "done"], true)
-        }
+        const state = seamlessBaseState
+        state.map((todo, index) => {
+            if (index < MAX * MODIFY_FACTOR) return todo.set("done", true)
+            else return todo
+        })
     })
 
     measure("seamless-immutable + asMutable", () => {
-        let state = seamlessBaseState
-        for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-            state = state.setIn([i, "done"], true)
-        }
-        state.asMutable({deep: true})
+        const state = seamlessBaseState
+        state
+            .map((todo, index) => {
+                if (index < MAX * MODIFY_FACTOR) return todo.set("done", true)
+                else return todo
+            })
+            .asMutable({deep: true})
     })
 
     measure("immer (proxy) - without autofreeze", () => {
