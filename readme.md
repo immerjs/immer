@@ -328,6 +328,7 @@ In such cases Immer will fallback to an ES5 compatible implementation which work
 * [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
 * [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 * [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux developement quicker and easier_
+* [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
 
 ## How does Immer work?
 
