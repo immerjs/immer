@@ -275,7 +275,7 @@ const userReducer = produce((draft, action) => {
     case "adduser-4":
       // OK: the immer way
       draft.userCount += 1
-      draft.push(action.payload)
+      draft.users.push(action.payload)
       return
   }
 })
