@@ -27,7 +27,7 @@ const objectTraps = {
     deleteProperty,
     getOwnPropertyDescriptor,
     defineProperty,
-    setPrototypeOf() {
+    setPrototypeOf(): never {
         throw new Error("Don't even try this...")
     }
 }
@@ -102,7 +102,7 @@ function getOwnPropertyDescriptor(state, prop) {
     return descriptor
 }
 
-function defineProperty() {
+function defineProperty(): never {
     throw new Error(
         "Immer does currently not support defining properties on draft objects"
     )

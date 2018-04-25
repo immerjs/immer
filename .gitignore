@@ -54,6 +54,9 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# rollup-plugin-typescript2 cache
+.rpt2_cache
+
 # dotenv environment variables file
 .env
 
