@@ -120,6 +120,7 @@ function markChanged(state) {
 
 // creates a proxy for plain objects / arrays
 function createProxy(parentState, base) {
+    if (isProxy(base)) throw new Error("Immer bug. Plz report.")
     const state = createState(parentState, base)
     const proxy = Array.isArray(base)
         ? Proxy.revocable([state], arrayTraps)
@@ -129,6 +130,11 @@ function createProxy(parentState, base) {
 }
 
 export function produceProxy(baseState, producer) {
+    if (isProxy(baseState)) {
+        // See #100, don't nest producers
+        const returnValue = producer.call(baseState, baseState)
+        return returnValue === undefined ? baseState : returnValue
+    }
     const previousProxies = proxies
     proxies = []
     try {
