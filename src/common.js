@@ -56,9 +56,13 @@ export function freeze(value) {
 
 export function shallowCopy(value) {
     if (Array.isArray(value)) return value.slice()
-    if (value.__proto__ === undefined)
-        return Object.assign(Object.create(null), value)
-    return Object.assign({}, value)
+    const target = value.__proto__ === undefined ? Object.create(null) : {}
+    for (let key in value) {
+        if (has(value, key)) {
+            target[key] = value[key]
+        }
+    }
+    return target
 }
 
 export function each(value, cb) {
