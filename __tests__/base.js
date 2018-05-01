@@ -724,7 +724,7 @@ function runBaseTest(name, useProxies, freeze) {
             it("should not allow changing prototype", () => {
                 produce({}, draft => {
                     expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
-                        /try this/
+                        /does not support `setPrototype/
                     )
                 })
             })
