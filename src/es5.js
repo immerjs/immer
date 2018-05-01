@@ -104,7 +104,7 @@ function assertUnfinished(state) {
         )
 }
 
-// this sounds very expensive, but actually it is not that extensive in practice
+// this sounds very expensive, but actually it is not that expensive in practice
 // as it will only visit proxies, and only do key-based change detection for objects for
 // which it is not already know that they are changed (that is, only object for which no known key was changed)
 function markChanges() {
