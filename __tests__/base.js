@@ -909,6 +909,55 @@ function runBaseTest(name, useProxies, freeze) {
             expect(require("../package.json").dependencies).toEqual(undefined)
         })
 
+        it("should support Maps as root state", () => {
+            const base = new Map([["type1", "Finnish"]])
+            const array = [1, 2, 3, 4]
+            const result = produce(base, draft => {
+                draft.delete("type1")
+                draft.set("type2", "Italian").set("list", array)
+                return draft
+            })
+            expect(result.get("type1")).toBe(undefined)
+            expect(result.get("type2")).toBe("Italian")
+            expect(result.get("list")).toBe(array)
+        })
+        it("should support Sets as root state", () => {
+            const obj = {list: [1, 2]}
+            const base = new Set([1, 2, obj])
+            const result = produce(base, draft => {
+                draft.delete(1)
+                draft.add("hey").add("dude")
+                return draft
+            })
+            expect(result.size).toBe(4)
+            expect(result.has(obj)).toBe(true)
+            expect(result.has("hey")).toBe(true)
+            expect(result.has("dude")).toBe(true)
+            expect(result.has(1)).toBe(false)
+        })
+        it("should support nested Maps and Sets", () => {
+            const base = {a: new Map(), b: new Set()}
+            const result = produce(base, draft => {
+                draft.a.set("type", "Argentina")
+                draft.b.add("Mexico")
+                return draft
+            })
+            expect(result.a.get("type")).toBe("Argentina")
+            expect(result.b.has("Mexico")).toBe(true)
+        })
+        it("should process Map entries in 'for of' loop", () => {
+            const base = new Map([["John", "beginner"], ["Petri", "guru"]])
+            const result = produce(base, draft => {
+                for (const [key, value] of base.entries()) {
+                    draft.set(key, value.toUpperCase())
+                }
+                return draft
+            })
+            expect(result).toEqual(
+                new Map([["John", "BEGINNER"], ["Petri", "GURU"]])
+            )
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

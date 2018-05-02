@@ -10,7 +10,11 @@ import {
     finalize,
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
-    each
+    each,
+    isMapOrSet,
+    markChanged,
+    proxyMapOrSet,
+    createState
 } from "./common"
 
 let proxies = null
@@ -39,17 +43,6 @@ each(objectTraps, (key, fn) => {
         return fn.apply(this, arguments)
     }
 })
-
-function createState(parent, base) {
-    return {
-        modified: false,
-        finalized: false,
-        parent,
-        base,
-        copy: undefined,
-        proxies: {}
-    }
-}
 
 function source(state) {
     return state.modified === true ? state.copy : state.base
@@ -108,23 +101,18 @@ function defineProperty() {
     )
 }
 
-function markChanged(state) {
-    if (!state.modified) {
-        state.modified = true
-        state.copy = shallowCopy(state.base)
-        // copy the proxies over the base-copy
-        Object.assign(state.copy, state.proxies) // yup that works for arrays as well
-        if (state.parent) markChanged(state.parent)
-    }
-}
-
 // creates a proxy for plain objects / arrays
 function createProxy(parentState, base) {
     if (isProxy(base)) throw new Error("Immer bug. Plz report.")
     const state = createState(parentState, base)
-    const proxy = Array.isArray(base)
-        ? Proxy.revocable([state], arrayTraps)
-        : Proxy.revocable(state, objectTraps)
+    var proxy
+    if (Array.isArray(base)) {
+        proxy = Proxy.revocable([state], arrayTraps)
+    } else if (isMapOrSet(base)) {
+        proxy = proxyMapOrSet(parentState, base)
+    } else {
+        proxy = Proxy.revocable(state, objectTraps)
+    }
     proxies.push(proxy)
     return proxy.proxy
 }
@@ -158,7 +146,7 @@ export function produceProxy(baseState, producer) {
             result = finalize(rootProxy)
         }
         // revoke all proxies
-        each(proxies, (_, p) => p.revoke())
+        each(proxies, (_, p) => p.revoke && p.revoke())
         return result
     } finally {
         proxies = previousProxies

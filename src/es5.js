@@ -9,7 +9,10 @@ import {
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
     each,
-    finalize
+    finalize,
+    isMapOrSet,
+    proxyMapOrSet,
+    createHiddenProperty
 } from "./common"
 
 const descriptors = {}
@@ -71,11 +74,18 @@ function prepareCopy(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
     const proxy = shallowCopy(base)
-    each(base, i => {
-        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
+    each(base, (i, s) => {
+        if (!isMapOrSet(s)) {
+            Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
+        }
     })
-    const state = createState(parent, proxy, base)
-    createHiddenProperty(proxy, PROXY_STATE, state)
+    var state
+    if (isMapOrSet(base)) {
+        state = proxyMapOrSet(parent, base)
+    } else {
+        state = createState(parent, proxy, base)
+        createHiddenProperty(proxy, PROXY_STATE, state)
+    }
     states.push(state)
     return proxy
 }
@@ -113,7 +123,7 @@ function markChanges() {
     // reverse order of proxy creation approximates this
     for (let i = states.length - 1; i >= 0; i--) {
         const state = states[i]
-        if (state.modified === false) {
+        if (state.modified === false && !isMapOrSet(state.base)) {
             if (Array.isArray(state.base)) {
                 if (hasArrayChanges(state)) markChanged(state)
             } else if (hasObjectChanges(state)) markChanged(state)
@@ -205,12 +215,4 @@ function shallowEqual(objA, objB) {
         }
     }
     return true
-}
-
-function createHiddenProperty(target, prop, value) {
-    Object.defineProperty(target, prop, {
-        value: value,
-        enumerable: false,
-        writable: true
-    })
 }

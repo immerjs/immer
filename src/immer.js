@@ -1,4 +1,4 @@
-export {setAutoFreeze, setUseProxies} from "./common"
+export {setAutoFreeze, setUseProxies, isMap, isSet} from "./common"
 
 import {isProxyable, getUseProxies} from "./common"
 import {produceProxy} from "./proxy"

@@ -43,6 +43,7 @@ export function isProxyable(value) {
     if (!value) return false
     if (typeof value !== "object") return false
     if (Array.isArray(value)) return true
+    if (isMapOrSet(value)) return true
     const proto = Object.getPrototypeOf(value)
     return proto === null || proto === Object.prototype
 }
@@ -67,11 +68,33 @@ const assign =
 
 export function shallowCopy(value) {
     if (Array.isArray(value)) return value.slice()
-    const target = value.__proto__ === undefined ? Object.create(null) : {}
-    return assign(target, value)
+    if (isMap(value)) return new Map(value)
+    if (isSet(value)) return new Set(value)
+    if (value.__proto__ === undefined)
+        return Object.assign(Object.create(null), value)
+    return Object.assign({}, value)
+}
+
+function freezeMapOrSet(value) {
+    const insertMethod = isMap(value) ? "set" : "add"
+    if (autoFreeze) {
+        ;[insertMethod, "delete", "clear"].forEach(function(method) {
+            Object.defineProperty(value, method, {
+                value: function() {
+                    throw "In a frozen state, cannot be mutated"
+                },
+                enumerable: false,
+                writable: false
+            })
+        })
+        Object.freeze(value)
+    }
+    return value
 }
 
 export function each(value, cb) {
+    // no need to iterate through Map/Set when internal values are not proxied
+    if (isMapOrSet(value)) return
     if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) cb(i, value[i])
     } else {
@@ -103,6 +126,7 @@ export function finalize(base) {
 }
 
 function finalizeObject(copy, state) {
+    if (isMapOrSet(copy)) return freezeMapOrSet(copy)
     const base = state.base
     each(copy, (prop, value) => {
         if (value !== base[prop]) copy[prop] = finalize(value)
@@ -115,6 +139,7 @@ function finalizeNonProxiedObject(parent) {
     // tree and it could contain proxies at arbitrarily places. Let's find and finalize them as well
     if (!isProxyable(parent)) return
     if (Object.isFrozen(parent)) return
+    if (isMapOrSet(parent)) return freezeMapOrSet(parent)
     each(parent, (i, child) => {
         if (isProxy(child)) {
             parent[i] = finalize(child)
@@ -140,5 +165,89 @@ export function is(x, y) {
         return x !== 0 || 1 / x === 1 / y
     } else {
         return x !== x && y !== y
+    }
+}
+
+export function createHiddenProperty(target, prop, value) {
+    Object.defineProperty(target, prop, {
+        value: value,
+        enumerable: false,
+        writable: true
+    })
+}
+
+export function markChanged(state) {
+    if (!state.modified) {
+        state.modified = true
+        state.copy = shallowCopy(state.base)
+        // copy the proxies over the base-copy
+        Object.assign(state.copy, state.proxies) // yup that works for arrays as well
+        if (state.parent) markChanged(state.parent)
+    }
+}
+
+export function isMap(value) {
+    return value instanceof Map
+}
+
+export function isSet(value) {
+    return value instanceof Set
+}
+
+export function isMapOrSet(value) {
+    return isMap(value) || isSet(value)
+}
+
+const nonMutatingMethods = [
+    "forEach",
+    "get",
+    "has",
+    "keys",
+    "set",
+    "values",
+    "entries",
+    "@@iterator"
+]
+
+const mutatingMethods = ["set", "delete", "clear", "add"]
+
+const properties = ["size"]
+
+function source(state) {
+    return state.modified ? state.copy : state.base
+}
+
+export function proxyMapOrSet(parentState, base) {
+    var proxy = {}
+    var proxyState = createState(parentState, base)
+    proxyState.finalizing = false
+    nonMutatingMethods.forEach(function(method) {
+        proxy[method] = function(a, b) {
+            return source(proxyState)[method](a, b)
+        }
+    })
+    properties.forEach(function(prop) {
+        proxy[prop] = source(proxyState)[prop]
+    })
+    mutatingMethods.forEach(function(method) {
+        proxy[method] = function(a, b) {
+            // avoid copying with non-mutating updates?
+            // quite expensive to check deep equality
+            markChanged(proxyState)
+            return proxyState.copy[method](a, b)
+        }
+    })
+    createHiddenProperty(proxy, PROXY_STATE, proxyState)
+    return {proxy}
+}
+
+export function createState(parent, base) {
+    return {
+        modified: false,
+        finalized: false,
+        parent,
+        base,
+        copy: undefined,
+        proxies: {}
     }
 }
