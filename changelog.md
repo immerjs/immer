@@ -1,5 +1,11 @@
 # Changelog
 
+### 1.3.0
+
+* Improved the behavior of recursive producer calls. A producer that is called from another producer is now a no-op; that is, the draft will only be finalized once the outer-most producer completes. Pro and cons of this approach are discussed in [here](https://github.com/mweststrate/immer/issues/100#issuecomment-375216607). Fixes [#100](https://github.com/mweststrate/immer/issues/100)
+* Immer no longer relies on `Object.assign` to be present / polyfilled. See[#139](https://github.com/mweststrate/immer/pull/139) by @celebro
+* Improved some error messages, see [#144](https://github.com/mweststrate/immer/pull/144) by @btnwtn
+
 ### 1.2.1
 
 * Improved TypeScript and Flow typings to support return a new state from a producer. Trough [#131](https://github.com/mweststrate/immer/pull/131) by [dmorosinotto](https://github.com/mweststrate/immer/issues?q=is%3Apr+author%3Admorosinotto) resp [#127](https://github.com/mweststrate/immer/pull/127) by [bugzpodder](https://github.com/mweststrate/immer/pull/127)
@@ -54,7 +60,7 @@
 
 ### 0.8.3
 
-* Added 'polyfill' for `Symbol`, fixes  [#75](https://github.com/mweststrate/immer/issues/75)
+* Added 'polyfill' for `Symbol`, fixes [#75](https://github.com/mweststrate/immer/issues/75)
 
 ### 0.8.2
 
