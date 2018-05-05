@@ -93,7 +93,7 @@ function freezeMapOrSet(value) {
 }
 
 export function each(value, cb) {
-    // no need to iterate through Map/Set when internal values are not proxied
+    // no do need to iterate through Map/Set when internal values are not proxied
     if (isMapOrSet(value)) return
     if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) cb(i, value[i])
@@ -211,28 +211,46 @@ const nonMutatingMethods = [
 
 const mutatingMethods = ["set", "delete", "clear", "add"]
 
-const properties = ["size"]
-
 function source(state) {
     return state.modified ? state.copy : state.base
 }
 
-export function proxyMapOrSet(parentState, base) {
+function willMutate(base, method, arg1, arg2) {
+    if (method === "add" && base.has(arg1)) {
+        return false
+    } else if (method === "set" && base.get(arg1) === arg2) {
+        return false
+    } else if (method === "delete" && !base.has(arg1)) {
+        return false
+    } else if (method === "clear" && base.size === 0) {
+        return false
+    }
+    return true
+}
+
+export function proxyMapOrSet(parentState, base, es5) {
     var proxy = {}
     var proxyState = createState(parentState, base)
-    proxyState.finalizing = false
+    if (es5) {
+        proxyState.finalizing = false
+        proxyState.finalized = false
+    }
+    proxy.size = source(proxyState).size
     nonMutatingMethods.forEach(function(method) {
-        proxy[method] = function(a, b) {
-            return source(proxyState)[method](a, b)
+        if (proxyState.base[method]) {
+            proxy[method] = function(x) {
+                return source(proxyState)[method](x)
+            }
         }
-    })
-    properties.forEach(function(prop) {
-        proxy[prop] = source(proxyState)[prop]
     })
     mutatingMethods.forEach(function(method) {
         proxy[method] = function(a, b) {
-            // avoid copying with non-mutating updates?
-            // quite expensive to check deep equality
+            // skip copying if method call has no effect
+            if (
+                !proxyState.modified &&
+                !willMutate(proxyState.base, method, a, b)
+            )
+                return
             markChanged(proxyState)
             return proxyState.copy[method](a, b)
         }
