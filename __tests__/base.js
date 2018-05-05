@@ -256,6 +256,7 @@ function runBaseTest(name, useProxies, freeze) {
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
+            // // enumerableOnly doesn't handle Maps and Sets
             expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hi",
@@ -264,7 +265,9 @@ function runBaseTest(name, useProxies, freeze) {
                         yummie: true
                     },
                     coffee: false
-                }
+                },
+                aMap: {},
+                bSet: {}
             })
             expect(nextState.messy.nested).toBe(baseState.anObject.nested)
         })
@@ -279,6 +282,7 @@ function runBaseTest(name, useProxies, freeze) {
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
+            // enumerableOnly doesn't handle Maps and Sets
             expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hello",
@@ -287,7 +291,9 @@ function runBaseTest(name, useProxies, freeze) {
                         yummie: true
                     },
                     coffee: true
-                }
+                },
+                aMap: {},
+                bSet: {}
             })
             expect(nextState.messy.nested).toBe(baseState.anObject.nested)
         })
@@ -945,7 +951,7 @@ function runBaseTest(name, useProxies, freeze) {
             expect(result.a.get("type")).toBe("Argentina")
             expect(result.b.has("Mexico")).toBe(true)
         })
-        it("should iterate over Map in 'for of' loop", () => {
+        it("should iterate over proxied Map in 'for of' loop", () => {
             const base = new Map([["Jani", "beginner"], ["Petri", "guru"]])
             const result = produce(base, draft => {
                 for (const [key, value] of base) {
@@ -1008,7 +1014,9 @@ function runBaseTest(name, useProxies, freeze) {
                         yummie: true
                     },
                     coffee: false
-                }
+                },
+                aMap: new Map([[1, "a"]]),
+                bSet: new Set([1, 2, 3])
             }
             return freeze ? deepFreeze(data) : data
         }

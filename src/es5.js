@@ -76,12 +76,13 @@ function prepareCopy(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
     const proxy = shallowCopy(base)
-    each(base, (i, s) => {
+    each(base, i => {
         Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
     })
     var state
     if (isMapOrSet(base)) {
         state = proxyMapOrSet(createState)(parent, base, true)
+        createHiddenProperty(proxy, PROXY_STATE, state)
     } else {
         state = createState(parent, proxy, base)
         createHiddenProperty(proxy, PROXY_STATE, state)
