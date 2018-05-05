@@ -10,9 +10,11 @@ import {
     RETURNED_AND_MODIFIED_ERROR,
     each,
     finalize,
+    createHiddenProperty,
     isMapOrSet,
     proxyMapOrSet,
-    createHiddenProperty
+    isMap,
+    isSet
 } from "./common"
 
 const descriptors = {}
@@ -75,13 +77,11 @@ function prepareCopy(state) {
 function createProxy(parent, base) {
     const proxy = shallowCopy(base)
     each(base, (i, s) => {
-        if (!isMapOrSet(s)) {
-            Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
-        }
+        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
     })
     var state
     if (isMapOrSet(base)) {
-        state = proxyMapOrSet(parent, base)
+        state = proxyMapOrSet(createState)(parent, base, true)
     } else {
         state = createState(parent, proxy, base)
         createHiddenProperty(proxy, PROXY_STATE, state)
@@ -123,10 +123,14 @@ function markChanges() {
     // reverse order of proxy creation approximates this
     for (let i = states.length - 1; i >= 0; i--) {
         const state = states[i]
-        if (state.modified === false && !isMapOrSet(state.base)) {
-            if (Array.isArray(state.base)) {
-                if (hasArrayChanges(state)) markChanged(state)
-            } else if (hasObjectChanges(state)) markChanged(state)
+        if (state.modified === false) {
+            if (Array.isArray(state.base) && hasArrayChanges(state))
+                markChanged(state)
+            else if (isMap(state.base) && hasMapChanges(state))
+                markChanged(state)
+            else if (isSet(state.base) && hasSetChanges(state))
+                markChanged(state)
+            else if (hasObjectChanges(state)) markChanged(state)
         }
     }
 }
@@ -135,6 +139,25 @@ function hasObjectChanges(state) {
     const baseKeys = Object.keys(state.base)
     const keys = Object.keys(state.proxy)
     return !shallowEqual(baseKeys, keys)
+}
+
+function hasSetChanges(state) {
+    const {proxy} = state
+    if (proxy.size !== state.base.size) return true
+    for (var a of proxy) if (!state.base.has(a)) return true
+    return false
+}
+
+function hasMapChanges(state) {
+    const {proxy} = state
+    if (proxy.size !== state.base.size) return true
+    for (var [key, val] of proxy) {
+        const v = state.base.get(key)
+        if (v !== val || (v === undefined && !state.base.has(key))) {
+            return true
+        }
+    }
+    return false
 }
 
 function hasArrayChanges(state) {

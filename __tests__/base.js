@@ -914,12 +914,12 @@ function runBaseTest(name, useProxies, freeze) {
             const array = [1, 2, 3, 4]
             const result = produce(base, draft => {
                 draft.delete("type1")
-                draft.set("type2", "Italian").set("list", array)
+                draft.set("type2", "Italian").set("array", array)
                 return draft
             })
             expect(result.get("type1")).toBe(undefined)
             expect(result.get("type2")).toBe("Italian")
-            expect(result.get("list")).toBe(array)
+            expect(result.get("array")).toBe(array)
         })
         it("should support Sets as root state", () => {
             const obj = {list: [1, 2]}
@@ -945,17 +945,53 @@ function runBaseTest(name, useProxies, freeze) {
             expect(result.a.get("type")).toBe("Argentina")
             expect(result.b.has("Mexico")).toBe(true)
         })
-        it("should process Map entries in 'for of' loop", () => {
-            const base = new Map([["John", "beginner"], ["Petri", "guru"]])
+        it("should iterate over Map in 'for of' loop", () => {
+            const base = new Map([["Jani", "beginner"], ["Petri", "guru"]])
             const result = produce(base, draft => {
-                for (const [key, value] of base.entries()) {
+                for (const [key, value] of base) {
                     draft.set(key, value.toUpperCase())
                 }
                 return draft
             })
             expect(result).toEqual(
-                new Map([["John", "BEGINNER"], ["Petri", "GURU"]])
+                new Map([["Jani", "BEGINNER"], ["Petri", "GURU"]])
             )
+        })
+        // copying not working for es5
+        it("should return a copy when modifying Map", () => {
+            const base = {
+                aMap: new Map([["weather", "cold"]]),
+                anObject: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: false
+                },
+                anArray: [1, 2, 3]
+            }
+            const nextState = produce(base, s => {
+                s.aMap.set("weather", "hot")
+                s.anArray.push("me")
+                return s
+            })
+            expect(nextState).not.toBe(base)
+            expect(base.aMap.get("weather")).toBe("cold")
+            expect(nextState.aMap.get("weather")).toBe("hot")
+            expect(nextState.anArray).toEqual([1, 2, 3, "me"])
+            // structural sharing?
+            expect(nextState.nested).toBe(base.nested)
+        })
+
+        it("Map and Set size property should be available", () => {
+            const base = {
+                aMap: new Map([[1, 1]]),
+                bSet: new Set([1, 2, 3])
+            }
+            const nextState = produce(base, s => {
+                const mapSize = s.aMap.size
+                const setSize = s.bSet.size
+                expect(mapSize + setSize).toBe(4)
+            })
         })
 
         afterEach(() => {

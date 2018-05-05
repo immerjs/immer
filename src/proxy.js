@@ -13,8 +13,7 @@ import {
     each,
     isMapOrSet,
     markChanged,
-    proxyMapOrSet,
-    createState
+    proxyMapOrSet
 } from "./common"
 
 let proxies = null
@@ -43,6 +42,17 @@ each(objectTraps, (key, fn) => {
         return fn.apply(this, arguments)
     }
 })
+
+export function createState(parent, base) {
+    return {
+        modified: false,
+        finalized: false,
+        parent,
+        base,
+        copy: undefined,
+        proxies: {}
+    }
+}
 
 function source(state) {
     return state.modified === true ? state.copy : state.base
@@ -109,7 +119,7 @@ function createProxy(parentState, base) {
     if (Array.isArray(base)) {
         proxy = Proxy.revocable([state], arrayTraps)
     } else if (isMapOrSet(base)) {
-        proxy = proxyMapOrSet(parentState, base)
+        proxy = proxyMapOrSet(createState)(parentState, base)
     } else {
         proxy = Proxy.revocable(state, objectTraps)
     }
