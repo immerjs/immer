@@ -988,26 +988,24 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState.nested).toBe(base.nested)
         })
 
-        if (useProxies) {
-            it("should not return a copy when methods do not change Map or Set", () => {
-                const nestedMap = new Map([[2, 3]])
-                const base = {
-                    a: new Set(),
-                    b: new Map([[1, nestedMap], [2, 2]]),
-                    c: new Set([1])
-                }
-                const nextState = produce(base, s => {
-                    s.a.clear()
-                    s.b.set(1, nestedMap)
-                    s.c.delete(3)
-                    s.c.add(1)
-                    return s
-                })
-                expect(nextState.a).toBe(base.a)
-                expect(nextState.b).toBe(base.b)
-                expect(nextState.c).toBe(base.c)
+        it("should not return a copy when methods do not change Map or Set", () => {
+            const nestedMap = new Map([[2, 3]])
+            const base = {
+                a: new Set(),
+                b: new Map([[1, nestedMap], [2, 2]]),
+                c: new Set([1])
+            }
+            const nextState = produce(base, s => {
+                s.a.clear()
+                s.b.set(1, nestedMap)
+                s.c.delete(3)
+                s.c.add(1)
+                return s
             })
-        }
+            expect(nextState.a).toBe(base.a)
+            expect(nextState.b).toBe(base.b)
+            expect(nextState.c).toBe(base.c)
+        })
 
         it("should proxy Map and Set non-mutative methods", () => {
             const base = {

@@ -13,8 +13,7 @@ import {
     createHiddenProperty,
     isMapOrSet,
     proxyMapOrSet,
-    isMap,
-    isSet
+    es5MarkChanged as markChanged
 } from "./common"
 
 const descriptors = {}
@@ -60,33 +59,27 @@ function set(state, prop, value) {
     state.copy[prop] = value
 }
 
-function markChanged(state) {
-    if (!state.modified) {
-        state.modified = true
-        if (state.parent) markChanged(state.parent)
-    }
-}
-
 function prepareCopy(state) {
     if (state.hasCopy) return
     state.hasCopy = true
     state.copy = shallowCopy(state.base)
 }
 
-// creates a proxy for plain objects / arrays
+function createMapOrSetProxy(parent, base) {
+    const {proxy, state} = proxyMapOrSet(parent, base, true)
+    states.push(state)
+    return proxy
+}
+
 function createProxy(parent, base) {
+    var state
+    if (isMapOrSet(base)) return createMapOrSetProxy(parent, base)
     const proxy = shallowCopy(base)
     each(base, i => {
         Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
     })
-    var state
-    if (isMapOrSet(base)) {
-        state = proxyMapOrSet(createState)(parent, base, true)
-        createHiddenProperty(proxy, PROXY_STATE, state)
-    } else {
-        state = createState(parent, proxy, base)
-        createHiddenProperty(proxy, PROXY_STATE, state)
-    }
+    state = createState(parent, proxy, base)
+    createHiddenProperty(proxy, PROXY_STATE, state)
     states.push(state)
     return proxy
 }
@@ -125,12 +118,11 @@ function markChanges() {
     for (let i = states.length - 1; i >= 0; i--) {
         const state = states[i]
         if (state.modified === false) {
-            if (Array.isArray(state.base) && hasArrayChanges(state))
-                markChanged(state)
-            else if (isMap(state.base) && hasMapChanges(state))
-                markChanged(state)
-            else if (isSet(state.base) && hasSetChanges(state))
-                markChanged(state)
+            if (Array.isArray(state.base)) {
+                if (hasArrayChanges(state)) {
+                    markChanged(state)
+                }
+            } else if (isMapOrSet(state.base)) continue
             else if (hasObjectChanges(state)) markChanged(state)
         }
     }
@@ -140,25 +132,6 @@ function hasObjectChanges(state) {
     const baseKeys = Object.keys(state.base)
     const keys = Object.keys(state.proxy)
     return !shallowEqual(baseKeys, keys)
-}
-
-function hasSetChanges(state) {
-    const {proxy} = state
-    if (proxy.size !== state.base.size) return true
-    for (var a of proxy) if (!state.base.has(a)) return true
-    return false
-}
-
-function hasMapChanges(state) {
-    const {proxy} = state
-    if (proxy.size !== state.base.size) return true
-    for (var [key, val] of proxy) {
-        const v = state.base.get(key)
-        if (v !== val || (v === undefined && !state.base.has(key))) {
-            return true
-        }
-    }
-    return false
 }
 
 function hasArrayChanges(state) {

@@ -114,7 +114,9 @@ export function finalize(base) {
             if (state.finalized === true) return state.copy
             state.finalized = true
             return finalizeObject(
-                useProxies ? state.copy : (state.copy = shallowCopy(base)),
+                useProxies || isMapOrSet(state.base)
+                    ? state.copy
+                    : (state.copy = shallowCopy(base)),
                 state
             )
         } else {
@@ -176,16 +178,25 @@ export function createHiddenProperty(target, prop, value) {
     })
 }
 
-export function markChanged(state, es5) {
+export function es5MarkChanged(state) {
     if (!state.modified) {
         state.modified = true
+        if (state.parent) es5MarkChanged(state.parent)
+    }
+}
+
+export function markChanged(state, es5) {
+    if (!state.modified) {
         state.copy = shallowCopy(state.base)
         if (es5) {
             state.hasCopy = true
+            es5MarkChanged(state)
+        } else {
+            state.modified = true
+            // copy the proxies over the base-copy
+            Object.assign(state.copy, state.proxies) // yup that works for arrays as well
+            if (state.parent) markChanged(state.parent)
         }
-        // copy the proxies over the base-copy
-        Object.assign(state.copy, state.proxies) // yup that works for arrays as well
-        if (state.parent) markChanged(state.parent)
     }
 }
 
@@ -230,44 +241,51 @@ function willMutate(base, method, arg1, arg2) {
     return true
 }
 
-export function proxyMapOrSet(createState) {
-    return function(parentState, base, es5) {
-        var proxy = {}
-        var proxyState = es5
-            ? createState(parentState, proxy, base)
-            : createState(parentState, base)
-        proxy.size = source(proxyState).size
-        // better way to add iterator?
-        proxy[Symbol.iterator] = function() {
-            var nextIndex = 0
-            var array = [...source(proxyState)]
-            return {
-                next: function() {
-                    return nextIndex < array.length
-                        ? {value: array[nextIndex++], done: false}
-                        : {done: true}
-                }
+export function proxyMapOrSet(parentState, base, es5) {
+    var proxy = {}
+    var proxyState = createState(parentState, base)
+    proxy.size = source(proxyState).size
+    // better way to add iterator?
+    proxy[Symbol.iterator] = function() {
+        var nextIndex = 0
+        var array = [...source(proxyState)]
+        return {
+            next: function() {
+                return nextIndex < array.length
+                    ? {value: array[nextIndex++], done: false}
+                    : {done: true}
             }
         }
-        nonMutatingMethods.forEach(function(method) {
-            if (proxyState.base[method]) {
-                proxy[method] = function(x) {
-                    return source(proxyState)[method](x)
-                }
+    }
+    nonMutatingMethods.forEach(function(method) {
+        if (proxyState.base[method]) {
+            proxy[method] = function(x) {
+                return source(proxyState)[method](x)
             }
-        })
-        mutatingMethods.forEach(function(method) {
-            proxy[method] = function(a, b) {
-                if (
-                    !proxyState.modified &&
-                    !willMutate(proxyState.base, method, a, b)
-                )
-                    return
-                markChanged(proxyState, es5)
-                return proxyState.copy[method](a, b)
-            }
-        })
-        createHiddenProperty(proxy, PROXY_STATE, proxyState)
-        return es5 ? proxyState : {proxy}
+        }
+    })
+    mutatingMethods.forEach(function(method) {
+        proxy[method] = function(a, b) {
+            if (
+                !proxyState.modified &&
+                !willMutate(proxyState.base, method, a, b)
+            )
+                return
+            markChanged(proxyState, es5)
+            return proxyState.copy[method](a, b)
+        }
+    })
+    createHiddenProperty(proxy, PROXY_STATE, proxyState)
+    return es5 ? {proxy, state: proxyState} : {proxy}
+}
+
+export function createState(parent, base) {
+    return {
+        modified: false,
+        finalized: false,
+        parent,
+        base,
+        copy: undefined,
+        proxies: {}
     }
 }
