@@ -119,9 +119,7 @@ function markChanges() {
         const state = states[i]
         if (state.modified === false) {
             if (Array.isArray(state.base)) {
-                if (hasArrayChanges(state)) {
-                    markChanged(state)
-                }
+                if (hasArrayChanges(state)) markChanged(state)
             } else if (isMapOrSet(state.base)) continue
             else if (hasObjectChanges(state)) markChanged(state)
         }

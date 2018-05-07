@@ -954,7 +954,7 @@ function runBaseTest(name, useProxies, freeze) {
         it("should iterate over proxied Map in 'for of' loop", () => {
             const base = new Map([["Jani", "beginner"], ["Petri", "guru"]])
             const result = produce(base, draft => {
-                for (const [key, value] of base) {
+                for (const [key, value] of draft) {
                     draft.set(key, value.toUpperCase())
                 }
                 return draft
@@ -962,6 +962,17 @@ function runBaseTest(name, useProxies, freeze) {
             expect(result).toEqual(
                 new Map([["Jani", "BEGINNER"], ["Petri", "GURU"]])
             )
+        })
+        it("should iterate over proxied Set in 'for of' loop", () => {
+            const base = new Set(["Jani", "Petri", "Antti"])
+            const result = produce(base, draft => {
+                for (const value of draft) {
+                    draft.delete(value)
+                    draft.add(value.toUpperCase())
+                }
+                return draft
+            })
+            expect(result).toEqual(new Set(["ANTTI", "JANI", "PETRI"]))
         })
         // copying not working for es5
         it("should return a copy when modifying Map", () => {
@@ -983,6 +994,30 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).not.toBe(base)
             expect(base.aMap.get("weather")).toBe("cold")
             expect(nextState.aMap.get("weather")).toBe("hot")
+            expect(nextState.anArray).toEqual([1, 2, 3, "me"])
+            // structural sharing?
+            expect(nextState.nested).toBe(base.nested)
+        })
+
+        it("should return a copy when modifying Set", () => {
+            const base = {
+                aSet: new Set(["Agata", "Jorge"]),
+                anObject: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: false
+                },
+                anArray: [1, 2, 3]
+            }
+            const nextState = produce(base, s => {
+                s.aSet.add("Fabiano")
+                s.anArray.push("me")
+                return s
+            })
+            expect(nextState).not.toBe(base)
+            expect(base.aSet.has("Fabiano")).toBe(false)
+            expect(nextState.aSet.has("Fabiano")).toBe(true)
             expect(nextState.anArray).toEqual([1, 2, 3, "me"])
             // structural sharing?
             expect(nextState.nested).toBe(base.nested)
@@ -1022,6 +1057,24 @@ function runBaseTest(name, useProxies, freeze) {
                 expect([...s.bSet.values()]).toEqual([1, 2, 3])
                 expect(s.aMap.get(1)).toBe(1)
                 expect([...s.aMap.entries()]).toEqual([[1, 1]])
+            })
+        })
+
+        it("Array methods should work with Map and Set proxy", () => {
+            const base = {
+                aMap: new Map([[1, 1]]),
+                bSet: new Set([1, 2, 3]),
+                array: [1, 2, 3]
+            }
+            const nextState = produce(base, s => {
+                s.aMap.set(1, 2)
+                s.bSet.add(4)
+                s.array.push(4)
+            })
+            expect(nextState).toEqual({
+                aMap: new Map([[1, 2]]),
+                bSet: new Set([1, 2, 3, 4]),
+                array: [1, 2, 3, 4]
             })
         })
 

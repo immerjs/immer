@@ -229,15 +229,10 @@ function source(state) {
 }
 
 function willMutate(base, method, arg1, arg2) {
-    if (method === "add" && base.has(arg1)) {
-        return false
-    } else if (method === "set" && base.get(arg1) === arg2) {
-        return false
-    } else if (method === "delete" && !base.has(arg1)) {
-        return false
-    } else if (method === "clear" && base.size === 0) {
-        return false
-    }
+    if (method === "add" && base.has(arg1)) return false
+    else if (method === "set" && is(base.get(arg1), arg2)) return false
+    else if (method === "delete" && !base.has(arg1)) return false
+    else if (method === "clear" && is(base.size, 0)) return false
     return true
 }
 
@@ -248,11 +243,11 @@ export function proxyMapOrSet(parentState, base, es5) {
     // better way to add iterator?
     proxy[Symbol.iterator] = function() {
         var nextIndex = 0
-        var array = [...source(proxyState)]
+        var values = [...source(proxyState)]
         return {
             next: function() {
-                return nextIndex < array.length
-                    ? {value: array[nextIndex++], done: false}
+                return nextIndex < values.length
+                    ? {value: values[nextIndex++], done: false}
                     : {done: true}
             }
         }
