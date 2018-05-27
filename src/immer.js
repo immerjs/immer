@@ -46,9 +46,12 @@ export default function produce(baseState, producer) {
         if (typeof producer !== "function") throw new Error("if first argument is not a function, the second argument to produce should be a function")
     }
 
-    // if state is a primitive, don't bother proxying at all and just return whatever the producer returns on that value
-    if (typeof baseState !== "object" || baseState === null)
-        return producer(baseState)
+    // if state is a primitive, don't bother proxying at all
+    if (typeof baseState !== "object" || baseState === null) {
+        const returnValue = producer(baseState)
+        return returnValue === undefined ? baseState : returnValue
+    }
+
     if (!isProxyable(baseState))
         throw new Error(
             `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
