@@ -304,11 +304,13 @@ By default `produce` tries to use proxies for optimal performance. However, on o
 
 ## Cool things built with immer
 
+* [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
 * [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
 * [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
 * [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 * [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux developement quicker and easier_
-* [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
+* [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
+* ... and [many more](https://www.npmjs.com/browse/depended/immer)
 
 ## How does Immer work?
 
