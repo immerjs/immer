@@ -905,6 +905,22 @@ function runBaseTest(name, useProxies, freeze) {
             expect(next).toEqual({dots: base.availableStartingDots})
         })
 
+        it("should return an unmodified primitive baseState (#148)", () => {
+            const baseState = "some string"
+            const nextState = produce(baseState, () => {
+                /* no modification  */
+            })
+            expect(nextState).toBe(baseState)
+        })
+
+        it("should return an unmodified null baseState (#148)", () => {
+            const baseState = null
+            const nextState = produce(baseState, () => {
+                /* no modification  */
+            })
+            expect(nextState).toBe(baseState)
+        })
+
         it("immer should have no dependencies", () => {
             expect(require("../package.json").dependencies).toEqual(undefined)
         })
