@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.3.1
+
+* Fixed bug [#148](https://github.com/mweststrate/immer/issues/148) where original state was not always returned if the producer returned undefined and the original state was a primitive. By @stefanwille through [#157](https://github.com/mweststrate/immer/pull/157)
+
 ### 1.3.0
 
 * Improved the behavior of recursive producer calls. A producer that is called from another producer is now a no-op; that is, the draft will only be finalized once the outer-most producer completes. Pro and cons of this approach are discussed in [here](https://github.com/mweststrate/immer/issues/100#issuecomment-375216607). Fixes [#100](https://github.com/mweststrate/immer/issues/100)
