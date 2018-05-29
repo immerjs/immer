@@ -1078,6 +1078,29 @@ function runBaseTest(name, useProxies, freeze) {
             })
         })
 
+        it("Deeply nested Set and Map updates should return a copy", () => {
+            const aMap = new Map()
+            aMap.set("a", new Map())
+            aMap.get("a").set("b", new Set())
+            const base = {aMap}
+
+            const nextState = produce(base, s => {
+                base.aMap
+                    .get("a")
+                    .get("b")
+                    .add(10)
+            })
+            expect(
+                nextState.aMap
+                    .get("a")
+                    .get("b")
+                    .has(10)
+            ).toEqual(true)
+            expect(nextState.aMap.get("a").get("b")).not.toBe(
+                base.aMap.get("a").get("b")
+            )
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
