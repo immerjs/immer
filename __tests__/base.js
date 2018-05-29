@@ -48,15 +48,15 @@ function runBaseTest(name, useProxies, freeze) {
 
         it("should preserve type", () => {
             const nextState = produce(baseState, s => {
-                expect(Array.isArray(s)).toBe(true)
-                expect(s.protoType).toBe(Object)
+                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
+                expect(Array.isArray(s.anArray)).toBe(true)
                 s.anArray.push(3)
                 s.aProp = "hello world"
-                expect(Array.isArray(s)).toBe(true)
-                expect(s.protoType).toBe(Object)
+                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
+                expect(Array.isArray(s.anArray)).toBe(true)
             })
-            expect(Array.isArray(nextState)).toBe(true)
-            expect(nextState.protoType).toBe(Object)
+            expect(Object.getPrototypeOf(nextState)).toBe(Object.prototype)
+            expect(Array.isArray(nextState.anArray)).toBe(true)
         })
 
         it("deep change bubbles up", () => {
