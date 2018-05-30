@@ -15,6 +15,6 @@ function measureTime(setup, fn) {
 
 export function measure(name, setup, fn) {
     const times = [...Array(9)].map(() => measureTime(setup, fn))
-    const meanTime = times.sort()[4]
-    console.log(`${name}: ${meanTime}ms`)
+    const medianTime = times.sort()[4]
+    console.log(`${name}: ${medianTime}ms`)
 }
