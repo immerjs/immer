@@ -3,7 +3,7 @@
 export type DraftObject<T> = {
   -readonly [P in keyof T]: Draft<T[P]>;
 };
-interface DraftArray<T> extends Array<Draft<T>> { }
+export interface DraftArray<T> extends Array<Draft<T>> { }
 export type Draft<T> =
   T extends any[] ? DraftArray<T[number]> :
   T extends ReadonlyArray<any> ? DraftArray<T[number]> :
