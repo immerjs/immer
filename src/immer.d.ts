@@ -1,7 +1,14 @@
 // Mapped type to remove readonly modifiers from state
-export type Draft<T> = {
+// Based on https://github.com/Microsoft/TypeScript/blob/d4dc67aab233f5a8834dff16531baf99b16fea78/tests/cases/conformance/types/conditional/conditionalTypes1.ts#L120-L129
+export type DraftObject<T> = {
   -readonly [P in keyof T]: Draft<T[P]>;
 };
+interface DraftArray<T> extends Array<Draft<T>> { }
+export type Draft<T> =
+  T extends any[] ? DraftArray<T[number]> :
+  T extends ReadonlyArray<any> ? DraftArray<T[number]> :
+  T extends object ? DraftObject<T> :
+  T;
 
 /**
  * Immer takes a state, and runs a function against it.
