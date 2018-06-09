@@ -81,7 +81,23 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    }
+      "^.+\\.jsx?$": "babel-jest",
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "/__tests__/[^/]*[jt]sx?$",
+    "globals": {
+      "ts-jest": {
+        "enableTsDiagnostics": true,
+        "tsConfigFile": "__tests__/test.tsconfig.json"
+      }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   }
 }
