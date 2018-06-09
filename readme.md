@@ -311,7 +311,7 @@ const newState = produce<State>(draft => {
 // `newState.x` cannot be modified here
 ```
 
-This ensures that the only place you can modify your state is in your produce callbacks.
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
 
 ## Immer on older JavaScript environments?
 
