@@ -68,7 +68,7 @@
     "rollup-plugin-filesize": "^1.5.0",
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
-    "typescript": "^2.6.2",
+    "typescript": "^2.9.1",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },
