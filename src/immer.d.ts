@@ -1,6 +1,6 @@
 // Mapped type to remove readonly modifiers from state
 export type Draft<T> = {
-  -readonly [P in keyof T]: T[P];
+  -readonly [P in keyof T]: Draft<T[P]>;
 };
 
 /**
