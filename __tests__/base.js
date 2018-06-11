@@ -46,31 +46,29 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState.nested).toBe(baseState.nested)
         })
 
-        if (
-            ("should preserve type",
-            () => {
-                const nextState = produce(baseState, s => {
-                    expect(Array.isArray(s)).toBe(true)
-                    expect(s.protoType).toBe(Object)
-                    s.anArray.push(3)
-                    s.aProp = "hello world"
-                    expect(Array.isArray(s)).toBe(true)
-                    expect(s.protoType).toBe(Object)
-                })
-                expect(Array.isArray(nextState)).toBe(true)
-                expect(nextState.protoType).toBe(Object)
+        it("should preserve type", () => {
+            const nextState = produce(baseState, s => {
+                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
+                expect(Array.isArray(s.anArray)).toBe(true)
+                s.anArray.push(3)
+                s.aProp = "hello world"
+                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
+                expect(Array.isArray(s.anArray)).toBe(true)
             })
-        )
-            it("deep change bubbles up", () => {
-                const nextState = produce(baseState, s => {
-                    s.anObject.nested.yummie = false
-                })
-                expect(nextState).not.toBe(baseState)
-                expect(nextState.anObject).not.toBe(baseState.anObject)
-                expect(baseState.anObject.nested.yummie).toBe(true)
-                expect(nextState.anObject.nested.yummie).toBe(false)
-                expect(nextState.anArray).toBe(baseState.anArray)
+            expect(Object.getPrototypeOf(nextState)).toBe(Object.prototype)
+            expect(Array.isArray(nextState.anArray)).toBe(true)
+        })
+
+        it("deep change bubbles up", () => {
+            const nextState = produce(baseState, s => {
+                s.anObject.nested.yummie = false
             })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anObject).not.toBe(baseState.anObject)
+            expect(baseState.anObject.nested.yummie).toBe(true)
+            expect(nextState.anObject.nested.yummie).toBe(false)
+            expect(nextState.anArray).toBe(baseState.anArray)
+        })
 
         it("can add props", () => {
             const nextState = produce(baseState, s => {
