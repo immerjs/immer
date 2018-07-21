@@ -10,6 +10,14 @@ export type Draft<T> =
   T extends object ? DraftObject<T> :
   T;
 
+export interface Patch {
+    op: "replace" | "remove",
+    path: (string|number)[]
+    value?: any
+}
+
+export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
+
 /**
  * Immer takes a state, and runs a function against it.
  * That function can freely mutate the state, as it will create copies-on-write.
@@ -18,6 +26,8 @@ export type Draft<T> =
  * If the first argument is a function, this is interpreted as the recipe, and will create a curried function that will execute the recipe
  * any time it is called with the current state.
  *
+ * In it's base form immer can receive a patch handler
+ *
  * @param currentState - the state to start with
  * @param recipe - function that receives a proxy of the current state as first argument and which can be freely modified
  * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
@@ -25,7 +35,8 @@ export type Draft<T> =
  */
 export default function<S = any>(
     currentState: S,
-    recipe: (this: Draft<S>, draftState: Draft<S>) => void | S
+    recipe: (this: Draft<S>, draftState: Draft<S>) => void | S,
+    patchListener?: PatchListener
 ): S
 
 // curried invocations with default initial state

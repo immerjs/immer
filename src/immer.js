@@ -14,9 +14,9 @@ import {produceEs5} from "./es5"
  * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
  * @returns {any} a new state, or the base state if nothing was modified
  */
-export default function produce(baseState, producer) {
+export default function produce(baseState, producer, patchListener) {
     // prettier-ignore
-    if (arguments.length !== 1 && arguments.length !== 2) throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
+    if (arguments.length < 1 && arguments.length > 3) throw new Error("produce expects 1 to 3 arguments, got " + arguments.length)
 
     // curried invocation
     if (typeof baseState === "function") {
@@ -57,6 +57,6 @@ export default function produce(baseState, producer) {
             `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
         )
     return getUseProxies()
-        ? produceProxy(baseState, producer)
-        : produceEs5(baseState, producer)
+        ? produceProxy(baseState, producer, patchListener)
+        : produceEs5(baseState, producer, patchListener)
 }
