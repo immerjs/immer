@@ -1,3 +1,5 @@
+import {generatePatches} from "./patches"
+
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
         ? Symbol("immer-proxy-state")
@@ -112,37 +114,6 @@ export function finalize(base, path, patches, inversePatches) {
     }
     finalizeNonProxiedObject(base)
     return base
-}
-
-function generatePatches(
-    state,
-    basepath,
-    patches,
-    inversePatches,
-    baseValue,
-    resultValue
-) {
-    if (patches)
-        each(state.assigned, (key, added) => {
-            const path = basepath.concat(key)
-            patches.push(
-                added
-                    ? {
-                          op: "replace",
-                          path,
-                          value: resultValue[key]
-                      }
-                    : {
-                          op: "remove",
-                          path
-                      }
-            )
-            inversePatches.push(
-                added && !key in baseValue
-                    ? {op: "remove", path}
-                    : {op: "replace", path, value: baseValue[key]}
-            )
-        })
 }
 
 function finalizeObject(copy, state, path, patches, inversePatches) {

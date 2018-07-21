@@ -1,5 +1,6 @@
 export {setAutoFreeze, setUseProxies} from "./common"
 
+import {applyPatches as applyPatchesImpl} from "./patches"
 import {isProxyable, getUseProxies} from "./common"
 import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
@@ -61,43 +62,4 @@ export default function produce(baseState, producer, patchListener) {
         : produceEs5(baseState, producer, patchListener)
 }
 
-export function applyPatches(base, patches) {
-    return produce(base, draft => {
-        debugger
-        for (let i = 0; i < patches.length; i++) {
-            const patch = patches[i]
-            if (patch.path.length === 0 && patch.op === "replace") {
-                draft = patch.value
-            } else {
-                const path = patch.path.slice()
-                const key = path.pop()
-                const base = path.reduce((current, part) => {
-                    if (!current)
-                        throw new Error(
-                            "Cannot apply patch, path doesn't resolve: " +
-                                patch.path.join("/")
-                        )
-                    return current[part]
-                }, draft)
-                if (!base)
-                    throw new Error(
-                        "Cannot apply patch, path doesn't resolve: " +
-                            patch.path.join("/")
-                    )
-                switch (patch.op) {
-                    case "replace":
-                        base[key] = patch.value
-                        break
-                    case "remove":
-                        delete base[key]
-                        break
-                    default:
-                        throw new Error(
-                            "Unsupported patch operation: " + patch.op
-                        )
-                }
-            }
-        }
-        return draft
-    })
-}
+export const applyPatches = produce(applyPatchesImpl)
