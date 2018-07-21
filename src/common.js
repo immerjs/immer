@@ -84,7 +84,7 @@ export function has(thing, prop) {
 }
 
 // given a base object, returns it if unmodified, or return the changed cloned if modified
-export function finalize(base, path, patches) {
+export function finalize(base, path, patches, inversePatches) {
     if (isProxy(base)) {
         const state = base[PROXY_STATE]
         if (state.modified === true) {
@@ -94,9 +94,17 @@ export function finalize(base, path, patches) {
                 useProxies ? state.copy : (state.copy = shallowCopy(base)),
                 state,
                 path,
-                patches
+                patches,
+                inversePatches
             )
-            generatePatches(state, path, patches, result)
+            generatePatches(
+                state,
+                path,
+                patches,
+                inversePatches,
+                state.base,
+                result
+            )
             return result
         } else {
             return state.base
@@ -106,26 +114,38 @@ export function finalize(base, path, patches) {
     return base
 }
 
-function generatePatches(state, path, patches, result) {
+function generatePatches(
+    state,
+    basepath,
+    patches,
+    inversePatches,
+    baseValue,
+    resultValue
+) {
     if (patches)
-        each(state.assigned, (key, value) => {
+        each(state.assigned, (key, added) => {
+            const path = basepath.concat(key)
             patches.push(
-                value
+                added
                     ? {
                           op: "replace",
-                          path: path.concat(key),
-                          value: result[key]
+                          path,
+                          value: resultValue[key]
                       }
                     : {
                           op: "remove",
-                          path: path.concat(key)
+                          path
                       }
             )
-            // TODO: also inverse patches
+            inversePatches.push(
+                added && !key in baseValue
+                    ? {op: "remove", path}
+                    : {op: "replace", path, value: baseValue[key]}
+            )
         })
 }
 
-function finalizeObject(copy, state, path, patches) {
+function finalizeObject(copy, state, path, patches, inversePatches) {
     const base = state.base
     each(copy, (prop, value) => {
         if (value !== base[prop]) {
@@ -135,7 +155,8 @@ function finalizeObject(copy, state, path, patches) {
             copy[prop] = finalize(
                 value,
                 generatePatches && path.concat(prop),
-                generatePatches && patches
+                generatePatches && patches,
+                inversePatches
             )
         }
     })

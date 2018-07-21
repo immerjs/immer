@@ -83,4 +83,36 @@ runPatchTest(
     [{op: "replace", path: ["z"], value: {y: 5}}, {op: "remove", path: ["x"]}]
 )
 
-// runPatchTest("simple replacement", { x: 3 }, _d => 4, [{ op: "replace", path: [], value: 4 }])
+runPatchTest(
+    "minimum amount of changes",
+    {x: 3, y: {a: 4}, z: 3},
+    d => {
+        d.y.a = 4
+        d.y.b = 5
+        Object.assign(d, {x: 4, y: {a: 2}})
+    },
+    [
+        {op: "replace", path: ["x"], value: 4},
+        {op: "replace", path: ["y"], value: {a: 2}}
+    ]
+)
+
+runPatchTest(
+    "arrays",
+    {x: [1, 2, 3]},
+    d => {
+        d.x.unshift(4)
+        d.x.splice(2, 1)
+    },
+    [
+        {op: "replace", path: ["x", "0"], value: 4},
+        {op: "replace", path: ["x", "1"], value: 1},
+        {op: "replace", path: ["x", "2"], value: 3},
+        {op: "remove", path: ["x", "3"]},
+        {op: "replace", path: ["x", "length"], value: 3}
+    ]
+)
+
+runPatchTest("simple replacement", {x: 3}, _d => 4, [
+    {op: "replace", path: [], value: 4}
+])

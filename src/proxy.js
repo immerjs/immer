@@ -141,7 +141,8 @@ export function produceProxy(baseState, producer, patchListener) {
     }
     const previousProxies = proxies
     proxies = []
-    const patches = [] // TODO: optimize, leave empty if no listener
+    const patches = patchListener && []
+    const inversePatches = patchListener && []
     try {
         // create proxy for root
         const rootProxy = createProxy(undefined, baseState)
@@ -159,13 +160,16 @@ export function produceProxy(baseState, producer, patchListener) {
             // Should we just throw when returning a proxy which is not the root, but a subset of the original state?
             // Looks like a wrongly modeled reducer
             result = finalize(returnValue)
-            // TODO: emit patch
+            if (patches) {
+                patches.push({op: "replace", path: [], value: result})
+                inversePatches.push({op: "replace", path: [], value: baseState})
+            }
         } else {
-            result = finalize(rootProxy, [], patches)
+            result = finalize(rootProxy, [], patches, inversePatches)
         }
         // revoke all proxies
         each(proxies, (_, p) => p.revoke())
-        patchListener && patchListener(patches)
+        patchListener && patchListener(patches, inversePatches)
         return result
     } finally {
         proxies = previousProxies
