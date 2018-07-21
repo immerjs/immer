@@ -1,10 +1,10 @@
 "use strict"
-import produce, {setUseProxies} from "../src/immer"
+import produce, {setUseProxies, applyPatches} from "../src/immer"
 
 jest.setTimeout(1000)
 
 function runPatchTest(name, base, producer, patches) {
-    function runPatchTest() {
+    function runPatchTestHelper() {
         let recordedPatches
         let inversePatches
         const res = produce(base, producer, (p, i) => {
@@ -16,23 +16,23 @@ function runPatchTest(name, base, producer, patches) {
             expect(recordedPatches).toEqual(patches)
         })
 
-        test.skip("patches are replayable", () => {
-            expect(applyPatches(base, recordedPatches)).toBe(res)
+        test("patches are replayable", () => {
+            expect(applyPatches(base, recordedPatches)).toEqual(res)
         })
 
         test.skip("patches can be revered", () => {
-            expect(applyPatches(res, inversePatches)).toBe(base)
+            expect(applyPatches(res, inversePatches)).toEqual(base)
         })
     }
 
     describe(`patches - ${name} - proxy`, () => {
         setUseProxies(true)
-        runPatchTest()
+        runPatchTestHelper()
     })
 
     describe.skip(`patches - ${name} - es5`, () => {
         setUseProxies(false)
-        runPatchTest()
+        runPatchTestHelper()
     })
 }
 
