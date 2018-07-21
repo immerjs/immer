@@ -290,6 +290,30 @@ console.log(increment(base).counter) // 1
 
 The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
 
+The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
+
+```ts
+import produce from 'immer';
+
+interface State {
+  readonly x: number;
+}
+
+// `x` cannot be modified here
+const state: State = {
+  x: 0;
+};
+
+const newState = produce<State>(draft => {
+  // `x` can be modified here
+  draft.x++;
+});
+
+// `newState.x` cannot be modified here
+```
+
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
+
 ## Immer on older JavaScript environments?
 
 By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native on Android. In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.

@@ -39,7 +39,7 @@
     "dist/"
   ],
   "devDependencies": {
-    "@types/jest": "^22.0.0",
+    "@types/jest": "^22.2.3",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-jest": "^22.0.4",
@@ -68,7 +68,8 @@
     "rollup-plugin-filesize": "^1.5.0",
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
-    "typescript": "^2.6.2",
+    "ts-jest": "^22.4.6",
+    "typescript": "^2.9.1",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },
@@ -80,7 +81,23 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    }
+      "^.+\\.jsx?$": "babel-jest",
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "/__tests__/[^/]*[jt]sx?$",
+    "globals": {
+      "ts-jest": {
+        "enableTsDiagnostics": true,
+        "tsConfigFile": "__tests__/test.tsconfig.json"
+      }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   }
 }
