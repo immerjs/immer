@@ -18,6 +18,7 @@ let states = null
 function createState(parent, proxy, base) {
     return {
         modified: false,
+        assigned: {}, // true: value was assigned to these props, false: was removed
         hasCopy: false,
         parent,
         base,
@@ -47,6 +48,7 @@ function get(state, prop) {
 
 function set(state, prop, value) {
     assertUnfinished(state)
+    state.assigned[prop] = true // optimization; skip this if there is no listener
     if (!state.modified) {
         if (is(source(state)[prop], value)) return
         markChanged(state)
@@ -144,7 +146,7 @@ function hasArrayChanges(state) {
     return false
 }
 
-export function produceEs5(baseState, producer) {
+export function produceEs5(baseState, producer, patchListener) {
     if (isProxy(baseState)) {
         // See #100, don't nest producers
         const returnValue = producer.call(baseState, baseState)
@@ -152,6 +154,8 @@ export function produceEs5(baseState, producer) {
     }
     const prevStates = states
     states = []
+    const patches = patchListener && []
+    const inversePatches = patchListener && []
     try {
         // create proxy for root
         const rootProxy = createProxy(undefined, baseState)
@@ -171,11 +175,16 @@ export function produceEs5(baseState, producer) {
             if (rootProxy[PROXY_STATE].modified)
                 throw new Error(RETURNED_AND_MODIFIED_ERROR)
             result = finalize(returnValue)
-        } else result = finalize(rootProxy)
+            if (patches) {
+                patches.push({op: "replace", path: [], value: result})
+                inversePatches.push({op: "replace", path: [], value: baseState})
+            }
+        } else result = finalize(rootProxy, [], patches, inversePatches)
         // make sure all proxies become unusable
         each(states, (_, state) => {
             state.finished = true
         })
+        patchListener && patchListener(patches, inversePatches)
         return result
     } finally {
         states = prevStates

@@ -20,7 +20,7 @@ function runPatchTest(name, base, producer, patches) {
             expect(applyPatches(base, recordedPatches)).toEqual(res)
         })
 
-        test.skip("patches can be revered", () => {
+        test("patches can be revered", () => {
             expect(applyPatches(res, inversePatches)).toEqual(base)
         })
     }
@@ -30,7 +30,7 @@ function runPatchTest(name, base, producer, patches) {
         runPatchTestHelper()
     })
 
-    describe.skip(`patches - ${name} - es5`, () => {
+    describe(`patches - ${name} - es5`, () => {
         setUseProxies(false)
         runPatchTestHelper()
     })

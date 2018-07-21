@@ -43,7 +43,7 @@ each(objectTraps, (key, fn) => {
 function createState(parent, base) {
     return {
         modified: false, // this tree is modified (either this object or one of it's children)
-        assigned: {}, // true: value was assigned to these props, false: was removed // TODO: optimize if not recording
+        assigned: {}, // true: value was assigned to these props, false: was removed
         finalized: false,
         parent,
         base,
