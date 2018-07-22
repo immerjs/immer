@@ -304,7 +304,7 @@ const state: State = {
   x: 0;
 };
 
-const newState = produce<State>(draft => {
+const newState = produce<State>(state, draft => {
   // `x` can be modified here
   draft.x++;
 });
