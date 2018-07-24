@@ -17,7 +17,7 @@ import {produceEs5} from "./es5"
  */
 export default function produce(baseState, producer, patchListener) {
     // prettier-ignore
-    if (arguments.length < 1 && arguments.length > 3) throw new Error("produce expects 1 to 3 arguments, got " + arguments.length)
+    if (arguments.length < 1 || arguments.length > 3) throw new Error("produce expects 1 to 3 arguments, got " + arguments.length)
 
     // curried invocation
     if (typeof baseState === "function") {
@@ -45,6 +45,7 @@ export default function produce(baseState, producer, patchListener) {
     // prettier-ignore
     {
         if (typeof producer !== "function") throw new Error("if first argument is not a function, the second argument to produce should be a function")
+        if (patchListener !== undefined && typeof patchListener !== "function") throw new Error("the third argument of a producer should not be set or a function")
     }
 
     // if state is a primitive, don't bother proxying at all

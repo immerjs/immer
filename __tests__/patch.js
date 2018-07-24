@@ -228,6 +228,27 @@ describe("same value replacement - 2", () => {
     )
 })
 
+describe("same value replacement - 3", () => {
+    runPatchTest(
+        {x: 3},
+        d => {
+            d.x = 3
+        },
+        []
+    )
+})
+
+describe("same value replacement - 4", () => {
+    runPatchTest(
+        {x: 3},
+        d => {
+            d.x = 4
+            d.x = 3
+        },
+        // immer does not detect this is not an actual change
+        [{op: "replace", path: ["x"], value: 3}]
+    )
+})
 describe("simple delete", () => {
     runPatchTest(
         {x: 2},

@@ -9,12 +9,12 @@ function runTests(name, useProxies) {
         setUseProxies(useProxies)
 
         it("should check arguments", () => {
-            expect(() => produce()).toThrow(/produce expects 1 or 2 arguments/)
+            expect(() => produce()).toThrow(/produce expects 1 to 3 arguments/)
             expect(() => produce(new Buffer(""), () => {})).toThrow(
                 /the first argument to an immer producer should be a primitive, plain object or array/
             )
             expect(() => produce({}, () => {}, [])).toThrow(
-                /produce expects 1 or 2 arguments/
+                /third argument of a producer/
             )
             expect(() => produce({}, {})).toThrow(/should be a function/)
             expect(() => produce({})).toThrow(
