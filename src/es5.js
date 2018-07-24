@@ -109,7 +109,7 @@ function assertUnfinished(state) {
 // this sounds very expensive, but actually it is not that expensive in practice
 // as it will only visit proxies, and only do key-based change detection for objects for
 // which it is not already know that they are changed (that is, only object for which no known key was changed)
-function markChanges() {
+function markChangesSweep() {
     // intentionally we process the proxies in reverse order;
     // ideally we start by processing leafs in the tree, because if a child has changed, we don't have to check the parent anymore
     // reverse order of proxy creation approximates this
@@ -120,6 +120,50 @@ function markChanges() {
                 if (hasArrayChanges(state)) markChanged(state)
             } else if (hasObjectChanges(state)) markChanged(state)
         }
+    }
+}
+
+function markChangesRecursively(object) {
+    if (!object || typeof object !== "object") return
+    const state = object[PROXY_STATE]
+    if (!state) return
+    const {proxy, base} = state
+    if (Array.isArray(object)) {
+        if (hasArrayChanges(state)) {
+            markChanged(state)
+            state.assigned.length = true
+            if (proxy.length < base.length)
+                for (let i = proxy.length; i < base.length; i++)
+                    state.assigned[i] = false
+            else
+                for (let i = base.length; i < proxy.length; i++)
+                    state.assigned[i] = true
+            each(proxy, (index, child) => {
+                if (!state.assigned[index]) markChangesRecursively(child)
+            })
+        }
+    } else {
+        const {added, removed} = diffKeys(base, proxy)
+        if (added.length > 0 || removed.length > 0) markChanged(state)
+        each(added, (_, key) => {
+            state.assigned[key] = true
+        })
+        each(removed, (_, key) => {
+            state.assigned[key] = false
+        })
+        each(proxy, (key, child) => {
+            if (!state.assigned[key]) markChangesRecursively(child)
+        })
+    }
+}
+
+function diffKeys(from, to) {
+    // TODO: optimize
+    const a = Object.keys(from)
+    const b = Object.keys(to)
+    return {
+        added: b.filter(key => a.indexOf(key) === -1),
+        removed: a.filter(key => b.indexOf(key) === -1)
     }
 }
 
@@ -165,9 +209,6 @@ export function produceEs5(baseState, producer, patchListener) {
         each(states, (_, state) => {
             state.finalizing = true
         })
-        // find and mark all changes (for parts not done yet)
-        // TODO: store states by depth, to be able guarantee processing leaves first
-        markChanges()
         let result
         // check whether the draft was modified and/or a value was returned
         if (returnValue !== undefined && returnValue !== rootProxy) {
@@ -179,7 +220,11 @@ export function produceEs5(baseState, producer, patchListener) {
                 patches.push({op: "replace", path: [], value: result})
                 inversePatches.push({op: "replace", path: [], value: baseState})
             }
-        } else result = finalize(rootProxy, [], patches, inversePatches)
+        } else {
+            if (patchListener) markChangesRecursively(rootProxy)
+            else markChangesSweep() // this one is more efficient if we don't need to know which attributes have changed
+            result = finalize(rootProxy, [], patches, inversePatches)
+        }
         // make sure all proxies become unusable
         each(states, (_, state) => {
             state.finished = true

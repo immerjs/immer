@@ -919,6 +919,42 @@ function runBaseTest(name, useProxies, freeze) {
             expect(nextState).toBe(baseState)
         })
 
+        it("should not detect noop assignments - 0", () => {
+            const baseState = {x: {y: 3}}
+            const nextState = produce(baseState, d => {
+                const a = d.x
+                d.x = a
+            })
+            expect(nextState).toBe(baseState)
+        })
+
+        it("should not detect noop assignments - 1", () => {
+            const baseState = {x: {y: 3}}
+            const nextState = produce(baseState, d => {
+                const a = d.x
+                d.x = 4
+                d.x = a
+            })
+            // Ideally, this should actually be the same instances
+            // but this would be pretty expensive to detect,
+            // so we don't atm
+            expect(nextState).not.toBe(baseState)
+        })
+
+        it("should not detect noop assignments - 2", () => {
+            const baseState = {x: {y: 3}}
+            const nextState = produce(baseState, d => {
+                const a = d.x
+                const stuff = a.y + 3
+                d.x = 4
+                d.x = a
+            })
+            // Ideally, this should actually be the same instances
+            // but this would be pretty expensive to detect,
+            // so we don't atm
+            expect(nextState).not.toBe(baseState)
+        })
+
         it("immer should have no dependencies", () => {
             expect(require("../package.json").dependencies).toEqual(undefined)
         })
