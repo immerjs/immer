@@ -222,7 +222,7 @@ export function produceEs5(baseState, producer, patchListener) {
             }
         } else {
             if (patchListener) markChangesRecursively(rootProxy)
-            else markChangesSweep() // this one is more efficient if we don't need to know which attributes have changed
+            markChangesSweep() // this one is more efficient if we don't need to know which attributes have changed
             result = finalize(rootProxy, [], patches, inversePatches)
         }
         // make sure all proxies become unusable
