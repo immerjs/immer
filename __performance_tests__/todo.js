@@ -160,6 +160,20 @@ describe("performance", () => {
         })
     })
 
+    measure("immer (proxy) - w/o autofreeze - with patch listener", () => {
+        setUseProxies(true)
+        setAutoFreeze(false)
+        produce(
+            frozenBazeState,
+            draft => {
+                for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                    draft[i].done = true
+                }
+            },
+            () => {}
+        )
+    })
+
     measure("immer (es5) - without autofreeze", () => {
         setUseProxies(false)
         setAutoFreeze(false)
@@ -178,5 +192,19 @@ describe("performance", () => {
                 draft[i].done = true
             }
         })
+    })
+
+    measure("immer (es5) - w/o autofreeze - with patch listener", () => {
+        setUseProxies(false)
+        setAutoFreeze(false)
+        produce(
+            frozenBazeState,
+            draft => {
+                for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                    draft[i].done = true
+                }
+            },
+            () => {}
+        )
     })
 })
