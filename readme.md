@@ -289,14 +289,14 @@ This makes processing patches easier. If you want to normalize to the official s
 
 ```json
 [
-    { "op": "replace", "path": ["profile"], "value": { "name": "Veria", age: 5 }},
+    { "op": "replace", "path": ["profile"], "value": { "name": "Veria", "age": 5 }},
     { "op": "remove", "path": ["tags", 3] }
 ]
 ```
 
 ```json
 [
-    { "op": "replace", "path": ["profile"], "value": { "name": "Noa", age: 6 }},
+    { "op": "replace", "path": ["profile"], "value": { "name": "Noa", "age": 6 }},
     { "op": "add", "path": ["tags", 3], "value": "kiddo"},
 ]
 ```
