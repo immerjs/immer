@@ -108,3 +108,5 @@ export function setAutoFreeze(autoFreeze: boolean): void
  * By default done by using feature detection
  */
 export function setUseProxies(useProxies: boolean): void
+
+export function applyPatches<S>(state: S, patches: Patch[]): S

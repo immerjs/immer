@@ -1,5 +1,5 @@
 // @flow
-import produce, {setAutoFreeze, setUseProxies, produce as produce2} from "../../src/immer"
+import produce, {setAutoFreeze, setUseProxies, produce as produce2, applyPatches, Patch} from "../../src/immer"
 
 setAutoFreeze(true)
 setUseProxies(true)
@@ -85,4 +85,12 @@ produce({x: 3}, [])
         // $ExpectError
         console.log(draft.y)
     })
+}
+
+{
+    let p: Patch[] = []
+    produce({ }, d=> {}, (patches, inverse) => {
+        p = patches
+    })
+    applyPatches({}, p)
 }

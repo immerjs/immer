@@ -1,5 +1,13 @@
 // @flow
 
+export interface Patch {
+    op: "replace" | "remove" | "add",
+    path: (string|number)[],
+    value?: any
+}
+
+export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
+
 interface IProduce {
     /**
      * Immer takes a state, and runs a function against it.
@@ -16,7 +24,8 @@ interface IProduce {
      */
     <S>(
         currentState: S,
-        recipe: (draftState: S) => S | void
+        recipe: (draftState: S) => S | void,
+        patchListener?: PatchListener
     ): S;
     // curried invocations with inital state
     <S, A, B, C>(
@@ -73,3 +82,5 @@ declare export function setAutoFreeze(autoFreeze: boolean): void
  * By default done by using feature detection
  */
 declare export function setUseProxies(useProxies: boolean): void
+
+declare export function applyPatches<S>(state: S, patches: Patch[]): S
