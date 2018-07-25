@@ -1,4 +1,4 @@
-import produce from '../src/immer';
+import produce, { produce as produce2} from '../src/immer';
 
 interface State {
   readonly num: number;
@@ -53,6 +53,23 @@ it('can update readonly state via standard api', () => {
 
 it('can update readonly state via curried api', () => {
   const newState = produce<State>(draft => {
+    draft.num++;
+    draft.foo = 'bar';
+    draft.bar = 'foo';
+    draft.baz.x++;
+    draft.baz.y++;
+    draft.arr[0].value = 'foo';
+    draft.arr.push({ value: 'asf' });
+    draft.arr2[0].value = 'foo';
+    draft.arr2.push({ value: 'asf' });
+  })(state);
+  expect(newState).not.toBe(state);
+  expect(newState).toEqual(expectedState);
+});
+
+
+it('can update use the non-default export', () => {
+  const newState = produce2<State>(draft => {
     draft.num++;
     draft.foo = 'bar';
     draft.bar = 'foo';

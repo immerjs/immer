@@ -318,6 +318,22 @@ This ensures that the only place you can modify your state is in your produce ca
 
 By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native on Android. In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
 
+## Importing immer
+
+`produce` is exposed as the default export, but optionally it can be used as name import as well, as this benefits some older project setups. So the following imports are all correct, where the first is recommend:
+
+```javascript
+import produce from "immer"
+import { produce } from "immer"
+
+const { produce } = require("immer")
+const produce = require("immer").produce
+const produce = require("immer").default
+
+import unleashTheMagic from "immer"
+import { produce as unleashTheMagic } from "immer"
+```
+
 ## Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
