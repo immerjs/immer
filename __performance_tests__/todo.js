@@ -12,7 +12,7 @@ function freeze(x) {
     return x
 }
 
-const MAX = 100000
+const MAX = 50000
 const MODIFY_FACTOR = 0.1
 const baseState = []
 let frozenBazeState
