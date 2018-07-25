@@ -1,4 +1,4 @@
-import produce, { produce as produce2} from '../src/immer';
+import produce, { produce as produce2, applyPatches, Patch} from '../src/immer';
 
 interface State {
   readonly num: number;
@@ -83,3 +83,14 @@ it('can update use the non-default export', () => {
   expect(newState).not.toBe(state);
   expect(newState).toEqual(expectedState);
 });
+
+it('can apply patches', () => {
+    let patches: Patch[]
+    produce({ x: 3 }, d=> {
+      d.x++
+    }, (p) => {
+        patches = p
+    })
+
+    expect(applyPatches({}, patches)).toEqual({x: 4})
+})

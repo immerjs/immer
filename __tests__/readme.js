@@ -1,5 +1,5 @@
 "use strict"
-import produce from "../src/immer"
+import produce, {applyPatches} from "../src/immer"
 
 describe("readme example", () => {
     it("works", () => {
@@ -47,5 +47,53 @@ describe("readme example", () => {
             this.counter++
         })
         expect(increment(base).counter).toBe(1)
+    })
+
+    it("patches", () => {
+        let state = {
+            name: "Micheal",
+            age: 32
+        }
+
+        // Let's assume the user is in a wizard, and we don't know whether
+        // his changes should be updated
+        let fork = state
+        // all the changes the user made in the wizard
+        let changes = []
+        // all the inverse patches
+        let inverseChanges = []
+
+        fork = produce(
+            fork,
+            draft => {
+                draft.age = 33
+            },
+            // The third argument to produce is a callback to which the patches will be fed
+            (patches, inversePatches) => {
+                changes.push(...patches)
+                inverseChanges.push(...inversePatches)
+            }
+        )
+
+        // In the mean time, our original state is updated as well, as changes come in from the server
+        state = produce(state, draft => {
+            draft.name = "Michel"
+        })
+
+        // When the wizard finishes (successfully) we can replay the changes made in the fork onto the *new* state!
+        state = applyPatches(state, changes)
+
+        // state now contains the changes from both code paths!
+        expect(state).toEqual({
+            name: "Michel",
+            age: 33
+        })
+
+        // Even after finishing the wizard, the user might change his mind...
+        state = applyPatches(state, inverseChanges)
+        expect(state).toEqual({
+            name: "Michel",
+            age: 32
+        })
     })
 })

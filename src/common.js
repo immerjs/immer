@@ -1,3 +1,5 @@
+import {generatePatches} from "./patches"
+
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
         ? Symbol("immer-proxy-state")
@@ -84,16 +86,28 @@ export function has(thing, prop) {
 }
 
 // given a base object, returns it if unmodified, or return the changed cloned if modified
-export function finalize(base) {
+export function finalize(base, path, patches, inversePatches) {
     if (isProxy(base)) {
         const state = base[PROXY_STATE]
         if (state.modified === true) {
             if (state.finalized === true) return state.copy
             state.finalized = true
-            return finalizeObject(
+            const result = finalizeObject(
                 useProxies ? state.copy : (state.copy = shallowCopy(base)),
-                state
+                state,
+                path,
+                patches,
+                inversePatches
             )
+            generatePatches(
+                state,
+                path,
+                patches,
+                inversePatches,
+                state.base,
+                result
+            )
+            return result
         } else {
             return state.base
         }
@@ -102,10 +116,20 @@ export function finalize(base) {
     return base
 }
 
-function finalizeObject(copy, state) {
+function finalizeObject(copy, state, path, patches, inversePatches) {
     const base = state.base
     each(copy, (prop, value) => {
-        if (value !== base[prop]) copy[prop] = finalize(value)
+        if (value !== base[prop]) {
+            // if there was an assignment on this property, we don't need to generate
+            // patches for the subtree
+            const generatePatches = patches && !has(state.assigned, prop)
+            copy[prop] = finalize(
+                value,
+                generatePatches && path.concat(prop),
+                generatePatches && patches,
+                inversePatches
+            )
+        }
     })
     return freeze(copy)
 }

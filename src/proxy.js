@@ -42,7 +42,8 @@ each(objectTraps, (key, fn) => {
 
 function createState(parent, base) {
     return {
-        modified: false,
+        modified: false, // this tree is modified (either this object or one of it's children)
+        assigned: {}, // true: value was assigned to these props, false: was removed
         finalized: false,
         parent,
         base,
@@ -74,6 +75,8 @@ function get(state, prop) {
 }
 
 function set(state, prop, value) {
+    // TODO: optimize
+    state.assigned[prop] = true
     if (!state.modified) {
         if (
             (prop in state.base && is(state.base[prop], value)) ||
@@ -87,6 +90,7 @@ function set(state, prop, value) {
 }
 
 function deleteProperty(state, prop) {
+    state.assigned[prop] = false
     markChanged(state)
     delete state.copy[prop]
     return true
@@ -119,9 +123,9 @@ function markChanged(state) {
 }
 
 // creates a proxy for plain objects / arrays
-function createProxy(parentState, base) {
+function createProxy(parentState, base, key) {
     if (isProxy(base)) throw new Error("Immer bug. Plz report.")
-    const state = createState(parentState, base)
+    const state = createState(parentState, base, key)
     const proxy = Array.isArray(base)
         ? Proxy.revocable([state], arrayTraps)
         : Proxy.revocable(state, objectTraps)
@@ -129,7 +133,7 @@ function createProxy(parentState, base) {
     return proxy.proxy
 }
 
-export function produceProxy(baseState, producer) {
+export function produceProxy(baseState, producer, patchListener) {
     if (isProxy(baseState)) {
         // See #100, don't nest producers
         const returnValue = producer.call(baseState, baseState)
@@ -137,6 +141,8 @@ export function produceProxy(baseState, producer) {
     }
     const previousProxies = proxies
     proxies = []
+    const patches = patchListener && []
+    const inversePatches = patchListener && []
     try {
         // create proxy for root
         const rootProxy = createProxy(undefined, baseState)
@@ -154,11 +160,16 @@ export function produceProxy(baseState, producer) {
             // Should we just throw when returning a proxy which is not the root, but a subset of the original state?
             // Looks like a wrongly modeled reducer
             result = finalize(returnValue)
+            if (patches) {
+                patches.push({op: "replace", path: [], value: result})
+                inversePatches.push({op: "replace", path: [], value: baseState})
+            }
         } else {
-            result = finalize(rootProxy)
+            result = finalize(rootProxy, [], patches, inversePatches)
         }
         // revoke all proxies
         each(proxies, (_, p) => p.revoke())
+        patchListener && patchListener(patches, inversePatches)
         return result
     } finally {
         proxies = previousProxies

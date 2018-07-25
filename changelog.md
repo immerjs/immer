@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.5.0
+
+* Added support for patches, through [#168](https://github.com/mweststrate/immer/pull/168). See the [patches](https://github.com/mweststrate/immer#patches) section for details
+
 ### 1.4.0
 
 * Improved TypeScript typings; if the base state is declared as `readonly`, the `draft` object will be upcasted to a writeable version. Fixes [#97](https://github.com/mweststrate/immer/issues/97) through [#161](https://github.com/mweststrate/immer/pull/161) by [@knpwrs](https://github.com/knpwrs)

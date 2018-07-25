@@ -1,5 +1,6 @@
 export {setAutoFreeze, setUseProxies} from "./common"
 
+import {applyPatches as applyPatchesImpl} from "./patches"
 import {isProxyable, getUseProxies} from "./common"
 import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
@@ -12,11 +13,12 @@ import {produceEs5} from "./es5"
  * @export
  * @param {any} baseState - the state to start with
  * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+ * @param {Function} patchListener - optional function that will be called with all the patches produces here
  * @returns {any} a new state, or the base state if nothing was modified
  */
-export function produce(baseState, producer) {
+export function produce(baseState, producer, patchListener) {
     // prettier-ignore
-    if (arguments.length !== 1 && arguments.length !== 2) throw new Error("produce expects 1 or 2 arguments, got " + arguments.length)
+    if (arguments.length < 1 || arguments.length > 3) throw new Error("produce expects 1 to 3 arguments, got " + arguments.length)
 
     // curried invocation
     if (typeof baseState === "function") {
@@ -44,6 +46,7 @@ export function produce(baseState, producer) {
     // prettier-ignore
     {
         if (typeof producer !== "function") throw new Error("if first argument is not a function, the second argument to produce should be a function")
+        if (patchListener !== undefined && typeof patchListener !== "function") throw new Error("the third argument of a producer should not be set or a function")
     }
 
     // if state is a primitive, don't bother proxying at all
@@ -57,8 +60,10 @@ export function produce(baseState, producer) {
             `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
         )
     return getUseProxies()
-        ? produceProxy(baseState, producer)
-        : produceEs5(baseState, producer)
+        ? produceProxy(baseState, producer, patchListener)
+        : produceEs5(baseState, producer, patchListener)
 }
 
 export default produce
+
+export const applyPatches = produce(applyPatchesImpl)

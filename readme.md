@@ -220,6 +220,81 @@ const byId = produce(
 )
 ```
 
+## Patches
+
+During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer.
+This is a very powerful tool if you want to fork your state temporarily, and replay the changes to the original.
+To help with replaying patches, `applyPatches` comes in handy. Here is an example how patches could be used
+to record the incremental updates and (inverse) apply them:
+
+```javascript
+import produce, {applyPatches} from "immer"
+
+let state = {
+    name: "Micheal",
+    age: 32
+}
+
+// Let's assume the user is in a wizard, and we don't know whether
+// his changes should be end up in the base state ultimately or not...
+let fork = state
+// all the changes the user made in the wizard
+let changes = []
+// the inverse of all the changes made in the wizard
+let inverseChanges = []
+
+fork = produce(
+    fork,
+    draft => {
+        draft.age = 33
+    },
+    // The third argument to produce is a callback to which the patches will be fed
+    (patches, inversePatches) => {
+        changes.push(...patches)
+        inverseChanges.push(...inversePatches)
+    }
+)
+
+// In the mean time, our original state is replaced, as, for example,
+// some changes were received from the server
+state = produce(state, draft => {
+    draft.name = "Michel"
+})
+
+// When the wizard finishes (successfully) we can replay the changes that were in the fork onto the *new* state!
+state = applyPatches(state, changes)
+
+// state now contains the changes from both code paths!
+expect(state).toEqual({
+    name: "Michel", // changed by the server
+    age: 33         // changed by the wizard
+})
+
+// Finally, even after finishing the wizard, the user might change his mind and undo his changes...
+state = applyPatches(state, inverseChanges)
+expect(state).toEqual({
+    name: "Michel", // Not reverted
+    age: 32         // Reverted
+})
+```
+
+The generated patches are similar (but not the same) to the [RFC-6902 JSON patch standard](http://tools.ietf.org/html/rfc6902), except that the `path` property is an array, rather than a string.
+This makes processing patches easier. If you want to normalize to the official specification, `patch.path = patch.path.join("/")` should do the trick. Anyway, this is what a bunch of patches and their inverse could look like:
+
+```json
+[
+    { "op": "replace", "path": ["profile"], "value": { "name": "Veria", age: 5 }},
+    { "op": "remove", "path": ["tags", 3] }
+]
+```
+
+```json
+[
+    { "op": "replace", "path": ["profile"], "value": { "name": "Noa", age: 6 }},
+    { "op": "add", "path": ["tags", 3], "value": "kiddo"},
+]
+```
+
 ## Auto freezing
 
 Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default it is turned on during local development, and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
@@ -352,6 +427,7 @@ import { produce as unleashTheMagic } from "immer"
 * [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 * [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux developement quicker and easier_
 * [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
+* [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
 * ... and [many more](https://www.npmjs.com/browse/depended/immer)
 
 ## How does Immer work?

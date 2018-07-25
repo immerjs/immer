@@ -10,6 +10,14 @@ export type Draft<T> =
   T extends object ? DraftObject<T> :
   T;
 
+export interface Patch {
+    op: "replace" | "remove" | "add",
+    path: (string|number)[]
+    value?: any
+}
+
+export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
+
 export interface IProduce {
     /**
      * Immer takes a state, and runs a function against it.
@@ -26,7 +34,8 @@ export interface IProduce {
      */
     <S = any>(
         currentState: S,
-        recipe: (this: Draft<S>, draftState: Draft<S>) => void | S
+        recipe: (this: Draft<S>, draftState: Draft<S>) => void | S,
+        listener?: PatchListener
     ): S
 
     // curried invocations with default initial state
@@ -99,3 +108,5 @@ export function setAutoFreeze(autoFreeze: boolean): void
  * By default done by using feature detection
  */
 export function setUseProxies(useProxies: boolean): void
+
+export function applyPatches<S>(state: S, patches: Patch[]): S
