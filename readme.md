@@ -304,7 +304,7 @@ const state: State = {
   x: 0;
 };
 
-const newState = produce<State>(draft => {
+const newState = produce<State>(state, draft => {
   // `x` can be modified here
   draft.x++;
 });
@@ -318,6 +318,22 @@ This ensures that the only place you can modify your state is in your produce ca
 
 By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native on Android. In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
 
+## Importing immer
+
+`produce` is exposed as the default export, but optionally it can be used as name import as well, as this benefits some older project setups. So the following imports are all correct, where the first is recommend:
+
+```javascript
+import produce from "immer"
+import { produce } from "immer"
+
+const { produce } = require("immer")
+const produce = require("immer").produce
+const produce = require("immer").default
+
+import unleashTheMagic from "immer"
+import { produce as unleashTheMagic } from "immer"
+```
+
 ## Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
@@ -326,6 +342,7 @@ By default `produce` tries to use proxies for optimal performance. However, on o
 1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
 1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
+1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower then `produce(base, d => { for (let x of y) d.push(x)})`
 
 ## Cool things built with immer
 

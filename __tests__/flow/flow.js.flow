@@ -1,5 +1,5 @@
 // @flow
-import produce, {setAutoFreeze, setUseProxies} from "../../src/immer"
+import produce, {setAutoFreeze, setUseProxies, produce as produce2} from "../../src/immer"
 
 setAutoFreeze(true)
 setUseProxies(true)
@@ -73,4 +73,16 @@ produce({x: 3}, [])
 
     // $ExpectError
     f2(undefined, 3)
+}
+
+{
+    // $ExpectError
+    produce2({x: 3})
+
+    const result = produce2({x: 3}, draft => {
+        draft.x = 4
+
+        // $ExpectError
+        console.log(draft.y)
+    })
 }
