@@ -11,7 +11,7 @@ function createTestObject() {
     }
 }
 
-const MAX = 100
+const MAX = 1000
 const baseState = {
     ids: [],
     map: Object.create(null)
@@ -36,7 +36,7 @@ measure(
 )
 
 measure(
-    "handcrafted reducer (no freeze)",
+    "handcrafted reducer",
     () => cloneDeep(baseState),
     state => {
         for (let i = 0; i < MAX; i++) {
@@ -65,7 +65,7 @@ measure(
 )
 
 measure(
-    "immer (proxy) - without autofreeze",
+    "immer (proxy)",
     () => {
         setUseProxies(true)
         setAutoFreeze(false)
@@ -82,7 +82,7 @@ measure(
 )
 
 measure(
-    "immer (es5) - without autofreeze",
+    "immer (es5)",
     () => {
         setUseProxies(false)
         setAutoFreeze(false)
@@ -95,5 +95,39 @@ measure(
                 draft.map[i] = createTestObject()
             })
         }
+    }
+)
+
+measure(
+    "immer (proxy) - single produce",
+    () => {
+        setUseProxies(true)
+        setAutoFreeze(false)
+        return baseState
+    },
+    state => {
+        produce(state, draft => {
+            for (let i = 0; i < MAX; i++) {
+                draft.ids.push(i)
+                draft.map[i] = createTestObject()
+            }
+        })
+    }
+)
+
+measure(
+    "immer (es5) - single produce",
+    () => {
+        setUseProxies(false)
+        setAutoFreeze(false)
+        return baseState
+    },
+    state => {
+        produce(state, draft => {
+            for (let i = 0; i < MAX; i++) {
+                draft.ids.push(i)
+                draft.map[i] = createTestObject()
+            }
+        })
     }
 )
