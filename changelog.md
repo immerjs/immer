@@ -1,5 +1,11 @@
 # Changelog
 
+### 1.4.0
+
+* Improved TypeScript typings; if the base state is declared as `readonly`, the `draft` object will be upcasted to a writeable version. Fixes [#97](https://github.com/mweststrate/immer/issues/97) through [#161](https://github.com/mweststrate/immer/pull/161) by [@knpwrs](https://github.com/knpwrs)
+* It is now possible to use both `import produce from "immer"` and `import {produce} from "immer"`. Implements [#136](https://github.com/mweststrate/immer/issues/136)
+* Added several performance tests to the repository
+
 ### 1.3.1
 
 * Fixed bug [#148](https://github.com/mweststrate/immer/issues/148) where original state was not always returned if the producer returned undefined and the original state was a primitive. By @stefanwille through [#157](https://github.com/mweststrate/immer/pull/157)
