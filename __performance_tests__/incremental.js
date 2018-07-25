@@ -1,0 +1,99 @@
+"use strict"
+import {measure} from "./measure"
+import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
+import cloneDeep from "lodash.clonedeep"
+import * as Immutable from "immutable"
+
+function createTestObject() {
+    return {
+        a: 1,
+        b: "Some data here"
+    }
+}
+
+const MAX = 100
+const baseState = {
+    ids: [],
+    map: Object.create(null)
+}
+
+let immutableJsBaseState
+
+immutableJsBaseState = {
+    ids: Immutable.List(),
+    map: Immutable.Map()
+}
+
+measure(
+    "just mutate",
+    () => cloneDeep(baseState),
+    draft => {
+        for (let i = 0; i < MAX; i++) {
+            draft.ids.push(i)
+            draft.map[i] = createTestObject()
+        }
+    }
+)
+
+measure(
+    "handcrafted reducer (no freeze)",
+    () => cloneDeep(baseState),
+    state => {
+        for (let i = 0; i < MAX; i++) {
+            state = {
+                ids: [...state.ids, i],
+                map: {
+                    ...state.map,
+                    [i]: createTestObject()
+                }
+            }
+        }
+    }
+)
+
+measure(
+    "immutableJS",
+    () => immutableJsBaseState,
+    state => {
+        for (let i = 0; i < MAX; i++) {
+            state = {
+                ids: state.ids.push(i),
+                map: state.map.set(i, createTestObject())
+            }
+        }
+    }
+)
+
+measure(
+    "immer (proxy) - without autofreeze",
+    () => {
+        setUseProxies(true)
+        setAutoFreeze(false)
+        return baseState
+    },
+    state => {
+        for (let i = 0; i < MAX; i++) {
+            state = produce(state, draft => {
+                draft.ids.push(i)
+                draft.map[i] = createTestObject()
+            })
+        }
+    }
+)
+
+measure(
+    "immer (es5) - without autofreeze",
+    () => {
+        setUseProxies(false)
+        setAutoFreeze(false)
+        return baseState
+    },
+    state => {
+        for (let i = 0; i < MAX; i++) {
+            state = produce(state, draft => {
+                draft.ids.push(i)
+                draft.map[i] = createTestObject()
+            })
+        }
+    }
+)
