@@ -7,7 +7,7 @@ import {fromJS} from "immutable"
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
 
-console.log("# add-data - loading large set of data")
+console.log("\n# add-data - loading large set of data\n")
 
 const dataSet = require("./data.json")
 const baseState = {

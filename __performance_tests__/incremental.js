@@ -4,6 +4,8 @@ import produce, {setAutoFreeze, setUseProxies} from "../dist/immer.umd.js"
 import cloneDeep from "lodash.clonedeep"
 import * as Immutable from "immutable"
 
+console.log("\n# incremental - lot of small incremental changes\n")
+
 function createTestObject() {
     return {
         a: 1,

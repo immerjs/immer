@@ -42,7 +42,7 @@ immutableJsBaseState = List(baseState.map(todo => todoRecord(todo)))
 // generate seamless-immutable base state
 seamlessBaseState = Seamless.from(baseState)
 
-console.log("# todo - performance")
+console.log("\n# todo - performance\n")
 
 measure(
     "just mutate",
@@ -213,6 +213,25 @@ measure(
 )
 
 measure(
+    "immer (proxy) - with autofreeze - with patch listener",
+    () => {
+        setUseProxies(true)
+        setAutoFreeze(true)
+    },
+    () => {
+        produce(
+            baseState,
+            draft => {
+                for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                    draft[i].done = true
+                }
+            },
+            function() {}
+        )
+    }
+)
+
+measure(
     "immer (es5) - without autofreeze",
     () => {
         setUseProxies(false)
@@ -247,6 +266,25 @@ measure(
     () => {
         setUseProxies(false)
         setAutoFreeze(false)
+    },
+    () => {
+        produce(
+            baseState,
+            draft => {
+                for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+                    draft[i].done = true
+                }
+            },
+            function() {}
+        )
+    }
+)
+
+measure(
+    "immer (es5) - with autofreeze - with patch listener",
+    () => {
+        setUseProxies(false)
+        setAutoFreeze(true)
     },
     () => {
         produce(
