@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
@@ -68,9 +68,9 @@
     "rollup-plugin-filesize": "^1.5.0",
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
+    "seamless-immutable": "^7.1.3",
     "ts-jest": "^22.4.6",
     "typescript": "^2.9.1",
-    "seamless-immutable": "^7.1.3",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },
