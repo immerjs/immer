@@ -250,6 +250,8 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             )
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(Object.keys(nextState.anArray)).toEqual(["0", "2", "3"])
+            expect(nextState.anArray.length).toBe(4)
             expect(nextState.anArray).toEqual([3, undefined, {c: 3}, 1])
         })
 
