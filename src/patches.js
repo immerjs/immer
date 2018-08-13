@@ -1,4 +1,4 @@
-import {each} from "./common"
+import {each, has} from "./common"
 
 export function generatePatches(
     state,
@@ -39,6 +39,20 @@ export function generateArrayPatches(
 ) {
     const shared = Math.min(baseValue.length, resultValue.length)
     for (let i = 0; i < shared; i++) {
+        if (!has(resultValue, i) && has(baseValue, i)) {
+            var path = basepath.concat(i)
+            patches.push({op: "remove", path: path})
+            inversePatches.push({op: "add", path: path, value: baseValue[i]})
+            continue
+        }
+
+        if (has(resultValue, i) && !has(baseValue, i)) {
+            var path = basepath.concat(i)
+            patches.push({op: "add", path: path, value: resultValue[i]})
+            inversePatches.push({op: "remove", path: path})
+            continue
+        }
+
         if (state.assigned[i] && baseValue[i] !== resultValue[i]) {
             const path = basepath.concat(i)
             patches.push({op: "replace", path, value: resultValue[i]})
@@ -83,7 +97,9 @@ function generateObjectPatches(
         const value = resultValue[key]
         const op = !assignedValue
             ? "remove"
-            : key in baseValue ? "replace" : "add"
+            : key in baseValue
+                ? "replace"
+                : "add"
         if (origValue === baseValue && op === "replace") return
         const path = basepath.concat(key)
         patches.push(op === "remove" ? {op, path} : {op, path, value})
@@ -91,8 +107,8 @@ function generateObjectPatches(
             op === "add"
                 ? {op: "remove", path}
                 : op === "remove"
-                  ? {op: "add", path, value: origValue}
-                  : {op: "replace", path, value: origValue}
+                    ? {op: "add", path, value: origValue}
+                    : {op: "replace", path, value: origValue}
         )
     })
 }
@@ -125,15 +141,7 @@ export function applyPatches(draft, patches) {
                     base[key] = patch.value
                     break
                 case "remove":
-                    if (Array.isArray(base)) {
-                        if (key === base.length - 1) base.length -= 1
-                        else
-                            throw new Error(
-                                `Remove can only remove the last key of an array, index: ${key}, length: ${
-                                    base.length
-                                }`
-                            )
-                    } else delete base[key]
+                    delete base[key]
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)

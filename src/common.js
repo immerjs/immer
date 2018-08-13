@@ -74,11 +74,7 @@ export function shallowCopy(value) {
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) cb(i, value[i])
-    } else {
-        for (let key in value) cb(key, value[key])
-    }
+    for (let key in value) cb(key, value[key])
 }
 
 export function has(thing, prop) {

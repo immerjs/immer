@@ -200,6 +200,24 @@ describe("arrays - 6", () => {
     )
 })
 
+describe("arrays - 7", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            delete d.x[1]
+            d.x.push(100)
+        },
+        [
+            {op: "remove", path: ["x", 1]},
+            {op: "add", path: ["x", 3], value: 100}
+        ],
+        [
+            {op: "add", path: ["x", 1], value: 2},
+            {op: "replace", path: ["x", "length"], value: 3}
+        ]
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })
