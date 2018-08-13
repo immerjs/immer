@@ -132,14 +132,16 @@ function markChangesRecursively(object) {
         if (hasArrayChanges(state)) {
             markChanged(state)
             state.assigned.length = true
-            if (proxy.length < base.length)
-                for (let i = proxy.length; i < base.length; i++)
-                    state.assigned[i] = false
-            else
-                for (let i = base.length; i < proxy.length; i++)
-                    state.assigned[i] = true
-            each(proxy, (index, child) => {
-                if (!state.assigned[index]) markChangesRecursively(child)
+            const {added, removed} = diffKeys(base, proxy)
+            if (added.length > 0 || removed.length > 0) markChanged(state)
+            each(added, (_, key) => {
+                state.assigned[key] = true
+            })
+            each(removed, (_, key) => {
+                state.assigned[key] = false
+            })
+            each(proxy, (key, child) => {
+                if (!state.assigned[key]) markChangesRecursively(child)
             })
         }
     } else {
@@ -176,6 +178,10 @@ function hasObjectChanges(state) {
 function hasArrayChanges(state) {
     const {proxy} = state
     if (proxy.length !== state.base.length) return true
+
+    if (Object.keys(proxy).length !== Object.keys(state.base).length)
+        return true
+
     // See #116
     // If we first shorten the length, our array interceptors will be removed.
     // If after that new items are added, result in the same original length,

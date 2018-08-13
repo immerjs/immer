@@ -240,6 +240,19 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(nextState.anArray).toEqual([3, 2, {c: 3}])
         })
 
+        it("can delete array items - 2", () => {
+            const nextState = produce(
+                baseState,
+                s => {
+                    delete s.anArray[1]
+                },
+                listener
+            )
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.anArray).not.toBe(baseState.anArray)
+            expect(nextState.anArray).toEqual([3, undefined, {c: 3}, 1])
+        })
+
         it("should support sorting arrays", () => {
             const nextState = produce(
                 baseState,
