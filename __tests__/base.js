@@ -509,7 +509,7 @@ function runBaseTest(name, useProxies, freeze, useListener) {
                     expect(1 in draft).toBe(false)
                     expect("0" in draft).toBe(true)
                     expect("1" in draft).toBe(false)
-                    expect(length in draft).toBe(true)
+                    expect("length" in draft).toBe(true)
                     expect(
                         Reflect.ownKeys(draft).filter(
                             x => typeof x === "string"
