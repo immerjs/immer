@@ -17,6 +17,7 @@ _Create the next immutable state tree by simply modifying the current tree_
 * Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
 * Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
 * [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
+* Blog by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way. It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
@@ -418,12 +419,54 @@ import { produce as unleashTheMagic } from "immer"
 ## Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
-1. Currently, Immer only supports plain objects and arrays. PRs are welcome for more language built-in types like `Map` and `Set`.
+1. Currently, Immer only supports plain objects and arrays.
+1. Class instances are not, and will not be supported. Read here more on why that would be a [confusing, conceptual mismatch]
 1. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
 1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
-1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`
+1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones.
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower then `produce(base, d => { for (let x of y) d.push(x)})`
+1. Immer does not support built in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
+
+```javascript
+const state = {
+    title: "hello",
+    tokenSet: new Set()
+}
+
+const nextState = produce(state, draft => {
+    draft.title = draft.title.toUpperCase() // let immer do it's job
+    // don't use the operations onSet, as that mutates the instance!
+    // draft.tokenSet.add("c1342")
+
+    // instead: clone the set (once!)
+    const newSet = new Set(draft.tokenSet)
+    // mutate the clone (just in this producer)
+    newSet.add("c1342")
+    // update the draft with the new set
+    draft.tokenSet = newSet
+})
+```
+
+Or a deep update in maps (well, don't use maps for this use case, but as example):
+
+```javascript
+const state = {
+    users: new Map(["michel", { name: "miche" }])
+}
+
+const nextState = produce(state, draft => {
+    const newUsers = new Map(draft.users)
+    // mutate the new map and set a _new_ user object
+    // but leverage produce again to base the new user object on the original one
+    newUsers.set("michel", produce(draft.users.get("michel"), draft => {
+        draft.name = "michel"
+    }))
+    draft.users = newUsers
+})
+```
+
+
 
 ## Cool things built with immer
 
