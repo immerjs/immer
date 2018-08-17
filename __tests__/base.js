@@ -804,6 +804,20 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(next).not.toBe(bear)
         })
 
+        it("should handle nested immer calls correctly - 3", () => {
+            expect(
+                produce({city: {name: "New York"}}, draft => {
+                    produce({}, draft2 => {
+                        draft.city.name = "shanghai"
+                    })
+                })
+            ).toMatchObject({
+                city: {
+                    name: "shanghai"
+                }
+            })
+        })
+
         it("should not try to change immutable data, see #66", () => {
             const user = require("./test-data")
 

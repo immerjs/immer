@@ -13,13 +13,15 @@ import {
 } from "./common"
 
 const descriptors = {}
-let states = null
+let statesMap = {}
+let guid = 1
 
-function createState(parent, proxy, base) {
+function createState(parent, proxy, base, accessId) {
     return {
         modified: false,
         assigned: {}, // true: value was assigned to these props, false: was removed
         hasCopy: false,
+        accessId,
         parent,
         base,
         proxy,
@@ -41,7 +43,7 @@ function get(state, prop) {
         // only create a proxy if the value is proxyable, and the value was in the base state
         // if it wasn't in the base state, the object is already modified and we will process it in finalize
         prepareCopy(state)
-        return (state.copy[prop] = createProxy(state, value))
+        return (state.copy[prop] = createProxy(state, value, state.accessId))
     }
     return value
 }
@@ -71,14 +73,14 @@ function prepareCopy(state) {
 }
 
 // creates a proxy for plain objects / arrays
-function createProxy(parent, base) {
+function createProxy(parent, base, accessId) {
     const proxy = shallowCopy(base)
     each(base, i => {
         Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
     })
-    const state = createState(parent, proxy, base)
+    const state = createState(parent, proxy, base, accessId)
     createHiddenProperty(proxy, PROXY_STATE, state)
-    states.push(state)
+    statesMap[accessId].push(state)
     return proxy
 }
 
@@ -109,12 +111,12 @@ function assertUnfinished(state) {
 // this sounds very expensive, but actually it is not that expensive in practice
 // as it will only visit proxies, and only do key-based change detection for objects for
 // which it is not already know that they are changed (that is, only object for which no known key was changed)
-function markChangesSweep() {
+function markChangesSweep(accessId) {
     // intentionally we process the proxies in reverse order;
     // ideally we start by processing leafs in the tree, because if a child has changed, we don't have to check the parent anymore
     // reverse order of proxy creation approximates this
-    for (let i = states.length - 1; i >= 0; i--) {
-        const state = states[i]
+    for (let i = statesMap[accessId].length - 1; i >= 0; i--) {
+        const state = statesMap[accessId][i]
         if (state.modified === false) {
             if (Array.isArray(state.base)) {
                 if (hasArrayChanges(state)) markChanged(state)
@@ -191,22 +193,22 @@ function hasArrayChanges(state) {
 }
 
 export function produceEs5(baseState, producer, patchListener) {
+    const accessId = guid++
     if (isProxy(baseState)) {
         // See #100, don't nest producers
         const returnValue = producer.call(baseState, baseState)
         return returnValue === undefined ? baseState : returnValue
     }
-    const prevStates = states
-    states = []
+    statesMap[accessId] = []
     const patches = patchListener && []
     const inversePatches = patchListener && []
     try {
         // create proxy for root
-        const rootProxy = createProxy(undefined, baseState)
+        const rootProxy = createProxy(undefined, baseState, accessId)
         // execute the thunk
         const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
-        each(states, (_, state) => {
+        each(statesMap[accessId], (_, state) => {
             state.finalizing = true
         })
         let result
@@ -222,17 +224,17 @@ export function produceEs5(baseState, producer, patchListener) {
             }
         } else {
             if (patchListener) markChangesRecursively(rootProxy)
-            markChangesSweep() // this one is more efficient if we don't need to know which attributes have changed
+            markChangesSweep(accessId) // this one is more efficient if we don't need to know which attributes have changed
             result = finalize(rootProxy, [], patches, inversePatches)
         }
         // make sure all proxies become unusable
-        each(states, (_, state) => {
+        each(statesMap[accessId], (_, state) => {
             state.finished = true
         })
         patchListener && patchListener(patches, inversePatches)
         return result
     } finally {
-        states = prevStates
+        delete statesMap[accessId]
     }
 }
 

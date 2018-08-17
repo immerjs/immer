@@ -13,7 +13,8 @@ import {
     each
 } from "./common"
 
-let proxies = null
+let guid = 1
+const proxiesMap = {}
 
 const objectTraps = {
     get,
@@ -40,11 +41,12 @@ each(objectTraps, (key, fn) => {
     }
 })
 
-function createState(parent, base) {
+function createState(parent, base, accessId) {
     return {
         modified: false, // this tree is modified (either this object or one of it's children)
         assigned: {}, // true: value was assigned to these props, false: was removed
         finalized: false,
+        accessId,
         parent,
         base,
         copy: undefined,
@@ -63,13 +65,21 @@ function get(state, prop) {
         if (value === state.base[prop] && isProxyable(value))
             // only create proxy if it is not yet a proxy, and not a new object
             // (new objects don't need proxying, they will be processed in finalize anyway)
-            return (state.copy[prop] = createProxy(state, value))
+            return (state.copy[prop] = createProxy(
+                state,
+                value,
+                state.accessId
+            ))
         return value
     } else {
         if (has(state.proxies, prop)) return state.proxies[prop]
         const value = state.base[prop]
         if (!isProxy(value) && isProxyable(value))
-            return (state.proxies[prop] = createProxy(state, value))
+            return (state.proxies[prop] = createProxy(
+                state,
+                value,
+                state.accessId
+            ))
         return value
     }
 }
@@ -99,7 +109,9 @@ function deleteProperty(state, prop) {
 function getOwnPropertyDescriptor(state, prop) {
     const owner = state.modified
         ? state.copy
-        : has(state.proxies, prop) ? state.proxies : state.base
+        : has(state.proxies, prop)
+            ? state.proxies
+            : state.base
     const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
         descriptor.configurable = true
@@ -123,29 +135,30 @@ function markChanged(state) {
 }
 
 // creates a proxy for plain objects / arrays
-function createProxy(parentState, base, key) {
+function createProxy(parentState, base, accessId, key) {
     if (isProxy(base)) throw new Error("Immer bug. Plz report.")
-    const state = createState(parentState, base, key)
+    const state = createState(parentState, base, accessId, key)
+
     const proxy = Array.isArray(base)
         ? Proxy.revocable([state], arrayTraps)
         : Proxy.revocable(state, objectTraps)
-    proxies.push(proxy)
+    proxiesMap[accessId].push(proxy)
     return proxy.proxy
 }
 
 export function produceProxy(baseState, producer, patchListener) {
+    const accessId = guid++
     if (isProxy(baseState)) {
         // See #100, don't nest producers
         const returnValue = producer.call(baseState, baseState)
         return returnValue === undefined ? baseState : returnValue
     }
-    const previousProxies = proxies
-    proxies = []
+    proxiesMap[accessId] = []
     const patches = patchListener && []
     const inversePatches = patchListener && []
     try {
         // create proxy for root
-        const rootProxy = createProxy(undefined, baseState)
+        const rootProxy = createProxy(undefined, baseState, accessId)
         // execute the thunk
         const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
@@ -168,10 +181,10 @@ export function produceProxy(baseState, producer, patchListener) {
             result = finalize(rootProxy, [], patches, inversePatches)
         }
         // revoke all proxies
-        each(proxies, (_, p) => p.revoke())
+        each(proxiesMap[accessId], (_, p) => p.revoke())
         patchListener && patchListener(patches, inversePatches)
         return result
     } finally {
-        proxies = previousProxies
+        delete proxiesMap[accessId]
     }
 }
