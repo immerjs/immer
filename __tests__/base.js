@@ -1219,6 +1219,14 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(require("../package.json").dependencies).toEqual(undefined)
         })
 
+        it("#174", () => {
+            const nextState = produce([1, 2, 3], s => {
+                s.pop()
+                s.push(100)
+            })
+            expect(nextState).toEqual([1, 2, 100])
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())

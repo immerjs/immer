@@ -420,10 +420,11 @@ import unleashTheMagic from "immer"
 import { produce as unleashTheMagic } from "immer"
 ```
 
-## Pitfalls
+## Limitations / pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
-1. Currently, Immer only supports plain objects and arrays.
+1. Immer only supports plain objects and arrays.
+1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice and there should be no circular references.
 1. Class instances are not, and will not be supported. Read here more on why that would be a [confusing, conceptual mismatch]
 1. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
 1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
