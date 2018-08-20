@@ -258,6 +258,32 @@ describe("arrays - 10", () => {
     )
 })
 
+describe("arrays - 11", () => {
+    let state = new Array(3)
+    state[2] = 3
+    runPatchTest(
+        state,
+        d => {
+            d[1] = 4
+        },
+        [{op: "add", path: [1], value: 4}],
+        [{op: "remove", path: [1]}]
+    )
+})
+
+describe("arrays - 12", () => {
+    let state = [1, 2, 3]
+    state.name = "anArray"
+    runPatchTest(
+        state,
+        d => {
+            delete d.name
+        },
+        [{op: "remove", path: ["name"]}],
+        [{op: "add", path: ["name"], value: "anArray"}]
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })
