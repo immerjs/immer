@@ -96,4 +96,54 @@ describe("readme example", () => {
             age: 32
         })
     })
+
+    it("can update set", () => {
+        const state = {
+            title: "hello",
+            tokenSet: new Set()
+        }
+
+        const nextState = produce(state, draft => {
+            draft.title = draft.title.toUpperCase() // let immer do it's job
+            // don't use the operations onSet, as that mutates the instance!
+            // draft.tokenSet.add("c1342")
+
+            // instead: clone the set (once!)
+            const newSet = new Set(draft.tokenSet)
+            // mutate it once
+            newSet.add("c1342")
+            // update the draft with the new set
+            draft.tokenSet = newSet
+        })
+
+        expect(state).toEqual({title: "hello", tokenSet: new Set()})
+        expect(nextState).toEqual({
+            title: "HELLO",
+            tokenSet: new Set(["c1342"])
+        })
+    })
+
+    it("can deep udpate map", () => {
+        const state = {
+            users: new Map([["michel", {name: "miche"}]])
+        }
+
+        const nextState = produce(state, draft => {
+            const newUsers = new Map(draft.users)
+            // mutate the new map and set a _new_ user object
+            // but leverage produce again to deeply update it's contents
+            newUsers.set(
+                "michel",
+                produce(draft.users.get("michel"), draft => {
+                    draft.name = "michel"
+                })
+            )
+            draft.users = newUsers
+        })
+
+        expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
+        expect(nextState).toEqual({
+            users: new Map([["michel", {name: "michel"}]])
+        })
+    })
 })
