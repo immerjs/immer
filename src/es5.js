@@ -129,34 +129,20 @@ function markChangesRecursively(object) {
     const state = object[PROXY_STATE]
     if (!state) return
     const {proxy, base} = state
-    if (Array.isArray(object)) {
-        if (hasArrayChanges(state)) {
-            markChanged(state)
-            state.assigned.length = true
-            const {added, removed} = diffKeys(base, proxy)
-            each(added, (_, key) => {
-                state.assigned[key] = true
-            })
-            each(removed, (_, key) => {
-                state.assigned[key] = false
-            })
-            each(proxy, (key, child) => {
-                if (!state.assigned[key]) markChangesRecursively(child)
-            })
-        }
-    } else {
-        const {added, removed} = diffKeys(base, proxy)
-        if (added.length > 0 || removed.length > 0) markChanged(state)
-        each(added, (_, key) => {
-            state.assigned[key] = true
-        })
-        each(removed, (_, key) => {
-            state.assigned[key] = false
-        })
-        each(proxy, (key, child) => {
-            if (!state.assigned[key]) markChangesRecursively(child)
-        })
-    }
+
+    // See test case patch.js "arrays - 9" "arrays - 10"
+    // Here, if we call Array.isArray and hasArrayChanges, will not detecte the change of object which is in array
+    const {added, removed} = diffKeys(base, proxy)
+    if (added.length > 0 || removed.length > 0) markChanged(state)
+    each(added, (_, key) => {
+        state.assigned[key] = true
+    })
+    each(removed, (_, key) => {
+        state.assigned[key] = false
+    })
+    each(proxy, (key, child) => {
+        if (!state.assigned[key]) markChangesRecursively(child)
+    })
 }
 
 function hasObjectChanges(state) {

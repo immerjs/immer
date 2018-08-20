@@ -76,7 +76,10 @@ export function shallowCopy(value) {
 }
 
 export function each(value, cb) {
-    for (let key in value) cb(key, value[key])
+    for (let key in value) {
+        if (Array.isArray(value) && isNonNegativeInteger(key)) key = Number(key)
+        cb(key, value[key])
+    }
 }
 
 export function diffKeys(from, to) {
@@ -173,4 +176,9 @@ export function is(x, y) {
     } else {
         return x !== x && y !== y
     }
+}
+
+export function isNonNegativeInteger(v) {
+    const reg = /^\d+$/
+    return reg.test(v)
 }

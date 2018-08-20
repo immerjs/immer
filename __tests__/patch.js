@@ -236,6 +236,28 @@ describe("arrays - 8", () => {
     )
 })
 
+describe("arrays - 9", () => {
+    runPatchTest(
+        {x: [1, 2, {name: "jim"}]},
+        d => {
+            delete d.x[2].name
+        },
+        [{op: "remove", path: ["x", 2, "name"]}],
+        [{op: "add", path: ["x", 2, "name"], value: "jim"}]
+    )
+})
+
+describe("arrays - 10", () => {
+    runPatchTest(
+        {x: [1, 2, {name: "jim"}]},
+        d => {
+            d.x[2].age = 30
+        },
+        [{op: "add", path: ["x", 2, "age"], value: 30}],
+        [{op: "remove", path: ["x", 2, "age"]}]
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })

@@ -1,4 +1,4 @@
-import {each, has, diffKeys} from "./common"
+import {each, has, diffKeys, isNonNegativeInteger} from "./common"
 
 export function generatePatches(
     state,
@@ -83,9 +83,10 @@ export function generateArrayPatches(
         }
     }
 
+    //handle the non-index keys
     let {added, removed} = diffKeys(baseValue, resultValue)
-    added = added.filter(notNonNegativeInteger)
-    removed = removed.filter(notNonNegativeInteger)
+    added = added.filter(v => !isNonNegativeInteger(v))
+    removed = removed.filter(v => !isNonNegativeInteger(v))
     each(added, (_, key) => {
         const path = basepath.concat(key)
         patches.push({op: "add", path: path, value: resultValue[key]})
@@ -163,9 +164,4 @@ export function applyPatches(draft, patches) {
         }
     }
     return draft
-}
-
-function notNonNegativeInteger(v) {
-    const reg = /^\d+$/
-    return !reg.test(v)
 }
