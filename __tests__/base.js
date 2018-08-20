@@ -293,6 +293,23 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(Object.keys(nextState.anArray)).toEqual(["0", "2", "name"])
         })
 
+        it("can delete array items - 4", () => {
+            let state = {
+                anArray: [1, 2, 3]
+            }
+            state.anArray.name = "anArray"
+            const nextState = produce(
+                state,
+                s => {
+                    delete s.anArray.name
+                },
+                listener
+            )
+            expect(nextState).not.toBe(state)
+            expect(nextState.anArray).not.toBe(state.anArray)
+            expect(Object.keys(nextState.anArray)).toEqual(["0", "1", "2"])
+        })
+
         it("should support sorting arrays", () => {
             const nextState = produce(
                 baseState,
