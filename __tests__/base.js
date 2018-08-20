@@ -255,6 +255,44 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(nextState.anArray).toEqual([3, undefined, {c: 3}, 1])
         })
 
+        it("can add non-index key on array", () => {
+            let state = {
+                anArray: [1, 2, 3]
+            }
+            const nextState = produce(
+                state,
+                s => {
+                    s.anArray.name = "name"
+                },
+                listener
+            )
+            expect(nextState).not.toBe(state)
+            expect(nextState.anArray).not.toBe(state.anArray)
+            expect(Object.keys(nextState.anArray)).toEqual([
+                "0",
+                "1",
+                "2",
+                "name"
+            ])
+        })
+
+        it("can delete array items - 3", () => {
+            let state = {
+                anArray: [1, 2, 3]
+            }
+            const nextState = produce(
+                state,
+                s => {
+                    s.anArray.name = "name"
+                    delete s.anArray[1]
+                },
+                listener
+            )
+            expect(nextState).not.toBe(state)
+            expect(nextState.anArray).not.toBe(state.anArray)
+            expect(Object.keys(nextState.anArray)).toEqual(["0", "2", "name"])
+        })
+
         it("should support sorting arrays", () => {
             const nextState = produce(
                 baseState,

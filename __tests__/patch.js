@@ -218,6 +218,24 @@ describe("arrays - 7", () => {
     )
 })
 
+describe("arrays - 8", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            delete d.x[1]
+            d.x.name = "anArray"
+        },
+        [
+            {op: "remove", path: ["x", 1]},
+            {op: "add", path: ["x", "name"], value: "anArray"}
+        ],
+        [
+            {op: "add", path: ["x", 1], value: 2},
+            {op: "remove", path: ["x", "name"]}
+        ]
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })

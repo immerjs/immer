@@ -68,13 +68,25 @@ const assign =
     }
 
 export function shallowCopy(value) {
-    if (Array.isArray(value)) return value.slice()
+    if (Array.isArray(value)) {
+        return Object.assign([], value)
+    }
     const target = value.__proto__ === undefined ? Object.create(null) : {}
     return assign(target, value)
 }
 
 export function each(value, cb) {
     for (let key in value) cb(key, value[key])
+}
+
+export function diffKeys(from, to) {
+    // TODO: optimize
+    const a = Object.keys(from)
+    const b = Object.keys(to)
+    return {
+        added: b.filter(key => a.indexOf(key) === -1),
+        removed: a.filter(key => b.indexOf(key) === -1)
+    }
 }
 
 export function has(thing, prop) {

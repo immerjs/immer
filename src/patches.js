@@ -1,4 +1,4 @@
-import {each, has} from "./common"
+import {each, has, diffKeys} from "./common"
 
 export function generatePatches(
     state,
@@ -82,6 +82,20 @@ export function generateArrayPatches(
             inversePatches.push({op: "add", path, value: baseValue[i]})
         }
     }
+
+    let {added, removed} = diffKeys(baseValue, resultValue)
+    added = added.filter(notNonNegativeInteger)
+    removed = removed.filter(notNonNegativeInteger)
+    each(added, (_, key) => {
+        const path = basepath.concat(key)
+        patches.push({op: "add", path: path, value: resultValue[key]})
+        inversePatches.push({op: "remove", path: path})
+    })
+    each(removed, (_, key) => {
+        const path = basepath.concat(key)
+        patches.push({op: "remove", path: path})
+        inversePatches.push({op: "add", path: path, value: baseValue[key]})
+    })
 }
 
 function generateObjectPatches(
@@ -149,4 +163,9 @@ export function applyPatches(draft, patches) {
         }
     }
     return draft
+}
+
+function notNonNegativeInteger(v) {
+    const reg = /^\d+$/
+    return !reg.test(v)
 }

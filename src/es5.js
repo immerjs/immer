@@ -9,6 +9,7 @@ import {
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
     each,
+    diffKeys,
     finalize
 } from "./common"
 
@@ -158,16 +159,6 @@ function markChangesRecursively(object) {
     }
 }
 
-function diffKeys(from, to) {
-    // TODO: optimize
-    const a = Object.keys(from)
-    const b = Object.keys(to)
-    return {
-        added: b.filter(key => a.indexOf(key) === -1),
-        removed: a.filter(key => b.indexOf(key) === -1)
-    }
-}
-
 function hasObjectChanges(state) {
     const baseKeys = Object.keys(state.base)
     const keys = Object.keys(state.proxy)
@@ -178,8 +169,8 @@ function hasArrayChanges(state) {
     const {proxy} = state
     if (proxy.length !== state.base.length) return true
 
-    if (Object.keys(proxy).length !== Object.keys(state.base).length)
-        return true
+    // See test case base.js "can delete array items - 3"  Use Object.keys().length equal is not effective
+    if (!shallowEqual(Object.keys(proxy), Object.keys(state.base))) return true
 
     // See #116
     // If we first shorten the length, our array interceptors will be removed.
