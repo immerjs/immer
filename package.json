@@ -86,6 +86,7 @@
       "^.+\\.jsx?$": "babel-jest",
       "^.+\\.tsx?$": "ts-jest"
     },
+    "testEnvironment": "node",
     "testRegex": "/__tests__/[^/]*[jt]sx?$",
     "globals": {
       "ts-jest": {

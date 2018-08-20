@@ -9,6 +9,7 @@ import {
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
     each,
+    diffKeys,
     finalize
 } from "./common"
 
@@ -128,43 +129,20 @@ function markChangesRecursively(object) {
     const state = object[PROXY_STATE]
     if (!state) return
     const {proxy, base} = state
-    if (Array.isArray(object)) {
-        if (hasArrayChanges(state)) {
-            markChanged(state)
-            state.assigned.length = true
-            if (proxy.length < base.length)
-                for (let i = proxy.length; i < base.length; i++)
-                    state.assigned[i] = false
-            else
-                for (let i = base.length; i < proxy.length; i++)
-                    state.assigned[i] = true
-            each(proxy, (index, child) => {
-                if (!state.assigned[index]) markChangesRecursively(child)
-            })
-        }
-    } else {
-        const {added, removed} = diffKeys(base, proxy)
-        if (added.length > 0 || removed.length > 0) markChanged(state)
-        each(added, (_, key) => {
-            state.assigned[key] = true
-        })
-        each(removed, (_, key) => {
-            state.assigned[key] = false
-        })
-        each(proxy, (key, child) => {
-            if (!state.assigned[key]) markChangesRecursively(child)
-        })
-    }
-}
 
-function diffKeys(from, to) {
-    // TODO: optimize
-    const a = Object.keys(from)
-    const b = Object.keys(to)
-    return {
-        added: b.filter(key => a.indexOf(key) === -1),
-        removed: a.filter(key => b.indexOf(key) === -1)
-    }
+    // See test case patch.js "arrays - 9" "arrays - 10"
+    // Here, if we call Array.isArray and hasArrayChanges, will not detecte the change of object which is in array
+    const {added, removed} = diffKeys(base, proxy)
+    if (added.length > 0 || removed.length > 0) markChanged(state)
+    each(added, (_, key) => {
+        state.assigned[key] = true
+    })
+    each(removed, (_, key) => {
+        state.assigned[key] = false
+    })
+    each(proxy, (key, child) => {
+        if (!state.assigned[key]) markChangesRecursively(child)
+    })
 }
 
 function hasObjectChanges(state) {
@@ -176,6 +154,10 @@ function hasObjectChanges(state) {
 function hasArrayChanges(state) {
     const {proxy} = state
     if (proxy.length !== state.base.length) return true
+
+    // See test case base.js "can delete array items - 3"  Use Object.keys().length equal is not effective
+    if (!shallowEqual(Object.keys(proxy), Object.keys(state.base))) return true
+
     // See #116
     // If we first shorten the length, our array interceptors will be removed.
     // If after that new items are added, result in the same original length,

@@ -200,6 +200,90 @@ describe("arrays - 6", () => {
     )
 })
 
+describe("arrays - 7", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            delete d.x[1]
+            d.x.push(100)
+        },
+        [
+            {op: "remove", path: ["x", 1]},
+            {op: "add", path: ["x", 3], value: 100}
+        ],
+        [
+            {op: "add", path: ["x", 1], value: 2},
+            {op: "replace", path: ["x", "length"], value: 3}
+        ]
+    )
+})
+
+describe("arrays - 8", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            delete d.x[1]
+            d.x.name = "anArray"
+        },
+        [
+            {op: "remove", path: ["x", 1]},
+            {op: "add", path: ["x", "name"], value: "anArray"}
+        ],
+        [
+            {op: "add", path: ["x", 1], value: 2},
+            {op: "remove", path: ["x", "name"]}
+        ]
+    )
+})
+
+describe("arrays - 9", () => {
+    runPatchTest(
+        {x: [1, 2, {name: "jim"}]},
+        d => {
+            delete d.x[2].name
+        },
+        [{op: "remove", path: ["x", 2, "name"]}],
+        [{op: "add", path: ["x", 2, "name"], value: "jim"}]
+    )
+})
+
+describe("arrays - 10", () => {
+    runPatchTest(
+        {x: [1, 2, {name: "jim"}]},
+        d => {
+            d.x[2].age = 30
+        },
+        [{op: "add", path: ["x", 2, "age"], value: 30}],
+        [{op: "remove", path: ["x", 2, "age"]}]
+    )
+})
+
+describe("arrays - 11", () => {
+    let state = new Array(3)
+    state[2] = 3
+    runPatchTest(
+        state,
+        d => {
+            d[1] = 4
+        },
+        [{op: "add", path: [1], value: 4}],
+        [{op: "remove", path: [1]}]
+    )
+})
+
+describe("arrays - 12", () => {
+    let state = [1, 2, 3]
+    state.name = "anArray"
+    runPatchTest(
+        state,
+        d => {
+            delete d.name
+        },
+        [{op: "remove", path: ["name"]}],
+        [{op: "add", path: ["name"], value: "anArray"}]
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })

@@ -68,16 +68,27 @@ const assign =
     }
 
 export function shallowCopy(value) {
-    if (Array.isArray(value)) return value.slice()
+    if (Array.isArray(value)) {
+        return assign([], value)
+    }
     const target = value.__proto__ === undefined ? Object.create(null) : {}
     return assign(target, value)
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) cb(i, value[i])
-    } else {
-        for (let key in value) cb(key, value[key])
+    for (let key in value) {
+        if (Array.isArray(value) && isNonNegativeInteger(key)) key = Number(key)
+        cb(key, value[key])
+    }
+}
+
+export function diffKeys(from, to) {
+    // TODO: optimize
+    const a = Object.keys(from)
+    const b = Object.keys(to)
+    return {
+        added: b.filter(key => a.indexOf(key) === -1),
+        removed: a.filter(key => b.indexOf(key) === -1)
     }
 }
 
@@ -165,4 +176,9 @@ export function is(x, y) {
     } else {
         return x !== x && y !== y
     }
+}
+
+export function isNonNegativeInteger(v) {
+    const reg = /^\d+$/
+    return reg.test(v)
 }
