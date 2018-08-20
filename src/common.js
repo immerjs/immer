@@ -69,7 +69,7 @@ const assign =
 
 export function shallowCopy(value) {
     if (Array.isArray(value)) {
-        return Object.assign([], value)
+        return assign([], value)
     }
     const target = value.__proto__ === undefined ? Object.create(null) : {}
     return assign(target, value)
