@@ -133,7 +133,6 @@ function markChangesRecursively(object) {
             markChanged(state)
             state.assigned.length = true
             const {added, removed} = diffKeys(base, proxy)
-            if (added.length > 0 || removed.length > 0) markChanged(state)
             each(added, (_, key) => {
                 state.assigned[key] = true
             })
