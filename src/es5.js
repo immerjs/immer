@@ -128,33 +128,17 @@ function markChangesRecursively(object) {
     const state = object[PROXY_STATE]
     if (!state) return
     const {proxy, base} = state
-    if (Array.isArray(object)) {
-        if (hasArrayChanges(state)) {
-            markChanged(state)
-            state.assigned.length = true
-            if (proxy.length < base.length)
-                for (let i = proxy.length; i < base.length; i++)
-                    state.assigned[i] = false
-            else
-                for (let i = base.length; i < proxy.length; i++)
-                    state.assigned[i] = true
-            each(proxy, (index, child) => {
-                if (!state.assigned[index]) markChangesRecursively(child)
-            })
-        }
-    } else {
-        const {added, removed} = diffKeys(base, proxy)
-        if (added.length > 0 || removed.length > 0) markChanged(state)
-        each(added, (_, key) => {
-            state.assigned[key] = true
-        })
-        each(removed, (_, key) => {
-            state.assigned[key] = false
-        })
-        each(proxy, (key, child) => {
-            if (!state.assigned[key]) markChangesRecursively(child)
-        })
-    }
+    const {added, removed} = diffKeys(base, proxy)
+    if (added.length > 0 || removed.length > 0) markChanged(state)
+    each(added, (_, key) => {
+        state.assigned[key] = true
+    })
+    each(removed, (_, key) => {
+        state.assigned[key] = false
+    })
+    each(proxy, (key, child) => {
+        if (!state.assigned[key]) markChangesRecursively(child)
+    })
 }
 
 function diffKeys(from, to) {
