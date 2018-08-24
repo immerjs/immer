@@ -351,6 +351,17 @@ const userReducer = produce((draft, action) => {
 })
 ```
 
+## Extracting the original object from a proxied instance
+
+Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce`. A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
+
+```js
+const baseState = { users: [{ name: "Richie" }] };
+const nextState = produce(baseState, draftState => {
+    original(draftState.users) // is === baseState.users
+})
+```
+
 ## Using `this`
 
 The recipe will be always invoked with the `draft` as `this` context.

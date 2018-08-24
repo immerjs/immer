@@ -1,4 +1,4 @@
-import produce, {setAutoFreeze, setUseProxies} from "../../src/immer"
+import produce, {setAutoFreeze, setUseProxies, original} from "../../src/immer"
 
 setAutoFreeze(true)
 setUseProxies(true)
@@ -77,3 +77,15 @@ produce({x: 3}, [])
             ? produce<any, any>(handlers[type])(state, payload)
             : state
 }
+
+produce({x: 3}, draftState => {
+    original(draftState).x
+    // $ExpectError
+    original(draftState).y
+})
+
+produce([1], draftState => {
+    // $ExpectError
+    const a: string = original(draftState)[0];
+    const b: number = original(draftState)[0];
+})
