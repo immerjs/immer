@@ -353,7 +353,7 @@ const userReducer = produce((draft, action) => {
 
 ## Extracting the original object from a proxied instance
 
-Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce`. A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
+Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
 
 ```js
 const baseState = { users: [{ name: "Richie" }] };
