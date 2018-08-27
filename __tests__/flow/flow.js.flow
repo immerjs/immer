@@ -97,16 +97,22 @@ produce({x: 3}, [])
 
 {
     produce({x: 3}, draftState => {
-        original(draftState).x
-        // $ExpectError
-        original(draftState).y
+        let a = original(draftState)
+        if (a) {
+            a.x
+            // $ExpectError
+            a.y
+        }
     })
 }
 
 {
     produce([1], draftState => {
-        const a: number = original(draftState)[0];
-        // $ExpectError
-        const b: string = original(draftState)[0];
+        const a = original(draftState);
+        if (a) {
+            const b: number = a[0];
+            // $ExpectError
+            const c: string = a[0];
+        }
     })
 }

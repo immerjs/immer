@@ -85,4 +85,4 @@ declare export function setUseProxies(useProxies: boolean): void
 
 declare export function applyPatches<S>(state: S, patches: Patch[]): S
 
-declare export function original<S>(value: S): S
+declare export function original<S>(value: S): ?S

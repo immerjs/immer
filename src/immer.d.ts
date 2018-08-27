@@ -111,4 +111,4 @@ export function setUseProxies(useProxies: boolean): void
 
 export function applyPatches<S>(state: S, patches: Patch[]): S
 
-export function original<T>(value: T): T
+export function original<T>(value: T): T | void
