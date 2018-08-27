@@ -13,7 +13,7 @@ import {produceEs5} from "./es5"
  * @export
  * @param {any} baseState - the state to start with
  * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
- * @param {Function} patchListener - optional function that will be called with all the patches produces here
+ * @param {Function} patchListener - optional function that will be called with all the patches produced here
  * @returns {any} a new state, or the base state if nothing was modified
  */
 export function produce(baseState, producer, patchListener) {
