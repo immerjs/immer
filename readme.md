@@ -372,6 +372,20 @@ const increment = produce(function() {
 console.log(increment(base).counter) // 1
 ```
 
+## Inline shortcuts using `void`
+
+Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with. 
+
+In such cases you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
+
+```javascript
+// Single mutation
+produce(draft => void (draft.user.age += 1))
+
+// Multiple mutations
+produce(draft => void (draft.user.age += 1, draft.user.height = 186))
+```
+
 ## TypeScript or Flow
 
 The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
