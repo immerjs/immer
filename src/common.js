@@ -56,6 +56,13 @@ export function freeze(value) {
     return value
 }
 
+export function original(value) {
+    if (value && value[PROXY_STATE]) {
+        return value[PROXY_STATE].base
+    }
+    // otherwise return undefined
+}
+
 const assign =
     Object.assign ||
     function assign(target, value) {
