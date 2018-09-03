@@ -263,3 +263,18 @@ describe("simple delete", () => {
         ]
     )
 })
+
+describe("delete props from object which is in the array", () => {
+    runPatchTest(
+        [1, 2, {m: 1111}],
+        d => {
+            delete d[2].m
+        },
+        [
+            {
+                op: "remove",
+                path: [2, "m"]
+            }
+        ]
+    )
+})
