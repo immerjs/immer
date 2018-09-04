@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.6.0
+
+* Introduced the `original(draft)` function, that, given an object from the draft, returns the original object from the base state. This can be useful if you need to do reference equality checks, or comparisons with the base state. See [#179](https://github.com/mweststrate/immer/pull/179) by [@RichieAHB](https://github.com/RichieAHB).
+* Writing or removing non-numeric properties on arrays is now strictly forbidden (Immer didn't throw before, but correct behavior wasn't guaranteed either)
+
 ### 1.5.0
 
 * Added support for patches, through [#168](https://github.com/mweststrate/immer/pull/168). See the [patches](https://github.com/mweststrate/immer#patches) section for details

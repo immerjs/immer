@@ -39,6 +39,21 @@ each(objectTraps, (key, fn) => {
         return fn.apply(this, arguments)
     }
 })
+arrayTraps.deleteProperty = function(state, prop) {
+    if (isNaN(parseInt(prop)))
+        throw new Error(
+            "Immer does not support deleting properties from arrays: " + prop
+        )
+    return objectTraps.deleteProperty.call(this, state[0], prop)
+}
+arrayTraps.set = function(state, prop, value) {
+    if (prop !== "length" && isNaN(parseInt(prop)))
+        throw new Error(
+            "Immer does not support setting non-numeric properties on arrays: " +
+                prop
+        )
+    return objectTraps.set.call(this, state[0], prop, value)
+}
 
 function createState(parent, base) {
     return {

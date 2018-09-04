@@ -571,7 +571,38 @@ function runBaseTest(name, useProxies, freeze, useListener) {
                     )
                 }).toThrowError(/not support/)
             })
+
+            it("should not be possible to add properties to arrays", () => {
+                expect(() => {
+                    produce([], d => {
+                        d.x = 3
+                    })
+                }).toThrow(
+                    "Immer does not support setting non-numeric properties on arrays"
+                )
+            })
+
+            it("should not be possible to remove properties from arrays", () => {
+                expect(() => {
+                    const base = []
+                    base.x = 7
+                    produce(base, d => {
+                        delete d.x
+                    })
+                }).toThrow(
+                    "Immer does not support deleting properties from arrays"
+                )
+            })
         }
+
+        it("non-numeric array properties will be lost", () => {
+            const base = []
+            base.x = 7
+            const next = produce(base, d => {
+                d.push(3)
+            })
+            expect(next.x).toBe(undefined)
+        })
 
         it("should not throw error, see #53 - 1", () => {
             const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}

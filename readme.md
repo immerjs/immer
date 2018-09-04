@@ -385,7 +385,7 @@ console.log(increment(base).counter) // 1
 
 ## Inline shortcuts using `void`
 
-Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with. 
+Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
 
 In such cases you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
 
@@ -396,6 +396,8 @@ produce(draft => void (draft.user.age += 1))
 // Multiple mutations
 produce(draft => void (draft.user.age += 1, draft.user.height = 186))
 ```
+
+Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft = { draft.user.age += 1}` to avoid cognitive overhead.
 
 ## TypeScript or Flow
 
@@ -448,7 +450,7 @@ import { produce as unleashTheMagic } from "immer"
 ## Limitations / pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
-1. Immer only supports plain objects and arrays.
+1. Immer only supports plain objects and arrays. For arrays it is assumed only numeric properties (and length) are used.
 1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice and there should be no circular references.
 1. Class instances are not, and will not be supported. Read here more on why that would be a [confusing, conceptual mismatch]
 1. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
