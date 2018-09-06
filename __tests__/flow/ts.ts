@@ -96,3 +96,23 @@ produce([1], draftState => {
         const c: number = a[0];
     }
 })
+
+type ObjectWithArray = {
+    items: Array<number>
+}
+
+function updateArray(oldItem: ObjectWithArray, newItems: Array<number>) {
+    return produce(oldItem, draftState => {
+        draftState.items = newItems
+    })
+}
+
+type ObjectWithReadonlyArray = {
+    items: ReadonlyArray<number>
+}
+
+function updateReadonlyArray(oldItem: ObjectWithReadonlyArray, newItems: ReadonlyArray<number>) {
+    return produce(oldItem, draftState => {
+        draftState.items = newItems
+    })
+}
