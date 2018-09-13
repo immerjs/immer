@@ -447,15 +447,23 @@ import unleashTheMagic from "immer"
 import { produce as unleashTheMagic } from "immer"
 ```
 
-## Limitations / pitfalls
+## Limitations
+
+Immer supports the following types of data:
+1. All kinds of primitive values
+1. `Date` instances, but: only if not mutated, see below
+1. Arrays, but: non-standard attributes are not supported (like: `array.test = "Test"`)
+1. Plain objects (objects that have as prototype either `null` or `Object`)
+1. Functions, assuming they aren't mutated
+1. Other value types (like class instances) can be stored in the tree, but note that Immer won't work _inside_ those objects. In other words, if you modify a class instance, this will _not_ result in clone and unmodified original, but just in a modified original.
+
+# Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
-1. Immer only supports plain objects and arrays. For arrays it is assumed only numeric properties (and length) are used.
-1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice and there should be no circular references.
-1. Class instances are not, and will not be supported. Read here more on why that would be a [confusing, conceptual mismatch]
-1. Immer only processes native arrays and plain objects (with a prototype of `null` or `Object`). Any other type of value will be treated verbatim! So if you modify a `Map` or `Buffer` (or whatever complex object from the draft state), the changes will be persisted. But, both in your new and old state! So, in such cases, make sure to always produce fresh instances if you want to keep your state truly immutable.
+1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice in the tree, and there should be no circular references.
+1. Class instances are not, and will not supported first-class supported. Read [here](https://github.com/mweststrate/immer/issues/155#issuecomment-407725592) why classes are a conceptual mismatch (and technically extremely challenging)
 1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
-1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones.
+1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower then `produce(base, d => { for (let x of y) d.push(x)})`
 1. Immer does not support built in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
@@ -497,7 +505,6 @@ const nextState = produce(state, draft => {
     draft.users = newUsers
 })
 ```
-
 
 
 ## Cool things built with immer
