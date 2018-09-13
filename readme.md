@@ -397,7 +397,7 @@ produce(draft => void (draft.user.age += 1))
 produce(draft => void (draft.user.age += 1, draft.user.height = 186))
 ```
 
-Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft = { draft.user.age += 1}` to avoid cognitive overhead.
+Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
 
 ## TypeScript or Flow
 
