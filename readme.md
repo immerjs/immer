@@ -584,7 +584,7 @@ These tests were executed on Node 9.3.0. Use `yarn test:perf` to reproduce them 
 
 Most important observation:
 
-* Immer with proxies is roughly speaking twice to three times slower as a hand written reducer (the above test case is worst case, se `yarn test:perf` for more tests). This is in practice negligible.
+* Immer with proxies is roughly speaking twice to three times slower as a hand written reducer (the above test case is worst case, see `yarn test:perf` for more tests). This is in practice negligible.
 * Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
 * Generating patches doesn't significantly slow immer down
 * The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
