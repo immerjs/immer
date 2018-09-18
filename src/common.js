@@ -1,5 +1,10 @@
 import {generatePatches} from "./patches"
 
+export const NOTHING =
+    typeof Symbol !== "undefined"
+        ? Symbol("immer-nothing")
+        : {["immer-nothing"]: true}
+
 export const PROXY_STATE =
     typeof Symbol !== "undefined"
         ? Symbol("immer-proxy-state")

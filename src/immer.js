@@ -1,7 +1,7 @@
 export {setAutoFreeze, setUseProxies, original} from "./common"
 
 import {applyPatches as applyPatchesImpl} from "./patches"
-import {isProxyable, getUseProxies} from "./common"
+import {isProxyable, getUseProxies, NOTHING} from "./common"
 import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
 
@@ -52,18 +52,28 @@ export function produce(baseState, producer, patchListener) {
     // if state is a primitive, don't bother proxying at all
     if (typeof baseState !== "object" || baseState === null) {
         const returnValue = producer(baseState)
-        return returnValue === undefined ? baseState : returnValue
+        return returnValue === undefined
+            ? baseState
+            : normalizeResult(returnValue)
     }
 
     if (!isProxyable(baseState))
         throw new Error(
             `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
         )
-    return getUseProxies()
-        ? produceProxy(baseState, producer, patchListener)
-        : produceEs5(baseState, producer, patchListener)
+    return normalizeResult(
+        getUseProxies()
+            ? produceProxy(baseState, producer, patchListener)
+            : produceEs5(baseState, producer, patchListener)
+    )
+}
+
+function normalizeResult(result) {
+    return result === NOTHING ? undefined : result
 }
 
 export default produce
 
 export const applyPatches = produce(applyPatchesImpl)
+
+export const nothing = NOTHING

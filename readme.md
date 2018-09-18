@@ -353,7 +353,59 @@ const userReducer = produce((draft, action) => {
 })
 ```
 
-_Note: It is not possible to return `undefined` this way, as it is indistiguishable from updating the draft!_
+_Note: It is not possible to return `undefined` this way, as it is indistiguishable from *not* updating the draft! Read on..._
+
+## Producing `undefined` using `nothing`
+
+So, in general one can replace the current state by just `return`ing a new value from the producer, rather than modifying the draft.
+There is a subtle edge case however: if you try to write a producer that wants to replace the current state with `undefined`:
+
+```javascript
+produce({}, draft => {
+    // don't do anything
+})
+```
+
+Versus:
+
+```javascript
+produce({}, draft => {
+    // Try to return undefined from the producer
+    return undefined
+})
+```
+
+The problem is that in JavaScript a function that doesn't return anything, also returns `undefined`!
+So immer cannot differentiate between those different cases.
+So, by default, Immer will assume that any producer that returns `undefined` just tried to modify the draft.
+
+However, to make it clear to Immer that you intentionally want to produce the value `undefined`, you can return the built-in token `nothing`:
+
+```javascript
+import produce, { nothing } from "immer"
+
+const state = {
+    hello: "world"
+}
+
+produce(state, (draft) => {
+    // no-op
+})
+// Returns the original state: { hello: "world"}
+
+produce(state, (draft) => undefined)
+// Returns the original state: { hello: "world"}
+
+produce(state, (draft) => {
+    return nothing
+})
+// Produces a new state, 'undefined'
+
+produce(state, (draft) => nothing)
+// Produces a new state, 'undefined'
+```
+
+N.B. Note that this problem is specific for the `undefined` value, any other value, including `null`, doesn't suffer from this issue.
 
 ## Extracting the original object from a proxied instance
 
@@ -470,7 +522,7 @@ Immer supports the following types of data:
 1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
-1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistiguishable from updating the draft!
+1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistiguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
 1. Immer does not support built in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
 
 ```javascript

@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.7.0
+
+* Introduced the [`nothing`](https://github.com/mweststrate/immer#producing-undefined-using-nothing) token to be able to produce the `undefined` value (which would otherwise be indistinguishable from not updating the draft at all).
+
 ### 1.6.0
 
 * Introduced the `original(draft)` function, that, given an object from the draft, returns the original object from the base state. This can be useful if you need to do reference equality checks, or comparisons with the base state. See [#179](https://github.com/mweststrate/immer/pull/179) by [@RichieAHB](https://github.com/RichieAHB).

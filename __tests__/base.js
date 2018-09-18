@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setAutoFreeze, setUseProxies} from "../src/immer"
+import produce, {setAutoFreeze, setUseProxies, nothing} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -1273,6 +1273,23 @@ function runBaseTest(name, useProxies, freeze, useListener) {
                     "eat cookie"
                 )
             })
+        })
+
+        it("cannot return and produce undefined!", () => {
+            const base = 3
+            expect(produce(base, () => 4)).toBe(4)
+            expect(produce(base, () => null)).toBe(null)
+            expect(produce(base, () => undefined)).toBe(3)
+            expect(produce(base, () => {})).toBe(3)
+            expect(produce(base, () => nothing)).toBe(undefined)
+
+            expect(produce({}, () => undefined)).toEqual({})
+            expect(produce({}, () => nothing)).toBe(undefined)
+            expect(produce(3, () => nothing)).toBe(undefined)
+
+            expect(produce(() => undefined)({})).toEqual({})
+            expect(produce(() => nothing)({})).toBe(undefined)
+            expect(produce(() => nothing)(3)).toBe(undefined)
         })
 
         afterEach(() => {
