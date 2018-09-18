@@ -1258,6 +1258,23 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(nextState).toEqual([1, 2, 100])
         })
 
+        it("#195 should be able to find items", () => {
+            const state = {
+                items: [
+                    {
+                        id: 0,
+                        task: "drink milk"
+                    },
+                    {id: 1, task: "eat cookie"}
+                ]
+            }
+            produce(state, draft => {
+                expect(draft.items.find(({id}) => id === 1).task).toBe(
+                    "eat cookie"
+                )
+            })
+        })
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
