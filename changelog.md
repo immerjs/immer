@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.7.1
+
+* Fixed issue in the flow type for `nothing`
+
 ### 1.7.0
 
 * Introduced the [`nothing`](https://github.com/mweststrate/immer#producing-undefined-using-nothing) token to be able to produce the `undefined` value (which would otherwise be indistinguishable from not updating the draft at all).
