@@ -388,18 +388,9 @@ const state = {
     hello: "world"
 }
 
-produce(state, (draft) => {
-    // no-op
-})
-// Returns the original state: { hello: "world"}
-
+produce(state, (draft) => {})
 produce(state, (draft) => undefined)
-// Returns the original state: { hello: "world"}
-
-produce(state, (draft) => {
-    return nothing
-})
-// Produces a new state, 'undefined'
+// Both return the original state: { hello: "world"}
 
 produce(state, (draft) => nothing)
 // Produces a new state, 'undefined'
