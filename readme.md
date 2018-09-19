@@ -353,7 +353,7 @@ const userReducer = produce((draft, action) => {
 })
 ```
 
-_Note: It is not possible to return `undefined` this way, as it is indistiguishable from *not* updating the draft! Read on..._
+_Note: It is not possible to return `undefined` this way, as it is indistinguishable from *not* updating the draft! Read on..._
 
 ## Producing `undefined` using `nothing`
 
@@ -561,7 +561,7 @@ const nextState = produce(state, draft => {
 * [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
 * [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
 * [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
-* [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux developement quicker and easier_
+* [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux development quicker and easier_
 * [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
 * [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
 * [robodux](https://github.com/neurosnap/robodux) _flexible way to reduce redux boilerplate
