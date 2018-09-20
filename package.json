@@ -8,7 +8,6 @@
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
   "types": "./dist/immer.d.ts",
-  "sideEffects": false,
   "scripts": {
     "watch": "jest --watch",
     "test": "jest",
