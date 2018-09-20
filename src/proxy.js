@@ -114,7 +114,9 @@ function deleteProperty(state, prop) {
 function getOwnPropertyDescriptor(state, prop) {
     const owner = state.modified
         ? state.copy
-        : has(state.proxies, prop) ? state.proxies : state.base
+        : has(state.proxies, prop)
+            ? state.proxies
+            : state.base
     const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
         descriptor.configurable = true

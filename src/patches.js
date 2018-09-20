@@ -83,7 +83,9 @@ function generateObjectPatches(
         const value = resultValue[key]
         const op = !assignedValue
             ? "remove"
-            : key in baseValue ? "replace" : "add"
+            : key in baseValue
+                ? "replace"
+                : "add"
         if (origValue === baseValue && op === "replace") return
         const path = basepath.concat(key)
         patches.push(op === "remove" ? {op, path} : {op, path, value})
@@ -91,8 +93,8 @@ function generateObjectPatches(
             op === "add"
                 ? {op: "remove", path}
                 : op === "remove"
-                  ? {op: "add", path, value: origValue}
-                  : {op: "replace", path, value: origValue}
+                    ? {op: "add", path, value: origValue}
+                    : {op: "replace", path, value: origValue}
         )
     })
 }
