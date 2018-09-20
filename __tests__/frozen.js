@@ -40,7 +40,9 @@ function runTests(name, useProxies) {
 
             expect(() => {
                 next.array.shift()
-            }).toThrow(/Cannot add\/remove sealed array elements/)
+            }).toThrow(
+                /Cannot add\/remove sealed array elements|Cannot assign to read only property '0' of object '\[object Array\]'/
+            )
         })
 
         it("can handle already frozen trees", () => {
