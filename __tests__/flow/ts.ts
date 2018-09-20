@@ -79,7 +79,7 @@ produce({x: 3}, [])
 }
 
 produce({x: 3, z: {}}, draftState => {
-    const a = draftState;
+    const a = draftState
 
     if (a) {
         a.x
@@ -89,10 +89,10 @@ produce({x: 3, z: {}}, draftState => {
 })
 
 produce([1], draftState => {
-    const a = original(draftState);
+    const a = original(draftState)
     if (a) {
         // $ExpectError
-        const b: string = a[0];
-        const c: number = a[0];
+        const b: string = a[0]
+        const c: number = a[0]
     }
 })

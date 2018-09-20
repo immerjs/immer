@@ -1,18 +1,16 @@
 // Mapped type to remove readonly modifiers from state
 // Based on https://github.com/Microsoft/TypeScript/blob/d4dc67aab233f5a8834dff16531baf99b16fea78/tests/cases/conformance/types/conditional/conditionalTypes1.ts#L120-L129
-export type DraftObject<T> = {
-  -readonly [P in keyof T]: Draft<T[P]>;
-};
-export interface DraftArray<T> extends Array<Draft<T>> { }
-export type Draft<T> =
-  T extends any[] ? DraftArray<T[number]> :
-  T extends ReadonlyArray<any> ? DraftArray<T[number]> :
-  T extends object ? DraftObject<T> :
-  T;
+export type DraftObject<T> = {-readonly [P in keyof T]: Draft<T[P]>}
+export interface DraftArray<T> extends Array<Draft<T>> {}
+export type Draft<T> = T extends any[]
+    ? DraftArray<T[number]>
+    : T extends ReadonlyArray<any>
+        ? DraftArray<T[number]>
+        : T extends object ? DraftObject<T> : T
 
 export interface Patch {
-    op: "replace" | "remove" | "add",
-    path: (string|number)[]
+    op: "replace" | "remove" | "add"
+    path: (string | number)[]
     value?: any
 }
 
@@ -56,22 +54,32 @@ export interface IProduce {
     ): (currentState: S | undefined, a: A, b: B) => S
     // 3 additional arguments of types A, B and C
     <S = any, A = any, B = any, C = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A, b: B, c: C) => void | S,
+        recipe: (
+            this: Draft<S>,
+            draftState: Draft<S>,
+            a: A,
+            b: B,
+            c: C
+        ) => void | S,
         initialState: S
     ): (currentState: S | undefined, a: A, b: B, c: C) => S
     // any number of additional arguments, but with loss of type safety
     // this may be alleviated if "variadic kinds" makes it into Typescript:
     // https://github.com/Microsoft/TypeScript/issues/5453
     <S = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, ...extraArgs: any[]) => void | S,
+        recipe: (
+            this: Draft<S>,
+            draftState: Draft<S>,
+            ...extraArgs: any[]
+        ) => void | S,
         initialState: S
     ): (currentState: S | undefined, ...extraArgs: any[]) => S
 
     // curried invocations without default initial state
     // 0 additional arguments
-    <S = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>) => void | S
-    ): (currentState: S) => S
+    <S = any>(recipe: (this: Draft<S>, draftState: Draft<S>) => void | S): (
+        currentState: S
+    ) => S
     // 1 additional argument of type A
     <S = any, A = any>(
         recipe: (this: Draft<S>, draftState: Draft<S>, a: A) => void | S
@@ -82,13 +90,23 @@ export interface IProduce {
     ): (currentState: S, a: A, b: B) => S
     // 3 additional arguments of types A, B and C
     <S = any, A = any, B = any, C = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A, b: B, c: C) => void | S
+        recipe: (
+            this: Draft<S>,
+            draftState: Draft<S>,
+            a: A,
+            b: B,
+            c: C
+        ) => void | S
     ): (currentState: S, a: A, b: B, c: C) => S
     // any number of additional arguments, but with loss of type safety
     // this may be alleviated if "variadic kinds" makes it into Typescript:
     // https://github.com/Microsoft/TypeScript/issues/5453
     <S = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, ...extraArgs: any[]) => void | S
+        recipe: (
+            this: Draft<S>,
+            draftState: Draft<S>,
+            ...extraArgs: any[]
+        ) => void | S
     ): (currentState: S, ...extraArgs: any[]) => S
 }
 
