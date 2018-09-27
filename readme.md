@@ -20,10 +20,6 @@ Did Immer make a difference to your project? Consider buying me a coffee!<br/><a
 
 * Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
 * Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
-* [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
-* Blog: by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)
-* Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)
-* Blog: [Immutability in React and Redux: The Complete Guide](https://daveceddia.com/react-redux-immutability-guide/)
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way. It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
@@ -34,6 +30,14 @@ The basic idea is that you will apply all your changes to a temporarily _draftSt
 Using Immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
 A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applied to plain, native JavaScript data structures (arrays and objects) without further needing any library.
+
+## External resources
+
+* Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)
+* Blog: by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)
+* Blog: [Immutability in React and Redux: The Complete Guide](https://daveceddia.com/react-redux-immutability-guide/)
+* Video tutorial: [Using Immer with React.setState](https://codedaily.io/screencasts/86/Immutable-Data-with-Immer-and-React-setState)
+* [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
 
 ## API
 
@@ -225,6 +229,23 @@ const byId = produce(
         1: {id: 1, name: "product-1"}
     }
 )
+```
+
+##### Fun with currying
+
+A random fun example just for inspiration:
+a neat trick is to turn `Object.assign` into a producer to create a "spread" function that is smarter than the normal spread operator, as it doesn't produce a new state if the result doesn't actually change ([details & explanation](https://twitter.com/mweststrate/status/1045059430256119809)).
+Quick example:
+
+```javascript
+import produce from "immer"
+const spread = produce(Object.assign)
+
+const base = {x: 1, y: 1}
+
+console.log({...base, y: 1}      === base) // false
+console.log(spread(base, {y: 1}) === base) // true! base is recycled as no actual new value was produced
+console.log(spread(base, {y: 2}) === base) // false, produced a new object as it should
 ```
 
 ## Patches

@@ -63,5 +63,23 @@ function runTests(name, useProxies) {
             expect(reducer(undefined, 3)).toEqual({hello: "world", index: 3})
             expect(reducer({}, 3)).toEqual({index: 3})
         })
+
+        it("can has fun with change detection", () => {
+            const spread = produce(Object.assign)
+
+            const base = {
+                x: 1,
+                y: 1
+            }
+
+            expect({...base}).not.toBe(base)
+            expect(spread(base, {})).toBe(base)
+            expect(spread(base, {y: 1})).toBe(base)
+            expect(spread(base, {...base})).toBe(base)
+            expect(spread(base, {...base, y: 2})).not.toBe(base)
+            expect(spread(base, {...base, y: 2})).toEqual({x: 1, y: 2})
+            expect(spread(base, {z: 3})).toEqual({x: 1, y: 1, z: 3})
+            expect(spread(base, {y: 1})).toBe(base)
+        })
     })
 }
