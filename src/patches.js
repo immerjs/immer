@@ -102,24 +102,20 @@ function generateObjectPatches(
 export function applyPatches(draft, patches) {
     for (let i = 0; i < patches.length; i++) {
         const patch = patches[i]
-        if (patch.path.length === 0 && patch.op === "replace") {
+        const {path} = patch
+        if (path.length === 0 && patch.op === "replace") {
             draft = patch.value
         } else {
-            const path = patch.path.slice()
-            const key = path.pop()
-            const base = path.reduce((current, part) => {
-                if (!current)
+            let base = draft
+            for (let i = 0; i < path.length - 1; i++) {
+                base = base[path[i]]
+                if (!base || typeof base !== "object")
                     throw new Error(
                         "Cannot apply patch, path doesn't resolve: " +
-                            patch.path.join("/")
+                            path.join("/")
                     )
-                return current[part]
-            }, draft)
-            if (!base)
-                throw new Error(
-                    "Cannot apply patch, path doesn't resolve: " +
-                        patch.path.join("/")
-                )
+            }
+            const key = path[path.length - 1]
             switch (patch.op) {
                 case "replace":
                 case "add":
