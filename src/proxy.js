@@ -140,7 +140,7 @@ function markChanged(state) {
 }
 
 // creates a proxy for plain objects / arrays
-function createProxy(parentState, base, key) {
+function createProxy(parentState, base) {
     if (isProxy(base)) throw new Error("Immer bug. Plz report.")
     const state = createState(parentState, base)
     const proxy = Array.isArray(base)
