@@ -128,14 +128,21 @@ export function applyPatches(draft, patches) {
                     break
                 case "remove":
                     if (Array.isArray(base)) {
-                        if (key === base.length - 1) base.length -= 1
-                        else
-                            throw new Error(
-                                `Remove can only remove the last key of an array, index: ${key}, length: ${
-                                    base.length
-                                }`
-                            )
-                    } else delete base[key]
+                        const index = Number(key)
+                        if (!Number.isNaN(index)) {
+                            if (index === 0) {
+                                base.shift()
+                                break
+                            }
+                            if (index !== base.length - 1) {
+                                base.splice(index, 1)
+                                break
+                            }
+                            base.pop()
+                            break
+                        }
+                    }
+                    delete base[key]
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)
