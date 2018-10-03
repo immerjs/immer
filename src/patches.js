@@ -99,48 +99,83 @@ function generateObjectPatches(
     })
 }
 
-export function applyPatches(draft, patches) {
-    for (let i = 0; i < patches.length; i++) {
-        const patch = patches[i]
-        if (patch.path.length === 0 && patch.op === "replace") {
-            draft = patch.value
-        } else {
-            const path = patch.path.slice()
-            const key = path.pop()
-            const base = path.reduce((current, part) => {
-                if (!current)
-                    throw new Error(
-                        "Cannot apply patch, path doesn't resolve: " +
-                            patch.path.join("/")
-                    )
-                return current[part]
-            }, draft)
-            if (!base)
-                throw new Error(
-                    "Cannot apply patch, path doesn't resolve: " +
-                        patch.path.join("/")
-                )
-            switch (patch.op) {
-                case "replace":
-                case "add":
-                    // TODO: add support is not extensive, it does not support insertion or `-` atm!
-                    base[key] = patch.value
-                    break
-                case "remove":
-                    if (Array.isArray(base)) {
-                        if (key === base.length - 1) base.length -= 1
-                        else
-                            throw new Error(
-                                `Remove can only remove the last key of an array, index: ${key}, length: ${
-                                    base.length
-                                }`
-                            )
-                    } else delete base[key]
-                    break
-                default:
-                    throw new Error("Unsupported patch operation: " + patch.op)
-            }
+export function applyPatch(draft, patch) {
+    const {path} = patch
+    if (path.length === 0) {
+        if (patch.op === "replace") {
+            return patch.value
         }
+        throw new Error("Cannot apply patch, empty path can only be replace")
+    }
+    let base = draft
+    for (let i = 0; i < path.length - 1; i++) {
+        base = base[path[i]]
+        if (!base || typeof base !== "object")
+            throw new Error(
+                "Cannot apply patch, path doesn't resolve: " + path.join("/")
+            )
+    }
+    const key = path[path.length - 1]
+    switch (patch.op) {
+        case "add":
+            if (Array.isArray(base)) {
+                if (key === "-") {
+                    base.push(patch.value)
+                    break
+                }
+                const index = Number(key)
+                if (!Number.isNaN(index)) {
+                    if (index < 0) {
+                        throw new Error(
+                            `Invalid array patch: Cannot add a negative index`
+                        )
+                    }
+                    if (index > base.length) {
+                        throw new Error(
+                            `Invalid array patch: Adding the given index would create a sparse array`
+                        )
+                    }
+                    if (index === 0) {
+                        base.unshift(patch.value)
+                        break
+                    }
+                    if (index !== base.length - 1) {
+                        base.splice(index, 0, patch.value)
+                        break
+                    }
+                }
+            }
+        case "replace":
+            base[key] = patch.value
+            break
+        case "remove":
+            if (Array.isArray(base)) {
+                const index = Number(key)
+                if (!Number.isNaN(index)) {
+                    if (index === 0) {
+                        base.shift()
+                        break
+                    }
+                    if (index !== base.length - 1) {
+                        base.splice(index, 1)
+                        break
+                    }
+                    base.pop()
+                    break
+                }
+            }
+            delete base[key]
+            break
+        default:
+            throw new Error("Unsupported patch operation: " + patch.op)
     }
     return draft
+}
+
+export function applyPatches(draft, patches) {
+    let result = draft
+    for (let i = 0; i < patches.length; i++) {
+        result = applyPatch(result, patches[i])
+    }
+    return result
 }

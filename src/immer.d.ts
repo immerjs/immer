@@ -129,6 +129,14 @@ export function setAutoFreeze(autoFreeze: boolean): void
  */
 export function setUseProxies(useProxies: boolean): void
 
+/**
+ * Apply patches to a draft of the given state.
+ */
 export function applyPatches<S>(state: S, patches: Patch[]): S
+
+/**
+ * Apply a single patch to the given state.
+ */
+export function applyPatch<S>(state: S, patch: Patch): S
 
 export function original<T>(value: T): T | void

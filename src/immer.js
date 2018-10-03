@@ -75,5 +75,6 @@ function normalizeResult(result) {
 export default produce
 
 export const applyPatches = produce(applyPatchesImpl)
+export {applyPatch} from "./patches"
 
 export const nothing = NOTHING
