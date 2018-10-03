@@ -121,9 +121,35 @@ export function applyPatches(draft, patches) {
                         patch.path.join("/")
                 )
             switch (patch.op) {
-                case "replace":
                 case "add":
-                    // TODO: add support is not extensive, it does not support insertion or `-` atm!
+                    if (Array.isArray(base)) {
+                        if (key === "-") {
+                            base.push(patch.value)
+                            break
+                        }
+                        const index = Number(key)
+                        if (!Number.isNaN(index)) {
+                            if (index < 0) {
+                                throw new Error(
+                                    "Invalid array patch: Cannot add a negative index"
+                                )
+                            }
+                            if (index > base.length) {
+                                throw new Error(
+                                    "Invalid array patch: Adding the given index would create a sparse array"
+                                )
+                            }
+                            if (index === 0) {
+                                base.unshift(patch.value)
+                                break
+                            }
+                            if (index !== base.length - 1) {
+                                base.splice(index, 0, patch.value)
+                                break
+                            }
+                        }
+                    }
+                case "replace":
                     base[key] = patch.value
                     break
                 case "remove":
