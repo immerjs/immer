@@ -331,6 +331,8 @@ This makes processing patches easier. If you want to normalize to the official s
 
 For a more in-depth study, see [Distributing patches and rebasing actions using Immer](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988)
 
+Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.
+
 ## Auto freezing
 
 Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default it is turned on during local development, and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
