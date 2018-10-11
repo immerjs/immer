@@ -105,7 +105,7 @@ describe("minimum amount of changes", () => {
     )
 })
 
-describe("arrays - 1", () => {
+describe("arrays - prepend", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -120,7 +120,7 @@ describe("arrays - 1", () => {
     )
 })
 
-describe("arrays - 2", () => {
+describe("arrays - splice middle", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -133,7 +133,7 @@ describe("arrays - 2", () => {
     )
 })
 
-describe("arrays - 3", () => {
+describe("arrays - prepend then splice middle", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -147,7 +147,7 @@ describe("arrays - 3", () => {
     )
 })
 
-describe("arrays - 4", () => {
+describe("arrays - splice middle then prepend", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -161,7 +161,7 @@ describe("arrays - 4", () => {
     )
 })
 
-describe("arrays - 5a", () => {
+describe("arrays - truncate", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -175,7 +175,7 @@ describe("arrays - 5a", () => {
     )
 })
 
-describe("arrays - 5b", () => {
+describe("arrays - pop twice", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
@@ -186,7 +186,7 @@ describe("arrays - 5b", () => {
     )
 })
 
-describe("arrays - 6", () => {
+describe("arrays - push multiple", () => {
     runPatchTest(
         {x: [1, 2, 3]},
         d => {
