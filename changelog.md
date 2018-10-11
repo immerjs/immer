@@ -2,7 +2,7 @@
 
 ### 1.7.2
 
-* Disabled `sideEffects` module flag, it somehow blows breaks the Angular build, fixes [#198](https://github.com/mweststrate/immer/issues/198)
+* Disabled `sideEffects` module flag, it somehow breaks the Angular build, fixes [#198](https://github.com/mweststrate/immer/issues/198)
 
 ### 1.7.1
 
