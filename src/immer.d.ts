@@ -1,9 +1,23 @@
-// Mapped type to remove readonly modifiers from state
-// Based on https://github.com/Microsoft/TypeScript/blob/d4dc67aab233f5a8834dff16531baf99b16fea78/tests/cases/conformance/types/conditional/conditionalTypes1.ts#L120-L129
-export type DraftObject<T> = {-readonly [P in keyof T]: Draft<T[P]>}
-export interface DraftArray<T> extends Array<Draft<T>> {}
+/** Object types that should never be mapped */
+type AtomicObject = Function | Date | RegExp | Boolean | Number | String
+
+/** Use type inference to know when an array is finite */
+type IsFinite<T extends any[]> = T extends never[]
+    ? true
+    : T extends ReadonlyArray<infer U> ? (U[] extends T ? false : true) : true
+
+export type DraftObject<T> = T extends object
+    ? T extends AtomicObject ? T : {-readonly [P in keyof T]: Draft<T[P]>}
+    : T
+
+export type DraftArray<T> = Array<
+    T extends ReadonlyArray<any>
+        ? {[P in keyof T]: Draft<T>}[keyof T]
+        : DraftObject<T>
+>
+
 export type Draft<T> = T extends any[]
-    ? DraftArray<T[number]>
+    ? IsFinite<T> extends true ? T : DraftArray<T[number]>
     : T extends ReadonlyArray<any>
         ? DraftArray<T[number]>
         : T extends object ? DraftObject<T> : T
