@@ -23,11 +23,11 @@ Did Immer make a difference to your project? Consider buying me a coffee!<br/><a
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way. It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
-The basic idea is that you will apply all your changes to a temporarily _draftState_, which is a proxy of the _currentState_. Once all your mutations are completed, Immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it, while keeping all the benefits of immutable data.
+The basic idea is that you will apply all your changes to a temporarily _draftState_, which is a proxy of the _currentState_. Once all your mutations are completed, Immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it while keeping all the benefits of immutable data.
 
 ![immer-hd.png](images/hd/immer.png)
 
-Using Immer is like having a personal assistant; he takes a letter (the current state), and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
+Using Immer is like having a personal assistant; he takes a letter (the current state) and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
 A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applied to plain, native JavaScript data structures (arrays and objects) without further needing any library.
 
@@ -176,7 +176,7 @@ onBirthDayClick2 = () => {
 
 ## Currying
 
-Passing a function as the first argument to `produce` is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from. The producer function gets passed in the draft, and any further arguments that were passed to the curried function.
+Passing a function as the first argument to `produce` is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from. The producer function gets passed in the draft and any further arguments that were passed to the curried function.
 
 For example:
 
@@ -251,12 +251,12 @@ console.log(spread(base, {y: 2}) === base) // false, produced a new object as it
 ## Patches
 
 During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer.
-This is a very powerful tool if you want to fork your state temporarily, and replay the changes to the original.
+This is a very powerful tool if you want to fork your state temporarily and replay the changes to the original.
 
 Patches are useful in few scenarios:
   * To exchange incremental updates with other parties, for example over websockets
   * For debugging / traces, to see precisely how state is changed over time
-  * As basis for undo/redo or as approach to replay changes on a slightly different state tree
+  * As basis for undo/redo or as an approach to replay changes on a slightly different state tree
 
 To help with replaying patches, `applyPatches` comes in handy. Here is an example how patches could be used
 to record the incremental updates and (inverse) apply them:
@@ -270,7 +270,7 @@ let state = {
 }
 
 // Let's assume the user is in a wizard, and we don't know whether
-// his changes should be end up in the base state ultimately or not...
+// his changes should end up in the base state ultimately or not...
 let fork = state
 // all the changes the user made in the wizard
 let changes = []
@@ -289,7 +289,7 @@ fork = produce(
     }
 )
 
-// In the mean time, our original state is replaced, as, for example,
+// In the meantime, our original state is replaced, as, for example,
 // some changes were received from the server
 state = produce(state, draft => {
     draft.name = "Michel"
@@ -335,7 +335,7 @@ Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstei
 
 ## Auto freezing
 
-Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default it is turned on during local development, and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
+Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default, it is turned on during local development and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
 
 ## Returning data from producers
 
@@ -382,7 +382,7 @@ _Note: It is not possible to return `undefined` this way, as it is indistinguish
 
 ## Producing `undefined` using `nothing`
 
-So, in general one can replace the current state by just `return`ing a new value from the producer, rather than modifying the draft.
+So, in general, one can replace the current state by just `return`ing a new value from the producer, rather than modifying the draft.
 There is a subtle edge case however: if you try to write a producer that wants to replace the current state with `undefined`:
 
 ```javascript
@@ -400,7 +400,7 @@ produce({}, draft => {
 })
 ```
 
-The problem is that in JavaScript a function that doesn't return anything, also returns `undefined`!
+The problem is that in JavaScript a function that doesn't return anything also returns `undefined`!
 So immer cannot differentiate between those different cases.
 So, by default, Immer will assume that any producer that returns `undefined` just tried to modify the draft.
 
@@ -459,7 +459,7 @@ console.log(increment(base).counter) // 1
 
 Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
 
-In such cases you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
+In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
 
 ```javascript
 // Single mutation
@@ -501,11 +501,11 @@ This ensures that the only place you can modify your state is in your produce ca
 
 ## Immer on older JavaScript environments?
 
-By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native on Android. In such cases Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
+By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native on Android. In such cases, Immer will fallback to an ES5 compatible implementation which works identical, but is a bit slower.
 
 ## Importing immer
 
-`produce` is exposed as the default export, but optionally it can be used as name import as well, as this benefits some older project setups. So the following imports are all correct, where the first is recommend:
+`produce` is exposed as the default export, but optionally it can be used as name import as well, as this benefits some older project setups. So the following imports are all correct, where the first is recommended:
 
 ```javascript
 import produce from "immer"
@@ -533,13 +533,13 @@ Immer supports the following types of data:
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
 1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice in the tree, and there should be no circular references.
-1. Class instances are not, and will not supported first-class supported. Read [here](https://github.com/mweststrate/immer/issues/155#issuecomment-407725592) why classes are a conceptual mismatch (and technically extremely challenging)
+1. Class instances are not, and will not have first-class support. Read [here](https://github.com/mweststrate/immer/issues/155#issuecomment-407725592) why classes are a conceptual mismatch (and technically extremely challenging)
 1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
-1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
+1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also, realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
-1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistiguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
-1. Immer does not support built in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
+1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistinguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
+1. Immer does not support built-in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
 
 ```javascript
 const state = {
@@ -561,7 +561,7 @@ const nextState = produce(state, draft => {
 })
 ```
 
-Or a deep update in maps (well, don't use maps for this use case, but as example):
+Or a deep update in maps (well, don't use maps for this use case, but as an example):
 
 ```javascript
 const state = {
@@ -650,7 +650,7 @@ const updatedTodosArray = produce(todosArray, draft => {
 
 ## Performance
 
-Here is a [simple benchmark](__performance_tests__/todo.js) on the performance of Immer. This test takes 50,000 todo items, and updates 5,000 of them. _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
+Here is a [simple benchmark](__performance_tests__/todo.js) on the performance of Immer. This test takes 50,000 todo items and updates 5,000 of them. _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
 
 These tests were executed on Node 9.3.0. Use `yarn test:perf` to reproduce them locally.
 
@@ -658,7 +658,7 @@ These tests were executed on Node 9.3.0. Use `yarn test:perf` to reproduce them 
 
 Most important observation:
 
-* Immer with proxies is roughly speaking twice to three times slower as a hand written reducer (the above test case is worst case, see `yarn test:perf` for more tests). This is in practice negligible.
+* Immer with proxies is roughly speaking twice to three times slower as a handwritten reducer (the above test case is worst case, see `yarn test:perf` for more tests). This is in practice negligible.
 * Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
 * Generating patches doesn't significantly slow immer down
 * The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
@@ -697,7 +697,7 @@ A: Yes
 
 ## Credits
 
-Special thanks goes to @Mendix, which supports it's employees to experiment completely freely two full days a month, which formed the kick-start for this project.
+Special thanks to @Mendix, which supports its employees to experiment completely freely two full days a month, which formed the kick-start for this project.
 
 ## Donations
 
