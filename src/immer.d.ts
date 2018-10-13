@@ -36,16 +36,13 @@ export interface IProduce {
         listener?: PatchListener
     ): R
 
-    // curried invocations with default initial state
-    // 0 additional arguments
+    /** Curried producer with an initial state */
     <S = any, R = never>(
         recipe: (this: Draft<S>, draftState: Draft<S>) => void | R,
         initialState: S
     ): (currentState: S | undefined) => R
 
-    // any number of additional arguments, but with loss of type safety
-    // this may be alleviated if "variadic kinds" makes it into Typescript:
-    // https://github.com/Microsoft/TypeScript/issues/5453
+    /** Curried producer with no initial state */
     <S = any, R = never, Args extends any[] = any[]>(
         recipe: (
             this: Draft<S>,
