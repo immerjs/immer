@@ -29,6 +29,11 @@ export const hooks = Object.seal({
      */
     setProperty: null,
     /**
+     * Called in the "finalize" phase for every property deleted by a producer,
+     * including array indices.
+     */
+    deleteProperty: null,
+    /**
      * Called in the "finalize" phase for every object or array changed by a
      * producer (before the object is frozen).
      */
@@ -165,6 +170,13 @@ function finalizeObject(copy, state, path, patches, inversePatches) {
             }
         }
     })
+    if (hooks.deleteProperty) {
+        for (const prop in state.assigned) {
+            if (state.assigned[prop] === false) {
+                hooks.deleteProperty(state, prop)
+            }
+        }
+    }
     if (hooks.copyObject) {
         hooks.copyObject(state)
     }
