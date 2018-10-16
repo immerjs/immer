@@ -116,7 +116,7 @@ export default produce
 export const nothing: undefined
 
 export function setHook(
-    key: "setProperty" | "copyObject",
+    key: "setProperty" | "deleteProperty" | "copyObject",
     value: Function
 ): void
 
