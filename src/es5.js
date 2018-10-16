@@ -8,6 +8,7 @@ import {
     PROXY_STATE,
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
+    has,
     each,
     finalize
 } from "./common"
@@ -73,9 +74,17 @@ function prepareCopy(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
     const proxy = shallowCopy(base)
-    each(base, i => {
-        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
-    })
+    const descriptors = Object.getOwnPropertyDescriptors(base)
+    for (const prop in descriptors) {
+        const descriptor = descriptors[prop]
+        if (has(descriptor, "get")) {
+            Object.defineProperty(proxy, prop, descriptor)
+        } else {
+            const p = createPropertyProxy(prop)
+            p.enumerable = descriptor.enumerable
+            Object.defineProperty(proxy, prop, p)
+        }
+    }
     const state = createState(parent, proxy, base)
     createHiddenProperty(proxy, PROXY_STATE, state)
     states.push(state)
