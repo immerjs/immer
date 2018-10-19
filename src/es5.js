@@ -74,24 +74,30 @@ function prepareCopy(state) {
 // creates a proxy for plain objects / arrays
 function createProxy(parent, base) {
     const proxy = shallowCopy(base)
-    const descriptors = Object.getOwnPropertyDescriptors(base)
-    for (const prop in descriptors) {
-        const descriptor = descriptors[prop]
-        if (has(descriptor, "get")) {
-            Object.defineProperty(proxy, prop, descriptor)
-        } else if (descriptor.writable !== true) {
-            Object.defineProperty(proxy, prop, {
-                configurable: descriptor.configurable,
-                enumerable: descriptor.enumerable,
-                get() {
-                    return get(this[PROXY_STATE], prop)
-                }
-            })
-        } else {
-            const p = createPropertyProxy(prop)
-            p.configurable = descriptor.configurable
-            p.enumerable = descriptor.enumerable
-            Object.defineProperty(proxy, prop, p)
+    if (Array.isArray(base)) {
+        for (let i = 0; i < base.length; i++) {
+            Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
+        }
+    } else {
+        const descriptors = Object.getOwnPropertyDescriptors(base)
+        for (const prop in descriptors) {
+            const descriptor = descriptors[prop]
+            if (has(descriptor, "get")) {
+                Object.defineProperty(proxy, prop, descriptor)
+            } else if (descriptor.writable !== true) {
+                Object.defineProperty(proxy, prop, {
+                    configurable: descriptor.configurable,
+                    enumerable: descriptor.enumerable,
+                    get() {
+                        return get(this[PROXY_STATE], prop)
+                    }
+                })
+            } else {
+                const p = createPropertyProxy(prop)
+                p.configurable = false
+                p.enumerable = descriptor.enumerable
+                Object.defineProperty(proxy, prop, p)
+            }
         }
     }
     const state = createState(parent, proxy, base)
