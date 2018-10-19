@@ -79,8 +79,17 @@ function createProxy(parent, base) {
         const descriptor = descriptors[prop]
         if (has(descriptor, "get")) {
             Object.defineProperty(proxy, prop, descriptor)
+        } else if (descriptor.writable !== true) {
+            Object.defineProperty(proxy, prop, {
+                configurable: descriptor.configurable,
+                enumerable: descriptor.enumerable,
+                get() {
+                    return get(this[PROXY_STATE], prop)
+                }
+            })
         } else {
             const p = createPropertyProxy(prop)
+            p.configurable = descriptor.configurable
             p.enumerable = descriptor.enumerable
             Object.defineProperty(proxy, prop, p)
         }
