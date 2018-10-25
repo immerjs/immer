@@ -1,5 +1,10 @@
 "use strict"
-import produce, {setAutoFreeze, setUseProxies, nothing} from "../src/immer"
+import produce, {
+    setAutoFreeze,
+    setUseProxies,
+    nothing,
+    isDraft
+} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -1310,6 +1315,52 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             }
             return freeze ? deepFreeze(data) : data
         }
+    })
+
+    describe(`isDraft - ${name}`, () => {
+        beforeAll(() => {
+            setAutoFreeze(freeze)
+            setUseProxies(useProxies)
+        })
+
+        it("returns true for object drafts", () => {
+            produce({}, state => {
+                expect(isDraft(state)).toBeTruthy()
+            })
+        })
+        it("returns true for array drafts", () => {
+            produce([], state => {
+                expect(isDraft(state)).toBeTruthy()
+            })
+        })
+        it("returns true for objects nested in object drafts", () => {
+            produce({a: {b: {}}}, state => {
+                expect(isDraft(state.a)).toBeTruthy()
+                expect(isDraft(state.a.b)).toBeTruthy()
+            })
+        })
+        it("returns false for new objects added to a draft", () => {
+            produce({}, state => {
+                state.a = {}
+                expect(isDraft(state.a)).toBeFalsy()
+            })
+        })
+        it("returns false for objects returned by the producer", () => {
+            const object = produce(null, Object.create)
+            expect(isDraft(object)).toBeFalsy()
+        })
+        it("returns false for arrays returned by the producer", () => {
+            const array = produce(null, _ => [])
+            expect(isDraft(array)).toBeFalsy()
+        })
+        it("returns false for object drafts returned by the producer", () => {
+            const object = produce({}, state => state)
+            expect(isDraft(object)).toBeFalsy()
+        })
+        it("returns false for array drafts returned by the producer", () => {
+            const array = produce([], state => state)
+            expect(isDraft(array)).toBeFalsy()
+        })
     })
 }
 
