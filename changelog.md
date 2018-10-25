@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.8.0 (unreleased)
+
+* Introduce the `isDraft` function to check if a value is a proxy created by Immer.
+
 ### 1.7.2
 
 * Disabled `sideEffects` module flag, it somehow breaks the Angular build, fixes [#198](https://github.com/mweststrate/immer/issues/198)
