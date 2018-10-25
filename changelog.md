@@ -4,6 +4,10 @@
 
 * Introduce the `isDraft` function to check if a value is a proxy created by Immer.
 
+### 1.7.3
+
+* fix: Only use proxies if both `Proxy` and `Reflect` global APIs exist, fixes [#226](https://github.com/mweststrate/immer/issues/226)
+
 ### 1.7.2
 
 * Disabled `sideEffects` module flag, it somehow breaks the Angular build, fixes [#198](https://github.com/mweststrate/immer/issues/198)
