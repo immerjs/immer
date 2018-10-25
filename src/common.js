@@ -156,8 +156,6 @@ function finalizeNonProxiedObject(parent) {
             parent[i] = finalize(child)
         } else finalizeNonProxiedObject(child)
     })
-    // always freeze completely new data
-    freeze(parent)
 }
 
 export function verifyReturnValue(returnedValue, proxy, isProxyModified) {
