@@ -867,22 +867,6 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(next.user).toEqual(user)
         })
 
-        if (freeze)
-            it("should freeze new data well", () => {
-                const base = {}
-                const next = produce(
-                    base,
-                    draft => {
-                        draft.x = {y: [{z: true}]}
-                    },
-                    listener
-                )
-                expect(Object.isFrozen(next)).toBe(true)
-                expect(Object.isFrozen(next.x)).toBe(true)
-                expect(Object.isFrozen(next.x.y)).toBe(true)
-                expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
-            })
-
         it("should structurally share identical objects in the tree", () => {
             const base = {bear: {legs: 4}, eagle: {legs: 3}}
             const next = produce(
