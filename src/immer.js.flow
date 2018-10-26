@@ -22,48 +22,48 @@ interface IProduce {
      * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
      * @returns The next state: a new state, or the current state if nothing was modified
      */
-    <S>(
+    <S, R: S | void>(
         currentState: S,
-        recipe: (draftState: S) => S | void,
+        recipe: (draftState: S) => R,
         patchListener?: PatchListener
-    ): S;
+    ): R;
     // curried invocations with inital state
-    <S, A, B, C>(
-        recipe: (draftState: S, a: A, b: B, c: C) => S | void,
+    <S, A, B, C, R: S | void>(
+        recipe: (draftState: S, a: A, b: B, c: C) => R,
         initialState: S
-    ): (currentState: S | void, a: A, b: B, c: C) => S;
-    <S, A, B>(
-        recipe: (draftState: S, a: A, b: B) => S | void,
+    ): (currentState: S | void, a: A, b: B, c: C) => R;
+    <S, A, B, R: S | void>(
+        recipe: (draftState: S, a: A, b: B) => R,
         initialState: S
-    ): (currentState: S | void, a: A, b: B) => S;
-    <S, A>(
-        recipe: (draftState: S, a: A) => S | void,
+    ): (currentState: S | void, a: A, b: B) => R;
+    <S, A, R: S | void>(
+        recipe: (draftState: S, a: A) => R,
         initialState: S
-    ): (currentState: S | void, a: A) => S;
-    <S>(
-        recipe: (draftState: S) => S | void,
+    ): (currentState: S | void, a: A) => R;
+    <S, R: S | void>(
+        recipe: (draftState: S) => R,
         initialState: S
-    ): (currentState: S | void) => S;
-    <S>(
-        recipe: (draftState: S, ...extraArgs: any[]) => S | void,
+    ): (currentState: S | void) => R;
+    <S, R: S | void>(
+        recipe: (draftState: S, ...extraArgs: any[]) => R,
         initialState: S
-    ): (currentState: S | void, ...extraArgs: any[]) => S;
+    ): (currentState: S | void, ...extraArgs: any[]) => R;
     // curried invocations without inital state
-    <S, A, B, C>(
-        recipe: (draftState: S, a: A, b: B, c: C) => S | void
-    ): (currentState: S, a: A, b: B, c: C) => S;
-    <S, A, B>(
-        recipe: (draftState: S, a: A, b: B) => S | void
-    ): (currentState: S, a: A, b: B) => S;
-    <S, A>(
-        recipe: (draftState: S, a: A) => S | void
-    ): (currentState: S, a: A) => S;
-    <S>(
-        recipe: (draftState: S) => S | void
-    ): (currentState: S) => S;
-    <S>(
-        recipe: (draftState: S, ...extraArgs: any[]) => S | void
-    ): (currentState: S, ...extraArgs: any[]) => S;
+    <S, A, B, C, R: S | void>(
+        recipe: (draftState: S, a: A, b: B, c: C) => R
+    ): (currentState: S, a: A, b: B, c: C) => R;
+    <S, A, B, R: S | void>(
+        recipe: (draftState: S, a: A, b: B) => R
+    ): (currentState: S, a: A, b: B) => R;
+    <S, A, R: S | void>(
+        recipe: (draftState: S, a: A) => R
+    ): (currentState: S, a: A) => R;
+    <S, R: S | void>(
+        recipe: (draftState: S) => R
+    ): (currentState: S) => R;
+    <S, R: S | void>(
+        recipe: (draftState: S, ...extraArgs: any[]) => R
+    ): (currentState: S, ...extraArgs: any[]) => R;
 }
 
 declare export var produce: IProduce
