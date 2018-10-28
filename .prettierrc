@@ -10,9 +10,10 @@
   "useTabs": false,
   "overrides": [
     {
-      "files": "*.json",
+      "files": [".prettierrc", "*.json"],
       "options": {
-        "printWidth": 200
+        "printWidth": 200,
+        "tabWidth": 2
       }
     }
   ]
