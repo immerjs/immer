@@ -45,6 +45,32 @@ describe("applyPatches", () => {
             applyPatches([2], [patch])
         }).toThrowError(/^Unsupported patch operation:/)
     })
+    it("throws when `path` cannot be resolved", () => {
+        // missing parent
+        expect(() => {
+            const patch = {op: "add", path: ["a", "b"], value: 1}
+            applyPatches({}, [patch])
+        }).toThrowError(/^Cannot apply patch, path doesn't resolve:/)
+
+        // missing grand-parent
+        expect(() => {
+            const patch = {op: "add", path: ["a", "b", "c"], value: 1}
+            applyPatches({}, [patch])
+        }).toThrowError(/^Cannot apply patch, path doesn't resolve:/)
+    })
+    it("throws when a patch tries to splice an array", () => {
+        // Pop is ok
+        expect(() => {
+            const patch = {op: "remove", path: [0]}
+            applyPatches([1], [patch])
+        }).not.toThrowError()
+
+        // Splice is unsupported
+        expect(() => {
+            const patch = {op: "remove", path: [0]}
+            applyPatches([1, 2], [patch])
+        }).toThrowError(/^Remove can only remove the last key of an array/)
+    })
 })
 
 describe("simple assignment", () => {
