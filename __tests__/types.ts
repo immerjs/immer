@@ -1,4 +1,9 @@
-import produce, {produce as produce2, applyPatches, Patch} from "../src/immer"
+import produce, {
+    produce as produce2,
+    applyPatches,
+    Draft,
+    Patch
+} from "../src/immer"
 
 interface State {
     readonly num: number
@@ -97,3 +102,113 @@ it("can apply patches", () => {
 
     expect(applyPatches({}, patches)).toEqual({x: 4})
 })
+
+/**
+ * Draft<T>
+ */
+
+// For checking if a type is assignable to its draft type (and vice versa)
+const toDraft = <T>(value: T): Draft<T> => value as any
+const fromDraft = <T>(draft: Draft<T>): T => draft as any
+
+// Finite tuple
+{
+    let val: [1, 2]
+    val = fromDraft(toDraft(val))
+}
+
+// Mutable array
+{
+    let val: string[]
+    val = fromDraft(toDraft(val))
+}
+
+// Readonly array
+{
+    let val: ReadonlyArray<string>
+    val = fromDraft(toDraft(val))
+}
+
+// Tuple nested in two readonly arrays
+{
+    let val: ReadonlyArray<ReadonlyArray<[1, 2]>>
+    val = fromDraft(toDraft(val))
+}
+
+// Mutable object
+{
+    let val: {a: 1}
+    val = fromDraft(toDraft(val))
+}
+
+// Readonly object
+{
+    let val: Readonly<{a: 1}>
+    val = fromDraft(toDraft(val))
+}
+
+// Loose function
+{
+    let val: Function
+    val = fromDraft(toDraft(val))
+}
+
+// Strict function
+{
+    let val: () => void
+    val = fromDraft(toDraft(val))
+}
+
+// Date instance
+{
+    let val: Date
+    val = fromDraft(toDraft(val))
+}
+
+// RegExp instance
+{
+    let val: RegExp
+    val = fromDraft(toDraft(val))
+}
+
+// Boxed primitive
+{
+    let val: Boolean
+    val = fromDraft(toDraft(val))
+}
+
+// String literal
+{
+    let val: string
+    val = fromDraft(toDraft(val))
+}
+
+// Any
+{
+    let val: any
+    val = fromDraft(toDraft(val))
+}
+
+// Never
+{
+    let val: never
+    val = fromDraft(toDraft(val))
+}
+
+// Numeral
+{
+    let val: 1
+    val = fromDraft(toDraft(val))
+}
+
+// Union of numerals
+{
+    let val: 1 | 2 | 3
+    val = fromDraft(toDraft(val))
+}
+
+// Union of tuple, array, object
+{
+    let val: [0] | ReadonlyArray<string> | Readonly<{a: 1}>
+    val = fromDraft(toDraft(val))
+}
