@@ -189,6 +189,35 @@ const fromDraft = <T>(draft: Draft<T>): T => draft as any
     let draft: typeof val = toDraft(val)
 }
 
+// Map instance
+{
+    let val: Map<any, any>
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+
+    let weak: WeakMap<any, any>
+    weak = fromDraft(toDraft(weak))
+    let weakDraft: typeof weak = toDraft(weak)
+}
+
+// Set instance
+{
+    let val: Set<any>
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+
+    let weak: WeakSet<any>
+    weak = fromDraft(toDraft(weak))
+    let weakDraft: typeof weak = toDraft(weak)
+}
+
+// Promise object
+{
+    let val: Promise<any>
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+}
+
 // Date instance
 {
     let val: Date

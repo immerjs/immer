@@ -1,5 +1,16 @@
 /** Object types that should never be mapped */
-type AtomicObject = Function | Date | RegExp | Boolean | Number | String
+type AtomicObject =
+    | Function
+    | Map<any, any>
+    | WeakMap<any, any>
+    | Set<any>
+    | WeakSet<any>
+    | Promise<any>
+    | Date
+    | RegExp
+    | Boolean
+    | Number
+    | String
 
 /** Use type inference to know when an array is finite */
 type IsFinite<T extends any[]> = T extends never[]
