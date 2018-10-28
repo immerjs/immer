@@ -1,8 +1,14 @@
 # Changelog
 
+### 1.7.4
+
+* improve `Draft<T>` type for TypeScript users ([see here](https://github.com/mweststrate/immer/commit/512256bbde4ea1e2b6a75399d6ad59925752ad6b))
+* remove unused function
+* better test coverage
+
 ### 1.7.3
 
-* fix: Only use proxies if both `Proxy` and `Reflect` global APIs exist, fixes [#226](https://github.com/mweststrate/immer/issues/226)
+* Use proxies only if both `Proxy` and `Reflect` global APIs exist (fixes [#226](https://github.com/mweststrate/immer/issues/226))
 
 ### 1.7.2
 
