@@ -38,6 +38,15 @@ function runPatchTest(base, producer, patches, inversePathes) {
     })
 }
 
+describe("applyPatches", () => {
+    it('throws when `op` is not "add", "replace", nor "remove"', () => {
+        expect(() => {
+            const patch = {op: "copy", from: [0], path: [1]}
+            applyPatches([2], [patch])
+        }).toThrowError(/^Unsupported patch operation:/)
+    })
+})
+
 describe("simple assignment", () => {
     runPatchTest(
         {x: 3},
