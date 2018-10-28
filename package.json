@@ -85,6 +85,7 @@
     ]
   },
   "jest": {
+    "testURL": "http://localhost",
     "transform": {
       "^.+\\.jsx?$": "babel-jest",
       "^.+\\.tsx?$": "ts-jest"
