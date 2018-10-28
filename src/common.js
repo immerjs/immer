@@ -160,16 +160,6 @@ function finalizeNonProxiedObject(parent) {
     freeze(parent)
 }
 
-export function verifyReturnValue(returnedValue, proxy, isProxyModified) {
-    if (returnedValue !== undefined && returnedValue !== proxy) {
-        // something was returned, and it wasn't the proxy itself
-        if (isProxyModified)
-            throw new Error(
-                "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."
-            )
-    }
-}
-
 export function is(x, y) {
     // From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
     if (x === y) {
