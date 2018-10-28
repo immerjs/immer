@@ -16,8 +16,12 @@ export type DraftArray<T> = Array<
         : DraftObject<T>
 >
 
+export type DraftTuple<T extends any[]> = {
+    [P in keyof T]: T[P] extends T[number] ? Draft<T[P]> : never
+}
+
 export type Draft<T> = T extends any[]
-    ? IsFinite<T> extends true ? T : DraftArray<T[number]>
+    ? IsFinite<T> extends true ? DraftTuple<T> : DraftArray<T[number]>
     : T extends ReadonlyArray<any>
         ? DraftArray<T[number]>
         : T extends object ? DraftObject<T> : T
