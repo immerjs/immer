@@ -2,7 +2,8 @@ import produce, {
     produce as produce2,
     applyPatches,
     Draft,
-    Patch
+    Patch,
+    DraftTuple
 } from "../src/immer"
 
 interface State {
@@ -111,104 +112,142 @@ it("can apply patches", () => {
 const toDraft = <T>(value: T): Draft<T> => value as any
 const fromDraft = <T>(draft: Draft<T>): T => draft as any
 
-// Finite tuple
+// Tuple
 {
     let val: [1, 2]
     val = fromDraft(toDraft(val))
+    let draft: DraftTuple<typeof val> = toDraft(val)
+}
+
+// Tuple (nested in a tuple)
+{
+    let val: [[1, 2]]
+    val = fromDraft(toDraft(val))
+    let draft: DraftTuple<typeof val> = toDraft(val)
+}
+
+// Tuple (nested in two readonly arrays)
+{
+    let val: ReadonlyArray<ReadonlyArray<[1, 2]>>
+    val = fromDraft(toDraft(val))
+    let draft: DraftTuple<[1, 2]>[][] = toDraft(val)
 }
 
 // Mutable array
 {
     let val: string[]
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Readonly array
 {
     let val: ReadonlyArray<string>
     val = fromDraft(toDraft(val))
+    let draft: string[] = toDraft(val)
 }
 
-// Tuple nested in two readonly arrays
+// Readonly array (nested in readonly object)
 {
-    let val: ReadonlyArray<ReadonlyArray<[1, 2]>>
+    let val: {readonly a: ReadonlyArray<string>}
     val = fromDraft(toDraft(val))
+    let draft: {a: string[]} = toDraft(val)
 }
 
 // Mutable object
 {
     let val: {a: 1}
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Readonly object
 {
     let val: Readonly<{a: 1}>
     val = fromDraft(toDraft(val))
+    let draft: {a: 1} = toDraft(val)
+}
+
+// Readonly object (nested in tuple)
+{
+    let val: [Readonly<{a: 1}>]
+    val = fromDraft(toDraft(val))
+    let draft: DraftTuple<[{a: 1}]> = toDraft(val)
 }
 
 // Loose function
 {
     let val: Function
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Strict function
 {
     let val: () => void
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Date instance
 {
     let val: Date
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // RegExp instance
 {
     let val: RegExp
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Boxed primitive
 {
     let val: Boolean
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // String literal
 {
     let val: string
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Any
 {
     let val: any
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Never
 {
     let val: never
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Numeral
 {
     let val: 1
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Union of numerals
 {
     let val: 1 | 2 | 3
     val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
 }
 
 // Union of tuple, array, object
 {
     let val: [0] | ReadonlyArray<string> | Readonly<{a: 1}>
     val = fromDraft(toDraft(val))
+    let draft: DraftTuple<[0]> | string[] | {a: 1} = toDraft(val)
 }
