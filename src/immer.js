@@ -21,10 +21,7 @@ export function produce(baseState, producer, patchListener) {
     if (arguments.length < 1 || arguments.length > 3) throw new Error("produce expects 1 to 3 arguments, got " + arguments.length)
 
     // curried invocation
-    if (typeof baseState === "function") {
-        // prettier-ignore
-        if (typeof producer === "function") throw new Error("if first argument is a function (curried invocation), the second argument to produce cannot be a function")
-
+    if (typeof baseState === "function" && typeof producer !== "function") {
         const initialState = producer
         const recipe = baseState
 
