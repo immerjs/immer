@@ -49,18 +49,14 @@ export function produce(baseState, producer, patchListener) {
         if (patchListener !== undefined && typeof patchListener !== "function") throw new Error("the third argument of a producer should not be set or a function")
     }
 
-    // if state is a primitive, don't bother proxying at all
-    if (typeof baseState !== "object" || baseState === null) {
+    // avoid proxying anything except plain objects and arrays
+    if (!isProxyable(baseState)) {
         const returnValue = producer(baseState)
         return returnValue === undefined
             ? baseState
             : normalizeResult(returnValue)
     }
 
-    if (!isProxyable(baseState))
-        throw new Error(
-            `the first argument to an immer producer should be a primitive, plain object or array, got ${typeof baseState}: "${baseState}"`
-        )
     return normalizeResult(
         getUseProxies()
             ? produceProxy(baseState, producer, patchListener)
