@@ -28,18 +28,10 @@ export function produce(baseState, producer, patchListener) {
         const initialState = producer
         const recipe = baseState
 
-        return function() {
-            const args = arguments
-
-            const currentState =
-                args[0] === undefined && initialState !== undefined
-                    ? initialState
-                    : args[0]
-
-            return produce(currentState, draft => {
-                args[0] = draft // blegh!
-                return recipe.apply(draft, args)
-            })
+        return function(currentState = initialState, ...args) {
+            return produce(currentState, draft =>
+                recipe.call(draft, draft, ...args)
+            )
         }
     }
 
