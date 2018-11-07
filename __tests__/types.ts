@@ -140,6 +140,13 @@ const fromDraft = <T>(draft: Draft<T>): T => draft as any
     let draft: typeof val = toDraft(val)
 }
 
+// Mutable array (nested in tuple)
+{
+    let val: [string[]]
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+}
+
 // Readonly array
 {
     let val: ReadonlyArray<string>
@@ -157,6 +164,36 @@ const fromDraft = <T>(draft: Draft<T>): T => draft as any
 // Mutable object
 {
     let val: {a: 1}
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+}
+
+// Mutable object (nested in mutable object)
+{
+    let val: {a: {b: 1}}
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+}
+
+// Interface
+{
+    interface Foo {
+        a: {b: number}
+    }
+    let val: Foo
+    val = fromDraft(toDraft(val))
+    let draft: typeof val = toDraft(val)
+}
+
+// Interface (nested in interface)
+{
+    interface Foo {
+        a: {b: number}
+    }
+    interface Bar {
+        foo: Foo
+    }
+    let val: Bar
     val = fromDraft(toDraft(val))
     let draft: typeof val = toDraft(val)
 }
