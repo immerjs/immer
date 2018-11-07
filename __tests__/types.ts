@@ -109,70 +109,79 @@ it("can apply patches", () => {
  */
 
 // For checking if a type is assignable to its draft type (and vice versa)
-const toDraft = <T>(value: T): Draft<T> => value as any
-const fromDraft = <T>(draft: Draft<T>): T => draft as any
+declare const toDraft: <T>(value: T) => Draft<T>
+declare const fromDraft: <T>(draft: Draft<T>) => T
+
+/** Trigger a compiler error when a value is _not_ an exact type. */
+declare const exactType: <T, U extends T>(
+    draft?: U,
+    expected?: T
+) => T extends U ? T : 1 & 0
 
 // Tuple
 {
     let val: [1, 2]
-    val = fromDraft(toDraft(val))
-    let draft: DraftTuple<typeof val> = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Tuple (nested in a tuple)
 {
     let val: [[1, 2]]
-    val = fromDraft(toDraft(val))
-    let draft: DraftTuple<typeof val> = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Tuple (nested in two readonly arrays)
 {
     let val: ReadonlyArray<ReadonlyArray<[1, 2]>>
-    val = fromDraft(toDraft(val))
-    let draft: DraftTuple<[1, 2]>[][] = toDraft(val)
+    let draft: [1, 2][][]
+    draft = exactType(toDraft(val), draft)
+    val = fromDraft(draft)
 }
 
 // Mutable array
 {
     let val: string[]
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Mutable array (nested in tuple)
 {
     let val: [string[]]
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Readonly array
 {
     let val: ReadonlyArray<string>
-    val = fromDraft(toDraft(val))
-    let draft: string[] = toDraft(val)
+    let draft: string[]
+    draft = exactType(toDraft(val), draft)
+    val = fromDraft(draft)
 }
 
 // Readonly array (nested in readonly object)
 {
     let val: {readonly a: ReadonlyArray<string>}
-    val = fromDraft(toDraft(val))
-    let draft: {a: string[]} = toDraft(val)
+    let draft: {a: string[]}
+    draft = exactType(toDraft(val), draft)
+    val = fromDraft(draft)
 }
 
 // Mutable object
 {
     let val: {a: 1}
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Mutable object (nested in mutable object)
 {
     let val: {a: {b: 1}}
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Interface
@@ -181,8 +190,8 @@ const fromDraft = <T>(draft: Draft<T>): T => draft as any
         a: {b: number}
     }
     let val: Foo
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Interface (nested in interface)
@@ -194,126 +203,139 @@ const fromDraft = <T>(draft: Draft<T>): T => draft as any
         foo: Foo
     }
     let val: Bar
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Readonly object
 {
     let val: Readonly<{a: 1}>
-    val = fromDraft(toDraft(val))
-    let draft: {a: 1} = toDraft(val)
+    let draft: {a: 1}
+    draft = exactType(toDraft(val), val)
+    val = exactType(fromDraft(draft), val)
 }
 
 // Readonly object (nested in tuple)
 {
     let val: [Readonly<{a: 1}>]
-    val = fromDraft(toDraft(val))
-    let draft: DraftTuple<[{a: 1}]> = toDraft(val)
+    let draft: DraftTuple<[{a: 1}]>
+    draft = exactType(toDraft(val), val)
+    val = exactType(fromDraft(draft), val)
 }
 
 // Loose function
 {
     let val: Function
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Strict function
 {
     let val: () => void
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Map instance
 {
     let val: Map<any, any>
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 
+    // Weak maps
     let weak: WeakMap<any, any>
-    weak = fromDraft(toDraft(weak))
-    let weakDraft: typeof weak = toDraft(weak)
+    weak = exactType(toDraft(weak), weak)
+    weak = exactType(fromDraft(toDraft(weak)), weak)
 }
 
 // Set instance
 {
     let val: Set<any>
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 
+    // Weak sets
     let weak: WeakSet<any>
-    weak = fromDraft(toDraft(weak))
-    let weakDraft: typeof weak = toDraft(weak)
+    weak = exactType(toDraft(weak), weak)
+    weak = exactType(fromDraft(toDraft(weak)), weak)
 }
 
 // Promise object
 {
     let val: Promise<any>
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Date instance
 {
     let val: Date
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // RegExp instance
 {
     let val: RegExp
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Boxed primitive
 {
     let val: Boolean
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // String literal
 {
     let val: string
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Any
 {
     let val: any
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Never
 {
     let val: never
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
+}
+
+// Unknown
+{
+    // TODO: Uncomment this when Typescript is upgraded to 3.0+
+    // let val: unknown
+    // val = exactType(toDraft(val), val)
+    // val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Numeral
 {
     let val: 1
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Union of numerals
 {
     let val: 1 | 2 | 3
-    val = fromDraft(toDraft(val))
-    let draft: typeof val = toDraft(val)
+    val = exactType(toDraft(val), val)
+    val = exactType(fromDraft(toDraft(val)), val)
 }
 
 // Union of tuple, array, object
 {
     let val: [0] | ReadonlyArray<string> | Readonly<{a: 1}>
-    val = fromDraft(toDraft(val))
-    let draft: DraftTuple<[0]> | string[] | {a: 1} = toDraft(val)
+    let draft: DraftTuple<[0]> | string[] | {a: 1}
+    draft = exactType(toDraft(val), val)
+    val = exactType(fromDraft(draft), val)
 }
