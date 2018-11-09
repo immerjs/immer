@@ -20,9 +20,6 @@ function runTests(name, useProxies) {
             expect(() => produce({})).toThrow(
                 /if first argument is not a function, the second argument to produce should be a function/
             )
-            expect(() => produce(() => {}, () => {})).toThrow(
-                /if first argument is a function .* the second argument to produce cannot be a function/
-            )
         })
 
         it("should support currying", () => {

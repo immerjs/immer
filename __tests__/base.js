@@ -1275,6 +1275,15 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             })
         })
 
+        it("allows a function as the base state", () => {
+            let fn = () => {}
+            expect(
+                produce(fn, draft => {
+                    expect(fn).toBe(draft)
+                })
+            ).toBe(fn)
+        })
+
         it("cannot return and produce undefined!", () => {
             const base = 3
             expect(produce(base, () => 4)).toBe(4)
