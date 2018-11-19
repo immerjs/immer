@@ -434,6 +434,20 @@ const nextState = produce(baseState, draftState => {
 })
 ```
 
+Just want to know if a value is a proxied instance? Use the `isDraft` function!
+
+```js
+import { isDraft } from "immer";
+
+const baseState = { users: [{ name: "Bobby" }] };
+const nextState = produce(baseState, draft => {
+    isDraft(draft)          // => true
+    isDraft(draft.users)    // => true
+    isDraft(draft.users[0]) // => true
+})
+isDraft(nextState) // => false
+```
+
 ## Using `this`
 
 The recipe will be always invoked with the `draft` as `this` context.

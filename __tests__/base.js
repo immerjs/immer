@@ -1,5 +1,10 @@
 "use strict"
-import produce, {setAutoFreeze, setUseProxies, nothing} from "../src/immer"
+import produce, {
+    setAutoFreeze,
+    setUseProxies,
+    nothing,
+    isDraft
+} from "../src/immer"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -894,22 +899,6 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(next.user).toEqual(user)
         })
 
-        if (freeze)
-            it("should freeze new data well", () => {
-                const base = {}
-                const next = produce(
-                    base,
-                    draft => {
-                        draft.x = {y: [{z: true}]}
-                    },
-                    listener
-                )
-                expect(Object.isFrozen(next)).toBe(true)
-                expect(Object.isFrozen(next.x)).toBe(true)
-                expect(Object.isFrozen(next.x.y)).toBe(true)
-                expect(Object.isFrozen(next.x.y[0].z)).toBe(true)
-            })
-
         it("should structurally share identical objects in the tree", () => {
             const base = {bear: {legs: 4}, eagle: {legs: 3}}
             const next = produce(
@@ -1328,6 +1317,99 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(produce(() => nothing)(3)).toBe(undefined)
         })
 
+        // TODO: use fuzz testing
+        {
+            class Foo {}
+            const primitives = {
+                "falsy number": 0,
+                "truthy number": 1,
+                "negative number": -1,
+                infinity: 1 / 0,
+                true: true,
+                false: false,
+                "empty string": "",
+                "truthy string": "1",
+                null: null,
+                undefined: undefined,
+
+                /**
+                 * These objects are treated as primitives because Immer
+                 * chooses not to make drafts for them.
+                 */
+                "regexp object": /.+/g,
+                "boxed number": new Number(0),
+                "boxed string": new String(""),
+                "boxed boolean": new Boolean(),
+                "date object": new Date(),
+                "class instance": new Foo()
+            }
+            for (const name in primitives) {
+                describe("base state type - " + name, () => {
+                    const value = primitives[name]
+                    it("does not create a draft", () => {
+                        produce(value, draft => {
+                            expect(draft).toBe(value)
+                        })
+                    })
+                    it("returns the same value when the producer returns undefined", () => {
+                        expect(produce(value, () => {})).toBe(value)
+                    })
+                    if (value && typeof value == "object") {
+                        it("does not return a copy when the producer makes changes", () => {
+                            expect(
+                                produce(value, draft => {
+                                    draft.foo = true
+                                })
+                            ).toBe(value)
+                        })
+                    }
+                    expect(
+                        produce(value, draft => {
+                            expect(draft).toBe(value)
+                        })
+                    ).toBe(value)
+                })
+            }
+            const objects = {
+                "empty object": {},
+                "plain object": {a: 1, b: {c: 1}},
+                "frozen object": Object.freeze({}),
+                "null-prototype object": Object.create(null),
+                "empty array": [],
+                "plain array": [1, [2, [3, []]]],
+                "frozen array": Object.freeze([])
+            }
+            for (const name in objects) {
+                describe("base state type - " + name, () => {
+                    const value = objects[name]
+                    it("returns a copy when changes are made", () => {
+                        const random = Math.random()
+                        const result = produce(value, draft => {
+                            if (Array.isArray(value)) {
+                                draft.push(random)
+                            } else {
+                                draft[random] = true
+                            }
+                        })
+                        expect(result).not.toBe(value)
+                        expect(result.constructor).toBe(value.constructor)
+                        if (Array.isArray(value)) {
+                            expect(result[result.length - 1]).toBe(random)
+                        } else {
+                            expect(result[random]).toBe(true)
+                        }
+                    })
+                    it("should ", () => {})
+                    expect(
+                        produce(value, draft => {
+                            expect(draft).not.toBe(value)
+                            expect(value).toEqual(draft)
+                        })
+                    ).toBe(value)
+                })
+            }
+        }
+
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
@@ -1346,6 +1428,52 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             }
             return freeze ? deepFreeze(data) : data
         }
+    })
+
+    describe(`isDraft - ${name}`, () => {
+        beforeAll(() => {
+            setAutoFreeze(freeze)
+            setUseProxies(useProxies)
+        })
+
+        it("returns true for object drafts", () => {
+            produce({}, state => {
+                expect(isDraft(state)).toBeTruthy()
+            })
+        })
+        it("returns true for array drafts", () => {
+            produce([], state => {
+                expect(isDraft(state)).toBeTruthy()
+            })
+        })
+        it("returns true for objects nested in object drafts", () => {
+            produce({a: {b: {}}}, state => {
+                expect(isDraft(state.a)).toBeTruthy()
+                expect(isDraft(state.a.b)).toBeTruthy()
+            })
+        })
+        it("returns false for new objects added to a draft", () => {
+            produce({}, state => {
+                state.a = {}
+                expect(isDraft(state.a)).toBeFalsy()
+            })
+        })
+        it("returns false for objects returned by the producer", () => {
+            const object = produce(null, Object.create)
+            expect(isDraft(object)).toBeFalsy()
+        })
+        it("returns false for arrays returned by the producer", () => {
+            const array = produce(null, _ => [])
+            expect(isDraft(array)).toBeFalsy()
+        })
+        it("returns false for object drafts returned by the producer", () => {
+            const object = produce({}, state => state)
+            expect(isDraft(object)).toBeFalsy()
+        })
+        it("returns false for array drafts returned by the producer", () => {
+            const array = produce([], state => state)
+            expect(isDraft(array)).toBeFalsy()
+        })
     })
 }
 

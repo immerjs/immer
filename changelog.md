@@ -1,13 +1,19 @@
 # Changelog
 
-### 1.7.4 (28-Oct-2018)
+### 1.8.0 (19-Nov-2018)
+
+* Introduce the `isDraft` function to check if a value is a proxy created by Immer.
+* Several minor code & performance improvements [#249](https://github.com/mweststrate/immer/pull/249) [#237](https://github.com/mweststrate/immer/pull/237)
+* Functions are now also acceptable as primitive base state, see [#236](https://github.com/mweststrate/immer/pull/236) [#233](https://github.com/mweststrate/immer/pull/233)
+* Improved test coverage [#250](https://github.com/mweststrate/immer/pull/250)
+
+Credits for this release go to [@aleclarson](https://github.com/aleclarson), who made all these improvements!
+
+### 1.7.3 (24-Oct-2018)
 
 -   improve `Draft<T>` type for TypeScript users ([see here](https://github.com/mweststrate/immer/commit/512256bbde4ea1e2b6a75399d6ad59925752ad6b))
 -   remove unused function
 -   better test coverage
-
-### 1.7.3 (24-Oct-2018)
-
 -   Use proxies only if both `Proxy` and `Reflect` global APIs exist (fixes [#226](https://github.com/mweststrate/immer/issues/226))
 
 ### 1.7.2 (20-Sep-2018)
