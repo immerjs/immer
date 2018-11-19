@@ -8,6 +8,7 @@ import {
     PROXY_STATE,
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
+    has,
     each,
     finalize
 } from "./common"
@@ -168,9 +169,23 @@ function diffKeys(from, to) {
 }
 
 function hasObjectChanges(state) {
-    const baseKeys = Object.keys(state.base)
-    const keys = Object.keys(state.proxy)
-    return !shallowEqual(baseKeys, keys)
+    const {base, proxy} = state
+
+    // Search for added keys. Start at the back, because non-numeric keys
+    // are ordered by time of definition on the object.
+    const keys = Object.keys(proxy)
+    for (let i = keys.length; i !== 0; ) {
+        const key = keys[--i]
+
+        // The `undefined` check is a fast path for pre-existing keys.
+        if (base[key] === undefined && !has(base, key)) {
+            return true
+        }
+    }
+
+    // Since no keys have been added, we can compare lengths to know if an
+    // object has been deleted.
+    return keys.length !== Object.keys(base).length
 }
 
 function hasArrayChanges(state) {
@@ -234,31 +249,6 @@ export function produceEs5(baseState, producer, patchListener) {
     } finally {
         states = prevStates
     }
-}
-
-function shallowEqual(objA, objB) {
-    //From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
-    if (is(objA, objB)) return true
-    if (
-        typeof objA !== "object" ||
-        objA === null ||
-        typeof objB !== "object" ||
-        objB === null
-    ) {
-        return false
-    }
-    const keysA = Object.keys(objA)
-    const keysB = Object.keys(objB)
-    if (keysA.length !== keysB.length) return false
-    for (let i = 0; i < keysA.length; i++) {
-        if (
-            !hasOwnProperty.call(objB, keysA[i]) ||
-            !is(objA[keysA[i]], objB[keysA[i]])
-        ) {
-            return false
-        }
-    }
-    return true
 }
 
 function createHiddenProperty(target, prop, value) {
