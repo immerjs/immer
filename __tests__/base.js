@@ -799,40 +799,67 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(next).not.toBe(base)
         })
 
-        it("should handle nested immer calls correctly - 1", () => {
-            const bear = {paw: {honey: true}}
-            const next = produce(
-                bear,
-                draft => {
-                    const paw2 = produce(bear.paw, draft => {
-                        draft.honey = false
-                    })
-                    expect(paw2.honey).toBe(false)
-                    expect(draft.paw.honey).toBe(true) // effects should not be visible outside
-                },
-                listener
-            )
-            expect(next.paw.honey).toBe(true)
-            expect(next).toBe(bear)
-        })
+        describe("nested immer.produce() call", () => {
+            describe("with non-draft object", () => {
+                // This test ensures the global state used to manage proxies is
+                // never left in a corrupted state by a nested `produce` call.
+                it("never affects its parent producer implicitly", () => {
+                    const bear = {paw: {honey: true}}
+                    const next = produce(
+                        bear,
+                        draft => {
+                            const paw2 = produce(bear.paw, draft => {
+                                draft.honey = false
+                            })
+                            expect(paw2.honey).toBe(false)
+                            expect(draft.paw.honey).toBe(true) // effects should not be visible outside
+                        },
+                        listener
+                    )
+                    expect(next.paw.honey).toBe(true)
+                    expect(next).toBe(bear)
+                })
 
-        it("should handle nested immer calls correctly - 2", () => {
-            const bear = {paw: {honey: true}}
-            const next = produce(
-                bear,
-                draft => {
-                    const paw2 = produce(bear.paw, draft => {
-                        draft.honey = false
-                    })
-                    expect(paw2.honey).toBe(false)
-                    expect(draft.paw.honey).toBe(true)
-                    draft.paw = paw2
-                    expect(draft.paw.honey).toBe(false)
-                },
-                listener
-            )
-            expect(next.paw.honey).toBe(false)
-            expect(next).not.toBe(bear)
+                it("returns a normal object", () => {
+                    const bear = {paw: {honey: true}}
+                    const next = produce(
+                        bear,
+                        draft => {
+                            const paw2 = produce(bear.paw, draft => {
+                                draft.honey = false
+                            })
+                            expect(paw2.honey).toBe(false)
+                            expect(draft.paw.honey).toBe(true)
+                            draft.paw = paw2
+                            expect(draft.paw.honey).toBe(false)
+                        },
+                        listener
+                    )
+                    expect(next.paw.honey).toBe(false)
+                    expect(next).not.toBe(bear)
+                })
+            })
+
+            describe("with a draft object", () => {
+                it("always reuses the draft", () => {
+                    const bear = {paw: {honey: true}}
+                    const next = produce(
+                        bear,
+                        bear => {
+                            const paw2 = produce(bear.paw, paw => {
+                                expect(paw).toBe(bear.paw)
+                                paw.honey = false
+                            })
+                            expect(paw2).toBe(bear.paw)
+                            expect(paw2.honey).toBe(false)
+                            expect(bear.paw.honey).toBe(false)
+                        },
+                        listener
+                    )
+                    expect(next.paw.honey).toBe(false)
+                    expect(next).not.toBe(bear)
+                })
+            })
         })
 
         it("should not try to change immutable data, see #66", () => {
