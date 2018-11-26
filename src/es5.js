@@ -4,7 +4,6 @@
 import {
     is,
     isProxyable,
-    isProxy,
     PROXY_STATE,
     shallowCopy,
     RETURNED_AND_MODIFIED_ERROR,
@@ -206,11 +205,6 @@ function hasArrayChanges(state) {
 }
 
 export function produceEs5(baseState, producer, patchListener) {
-    if (isProxy(baseState)) {
-        // See #100, don't nest producers
-        const returnValue = producer.call(baseState, baseState)
-        return returnValue === undefined ? baseState : returnValue
-    }
     const prevStates = states
     states = []
     const patches = patchListener && []

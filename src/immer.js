@@ -6,7 +6,7 @@ export {
 } from "./common"
 
 import {applyPatches as applyPatchesImpl} from "./patches"
-import {isProxyable, getUseProxies, NOTHING} from "./common"
+import {isProxy, isProxyable, getUseProxies, NOTHING} from "./common"
 import {produceProxy} from "./proxy"
 import {produceEs5} from "./es5"
 
@@ -46,6 +46,14 @@ export function produce(baseState, producer, patchListener) {
     // avoid proxying anything except plain objects and arrays
     if (!isProxyable(baseState)) {
         const returnValue = producer(baseState)
+        return returnValue === undefined
+            ? baseState
+            : normalizeResult(returnValue)
+    }
+
+    // See #100, don't nest producers
+    if (isProxy(baseState)) {
+        const returnValue = producer.call(baseState, baseState)
         return returnValue === undefined
             ? baseState
             : normalizeResult(returnValue)

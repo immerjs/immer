@@ -151,11 +151,6 @@ function createProxy(parentState, base) {
 }
 
 export function produceProxy(baseState, producer, patchListener) {
-    if (isProxy(baseState)) {
-        // See #100, don't nest producers
-        const returnValue = producer.call(baseState, baseState)
-        return returnValue === undefined ? baseState : returnValue
-    }
     const previousProxies = proxies
     proxies = []
     const patches = patchListener && []
@@ -163,7 +158,7 @@ export function produceProxy(baseState, producer, patchListener) {
     try {
         // create proxy for root
         const rootProxy = createProxy(undefined, baseState)
-        // execute the thunk
+        // execute the producer function
         const returnValue = producer.call(rootProxy, rootProxy)
         // and finalize the modified proxy
         let result
@@ -173,9 +168,7 @@ export function produceProxy(baseState, producer, patchListener) {
             if (rootProxy[PROXY_STATE].modified)
                 throw new Error(RETURNED_AND_MODIFIED_ERROR)
 
-            // See #117
-            // Should we just throw when returning a proxy which is not the root, but a subset of the original state?
-            // Looks like a wrongly modeled reducer
+            // we need to finalize the return value in case it's a subset of the draft
             result = finalize(returnValue)
             if (patches) {
                 patches.push({op: "replace", path: [], value: result})
