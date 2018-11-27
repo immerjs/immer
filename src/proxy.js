@@ -91,16 +91,17 @@ function get(state, prop) {
 }
 
 function set(state, prop, value) {
-    // TODO: optimize
-    state.assigned[prop] = true
     if (!state.modified) {
-        if (
-            (prop in state.base && is(state.base[prop], value)) ||
-            (has(state.proxies, prop) && state.proxies[prop] === value)
-        )
-            return true
+        // Optimize based on value's truthiness. Truthy values are guaranteed to
+        // never be undefined, so we can avoid the `in` operator. Lastly, truthy
+        // values may be proxies, but falsy values are never proxies.
+        const isUnchanged = value
+            ? is(state.base[prop], value) || value === state.proxies[prop]
+            : is(state.base[prop], value) && prop in state.base
+        if (isUnchanged) return true
         markChanged(state)
     }
+    state.assigned[prop] = true
     state.copy[prop] = value
     return true
 }
