@@ -325,56 +325,61 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(nextState.anArray).toEqual([3, 2, {c: 3, test: true}, 1])
         })
 
-        it("reusing object should work", () => {
+        it("can rename nested objects (no changes)", () => {
             const nextState = produce(
                 baseState,
                 s => {
                     const obj = s.anObject
                     delete s.anObject
-                    s.messy = obj
+                    s.renamed = obj
                 },
                 listener
             )
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
+            expect(nextState.renamed.nested).toBe(baseState.anObject.nested)
             expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hi",
-                messy: {
+                renamed: {
                     nested: {
                         yummie: true
                     },
                     coffee: false
                 }
             })
-            expect(nextState.messy.nested).toBe(baseState.anObject.nested)
         })
 
-        it("refs should be transparent", () => {
+        // Very similar to the test before, but the reused object has one
+        // property changed, one added, and one removed.
+        it("can rename nested objects (with changes)", () => {
             const nextState = produce(
                 baseState,
                 s => {
                     const obj = s.anObject
-                    s.aProp = "hello"
                     delete s.anObject
-                    obj.coffee = true
-                    s.messy = obj
+
+                    obj.coffee = true // change
+                    obj.nested.yummy = true // add
+                    delete obj.nested.yummie // delete
+
+                    s.renamed = obj
                 },
                 listener
             )
             expect(nextState).not.toBe(baseState)
             expect(nextState.anArray).toBe(baseState.anArray)
+            expect(nextState.renamed.nested).not.toBe(baseState.anObject.nested)
             expect(enumerableOnly(nextState)).toEqual({
                 anArray: [3, 2, {c: 3}, 1],
-                aProp: "hello",
-                messy: {
+                aProp: "hi",
+                renamed: {
                     nested: {
-                        yummie: true
+                        yummy: true
                     },
                     coffee: true
                 }
             })
-            expect(nextState.messy.nested).toBe(baseState.anObject.nested)
         })
 
         it("should allow setting to undefined a defined draft property", () => {

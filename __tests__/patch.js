@@ -22,7 +22,7 @@ function runPatchTest(base, producer, patches, inversePathes) {
             expect(applyPatches(base, recordedPatches)).toEqual(res)
         })
 
-        test("patches can be revered", () => {
+        test("patches can be reversed", () => {
             expect(applyPatches(res, recordedInversePatches)).toEqual(base)
         })
     }
@@ -73,23 +73,13 @@ describe("applyPatches", () => {
     })
 })
 
-describe("simple assignment", () => {
+describe("simple assignment - 1", () => {
     runPatchTest(
         {x: 3},
         d => {
             d.x++
         },
         [{op: "replace", path: ["x"], value: 4}]
-    )
-})
-
-describe("simple assignment - 2", () => {
-    runPatchTest(
-        {x: {y: 4}},
-        d => {
-            d.x.y++
-        },
-        [{op: "replace", path: ["x", "y"], value: 5}]
     )
 })
 
@@ -113,16 +103,61 @@ describe("delete 1", () => {
     )
 })
 
-describe("moving stuff", () => {
-    runPatchTest(
-        {x: {y: 4}},
-        d => {
-            d.z = d.x
-            d.z.y++
-            delete d.x
-        },
-        [{op: "add", path: ["z"], value: {y: 5}}, {op: "remove", path: ["x"]}]
-    )
+describe("renaming properties", () => {
+    describe("nested object (no changes)", () => {
+        runPatchTest(
+            {a: {b: 1}},
+            d => {
+                d.x = d.a
+                delete d.a
+            },
+            [
+                {op: "add", path: ["x"], value: {b: 1}},
+                {op: "remove", path: ["a"]}
+            ]
+        )
+    })
+
+    describe("nested object (with changes)", () => {
+        runPatchTest(
+            {a: {b: 1, c: 1}},
+            d => {
+                let a = d.a
+                a.b = 2 // change
+                delete a.c // delete
+                a.y = 2 // add
+
+                // rename
+                d.x = a
+                delete d.a
+            },
+            [
+                {op: "add", path: ["x"], value: {b: 2, y: 2}},
+                {op: "remove", path: ["a"]}
+            ]
+        )
+    })
+
+    describe("deeply nested object (with changes)", () => {
+        runPatchTest(
+            {a: {b: {c: 1, d: 1}}},
+            d => {
+                debugger
+                let b = d.a.b
+                b.c = 2 // change
+                delete b.d // delete
+                b.y = 2 // add
+
+                // rename
+                d.a.x = b
+                delete d.a.b
+            },
+            [
+                {op: "add", path: ["a", "x"], value: {c: 2, y: 2}},
+                {op: "remove", path: ["a", "b"]}
+            ]
+        )
+    })
 })
 
 describe("minimum amount of changes", () => {
@@ -284,6 +319,7 @@ describe("same value replacement - 4", () => {
         [{op: "replace", path: ["x"], value: 3}]
     )
 })
+
 describe("simple delete", () => {
     runPatchTest(
         {x: 2},
