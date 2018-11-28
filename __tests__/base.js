@@ -382,6 +382,44 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             })
         })
 
+        it("can nest a draft in a new object (no changes)", () => {
+            const nextState = produce(
+                baseState,
+                s => {
+                    s.foo = {bar: s.anObject}
+                    delete s.anObject
+                },
+                listener
+            )
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.foo.bar).toBe(baseState.anObject)
+        })
+
+        it("can nest a draft in a new object (with changes)", () => {
+            const nextState = produce(
+                baseState,
+                s => {
+                    const obj = s.anObject
+                    delete s.anObject
+
+                    obj.coffee = true // change
+                    obj.nested.yummy = true // add
+                    delete obj.nested.yummie // delete
+
+                    s.foo = {bar: obj}
+                },
+                listener
+            )
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.foo.bar).not.toBe(baseState.anObject)
+            expect(nextState.foo).toEqual({
+                bar: {
+                    coffee: true,
+                    nested: {yummy: true}
+                }
+            })
+        })
+
         it("should allow setting to undefined a defined draft property", () => {
             const nextState = produce(
                 baseState,
