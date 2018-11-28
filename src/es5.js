@@ -173,11 +173,9 @@ function hasObjectChanges(state) {
     // Search for added keys. Start at the back, because non-numeric keys
     // are ordered by time of definition on the object.
     const keys = Object.keys(proxy)
-    for (let i = keys.length; i !== 0; ) {
-        const key = keys[--i]
-
+    for (let i = keys.length - 1; i >= 0; i--) {
         // The `undefined` check is a fast path for pre-existing keys.
-        if (base[key] === undefined && !has(base, key)) {
+        if (base[keys[i]] === undefined && !has(base, keys[i])) {
             return true
         }
     }
