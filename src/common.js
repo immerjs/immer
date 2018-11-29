@@ -68,7 +68,7 @@ export function original(value) {
     // otherwise return undefined
 }
 
-const assign =
+export const assign =
     Object.assign ||
     function assign(target, value) {
         for (let key in value) {

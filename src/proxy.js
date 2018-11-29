@@ -2,15 +2,16 @@
 // @ts-check
 
 import {
-    is,
+    assign,
+    each,
     has,
+    is,
     isProxyable,
     isProxy,
-    PROXY_STATE,
     finalize,
     shallowCopy,
-    RETURNED_AND_MODIFIED_ERROR,
-    each
+    PROXY_STATE,
+    RETURNED_AND_MODIFIED_ERROR
 } from "./common"
 
 let proxies = null
@@ -134,7 +135,7 @@ function markChanged(state) {
         state.modified = true
         state.copy = shallowCopy(state.base)
         // copy the proxies over the base-copy
-        Object.assign(state.copy, state.proxies) // yup that works for arrays as well
+        assign(state.copy, state.proxies) // yup that works for arrays as well
         if (state.parent) markChanged(state.parent)
     }
 }
