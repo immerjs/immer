@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setUseProxies} from "../src/immer"
+import produce, {setUseProxies} from "../src/index"
 import {isArray, isPlainObject, isString, keys, trim} from "lodash"
 
 const nonPlainObject = () => {}

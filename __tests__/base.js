@@ -4,7 +4,7 @@ import produce, {
     setUseProxies,
     nothing,
     isDraft
-} from "../src/immer"
+} from "../src/index"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"

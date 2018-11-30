@@ -1,4 +1,4 @@
-import produce, {setAutoFreeze, setUseProxies, original} from "../../src/immer"
+import produce, {setAutoFreeze, setUseProxies, original} from "../../src/index"
 
 setAutoFreeze(true)
 setUseProxies(true)

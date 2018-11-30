@@ -1,5 +1,5 @@
 "use strict"
-import produce, {original, setUseProxies} from "../src/immer"
+import produce, {original, setUseProxies} from "../src/index"
 
 describe("original", () => {
     const baseState = {
