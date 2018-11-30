@@ -1406,11 +1406,6 @@ function runBaseTest(name, useProxies, freeze, useListener) {
                             ).toBe(value)
                         })
                     }
-                    expect(
-                        produce(value, draft => {
-                            expect(draft).toBe(value)
-                        })
-                    ).toBe(value)
                 })
             }
             const objects = {
@@ -1418,6 +1413,9 @@ function runBaseTest(name, useProxies, freeze, useListener) {
                 "plain object": {a: 1, b: {c: 1}},
                 "frozen object": Object.freeze({}),
                 "null-prototype object": Object.create(null),
+                "frozen null-prototype object": Object.freeze(
+                    Object.create(null)
+                ),
                 "empty array": [],
                 "plain array": [1, [2, [3, []]]],
                 "frozen array": Object.freeze([])
@@ -1425,30 +1423,24 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             for (const name in objects) {
                 describe("base state type - " + name, () => {
                     const value = objects[name]
+                    it("creates a draft", () => {
+                        produce(value, draft => {
+                            expect(draft).not.toBe(value)
+                            expect(enumerableOnly(draft)).toEqual(value)
+                        })
+                    })
+                    it("returns the same value when the producer does nothing", () => {
+                        expect(produce(value, () => {})).toBe(value)
+                    })
                     it("returns a copy when changes are made", () => {
                         const random = Math.random()
                         const result = produce(value, draft => {
-                            if (Array.isArray(value)) {
-                                draft.push(random)
-                            } else {
-                                draft[random] = true
-                            }
+                            draft[0] = random
                         })
                         expect(result).not.toBe(value)
                         expect(result.constructor).toBe(value.constructor)
-                        if (Array.isArray(value)) {
-                            expect(result[result.length - 1]).toBe(random)
-                        } else {
-                            expect(result[random]).toBe(true)
-                        }
+                        expect(result[0]).toBe(random)
                     })
-                    it("should ", () => {})
-                    expect(
-                        produce(value, draft => {
-                            expect(draft).not.toBe(value)
-                            expect(value).toEqual(draft)
-                        })
-                    ).toBe(value)
                 })
             }
         }
