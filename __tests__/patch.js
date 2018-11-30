@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setUseProxies, applyPatches} from "../src/immer"
+import produce, {setUseProxies, applyPatches} from "../src/index"
 
 jest.setTimeout(1000)
 

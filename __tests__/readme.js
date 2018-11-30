@@ -1,5 +1,5 @@
 "use strict"
-import produce, {applyPatches} from "../src/immer"
+import produce, {applyPatches} from "../src/index"
 
 describe("readme example", () => {
     it("works", () => {

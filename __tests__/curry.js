@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setUseProxies} from "../src/immer"
+import produce, {setUseProxies} from "../src/index"
 
 runTests("proxy", true)
 runTests("es5", false)
