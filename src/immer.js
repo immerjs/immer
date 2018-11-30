@@ -20,7 +20,10 @@ const configDefaults = {
     autoFreeze:
         typeof process !== "undefined"
             ? process.env.NODE_ENV !== "production"
-            : verifyMinified.name === "verifyMinified"
+            : verifyMinified.name === "verifyMinified",
+    onAssign: null,
+    onDelete: null,
+    onCopy: null
 }
 
 export class Immer {
@@ -131,6 +134,12 @@ export class Immer {
         if (!state.finalized) {
             state.finalized = true
             this.finalizeTree(state.draft, path, patches, inversePatches)
+            if (this.onDelete) {
+                const {assigned} = state
+                for (const prop in assigned)
+                    assigned[prop] || this.onDelete(state, prop)
+            }
+            if (this.onCopy) this.onCopy(state)
             if (this.autoFreeze) Object.freeze(state.copy)
             if (patches) generatePatches(state, path, patches, inversePatches)
         }
@@ -148,8 +157,11 @@ export class Immer {
                 : (state.copy = shallowCopy(state.draft))
         }
         const finalizeProperty = (prop, value, parent) => {
-            // Skip unchanged properties in draft objects.
-            if (state && parent === root && is(value, state.base[prop])) return
+            if (state && parent === root) {
+                // Skip unchanged properties in draft objects.
+                if (is(value, state.base[prop])) return
+                if (this.onAssign) this.onAssign(state, prop, value)
+            }
             if (!isDraftable(value)) return
             if (!isDraft(value)) {
                 // Frozen values are already finalized.

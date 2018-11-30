@@ -15,10 +15,14 @@ type AtomicObject =
 /** Use type inference to know when an array is finite */
 type IsFinite<T extends any[]> = T extends never[]
     ? true
-    : T extends ReadonlyArray<infer U> ? (U[] extends T ? false : true) : true
+    : T extends ReadonlyArray<infer U>
+    ? (U[] extends T ? false : true)
+    : true
 
 export type DraftObject<T> = T extends object
-    ? T extends AtomicObject ? T : {-readonly [P in keyof T]: Draft<T[P]>}
+    ? T extends AtomicObject
+        ? T
+        : {-readonly [P in keyof T]: Draft<T[P]>}
     : T
 
 export type DraftArray<T> = Array<
@@ -32,10 +36,14 @@ export type DraftTuple<T extends any[]> = {
 }
 
 export type Draft<T> = T extends any[]
-    ? IsFinite<T> extends true ? DraftTuple<T> : DraftArray<T[number]>
+    ? IsFinite<T> extends true
+        ? DraftTuple<T>
+        : DraftArray<T[number]>
     : T extends ReadonlyArray<any>
-        ? DraftArray<T[number]>
-        : T extends object ? DraftObject<T> : T
+    ? DraftArray<T[number]>
+    : T extends object
+    ? DraftObject<T>
+    : T
 
 export interface Patch {
     op: "replace" | "remove" | "add"
@@ -168,7 +176,13 @@ export function original<T>(value: T): T | void
 export function isDraft(value: any): boolean
 
 export class Immer {
-    constructor(config: {useProxies?: boolean; autoFreeze?: boolean})
+    constructor(config: {
+        useProxies?: boolean
+        autoFreeze?: boolean
+        onAssign?: <T>(state: ImmerState<T>, prop: keyof T, value: any) => void
+        onDelete?: <T>(state: ImmerState<T>, prop: keyof T) => void
+        onCopy?: <T>(state: ImmerState<T>) => void
+    })
     /**
      * The `produce` function takes a value and a "recipe function" (whose
      * return value often depends on the base state). The recipe function is
@@ -210,4 +224,11 @@ export class Immer {
      * By default, feature detection is used, so calling this is rarely necessary.
      */
     setUseProxies(useProxies: boolean): void
+}
+
+export interface ImmerState<T = any> {
+    parent?: ImmerState
+    base: T
+    copy: T
+    assigned: {[prop: string]: boolean}
 }
