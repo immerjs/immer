@@ -2,52 +2,78 @@
 // @ts-check
 
 import {
-    is,
-    isProxyable,
-    PROXY_STATE,
-    shallowCopy,
-    RETURNED_AND_MODIFIED_ERROR,
-    has,
     each,
-    finalize
+    has,
+    is,
+    isProxy,
+    isProxyable,
+    shallowCopy,
+    PROXY_STATE
 } from "./common"
 
 const descriptors = {}
-let states = null
 
-function createState(parent, proxy, base) {
-    return {
-        modified: false,
-        assigned: {}, // true: value was assigned to these props, false: was removed
-        hasCopy: false,
-        parent,
-        base,
-        proxy,
-        copy: undefined,
-        finished: false,
-        finalizing: false,
-        finalized: false
+// For nested produce calls:
+export const scopes = []
+export const currentScope = () => scopes[scopes.length - 1]
+
+export function willFinalize(result, baseDraft, needPatches) {
+    const scope = currentScope()
+    scope.forEach(state => (state.finalizing = true))
+    if (result === undefined || result === baseDraft) {
+        if (needPatches) markChangesRecursively(baseDraft)
+        // This is faster when we don't care about which attributes changed.
+        markChangesSweep(scope)
     }
 }
 
+export function createProxy(base, parent) {
+    if (isProxy(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
+
+    const proxy = shallowCopy(base)
+    each(base, prop => {
+        Object.defineProperty(proxy, "" + prop, createPropertyProxy("" + prop))
+    })
+
+    const state = {
+        modified: false,
+        finalizing: false,
+        finalized: false,
+        assigned: {}, // true: value was assigned to these props, false: was removed
+        parent,
+        base,
+        proxy,
+        copy: null,
+        revoke,
+        revoked: false
+    }
+
+    createHiddenProperty(proxy, PROXY_STATE, state)
+    currentScope().push(state)
+    return proxy
+}
+
+function revoke() {
+    this.revoked = true
+}
+
 function source(state) {
-    return state.hasCopy ? state.copy : state.base
+    return state.copy || state.base
 }
 
 function get(state, prop) {
-    assertUnfinished(state)
+    assertUnrevoked(state)
     const value = source(state)[prop]
+    // Drafts are only created for proxyable values that exist in the base state.
     if (!state.finalizing && value === state.base[prop] && isProxyable(value)) {
-        // only create a proxy if the value is proxyable, and the value was in the base state
-        // if it wasn't in the base state, the object is already modified and we will process it in finalize
         prepareCopy(state)
-        return (state.copy[prop] = createProxy(state, value))
+        return (state.copy[prop] = createProxy(value, state))
     }
     return value
 }
 
 function set(state, prop, value) {
-    assertUnfinished(state)
+    assertUnrevoked(state)
     state.assigned[prop] = true // optimization; skip this if there is no listener
     if (!state.modified) {
         if (is(source(state)[prop], value)) return
@@ -65,21 +91,7 @@ function markChanged(state) {
 }
 
 function prepareCopy(state) {
-    if (state.hasCopy) return
-    state.hasCopy = true
-    state.copy = shallowCopy(state.base)
-}
-
-// creates a proxy for plain objects / arrays
-function createProxy(parent, base) {
-    const proxy = shallowCopy(base)
-    each(base, i => {
-        Object.defineProperty(proxy, "" + i, createPropertyProxy("" + i))
-    })
-    const state = createState(parent, proxy, base)
-    createHiddenProperty(proxy, PROXY_STATE, state)
-    states.push(state)
-    return proxy
+    if (!state.copy) state.copy = shallowCopy(state.base)
 }
 
 function createPropertyProxy(prop) {
@@ -98,23 +110,22 @@ function createPropertyProxy(prop) {
     )
 }
 
-function assertUnfinished(state) {
-    if (state.finished === true)
+function assertUnrevoked(state) {
+    if (state.revoked === true)
         throw new Error(
             "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
                 JSON.stringify(state.copy || state.base)
         )
 }
 
-// this sounds very expensive, but actually it is not that expensive in practice
-// as it will only visit proxies, and only do key-based change detection for objects for
-// which it is not already know that they are changed (that is, only object for which no known key was changed)
-function markChangesSweep() {
-    // intentionally we process the proxies in reverse order;
-    // ideally we start by processing leafs in the tree, because if a child has changed, we don't have to check the parent anymore
-    // reverse order of proxy creation approximates this
-    for (let i = states.length - 1; i >= 0; i--) {
-        const state = states[i]
+// This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
+function markChangesSweep(scope) {
+    // The natural order of proxies in the `scope` array is based on when they
+    // were accessed. By processing proxies in reverse natural order, we have a
+    // better chance of processing leaf nodes first. When a leaf node is known to
+    // have changed, we can avoid any traversal of its ancestor nodes.
+    for (let i = scope.length - 1; i >= 0; i--) {
+        const state = scope[i]
         if (state.modified === false) {
             if (Array.isArray(state.base)) {
                 if (hasArrayChanges(state)) markChanged(state)
@@ -127,7 +138,7 @@ function markChangesRecursively(object) {
     if (!object || typeof object !== "object") return
     const state = object[PROXY_STATE]
     if (!state) return
-    const {proxy, base, assigned} = state
+    const {base, proxy, assigned} = state
     if (!Array.isArray(object)) {
         // Look for added keys.
         Object.keys(proxy).forEach(key => {
@@ -196,47 +207,6 @@ function hasArrayChanges(state) {
     if (descriptor && !descriptor.get) return true
     // For all other cases, we don't have to compare, as they would have been picked up by the index setters
     return false
-}
-
-export function produceEs5(baseState, producer, patchListener) {
-    const prevStates = states
-    states = []
-    const patches = patchListener && []
-    const inversePatches = patchListener && []
-    try {
-        // create proxy for root
-        const rootProxy = createProxy(undefined, baseState)
-        // execute the thunk
-        const returnValue = producer.call(rootProxy, rootProxy)
-        // and finalize the modified proxy
-        each(states, (_, state) => {
-            state.finalizing = true
-        })
-        let result
-        // check whether the draft was modified and/or a value was returned
-        if (returnValue !== undefined && returnValue !== rootProxy) {
-            // something was returned, and it wasn't the proxy itself
-            if (rootProxy[PROXY_STATE].modified)
-                throw new Error(RETURNED_AND_MODIFIED_ERROR)
-            result = finalize(returnValue)
-            if (patches) {
-                patches.push({op: "replace", path: [], value: result})
-                inversePatches.push({op: "replace", path: [], value: baseState})
-            }
-        } else {
-            if (patchListener) markChangesRecursively(rootProxy)
-            markChangesSweep() // this one is more efficient if we don't need to know which attributes have changed
-            result = finalize(rootProxy, [], patches, inversePatches)
-        }
-        // make sure all proxies become unusable
-        each(states, (_, state) => {
-            state.finished = true
-        })
-        patchListener && patchListener(patches, inversePatches)
-        return result
-    } finally {
-        states = prevStates
-    }
 }
 
 function createHiddenProperty(target, prop, value) {
