@@ -6,10 +6,10 @@ import {
     each,
     has,
     is,
-    isProxy,
-    isProxyable,
+    isDraft,
+    isDraftable,
     shallowCopy,
-    PROXY_STATE,
+    DRAFT_STATE,
     NOTHING
 } from "./common"
 
@@ -47,19 +47,19 @@ export class Immer {
 
             let result
             // Only create proxies for plain objects/arrays.
-            if (!isProxyable(base)) {
+            if (!isDraftable(base)) {
                 result = recipe(base)
                 if (result === undefined) return base
             }
             // See #100, don't nest producers
-            else if (isProxy(base)) {
+            else if (isDraft(base)) {
                 result = recipe.call(base, base)
                 if (result === undefined) return base
             }
             // The given value must be proxied.
             else {
                 this.scopes.push([])
-                const baseDraft = this.createProxy(base)
+                const baseDraft = this.createDraft(base)
                 try {
                     result = recipe.call(baseDraft, baseDraft)
                     this.willFinalize(result, baseDraft, !!patchListener)
@@ -80,7 +80,7 @@ export class Immer {
                     // ...or use a replacement value.
                     else {
                         // Users must never modify the draft _and_ return something else.
-                        if (baseDraft[PROXY_STATE].modified)
+                        if (baseDraft[DRAFT_STATE].modified)
                             throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
 
                         // Finalize the replacement in case it contains (or is) a subset of the draft.
@@ -122,7 +122,7 @@ export class Immer {
      * copy of the base state.
      */
     finalize(draft, path, patches, inversePatches) {
-        const state = draft[PROXY_STATE]
+        const state = draft[DRAFT_STATE]
         if (!state) {
             if (Object.isFrozen(draft)) return draft
             return this.finalizeTree(draft)
@@ -130,7 +130,7 @@ export class Immer {
         if (!state.modified) return state.base
         if (!state.finalized) {
             state.finalized = true
-            this.finalizeTree(state.proxy, path, patches, inversePatches)
+            this.finalizeTree(state.draft, path, patches, inversePatches)
             if (this.autoFreeze) Object.freeze(state.copy)
             if (patches) generatePatches(state, path, patches, inversePatches)
         }
@@ -138,20 +138,20 @@ export class Immer {
     }
     /**
      * @internal
-     * Finalize all proxies in the given state tree.
+     * Finalize all drafts in the given state tree.
      */
     finalizeTree(root, path, patches, inversePatches) {
-        const state = root[PROXY_STATE]
+        const state = root[DRAFT_STATE]
         if (state) {
             root = this.useProxies
                 ? state.copy
-                : (state.copy = shallowCopy(state.proxy))
+                : (state.copy = shallowCopy(state.draft))
         }
         const finalizeProperty = (prop, value, parent) => {
             // Skip unchanged properties in draft objects.
             if (state && parent === root && is(value, state.base[prop])) return
-            if (!isProxyable(value)) return
-            if (!isProxy(value)) {
+            if (!isDraftable(value)) return
+            if (!isDraft(value)) {
                 // Frozen values are already finalized.
                 return Object.isFrozen(value) || each(value, finalizeProperty)
             }

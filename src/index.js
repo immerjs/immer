@@ -33,8 +33,8 @@ export default produce
 export const setAutoFreeze = value => immer.setAutoFreeze(value)
 
 /**
- * Pass true to use the ES2015 `Proxy` class, which is always faster than using
- * ES5 proxies.
+ * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+ * always faster than using ES5 proxies.
  *
  * By default, feature detection is used, so calling this is rarely necessary.
  */
@@ -47,6 +47,6 @@ export const setUseProxies = value => immer.setUseProxies(value)
  */
 export const applyPatches = produce(applyPatchesImpl)
 
-export {original, isProxy as isDraft, NOTHING as nothing} from "./common"
+export {original, isDraft, NOTHING as nothing} from "./common"
 
 export {Immer}

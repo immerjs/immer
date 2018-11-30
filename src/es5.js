@@ -5,10 +5,10 @@ import {
     each,
     has,
     is,
-    isProxy,
-    isProxyable,
+    isDraft,
+    isDraftable,
     shallowCopy,
-    PROXY_STATE
+    DRAFT_STATE
 } from "./common"
 
 const descriptors = {}
@@ -27,12 +27,12 @@ export function willFinalize(result, baseDraft, needPatches) {
     }
 }
 
-export function createProxy(base, parent) {
-    if (isProxy(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
+export function createDraft(base, parent) {
+    if (isDraft(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
 
-    const proxy = shallowCopy(base)
+    const draft = shallowCopy(base)
     each(base, prop => {
-        Object.defineProperty(proxy, "" + prop, createPropertyProxy("" + prop))
+        Object.defineProperty(draft, "" + prop, createPropertyProxy("" + prop))
     })
 
     const state = {
@@ -42,15 +42,15 @@ export function createProxy(base, parent) {
         assigned: {}, // true: value was assigned to these props, false: was removed
         parent,
         base,
-        proxy,
+        draft,
         copy: null,
         revoke,
         revoked: false
     }
 
-    createHiddenProperty(proxy, PROXY_STATE, state)
+    createHiddenProperty(draft, DRAFT_STATE, state)
     currentScope().push(state)
-    return proxy
+    return draft
 }
 
 function revoke() {
@@ -65,9 +65,9 @@ function get(state, prop) {
     assertUnrevoked(state)
     const value = source(state)[prop]
     // Drafts are only created for proxyable values that exist in the base state.
-    if (!state.finalizing && value === state.base[prop] && isProxyable(value)) {
+    if (!state.finalizing && value === state.base[prop] && isDraftable(value)) {
         prepareCopy(state)
-        return (state.copy[prop] = createProxy(value, state))
+        return (state.copy[prop] = createDraft(value, state))
     }
     return value
 }
@@ -101,10 +101,10 @@ function createPropertyProxy(prop) {
             configurable: true,
             enumerable: true,
             get() {
-                return get(this[PROXY_STATE], prop)
+                return get(this[DRAFT_STATE], prop)
             },
             set(value) {
-                set(this[PROXY_STATE], prop, value)
+                set(this[DRAFT_STATE], prop, value)
             }
         })
     )
@@ -120,8 +120,8 @@ function assertUnrevoked(state) {
 
 // This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
 function markChangesSweep(scope) {
-    // The natural order of proxies in the `scope` array is based on when they
-    // were accessed. By processing proxies in reverse natural order, we have a
+    // The natural order of drafts in the `scope` array is based on when they
+    // were accessed. By processing drafts in reverse natural order, we have a
     // better chance of processing leaf nodes first. When a leaf node is known to
     // have changed, we can avoid any traversal of its ancestor nodes.
     for (let i = scope.length - 1; i >= 0; i--) {
@@ -136,25 +136,25 @@ function markChangesSweep(scope) {
 
 function markChangesRecursively(object) {
     if (!object || typeof object !== "object") return
-    const state = object[PROXY_STATE]
+    const state = object[DRAFT_STATE]
     if (!state) return
-    const {base, proxy, assigned} = state
+    const {base, draft, assigned} = state
     if (!Array.isArray(object)) {
         // Look for added keys.
-        Object.keys(proxy).forEach(key => {
+        Object.keys(draft).forEach(key => {
             // The `undefined` check is a fast path for pre-existing keys.
             if (base[key] === undefined && !has(base, key)) {
                 assigned[key] = true
                 markChanged(state)
             } else if (!assigned[key]) {
                 // Only untouched properties trigger recursion.
-                markChangesRecursively(proxy[key])
+                markChangesRecursively(draft[key])
             }
         })
         // Look for removed keys.
         Object.keys(base).forEach(key => {
             // The `undefined` check is a fast path for pre-existing keys.
-            if (proxy[key] === undefined && !has(proxy, key)) {
+            if (draft[key] === undefined && !has(draft, key)) {
                 assigned[key] = false
                 markChanged(state)
             }
@@ -162,24 +162,24 @@ function markChangesRecursively(object) {
     } else if (hasArrayChanges(state)) {
         markChanged(state)
         assigned.length = true
-        if (proxy.length < base.length) {
-            for (let i = proxy.length; i < base.length; i++) assigned[i] = false
+        if (draft.length < base.length) {
+            for (let i = draft.length; i < base.length; i++) assigned[i] = false
         } else {
-            for (let i = base.length; i < proxy.length; i++) assigned[i] = true
+            for (let i = base.length; i < draft.length; i++) assigned[i] = true
         }
-        for (let i = 0; i < proxy.length; i++) {
+        for (let i = 0; i < draft.length; i++) {
             // Only untouched indices trigger recursion.
-            if (assigned[i] === undefined) markChangesRecursively(proxy[i])
+            if (assigned[i] === undefined) markChangesRecursively(draft[i])
         }
     }
 }
 
 function hasObjectChanges(state) {
-    const {base, proxy} = state
+    const {base, draft} = state
 
     // Search for added keys. Start at the back, because non-numeric keys
     // are ordered by time of definition on the object.
-    const keys = Object.keys(proxy)
+    const keys = Object.keys(draft)
     for (let i = keys.length - 1; i >= 0; i--) {
         // The `undefined` check is a fast path for pre-existing keys.
         if (base[keys[i]] === undefined && !has(base, keys[i])) {
@@ -193,8 +193,8 @@ function hasObjectChanges(state) {
 }
 
 function hasArrayChanges(state) {
-    const {proxy} = state
-    if (proxy.length !== state.base.length) return true
+    const {draft} = state
+    if (draft.length !== state.base.length) return true
     // See #116
     // If we first shorten the length, our array interceptors will be removed.
     // If after that new items are added, result in the same original length,
@@ -202,7 +202,7 @@ function hasArrayChanges(state) {
     // So if there is no own descriptor on the last position, we know that items were removed and added
     // N.B.: splice, unshift, etc only shift values around, but not prop descriptors, so we only have to check
     // the last one
-    const descriptor = Object.getOwnPropertyDescriptor(proxy, proxy.length - 1)
+    const descriptor = Object.getOwnPropertyDescriptor(draft, draft.length - 1)
     // descriptor can be null, but only for newly created sparse arrays, eg. new Array(10)
     if (descriptor && !descriptor.get) return true
     // For all other cases, we don't have to compare, as they would have been picked up by the index setters

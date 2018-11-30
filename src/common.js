@@ -3,14 +3,14 @@ export const NOTHING =
         ? Symbol("immer-nothing")
         : {["immer-nothing"]: true}
 
-export const PROXY_STATE =
+export const DRAFT_STATE =
     typeof Symbol !== "undefined" ? Symbol("immer-state") : "__$immer_state"
 
-export function isProxy(value) {
-    return !!value && !!value[PROXY_STATE]
+export function isDraft(value) {
+    return !!value && !!value[DRAFT_STATE]
 }
 
-export function isProxyable(value) {
+export function isDraftable(value) {
     if (!value) return false
     if (typeof value !== "object") return false
     if (Array.isArray(value)) return true
@@ -19,8 +19,8 @@ export function isProxyable(value) {
 }
 
 export function original(value) {
-    if (value && value[PROXY_STATE]) {
-        return value[PROXY_STATE].base
+    if (value && value[DRAFT_STATE]) {
+        return value[DRAFT_STATE].base
     }
     // otherwise return undefined
 }
