@@ -20,7 +20,10 @@ const configDefaults = {
     autoFreeze:
         typeof process !== "undefined"
             ? process.env.NODE_ENV !== "production"
-            : verifyMinified.name === "verifyMinified"
+            : verifyMinified.name === "verifyMinified",
+    onAssign: null,
+    onDelete: null,
+    onCopy: null
 }
 
 export class Immer {
@@ -131,6 +134,12 @@ export class Immer {
         if (!state.finalized) {
             state.finalized = true
             this.finalizeTree(state.draft, path, patches, inversePatches)
+            if (this.onDelete) {
+                const {assigned} = state
+                for (const prop in assigned)
+                    assigned[prop] || this.onDelete(state, prop)
+            }
+            if (this.onCopy) this.onCopy(state)
             if (this.autoFreeze) Object.freeze(state.copy)
             if (patches) generatePatches(state, path, patches, inversePatches)
         }
@@ -147,20 +156,35 @@ export class Immer {
                 ? state.copy
                 : (state.copy = shallowCopy(state.draft))
         }
+        const {onAssign} = this
         const finalizeProperty = (prop, value, parent) => {
-            // Skip unchanged properties in draft objects.
-            if (state && parent === root && is(value, state.base[prop])) return
-            if (!isDraftable(value)) return
-            if (!isDraft(value)) {
-                // Frozen values are already finalized.
-                return Object.isFrozen(value) || each(value, finalizeProperty)
+            // Only `root` can be a draft in here.
+            const inDraft = state && parent === root
+            if (isDraftable(value)) {
+                // Skip unchanged properties in draft objects.
+                if (inDraft && is(value, state.base[prop])) return
+
+                // Find proxies within new objects. Frozen objects are already finalized.
+                if (!isDraft(value)) {
+                    if (!Object.isFrozen(value)) each(value, finalizeProperty)
+                    if (onAssign && inDraft) onAssign(state, prop, value)
+                    return
+                }
+
+                // prettier-ignore
+                parent[prop] =
+                    // Patches are never generated for assigned properties.
+                    patches && parent === root && !(state && has(state.assigned, prop))
+                        ? this.finalize(value, path.concat(prop), patches, inversePatches)
+                        : this.finalize(value)
+
+                if (onAssign && inDraft) onAssign(state, prop, parent[prop])
+                return
             }
-            // prettier-ignore
-            parent[prop] =
-                // Patches are never generated for assigned properties.
-                patches && parent === root && !(state && has(state.assigned, prop))
-                    ? this.finalize(value, path.concat(prop), patches, inversePatches)
-                    : this.finalize(value)
+            // Call `onAssign` for primitive values.
+            if (onAssign && inDraft && !is(value, state.base[prop])) {
+                onAssign(state, prop, value)
+            }
         }
         each(root, finalizeProperty)
         return root

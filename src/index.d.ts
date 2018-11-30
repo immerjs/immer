@@ -130,7 +130,13 @@ export function original<T>(value: T): T | void
 export function isDraft(value: any): boolean
 
 export class Immer {
-    constructor(config: {useProxies?: boolean; autoFreeze?: boolean})
+    constructor(config: {
+        useProxies?: boolean
+        autoFreeze?: boolean
+        onAssign?: (state: ImmerState, prop: keyof any, value: any) => void
+        onDelete?: (state: ImmerState, prop: keyof any) => void
+        onCopy?: (state: ImmerState) => void
+    })
     /**
      * The `produce` function takes a value and a "recipe function" (whose
      * return value often depends on the base state). The recipe function is
@@ -172,4 +178,11 @@ export class Immer {
      * By default, feature detection is used, so calling this is rarely necessary.
      */
     setUseProxies(useProxies: boolean): void
+}
+
+export interface ImmerState<T = any> {
+    parent?: ImmerState
+    base: T
+    copy: T
+    assigned: {[prop: string]: boolean}
 }
