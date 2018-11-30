@@ -47,119 +47,167 @@ export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
 export interface IProduce {
     /**
-     * Immer takes a state, and runs a function against it.
-     * That function can freely mutate the state, as it will create copies-on-write.
-     * This means that the original state will stay unchanged, and once the function finishes, the modified state is returned.
+     * The `produce` function takes a value and a "recipe function" (whose
+     * return value often depends on the base state). The recipe function is
+     * free to mutate its first argument however it wants. All mutations are
+     * only ever applied to a __copy__ of the base state.
      *
-     * If the first argument is a function, this is interpreted as the recipe, and will create a curried function that will execute the recipe
-     * any time it is called with the current state.
+     * Pass only a function to create a "curried producer" which relieves you
+     * from passing the recipe function every time.
      *
-     * @param currentState - the state to start with
-     * @param recipe - function that receives a proxy of the current state as first argument and which can be freely modified
-     * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
-     * @returns The next state: a new state, or the current state if nothing was modified
+     * Only plain objects and arrays are made mutable. All other objects are
+     * considered uncopyable.
+     *
+     * Note: This function is __bound__ to its `Immer` instance.
+     *
+     * @param {any} base - the initial state
+     * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+     * @param {Function} patchListener - optional function that will be called with all the patches produced here
+     * @returns {any} a new state, or the initial state if nothing was modified
      */
     <S = any>(
-        currentState: S,
-        recipe: (this: Draft<S>, draftState: Draft<S>) => void | S,
+        base: S,
+        recipe: (this: Draft<S>, draft: Draft<S>) => void | S,
         listener?: PatchListener
     ): S
 
     // curried invocations with default initial state
     // 0 additional arguments
     <S = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>) => void | S,
-        initialState: S
-    ): (currentState: S | undefined) => S
+        recipe: (this: Draft<S>, draft: Draft<S>) => void | S,
+        defaultBase: S
+    ): (base: S | undefined) => S
     // 1 additional argument of type A
     <S = any, A = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A) => void | S,
-        initialState: S
-    ): (currentState: S | undefined, a: A) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A) => void | S,
+        defaultBase: S
+    ): (base: S | undefined, a: A) => S
     // 2 additional arguments of types A and B
     <S = any, A = any, B = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A, b: B) => void | S,
-        initialState: S
-    ): (currentState: S | undefined, a: A, b: B) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A, b: B) => void | S,
+        defaultBase: S
+    ): (base: S | undefined, a: A, b: B) => S
     // 3 additional arguments of types A, B and C
     <S = any, A = any, B = any, C = any>(
-        recipe: (
-            this: Draft<S>,
-            draftState: Draft<S>,
-            a: A,
-            b: B,
-            c: C
-        ) => void | S,
-        initialState: S
-    ): (currentState: S | undefined, a: A, b: B, c: C) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A, b: B, c: C) => void | S,
+        defaultBase: S
+    ): (base: S | undefined, a: A, b: B, c: C) => S
     // any number of additional arguments, but with loss of type safety
     // this may be alleviated if "variadic kinds" makes it into Typescript:
     // https://github.com/Microsoft/TypeScript/issues/5453
     <S = any>(
         recipe: (
             this: Draft<S>,
-            draftState: Draft<S>,
+            draft: Draft<S>,
             ...extraArgs: any[]
         ) => void | S,
-        initialState: S
-    ): (currentState: S | undefined, ...extraArgs: any[]) => S
+        defaultBase: S
+    ): (base: S | undefined, ...extraArgs: any[]) => S
 
     // curried invocations without default initial state
     // 0 additional arguments
-    <S = any>(recipe: (this: Draft<S>, draftState: Draft<S>) => void | S): (
-        currentState: S
+    <S = any>(recipe: (this: Draft<S>, draft: Draft<S>) => void | S): (
+        base: S
     ) => S
     // 1 additional argument of type A
     <S = any, A = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A) => void | S
-    ): (currentState: S, a: A) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A) => void | S
+    ): (base: S, a: A) => S
     // 2 additional arguments of types A and B
     <S = any, A = any, B = any>(
-        recipe: (this: Draft<S>, draftState: Draft<S>, a: A, b: B) => void | S
-    ): (currentState: S, a: A, b: B) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A, b: B) => void | S
+    ): (base: S, a: A, b: B) => S
     // 3 additional arguments of types A, B and C
     <S = any, A = any, B = any, C = any>(
-        recipe: (
-            this: Draft<S>,
-            draftState: Draft<S>,
-            a: A,
-            b: B,
-            c: C
-        ) => void | S
-    ): (currentState: S, a: A, b: B, c: C) => S
+        recipe: (this: Draft<S>, draft: Draft<S>, a: A, b: B, c: C) => void | S
+    ): (base: S, a: A, b: B, c: C) => S
     // any number of additional arguments, but with loss of type safety
     // this may be alleviated if "variadic kinds" makes it into Typescript:
     // https://github.com/Microsoft/TypeScript/issues/5453
     <S = any>(
         recipe: (
             this: Draft<S>,
-            draftState: Draft<S>,
+            draft: Draft<S>,
             ...extraArgs: any[]
         ) => void | S
-    ): (currentState: S, ...extraArgs: any[]) => S
+    ): (base: S, ...extraArgs: any[]) => S
 }
 
 export const produce: IProduce
 export default produce
 
+/**
+ * The sentinel value returned by producers to replace the draft with undefined.
+ */
 export const nothing: undefined
 
 /**
- * Automatically freezes any state trees generated by immer.
- * This protects against accidental modifications of the state tree outside of an immer function.
- * This comes with a performance impact, so it is recommended to disable this option in production.
- * It is by default enabled.
+ * Pass true to automatically freeze all copies created by Immer.
+ *
+ * By default, auto-freezing is disabled in production.
  */
 export function setAutoFreeze(autoFreeze: boolean): void
 
 /**
- * Manually override whether proxies should be used.
- * By default done by using feature detection
+ * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+ * always faster than using ES5 proxies.
+ *
+ * By default, feature detection is used, so calling this is rarely necessary.
  */
 export function setUseProxies(useProxies: boolean): void
 
-export function applyPatches<S>(state: S, patches: Patch[]): S
+/**
+ * Apply an array of Immer patches to the first argument.
+ *
+ * This function is a producer, which means copy-on-write is in effect.
+ */
+export function applyPatches<S>(base: S, patches: Patch[]): S
 
 export function original<T>(value: T): T | void
 
 export function isDraft(value: any): boolean
+
+export class Immer {
+    constructor(config: {useProxies?: boolean; autoFreeze?: boolean})
+    /**
+     * The `produce` function takes a value and a "recipe function" (whose
+     * return value often depends on the base state). The recipe function is
+     * free to mutate its first argument however it wants. All mutations are
+     * only ever applied to a __copy__ of the base state.
+     *
+     * Pass only a function to create a "curried producer" which relieves you
+     * from passing the recipe function every time.
+     *
+     * Only plain objects and arrays are made mutable. All other objects are
+     * considered uncopyable.
+     *
+     * Note: This function is __bound__ to its `Immer` instance.
+     *
+     * @param {any} base - the initial state
+     * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+     * @param {Function} patchListener - optional function that will be called with all the patches produced here
+     * @returns {any} a new state, or the initial state if nothing was modified
+     */
+    produce: IProduce
+    /**
+     * When true, `produce` will freeze the copies it creates.
+     */
+    readonly autoFreeze: boolean
+    /**
+     * When true, drafts are ES2015 proxies.
+     */
+    readonly useProxies: boolean
+    /**
+     * Pass true to automatically freeze all copies created by Immer.
+     *
+     * By default, auto-freezing is disabled in production.
+     */
+    setAutoFreeze(autoFreeze: boolean): void
+    /**
+     * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+     * always faster than using ES5 proxies.
+     *
+     * By default, feature detection is used, so calling this is rarely necessary.
+     */
+    setUseProxies(useProxies: boolean): void
+}
