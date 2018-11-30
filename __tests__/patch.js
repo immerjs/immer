@@ -69,7 +69,7 @@ describe("applyPatches", () => {
         expect(() => {
             const patch = {op: "remove", path: [0]}
             applyPatches([1, 2], [patch])
-        }).toThrowError(/^Remove can only remove the last key of an array/)
+        }).toThrowError(/^Only the last index of an array can be removed/)
     })
 })
 

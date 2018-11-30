@@ -9,13 +9,13 @@ function runTests(name, useProxies) {
         setUseProxies(useProxies)
 
         it("should check arguments", () => {
-            expect(() => produce()).toThrow(/produce expects 1 to 3 arguments/)
+            let error = /if first argument is not a function, the second argument to produce should be a function/
+            expect(() => produce()).toThrow(error)
+            expect(() => produce({})).toThrow(error)
+
+            expect(() => produce({}, {})).toThrow(/should be a function/)
             expect(() => produce({}, () => {}, [])).toThrow(
                 /third argument of a producer/
-            )
-            expect(() => produce({}, {})).toThrow(/should be a function/)
-            expect(() => produce({})).toThrow(
-                /if first argument is not a function, the second argument to produce should be a function/
             )
         })
 

@@ -7,7 +7,7 @@ import babel from "rollup-plugin-babel"
 
 function getConfig(dest, format, ugly) {
     const conf = {
-        input: "src/immer.js",
+        input: "src/index.js",
         output: {
             exports: "named",
             file: dest,

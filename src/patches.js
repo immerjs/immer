@@ -1,100 +1,72 @@
 import {each} from "./common"
 
-export function generatePatches(
-    state,
-    basepath,
-    patches,
-    inversePatches,
-    baseValue,
-    resultValue
-) {
-    if (patches)
-        if (Array.isArray(baseValue))
-            generateArrayPatches(
-                state,
-                basepath,
-                patches,
-                inversePatches,
-                baseValue,
-                resultValue
-            )
-        else
-            generateObjectPatches(
-                state,
-                basepath,
-                patches,
-                inversePatches,
-                baseValue,
-                resultValue
-            )
+export function generatePatches(state, basePath, patches, inversePatches) {
+    Array.isArray(state.base)
+        ? generateArrayPatches(state, basePath, patches, inversePatches)
+        : generateObjectPatches(state, basePath, patches, inversePatches)
 }
 
-export function generateArrayPatches(
-    state,
-    basepath,
-    patches,
-    inversePatches,
-    baseValue,
-    resultValue
-) {
-    const shared = Math.min(baseValue.length, resultValue.length)
-    for (let i = 0; i < shared; i++) {
-        if (state.assigned[i] && baseValue[i] !== resultValue[i]) {
-            const path = basepath.concat(i)
-            patches.push({op: "replace", path, value: resultValue[i]})
-            inversePatches.push({op: "replace", path, value: baseValue[i]})
+export function generateArrayPatches(state, basePath, patches, inversePatches) {
+    const {base, copy, assigned} = state
+    const minLength = Math.min(base.length, copy.length)
+
+    // Look for replaced indices.
+    for (let i = 0; i < minLength; i++) {
+        if (assigned[i] && base[i] !== copy[i]) {
+            const path = basePath.concat(i)
+            patches.push({op: "replace", path, value: copy[i]})
+            inversePatches.push({op: "replace", path, value: base[i]})
         }
     }
-    if (shared < resultValue.length) {
-        // stuff was added
-        for (let i = shared; i < resultValue.length; i++) {
-            const path = basepath.concat(i)
-            patches.push({op: "add", path, value: resultValue[i]})
+
+    // Did the array expand?
+    if (minLength < copy.length) {
+        for (let i = minLength; i < copy.length; i++) {
+            patches.push({
+                op: "add",
+                path: basePath.concat(i),
+                value: copy[i]
+            })
         }
         inversePatches.push({
             op: "replace",
-            path: basepath.concat("length"),
-            value: baseValue.length
+            path: basePath.concat("length"),
+            value: base.length
         })
-    } else if (shared < baseValue.length) {
-        // stuff was removed
+    }
+
+    // ...or did it shrink?
+    else if (minLength < base.length) {
         patches.push({
             op: "replace",
-            path: basepath.concat("length"),
-            value: resultValue.length
+            path: basePath.concat("length"),
+            value: copy.length
         })
-        for (let i = shared; i < baseValue.length; i++) {
-            const path = basepath.concat(i)
-            inversePatches.push({op: "add", path, value: baseValue[i]})
+        for (let i = minLength; i < base.length; i++) {
+            inversePatches.push({
+                op: "add",
+                path: basePath.concat(i),
+                value: base[i]
+            })
         }
     }
 }
 
-function generateObjectPatches(
-    state,
-    basepath,
-    patches,
-    inversePatches,
-    baseValue,
-    resultValue
-) {
+function generateObjectPatches(state, basePath, patches, inversePatches) {
+    const {base, copy} = state
     each(state.assigned, (key, assignedValue) => {
-        const origValue = baseValue[key]
-        const value = resultValue[key]
-        const op = !assignedValue
-            ? "remove"
-            : key in baseValue
-                ? "replace"
-                : "add"
-        if (origValue === baseValue && op === "replace") return
-        const path = basepath.concat(key)
+        const origValue = base[key]
+        const value = copy[key]
+        const op = !assignedValue ? "remove" : key in base ? "replace" : "add"
+        if (origValue === base && op === "replace") return
+        const path = basePath.concat(key)
         patches.push(op === "remove" ? {op, path} : {op, path, value})
         inversePatches.push(
             op === "add"
                 ? {op: "remove", path}
                 : op === "remove"
-                    ? {op: "add", path, value: origValue}
-                    : {op: "replace", path, value: origValue}
+                ? {op: "add", path, value: origValue}
+                : {op: "replace", path, value: origValue}
         )
     })
 }
@@ -110,10 +82,7 @@ export function applyPatches(draft, patches) {
             for (let i = 0; i < path.length - 1; i++) {
                 base = base[path[i]]
                 if (!base || typeof base !== "object")
-                    throw new Error(
-                        "Cannot apply patch, path doesn't resolve: " +
-                            path.join("/")
-                    )
+                    throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
             }
             const key = path[path.length - 1]
             switch (patch.op) {
@@ -124,14 +93,12 @@ export function applyPatches(draft, patches) {
                     break
                 case "remove":
                     if (Array.isArray(base)) {
-                        if (key === base.length - 1) base.length -= 1
-                        else
-                            throw new Error(
-                                `Remove can only remove the last key of an array, index: ${key}, length: ${
-                                    base.length
-                                }`
-                            )
-                    } else delete base[key]
+                        if (key !== base.length - 1)
+                            throw new Error(`Only the last index of an array can be removed, index: ${key}, length: ${base.length}`) // prettier-ignore
+                        base.length -= 1
+                    } else {
+                        delete base[key]
+                    }
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)

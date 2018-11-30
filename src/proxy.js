@@ -6,15 +6,44 @@ import {
     each,
     has,
     is,
-    isProxyable,
-    isProxy,
-    finalize,
+    isDraftable,
+    isDraft,
     shallowCopy,
-    PROXY_STATE,
-    RETURNED_AND_MODIFIED_ERROR
+    DRAFT_STATE
 } from "./common"
 
-let proxies = null
+// For nested produce calls:
+export const scopes = []
+export const currentScope = () => scopes[scopes.length - 1]
+
+// Do nothing before being finalized.
+export function willFinalize() {}
+
+export function createDraft(base, parent) {
+    if (isDraft(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
+
+    const state = {
+        modified: false, // this tree is modified (either this object or one of it's children)
+        assigned: {}, // true: value was assigned to these props, false: was removed
+        parent,
+        base,
+        draft: null, // the root proxy
+        drafts: {}, // proxied properties
+        copy: null,
+        revoke: null,
+        finalized: false
+    }
+
+    const {revoke, proxy} = Array.isArray(base)
+        ? Proxy.revocable([state], arrayTraps)
+        : Proxy.revocable(state, objectTraps)
+
+    state.draft = proxy
+    state.revoke = revoke
+
+    currentScope().push(state)
+    return proxy
+}
 
 const objectTraps = {
     get,
@@ -56,36 +85,24 @@ arrayTraps.set = function(state, prop, value) {
     return objectTraps.set.call(this, state[0], prop, value)
 }
 
-function createState(parent, base) {
-    return {
-        modified: false, // this tree is modified (either this object or one of it's children)
-        assigned: {}, // true: value was assigned to these props, false: was removed
-        finalized: false,
-        parent,
-        base,
-        copy: undefined,
-        proxies: {}
-    }
-}
-
 function source(state) {
     return state.modified === true ? state.copy : state.base
 }
 
 function get(state, prop) {
-    if (prop === PROXY_STATE) return state
+    if (prop === DRAFT_STATE) return state
     if (state.modified) {
         const value = state.copy[prop]
-        if (value === state.base[prop] && isProxyable(value))
+        if (value === state.base[prop] && isDraftable(value))
             // only create proxy if it is not yet a proxy, and not a new object
             // (new objects don't need proxying, they will be processed in finalize anyway)
-            return (state.copy[prop] = createProxy(state, value))
+            return (state.copy[prop] = createDraft(value, state))
         return value
     } else {
-        if (has(state.proxies, prop)) return state.proxies[prop]
+        if (has(state.drafts, prop)) return state.drafts[prop]
         const value = state.base[prop]
-        if (!isProxy(value) && isProxyable(value))
-            return (state.proxies[prop] = createProxy(state, value))
+        if (!isDraft(value) && isDraftable(value))
+            return (state.drafts[prop] = createDraft(value, state))
         return value
     }
 }
@@ -94,9 +111,9 @@ function set(state, prop, value) {
     if (!state.modified) {
         // Optimize based on value's truthiness. Truthy values are guaranteed to
         // never be undefined, so we can avoid the `in` operator. Lastly, truthy
-        // values may be proxies, but falsy values are never proxies.
+        // values may be drafts, but falsy values are never drafts.
         const isUnchanged = value
-            ? is(state.base[prop], value) || value === state.proxies[prop]
+            ? is(state.base[prop], value) || value === state.drafts[prop]
             : is(state.base[prop], value) && prop in state.base
         if (isUnchanged) return true
         markChanged(state)
@@ -119,8 +136,8 @@ function deleteProperty(state, prop) {
 function getOwnPropertyDescriptor(state, prop) {
     const owner = state.modified
         ? state.copy
-        : has(state.proxies, prop)
-        ? state.proxies
+        : has(state.drafts, prop)
+        ? state.drafts
         : state.base
     const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
@@ -138,55 +155,8 @@ function markChanged(state) {
     if (!state.modified) {
         state.modified = true
         state.copy = shallowCopy(state.base)
-        // copy the proxies over the base-copy
-        assign(state.copy, state.proxies) // yup that works for arrays as well
+        // copy the drafts over the base-copy
+        assign(state.copy, state.drafts) // yup that works for arrays as well
         if (state.parent) markChanged(state.parent)
-    }
-}
-
-// creates a proxy for plain objects / arrays
-function createProxy(parentState, base) {
-    if (isProxy(base)) throw new Error("Immer bug. Plz report.")
-    const state = createState(parentState, base)
-    const proxy = Array.isArray(base)
-        ? Proxy.revocable([state], arrayTraps)
-        : Proxy.revocable(state, objectTraps)
-    proxies.push(proxy)
-    return proxy.proxy
-}
-
-export function produceProxy(baseState, producer, patchListener) {
-    const previousProxies = proxies
-    proxies = []
-    const patches = patchListener && []
-    const inversePatches = patchListener && []
-    try {
-        // create proxy for root
-        const rootProxy = createProxy(undefined, baseState)
-        // execute the producer function
-        const returnValue = producer.call(rootProxy, rootProxy)
-        // and finalize the modified proxy
-        let result
-        // check whether the draft was modified and/or a value was returned
-        if (returnValue !== undefined && returnValue !== rootProxy) {
-            // something was returned, and it wasn't the proxy itself
-            if (rootProxy[PROXY_STATE].modified)
-                throw new Error(RETURNED_AND_MODIFIED_ERROR)
-
-            // we need to finalize the return value in case it's a subset of the draft
-            result = finalize(returnValue)
-            if (patches) {
-                patches.push({op: "replace", path: [], value: result})
-                inversePatches.push({op: "replace", path: [], value: baseState})
-            }
-        } else {
-            result = finalize(rootProxy, [], patches, inversePatches)
-        }
-        // revoke all proxies
-        each(proxies, (_, p) => p.revoke())
-        patchListener && patchListener(patches, inversePatches)
-        return result
-    } finally {
-        proxies = previousProxies
     }
 }
