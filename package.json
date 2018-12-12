@@ -18,8 +18,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged",
-      "pre-publish": "yarn-or-npm run build"
+      "pre-commit": "pretty-quick --staged"
     }
   },
   "repository": {
