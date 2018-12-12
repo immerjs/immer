@@ -11,6 +11,7 @@ cache:
     directories:
         - "node_modules"
 script:
+    - yarn run build
     - yarn coveralls
     - yarn test:flow
 after_success:
