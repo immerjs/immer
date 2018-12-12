@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "1.8.0",
+  "version": "0.0.0-development",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mweststrate/immer.git"
+    "url": "https://github.com/mweststrate/immer.git"
   },
   "keywords": [
     "immutable",
@@ -76,7 +76,8 @@
     "ts-jest": "^22.4.6",
     "typescript": "2.8.1",
     "uglify-es": "^3.3.6",
-    "yarn-or-npm": "^2.0.4"
+    "yarn-or-npm": "^2.0.4",
+    "semantic-release": "^15.12.5"
   },
   "jest": {
     "testURL": "http://localhost",
