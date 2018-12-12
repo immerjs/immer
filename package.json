@@ -76,8 +76,7 @@
     "ts-jest": "^22.4.6",
     "typescript": "2.8.1",
     "uglify-es": "^3.3.6",
-    "yarn-or-npm": "^2.0.4",
-    "semantic-release": "^15.12.5"
+    "yarn-or-npm": "^2.0.4"
   },
   "jest": {
     "testURL": "http://localhost",
