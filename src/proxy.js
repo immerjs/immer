@@ -107,9 +107,12 @@ function set(state, prop, value) {
 }
 
 function deleteProperty(state, prop) {
-    state.assigned[prop] = false
-    markChanged(state)
-    delete state.copy[prop]
+    // The `undefined` check is a fast path for pre-existing keys.
+    if (state.base[prop] !== undefined || prop in state.base) {
+        state.assigned[prop] = false
+        markChanged(state)
+    }
+    if (state.copy) delete state.copy[prop]
     return true
 }
 
@@ -117,8 +120,8 @@ function getOwnPropertyDescriptor(state, prop) {
     const owner = state.modified
         ? state.copy
         : has(state.proxies, prop)
-            ? state.proxies
-            : state.base
+        ? state.proxies
+        : state.base
     const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
         descriptor.configurable = true
