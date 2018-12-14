@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`hooks - onAssign() when draft is an array assign 1`] = `
+Array [
+  Array [
+    0,
+    0,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an array push 1`] = `
+Array [
+  Array [
+    0,
+    4,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an array splice (length += 0) 1`] = `
+Array [
+  Array [
+    1,
+    0,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an array splice (length += 1) 1`] = `
+Array [
+  Array [
+    1,
+    0,
+  ],
+  Array [
+    2,
+    0,
+  ],
+  Array [
+    3,
+    3,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an array splice (length -= 1) 1`] = `
+Array [
+  Array [
+    0,
+    6,
+  ],
+  Array [
+    1,
+    3,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an array unshift 1`] = `
+Array [
+  Array [
+    0,
+    0,
+  ],
+  Array [
+    1,
+    1,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an object assign 1`] = `
+Array [
+  Array [
+    "a",
+    1,
+  ],
+  Array [
+    "c",
+    1,
+  ],
+]
+`;
+
+exports[`hooks - onAssign() when draft is an object nested assignments 1`] = `
+Array [
+  Array [
+    "c",
+    2,
+  ],
+  Array [
+    "b",
+    Object {
+      "c": 2,
+      "e": 1,
+    },
+  ],
+  Array [
+    "a",
+    Object {
+      "b": Object {
+        "c": 2,
+        "e": 1,
+      },
+    },
+  ],
+]
+`;
+
+exports[`hooks - onDelete() when draft is an array - length = 0 1`] = `Array []`;
+
+exports[`hooks - onDelete() when draft is an array - pop 1`] = `
+Array [
+  Array [
+    "0",
+  ],
+]
+`;
+
+exports[`hooks - onDelete() when draft is an array - splice (length -= 1) 1`] = `
+Array [
+  Array [
+    "2",
+  ],
+]
+`;
+
+exports[`hooks - onDelete() when draft is an object - delete 1`] = `
+Array [
+  Array [
+    "a",
+  ],
+  Array [
+    "c",
+  ],
+]
+`;
+
+exports[`hooks - onDelete() when draft is an object - nested deletions 1`] = `
+Array [
+  Array [
+    "c",
+  ],
+]
+`;
