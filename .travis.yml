@@ -13,9 +13,15 @@ cache:
 script:
     - yarn build
     - yarn coveralls
+
+    # types are only tested in node 10
+    - yarn global add if-node-version
+    - if-node-version "10" || travis_terminate 0
     - yarn test:flow
+
     # typescript@2.8.1
     - yarn test:dts
+
     # typescript@latest
     - yarn add typescript@latest -D
     - yarn test:dts
