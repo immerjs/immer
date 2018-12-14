@@ -10,16 +10,14 @@ cache:
     yarn: true
     directories:
         - "node_modules"
+before_script:
+    - yarn global add if-node-version
 script:
     - yarn build
+    - if-node-version 10 || { yarn test && travis_terminate 0; }
+
     - yarn coveralls
-
-    # types are only tested in node 10
-    - yarn global add if-node-version
-    - if-node-version "10" || travis_terminate 0
     - yarn test:flow
-
-    # typescript@2.8.1
     - yarn test:dts
 
     # typescript@latest
