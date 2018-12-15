@@ -39,11 +39,14 @@
   "files": [
     "dist/"
   ],
+  "engines": {
+    "node": ">=8"
+  },
   "devDependencies": {
+    "@sucrase/jest-plugin": "^2.0.0",
     "@types/jest": "^22.2.3",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
-    "babel-jest": "^22.0.4",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
@@ -69,23 +72,15 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
     "seamless-immutable": "^7.1.3",
-    "ts-jest": "^22.4.6",
     "typescript": "2.8.1",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },
   "jest": {
     "testURL": "http://localhost",
-    "transform": {
-      "^.+\\.jsx?$": "babel-jest",
-      "^.+\\.tsx?$": "ts-jest"
-    },
     "testRegex": "/__tests__/[^/]*[jt]sx?$",
-    "globals": {
-      "ts-jest": {
-        "enableTsDiagnostics": true,
-        "tsConfigFile": "__tests__/test.tsconfig.json"
-      }
+    "transform": {
+      "\\.(t|j)sx?$": "@sucrase/jest-plugin"
     },
     "moduleFileExtensions": [
       "ts",
