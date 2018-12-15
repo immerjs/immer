@@ -10,16 +10,16 @@ Did Immer make a difference to your project? Consider buying me a coffee!<br/><a
 
 ---
 
-* NPM: `npm install immer`
-* Yarn: `yarn add immer`
-* CDN: Exposed global is `immer`
-  * Unpkg: `<script src="https://unpkg.com/immer/dist/immer.umd.js"></script>`
-  * JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"></script>`
+-   NPM: `npm install immer`
+-   Yarn: `yarn add immer`
+-   CDN: Exposed global is `immer`
+    -   Unpkg: `<script src="https://unpkg.com/immer/dist/immer.umd.js"></script>`
+    -   JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"></script>`
 
 ---
 
-* Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
-* Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
+-   Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
+-   Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
 
 Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way. It is based on the [_copy-on-write_](https://en.wikipedia.org/wiki/Copy-on-write) mechanism.
 
@@ -33,11 +33,11 @@ A mindful reader might notice that this is quite similar to `withMutations` of I
 
 ## External resources
 
-* Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)
-* Blog: by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)
-* Blog: [Immutability in React and Redux: The Complete Guide](https://daveceddia.com/react-redux-immutability-guide/)
-* Video tutorial: [Using Immer with React.setState](https://codedaily.io/screencasts/86/Immutable-Data-with-Immer-and-React-setState)
-* [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
+-   Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)
+-   Blog: by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)
+-   Blog: [Immutability in React and Redux: The Complete Guide](https://daveceddia.com/react-redux-immutability-guide/)
+-   Video tutorial: [Using Immer with React.setState](https://codedaily.io/screencasts/86/Immutable-Data-with-Immer-and-React-setState)
+-   [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
 
 ## API
 
@@ -89,13 +89,13 @@ expect(nextState[1]).not.toBe(baseState[1])
 
 ## Benefits
 
-* Immutability with normal JavaScript objects and arrays. No new APIs to learn!
-* Strongly typed, no string based paths selectors etc.
-* Structural sharing out of the box
-* Object freezing out of the box
-* Deep updates are a breeze
-* Boilerplate reduction. Less noise, more concise code.
-* Small: bundled and minified: 2KB.
+-   Immutability with normal JavaScript objects and arrays. No new APIs to learn!
+-   Strongly typed, no string based paths selectors etc.
+-   Structural sharing out of the box
+-   Object freezing out of the box
+-   Deep updates are a breeze
+-   Boilerplate reduction. Less noise, more concise code.
+-   Small: bundled and minified: 2KB.
 
 Read further to see all these benefits explained.
 
@@ -233,9 +233,7 @@ const byId = produce(
 
 ##### Fun with currying
 
-A random fun example just for inspiration:
-a neat trick is to turn `Object.assign` into a producer to create a "spread" function that is smarter than the normal spread operator, as it doesn't produce a new state if the result doesn't actually change ([details & explanation](https://twitter.com/mweststrate/status/1045059430256119809)).
-Quick example:
+A random fun example just for inspiration: a neat trick is to turn `Object.assign` into a producer to create a "spread" function that is smarter than the normal spread operator, as it doesn't produce a new state if the result doesn't actually change ([details & explanation](https://twitter.com/mweststrate/status/1045059430256119809)). Quick example:
 
 ```javascript
 import produce from "immer"
@@ -243,23 +241,22 @@ const spread = produce(Object.assign)
 
 const base = {x: 1, y: 1}
 
-console.log({...base, y: 1}      === base) // false
+console.log({...base, y: 1} === base) // false
 console.log(spread(base, {y: 1}) === base) // true! base is recycled as no actual new value was produced
 console.log(spread(base, {y: 2}) === base) // false, produced a new object as it should
 ```
 
 ## Patches
 
-During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer.
-This is a very powerful tool if you want to fork your state temporarily and replay the changes to the original.
+During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer. This is a very powerful tool if you want to fork your state temporarily and replay the changes to the original.
 
 Patches are useful in few scenarios:
-  * To exchange incremental updates with other parties, for example over websockets
-  * For debugging / traces, to see precisely how state is changed over time
-  * As basis for undo/redo or as an approach to replay changes on a slightly different state tree
 
-To help with replaying patches, `applyPatches` comes in handy. Here is an example how patches could be used
-to record the incremental updates and (inverse) apply them:
+-   To exchange incremental updates with other parties, for example over websockets
+-   For debugging / traces, to see precisely how state is changed over time
+-   As basis for undo/redo or as an approach to replay changes on a slightly different state tree
+
+To help with replaying patches, `applyPatches` comes in handy. Here is an example how patches could be used to record the incremental updates and (inverse) apply them:
 
 ```javascript
 import produce, {applyPatches} from "immer"
@@ -301,31 +298,34 @@ state = applyPatches(state, changes)
 // state now contains the changes from both code paths!
 expect(state).toEqual({
     name: "Michel", // changed by the server
-    age: 33         // changed by the wizard
+    age: 33 // changed by the wizard
 })
 
 // Finally, even after finishing the wizard, the user might change his mind and undo his changes...
 state = applyPatches(state, inverseChanges)
 expect(state).toEqual({
     name: "Michel", // Not reverted
-    age: 32         // Reverted
+    age: 32 // Reverted
 })
 ```
 
-The generated patches are similar (but not the same) to the [RFC-6902 JSON patch standard](http://tools.ietf.org/html/rfc6902), except that the `path` property is an array, rather than a string.
-This makes processing patches easier. If you want to normalize to the official specification, `patch.path = patch.path.join("/")` should do the trick. Anyway, this is what a bunch of patches and their inverse could look like:
+The generated patches are similar (but not the same) to the [RFC-6902 JSON patch standard](http://tools.ietf.org/html/rfc6902), except that the `path` property is an array, rather than a string. This makes processing patches easier. If you want to normalize to the official specification, `patch.path = patch.path.join("/")` should do the trick. Anyway, this is what a bunch of patches and their inverse could look like:
 
 ```json
 [
-    { "op": "replace", "path": ["profile"], "value": { "name": "Veria", "age": 5 }},
-    { "op": "remove", "path": ["tags", 3] }
+    {
+        "op": "replace",
+        "path": ["profile"],
+        "value": {"name": "Veria", "age": 5}
+    },
+    {"op": "remove", "path": ["tags", 3]}
 ]
 ```
 
 ```json
 [
-    { "op": "replace", "path": ["profile"], "value": { "name": "Noa", "age": 6 }},
-    { "op": "add", "path": ["tags", 3], "value": "kiddo"},
+    {"op": "replace", "path": ["profile"], "value": {"name": "Noa", "age": 6}},
+    {"op": "add", "path": ["tags", 3], "value": "kiddo"}
 ]
 ```
 
@@ -382,8 +382,7 @@ _Note: It is not possible to return `undefined` this way, as it is indistinguish
 
 ## Producing `undefined` using `nothing`
 
-So, in general, one can replace the current state by just `return`ing a new value from the producer, rather than modifying the draft.
-There is a subtle edge case however: if you try to write a producer that wants to replace the current state with `undefined`:
+So, in general, one can replace the current state by just `return`ing a new value from the producer, rather than modifying the draft. There is a subtle edge case however: if you try to write a producer that wants to replace the current state with `undefined`:
 
 ```javascript
 produce({}, draft => {
@@ -400,24 +399,22 @@ produce({}, draft => {
 })
 ```
 
-The problem is that in JavaScript a function that doesn't return anything also returns `undefined`!
-So immer cannot differentiate between those different cases.
-So, by default, Immer will assume that any producer that returns `undefined` just tried to modify the draft.
+The problem is that in JavaScript a function that doesn't return anything also returns `undefined`! So immer cannot differentiate between those different cases. So, by default, Immer will assume that any producer that returns `undefined` just tried to modify the draft.
 
 However, to make it clear to Immer that you intentionally want to produce the value `undefined`, you can return the built-in token `nothing`:
 
 ```javascript
-import produce, { nothing } from "immer"
+import produce, {nothing} from "immer"
 
 const state = {
     hello: "world"
 }
 
-produce(state, (draft) => {})
-produce(state, (draft) => undefined)
+produce(state, draft => {})
+produce(state, draft => undefined)
 // Both return the original state: { hello: "world"}
 
-produce(state, (draft) => nothing)
+produce(state, draft => nothing)
 // Produces a new state, 'undefined'
 ```
 
@@ -428,7 +425,7 @@ N.B. Note that this problem is specific for the `undefined` value, any other val
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
 
 ```js
-const baseState = { users: [{ name: "Richie" }] };
+const baseState = {users: [{name: "Richie"}]}
 const nextState = produce(baseState, draftState => {
     original(draftState.users) // is === baseState.users
 })
@@ -437,12 +434,12 @@ const nextState = produce(baseState, draftState => {
 Just want to know if a value is a proxied instance? Use the `isDraft` function!
 
 ```js
-import { isDraft } from "immer";
+import {isDraft} from "immer"
 
-const baseState = { users: [{ name: "Bobby" }] };
+const baseState = {users: [{name: "Bobby"}]}
 const nextState = produce(baseState, draft => {
-    isDraft(draft)          // => true
-    isDraft(draft.users)    // => true
+    isDraft(draft) // => true
+    isDraft(draft.users) // => true
     isDraft(draft.users[0]) // => true
 })
 isDraft(nextState) // => false
@@ -480,7 +477,7 @@ In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en
 produce(draft => void (draft.user.age += 1))
 
 // Multiple mutations
-produce(draft => void (draft.user.age += 1, draft.user.height = 186))
+produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
 ```
 
 Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
@@ -492,20 +489,20 @@ The Immer package ships with type definitions inside the package, which should b
 The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
 
 ```ts
-import produce from 'immer'
+import produce from "immer"
 
 interface State {
-  readonly x: number
+    readonly x: number
 }
 
 // `x` cannot be modified here
 const state: State = {
-  x: 0
+    x: 0
 }
 
 const newState = produce<State>(state, draft => {
-  // `x` can be modified here
-  draft.x++
+    // `x` can be modified here
+    draft.x++
 })
 
 // `newState.x` cannot be modified here
@@ -525,19 +522,20 @@ By default `produce` tries to use proxies for optimal performance. However, on o
 
 ```javascript
 import produce from "immer"
-import { produce } from "immer"
+import {produce} from "immer"
 
-const { produce } = require("immer")
+const {produce} = require("immer")
 const produce = require("immer").produce
 const produce = require("immer").default
 
 import unleashTheMagic from "immer"
-import { produce as unleashTheMagic } from "immer"
+import {produce as unleashTheMagic} from "immer"
 ```
 
 ## Limitations
 
 Immer supports the following types of data:
+
 1. All kinds of primitive values
 1. `Date` instances, but: only if not mutated, see below
 1. Arrays, but: non-standard attributes are not supported (like: `array.test = "Test"`)
@@ -555,7 +553,7 @@ Immer supports the following types of data:
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
 1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistinguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
-1. Immer does not support built-in data-structures like `Map` and `Set`. However, it is fine to just immutably "update"  them yourself but still leverage immer wherever possible:
+1. Immer does not support built-in data-structures like `Map` and `Set`. However, it is fine to just immutably "update" them yourself but still leverage immer wherever possible:
 
 ```javascript
 const state = {
@@ -581,32 +579,34 @@ Or a deep update in maps (well, don't use maps for this use case, but as an exam
 
 ```javascript
 const state = {
-    users: new Map(["michel", { name: "miche" }])
+    users: new Map(["michel", {name: "miche"}])
 }
 
 const nextState = produce(state, draft => {
     const newUsers = new Map(draft.users)
     // mutate the new map and set a _new_ user object
     // but leverage produce again to base the new user object on the original one
-    newUsers.set("michel", produce(draft.users.get("michel"), draft => {
-        draft.name = "michel"
-    }))
+    newUsers.set(
+        "michel",
+        produce(draft.users.get("michel"), draft => {
+            draft.name = "michel"
+        })
+    )
     draft.users = newUsers
 })
 ```
 
-
 ## Cool things built with immer
 
-* [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
-* [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
-* [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
-* [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
-* [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux development quicker and easier_
-* [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
-* [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
-* [robodux](https://github.com/neurosnap/robodux) _flexible way to reduce redux boilerplate_
-* ... and [many more](https://www.npmjs.com/browse/depended/immer)
+-   [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
+-   [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
+-   [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
+-   [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
+-   [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux development quicker and easier_
+-   [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
+-   [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
+-   [robodux](https://github.com/neurosnap/robodux) _flexible way to reduce redux boilerplate_
+-   ... and [many more](https://www.npmjs.com/browse/depended/immer)
 
 ## How does Immer work?
 
@@ -674,10 +674,10 @@ These tests were executed on Node 9.3.0. Use `yarn test:perf` to reproduce them 
 
 Most important observation:
 
-* Immer with proxies is roughly speaking twice to three times slower as a handwritten reducer (the above test case is worst case, see `yarn test:perf` for more tests). This is in practice negligible.
-* Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
-* Generating patches doesn't significantly slow immer down
-* The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
+-   Immer with proxies is roughly speaking twice to three times slower as a handwritten reducer (the above test case is worst case, see `yarn test:perf` for more tests). This is in practice negligible.
+-   Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
+-   Generating patches doesn't significantly slow immer down
+-   The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
 
 ## FAQ
 
