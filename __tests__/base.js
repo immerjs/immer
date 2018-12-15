@@ -122,6 +122,25 @@ function runBaseTest(name, useProxies, freeze, useListener) {
             expect(nextState.anObject.nested).toBe(undefined)
         })
 
+        // Found by: https://github.com/mweststrate/immer/pull/267
+        it("can delete props added in the producer", () => {
+            const nextState = produce(
+                baseState,
+                s => {
+                    s.anObject.test = true
+                    delete s.anObject.test
+                },
+                listener
+            )
+            if (useProxies) {
+                expect(nextState).not.toBe(baseState)
+                expect(nextState).toEqual(baseState)
+            } else {
+                // The copy is avoided in ES5.
+                expect(nextState).toBe(baseState)
+            }
+        })
+
         it("ignores single non-modification", () => {
             const nextState = produce(
                 baseState,
