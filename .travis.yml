@@ -14,6 +14,11 @@ script:
     - yarn build
     - yarn coveralls
     - yarn test:flow
+    # typescript@2.8.1
+    - yarn test:dts
+    # typescript@latest
+    - yarn add typescript@latest -D
+    - yarn test:dts
 jobs:
     include:
         - stage: deploy
