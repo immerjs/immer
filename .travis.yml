@@ -14,6 +14,11 @@ script:
     - yarn build
     - yarn coveralls
     - yarn test:flow
-after_success:
-    - yarn global add semantic-release@^15
-    - semantic-release
+jobs:
+    include:
+        - stage: deploy
+          node_js: "8.9.1" # pre-installed version
+          script:
+              - yarn build
+              - yarn global add semantic-release@^15
+              - semantic-release
