@@ -17,6 +17,7 @@ script:
 jobs:
     include:
         - stage: deploy
+          if: branch == master && !fork
           node_js: "8.9.1" # pre-installed version
           script:
               - yarn build
