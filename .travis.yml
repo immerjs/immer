@@ -15,14 +15,10 @@ before_script:
 script:
     - yarn build
     - if-node-version 10 || { yarn test && travis_terminate 0; }
-
     - yarn coveralls
     - yarn test:flow
     - yarn test:dts
-
-    # typescript@latest
-    - yarn add typescript@latest -D
-    - yarn test:dts
+    - yarn add typescript@latest -D && yarn test:dts
 jobs:
     include:
         - stage: deploy
