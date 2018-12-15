@@ -513,7 +513,7 @@ const newState = produce<State>(state, draft => {
 
 This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
 
-**Note:** TypeScript v2.x and lower are _not_ supported by Immer v1.9 and higher.
+**Note:** Immer v1.9+ supports Typescript v3.1+ only.
 
 ## Immer on older JavaScript environments?
 
