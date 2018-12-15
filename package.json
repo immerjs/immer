@@ -70,7 +70,7 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-uglify": "^2.0.1",
     "seamless-immutable": "^7.1.3",
-    "typescript": "3.0.1",
+    "typescript": "3.1.1",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },
