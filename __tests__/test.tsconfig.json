@@ -2,6 +2,7 @@
   "include": ["./types.ts", "../src/index.d.ts"],
   "compilerOptions": {
     "lib": ["es2015"],
-    "module": "commonjs"
+    "module": "commonjs",
+    "strict": true
   }
 }
