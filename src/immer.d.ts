@@ -73,26 +73,26 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <S = any, R = never>(
-        currentState: S,
-        recipe: (this: Draft<S>, draft: Draft<S>) => void | R,
+    <State, Result = any>(
+        currentState: State,
+        recipe: (this: Draft<State>, draft: Draft<State>) => Result,
         listener?: PatchListener
-    ): R
+    ): void extends Result ? State : Result
 
     /** Curried producer with an initial state */
-    <S = any, R = never>(
-        recipe: (this: Draft<S>, draft: Draft<S>) => void | R,
-        defaultBase: S
-    ): (base: S | undefined) => R
+    <State, Result = any>(
+        recipe: (this: Draft<State>, draft: Draft<State>) => void | Result,
+        defaultBase: State
+    ): (base: State | undefined) => void extends Result ? State : Result
 
     /** Curried producer with no initial state */
-    <S = any, R = never, Args extends any[] = any[]>(
+    <State, Result = any, Args extends any[] = any[]>(
         recipe: (
-            this: Draft<S>,
-            draft: Draft<S>,
+            this: Draft<State>,
+            draft: Draft<State>,
             ...extraArgs: Args
-        ) => void | R
-    ): (base: S, ...extraArgs: Args) => R
+        ) => void | Result
+    ): (base: State, ...extraArgs: Args) => void extends Result ? State : Result
 }
 
 export const produce: IProduce
