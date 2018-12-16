@@ -1,8 +1,8 @@
-[ignore]
-.*/node_modules
-
 [include]
-__tests__/flow
+../../dist
+
+[lints]
+untyped-import=error
 
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$ExpectError

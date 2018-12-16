@@ -6,7 +6,7 @@ import produce, {
     applyPatches,
     Patch,
     original
-} from "../../src/index.js"
+} from "../../dist/immer.js"
 
 setAutoFreeze(true)
 setUseProxies(true)
