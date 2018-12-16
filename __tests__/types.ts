@@ -4,7 +4,7 @@ import produce, {
     Draft,
     Patch,
     DraftTuple
-} from "../src/index"
+} from "../dist/immer.js"
 
 interface State {
     readonly num: number
