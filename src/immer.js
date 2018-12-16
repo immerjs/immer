@@ -4,7 +4,6 @@ import {generatePatches} from "./patches"
 import {
     assign,
     each,
-    has,
     is,
     isDraft,
     isDraftable,
@@ -174,7 +173,7 @@ export class Immer {
                 // prettier-ignore
                 parent[prop] =
                     // Patches are never generated for assigned properties.
-                    patches && parent === root && !(state && has(state.assigned, prop))
+                    patches && parent === root && !(state && state.assigned[prop])
                         ? this.finalize(value, path.concat(prop), patches, inversePatches)
                         : this.finalize(value)
 
