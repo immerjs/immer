@@ -53,6 +53,16 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
+/** Converts `nothing` into `undefined` */
+type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
+
+/** The inferred return type of `produce` */
+type Produced<Base, Return> = void extends Return
+    ? Return extends void
+        ? Base
+        : Base | FromNothing<Exclude<Return, void>>
+    : FromNothing<Return>
+
 export interface IProduce {
     /**
      * The `produce` function takes a value and a "recipe function" (whose
@@ -73,35 +83,36 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <State, Result = any>(
-        currentState: State,
-        recipe: (this: Draft<State>, draft: Draft<State>) => Result,
+    <Base, Proxy = Draft<Base>, Return = void>(
+        base: Base,
+        recipe: (this: Proxy, draft: Proxy) => Return,
         listener?: PatchListener
-    ): void extends Result ? State : Result
+    ): Produced<Base, Return>
 
-    /** Curried producer with an initial state */
-    <State, Result = any>(
-        recipe: (this: Draft<State>, draft: Draft<State>) => void | Result,
-        defaultBase: State
-    ): (base: State | undefined) => void extends Result ? State : Result
-
-    /** Curried producer with no initial state */
-    <State, Result = any, Args extends any[] = any[]>(
+    /** Curried producer */
+    <Default = any, Base = Default, Rest extends any[] = [], Return = void>(
         recipe: (
-            this: Draft<State>,
-            draft: Draft<State>,
-            ...extraArgs: Args
-        ) => void | Result
-    ): (base: State, ...extraArgs: Args) => void extends Result ? State : Result
+            this: Draft<Base>,
+            draft: Draft<Base>,
+            ...rest: Rest
+        ) => Return,
+        defaultBase?: Default
+    ): (base: Base | undefined, ...rest: Rest) => Produced<Base, Return>
 }
 
 export const produce: IProduce
 export default produce
 
+/** Use a class type for `nothing` so its type is unique */
+declare class Nothing {
+    // This lets us do `Exclude<T, Nothing>`
+    private _: any
+}
+
 /**
  * The sentinel value returned by producers to replace the draft with undefined.
  */
-export const nothing: undefined
+export const nothing: Nothing
 
 /**
  * Pass true to automatically freeze all copies created by Immer.
