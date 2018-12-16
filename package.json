@@ -15,7 +15,7 @@
     "test:flow": "yarn-or-npm flow check",
     "test:dts": "tsc -p __tests__/test.tsconfig.json --noEmit",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
-    "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx \"src/immer.{d.ts,js.flow}\" dist"
+    "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx 'src/immer.{d.ts,js.flow}' dist -v"
   },
   "husky": {
     "hooks": {
