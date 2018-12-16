@@ -12,37 +12,27 @@ type AtomicObject =
     | Number
     | String
 
-/** Use type inference to know when an array is finite */
-type IsFinite<T extends any[]> = T extends never[]
-    ? true
-    : T extends ReadonlyArray<infer U>
-    ? (U[] extends T ? false : true)
-    : true
+type ArrayMethod = Exclude<keyof [], number>
+type Indices<T> = Exclude<keyof T, ArrayMethod>
 
-export type DraftObject<T> = T extends object
-    ? T extends AtomicObject
-        ? T
-        : {-readonly [P in keyof T]: Draft<T[P]>}
-    : T
-
-export type DraftArray<T> = Array<
-    T extends ReadonlyArray<any>
-        ? {[P in keyof T]: Draft<T>}[keyof T]
-        : DraftObject<T>
+export type DraftArray<T extends ReadonlyArray<any>> = Array<
+    {[P in Indices<T>]: Draft<T[P]>}[Indices<T>]
 >
 
-export type DraftTuple<T extends any[]> = {
-    [P in keyof T]: T[P] extends T[number] ? Draft<T[P]> : never
+export type DraftTuple<T extends ReadonlyArray<any>> = {
+    [P in keyof T]: P extends Indices<T> ? Draft<T[P]> : never
 }
 
-export type Draft<T> = T extends any[]
-    ? IsFinite<T> extends true
-        ? DraftTuple<T>
-        : DraftArray<T[number]>
+export type Draft<T> = T extends never[]
+    ? T
     : T extends ReadonlyArray<any>
-    ? DraftArray<T[number]>
+    ? T[number][] extends T
+        ? DraftArray<T>
+        : DraftTuple<T>
+    : T extends AtomicObject
+    ? T
     : T extends object
-    ? DraftObject<T>
+    ? {-readonly [P in keyof T]: Draft<T[P]>}
     : T
 
 export interface Patch {
