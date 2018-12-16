@@ -1,5 +1,12 @@
 // @flow
-import produce, {setAutoFreeze, setUseProxies, produce as produce2, applyPatches, Patch, original} from "../../src/index"
+import produce, {
+    setAutoFreeze,
+    setUseProxies,
+    produce as produce2,
+    applyPatches,
+    Patch,
+    original
+} from "../../src/index.js"
 
 setAutoFreeze(true)
 setUseProxies(true)
@@ -20,9 +27,11 @@ const result2 = produce({x: 3}, draft => {
 
 console.log(result2.x)
 
-const f = produce((draft): {x: number} => {
-    return {x: 4}
-})
+const f = produce(
+    (draft): {x: number} => {
+        return {x: 4}
+    }
+)
 f({x: 3})
 
 const f2 = produce((draft): void => {})
@@ -65,9 +74,11 @@ produce({x: 3}, [])
 
 {
     // curried f & no initial arg
-    const f2 = produce((state: {x: number}, increment: number): void => {
-        state.x += increment
-    })
+    const f2 = produce(
+        (state: {x: number}, increment: number): void => {
+            state.x += increment
+        }
+    )
 
     f2({x: 5}, 3)
 
@@ -89,9 +100,13 @@ produce({x: 3}, [])
 
 {
     let p: Patch[] = []
-    produce({ }, d=> {}, (patches, inverse) => {
-        p = patches
-    })
+    produce(
+        {},
+        d => {},
+        (patches, inverse) => {
+            p = patches
+        }
+    )
     applyPatches({}, p)
 }
 
@@ -108,11 +123,11 @@ produce({x: 3}, [])
 
 {
     produce([1], draftState => {
-        const a = original(draftState);
+        const a = original(draftState)
         if (a) {
-            const b: number = a[0];
+            const b: number = a[0]
             // $ExpectError
-            const c: string = a[0];
+            const c: string = a[0]
         }
     })
 }
