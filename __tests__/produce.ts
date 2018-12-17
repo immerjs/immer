@@ -1,8 +1,20 @@
 import produce, {
     produce as produce2,
     applyPatches,
-    Patch
+    Patch,
+    DraftArray,
+    Draft,
+    nothing
 } from "../dist/immer.js"
+
+// prettier-ignore
+type AssertEqual<T, U> = (<G>() => G extends T ? 1 : 0) extends (<G>() => G extends U ? 1 : 0) ? unknown : never
+
+/** Trigger a compiler error when a value is _not_ an exact type. */
+declare const exactType: <T, U>(
+    draft: T & AssertEqual<T, U>,
+    expected: U & AssertEqual<T, U>
+) => U
 
 interface State {
     readonly num: number
@@ -55,6 +67,31 @@ it("can update readonly state via standard api", () => {
     expect(newState).toEqual(expectedState)
 })
 
+// NOTE: only when the function type is inferred
+it("can infer state type from default state", () => {
+    type Producer = (base: number | undefined) => number
+
+    let foo: Producer = {} as any
+    exactType(produce(_ => {}, 1), foo)
+    exactType(foo(2), {} as number)
+})
+
+it("can infer state type from recipe function", () => {
+    type Producer = (
+        base: string | number | undefined,
+        _2: number
+    ) => string | number
+
+    let foo: Producer = {} as any
+    let recipe = (_: string | number, _2: number) => {}
+    exactType(produce(recipe, 1), foo)
+    exactType(foo("", 0), {} as string | number)
+})
+
+it("cannot infer state type when the function type and default state are missing", () => {
+    exactType(produce(_ => {}), {} as (base: any) => any)
+})
+
 it("can update readonly state via curried api", () => {
     const newState = produce<State>(draft => {
         draft.num++
@@ -100,4 +137,27 @@ it("can apply patches", () => {
     )
 
     expect(applyPatches({}, patches)).toEqual({x: 4})
+})
+
+it("can produce nothing", () => {
+    let val: undefined = produce({}, s => nothing)
+})
+
+it("works with `void` hack", () => {
+    let obj: {readonly a: number} = {a: 1}
+    let val: typeof obj = produce(obj, s => void s.a++)
+})
+
+it("works with generic parameters", () => {
+    let insert = <T>(array: ReadonlyArray<T>, index: number, elem: T) => {
+        // NOTE: As of 3.2.2, the explicit argument type is required.
+        return produce(array, (draft: T[]) => {
+            draft.push(elem)
+            draft.splice(index, 0, elem)
+            draft.concat([elem])
+        })
+    }
+    let val: {readonly a: ReadonlyArray<number>} = 0 as any
+    let arr: ReadonlyArray<typeof val> = 0 as any
+    insert(arr, 0, val)
 })
