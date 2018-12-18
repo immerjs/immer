@@ -139,6 +139,15 @@ it("can apply patches", () => {
     expect(applyPatches({}, patches)).toEqual({x: 4})
 })
 
+it("can provide rest parameters to a curried producer", () => {
+    let foo = produce((_1: {}, _2: number, _3: number) => {})
+    foo({}, 1, 2)
+
+    // With initial state:
+    let bar = produce((_1: {}, _2: number, _3: number) => {}, {})
+    bar(undefined, 1, 2)
+})
+
 it("can produce nothing", () => {
     let val: undefined = produce({}, s => nothing)
 })
