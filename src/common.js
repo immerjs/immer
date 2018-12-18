@@ -1,8 +1,3 @@
-export const NOTHING =
-    typeof Symbol !== "undefined"
-        ? Symbol("immer-nothing")
-        : {["immer-nothing"]: true}
-
 export const DRAFT_STATE =
     typeof Symbol !== "undefined" ? Symbol("immer-state") : "__$immer_state"
 

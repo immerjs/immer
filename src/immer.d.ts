@@ -52,15 +52,12 @@ type IsVoidLike<T> =
     | (T extends undefined ? 1 : 0)
     | (T extends void | undefined ? 1 : 0)
 
-/** Converts `nothing` into `undefined` */
-type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
-
 /** The inferred return type of `produce` */
 type Produced<Base, Return> = 1 extends HasVoidLike<Return>
     ? 1 extends IsVoidLike<Return>
         ? Base
-        : Base | FromNothing<Exclude<Return, void>>
-    : FromNothing<Return>
+        : Base | Exclude<Return, void>
+    : Return
 
 export interface IProduce {
     /**
@@ -101,17 +98,6 @@ export interface IProduce {
 
 export const produce: IProduce
 export default produce
-
-/** Use a class type for `nothing` so its type is unique */
-declare class Nothing {
-    // This lets us do `Exclude<T, Nothing>`
-    private _: any
-}
-
-/**
- * The sentinel value returned by producers to replace the draft with undefined.
- */
-export const nothing: Nothing
 
 /**
  * Pass true to automatically freeze all copies created by Immer.

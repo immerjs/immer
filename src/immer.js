@@ -8,8 +8,7 @@ import {
     isDraft,
     isDraftable,
     shallowCopy,
-    DRAFT_STATE,
-    NOTHING
+    DRAFT_STATE
 } from "./common"
 
 function verifyMinified() {}
@@ -72,7 +71,7 @@ export class Immer {
                     inversePatches = patchListener && []
 
                 // Finalize the modified draft...
-                if (result === undefined || result === baseDraft) {
+                if (result === baseDraft) {
                     result = this.finalize(
                         baseDraft,
                         [],
@@ -108,8 +107,7 @@ export class Immer {
             }
             patchListener && patchListener(patches, inversePatches)
         }
-        // Normalize the result.
-        return result === NOTHING ? undefined : result
+        return result
     }
     setAutoFreeze(value) {
         this.autoFreeze = value

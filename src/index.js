@@ -47,6 +47,6 @@ export const setUseProxies = value => immer.setUseProxies(value)
  */
 export const applyPatches = produce(applyPatchesImpl)
 
-export {original, isDraft, NOTHING as nothing} from "./common"
+export {original, isDraft} from "./common"
 
 export {Immer}
