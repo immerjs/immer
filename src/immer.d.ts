@@ -43,12 +43,21 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
+/** Includes 1 when `void` or `undefined` exists in type `T` */
+type HasVoidLike<T> = (void extends T ? 1 : 0) | (undefined extends T ? 1 : 0)
+
+/** Includes 1 when type `T` is `void` or `undefined` (or both) */
+type IsVoidLike<T> =
+    | (T extends void ? 1 : 0)
+    | (T extends undefined ? 1 : 0)
+    | (T extends void | undefined ? 1 : 0)
+
 /** Converts `nothing` into `undefined` */
 type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
 
 /** The inferred return type of `produce` */
-type Produced<Base, Return> = void extends Return
-    ? Return extends void
+type Produced<Base, Return> = 1 extends HasVoidLike<Return>
+    ? 1 extends IsVoidLike<Return>
         ? Base
         : Base | FromNothing<Exclude<Return, void>>
     : FromNothing<Return>
