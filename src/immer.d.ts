@@ -80,10 +80,14 @@ export interface IProduce {
     ): void extends Result ? State : Result
 
     /** Curried producer with an initial state */
-    <State, Result = any>(
-        recipe: (this: Draft<State>, draft: Draft<State>) => void | Result,
+    <State, Result = any, Args extends any[] = any[]>(
+        recipe: (
+            this: Draft<State>,
+            draft: Draft<State>,
+            ...extraArgs: Args
+        ) => void | Result,
         defaultBase: State
-    ): (base: State | undefined) => void extends Result ? State : Result
+    ): (base: State | undefined, ...extraArgs: Args) => void extends Result ? State : Result
 
     /** Curried producer with no initial state */
     <State, Result = any, Args extends any[] = any[]>(
