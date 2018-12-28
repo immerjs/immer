@@ -155,36 +155,34 @@ export class Immer {
                 ? state.copy
                 : (state.copy = shallowCopy(state.draft))
         }
+
         const {onAssign} = this
         const finalizeProperty = (prop, value, parent) => {
             // Only `root` can be a draft in here.
-            const inDraft = state && parent === root
-            if (isDraftable(value)) {
-                // Skip unchanged properties in draft objects.
-                if (inDraft && is(value, state.base[prop])) return
+            const inDraft = !!state && parent === root
 
-                // Find proxies within new objects. Frozen objects are already finalized.
-                if (!isDraft(value)) {
-                    if (!Object.isFrozen(value)) each(value, finalizeProperty)
-                    if (onAssign && inDraft) onAssign(state, prop, value)
-                    return
-                }
-
+            if (isDraft(value)) {
                 // prettier-ignore
-                parent[prop] =
+                parent[prop] = value =
                     // Patches are never generated for assigned properties.
-                    patches && parent === root && !(state && state.assigned[prop])
+                    patches && inDraft && !state.assigned[prop]
                         ? this.finalize(value, path.concat(prop), patches, inversePatches)
                         : this.finalize(value)
-
-                if (onAssign && inDraft) onAssign(state, prop, parent[prop])
+            }
+            // Unchanged base state is always ignored.
+            else if (inDraft && is(value, state.base[prop])) {
                 return
             }
-            // Call `onAssign` for primitive values.
-            if (onAssign && inDraft && !is(value, state.base[prop])) {
+            // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
+            else if (isDraftable(value) && !Object.isFrozen(value)) {
+                each(value, finalizeProperty)
+            }
+
+            if (inDraft && onAssign) {
                 onAssign(state, prop, value)
             }
         }
+
         each(root, finalizeProperty)
         return root
     }
