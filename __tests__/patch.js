@@ -142,7 +142,6 @@ describe("renaming properties", () => {
         runPatchTest(
             {a: {b: {c: 1, d: 1}}},
             d => {
-                debugger
                 let b = d.a.b
                 b.c = 2 // change
                 delete b.d // delete
