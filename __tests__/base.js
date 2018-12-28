@@ -728,8 +728,9 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(next).not.toBe(base)
         })
 
-        describe("nested immer.produce() call", () => {
-            describe("with non-draft object", () => {
+        // AKA: recursive produce calls
+        describe("a nested producer", () => {
+            describe("when base state is not a draft", () => {
                 // This test ensures the global state used to manage proxies is
                 // never left in a corrupted state by a nested `produce` call.
                 it("never affects its parent producer implicitly", () => {
@@ -761,7 +762,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 })
             })
 
-            describe("with a draft object", () => {
+            describe("when base state is a draft", () => {
                 it("always reuses the draft", () => {
                     const bear = {paw: {honey: true}}
                     const next = produce(bear, bear => {
@@ -775,6 +776,46 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     })
                     expect(next.paw.honey).toBe(false)
                     expect(next).not.toBe(bear)
+                })
+            })
+
+            describe("when base state contains a draft", () => {
+                it("wraps unowned draft with its own draft", () => {
+                    produce({a: {}}, parent => {
+                        produce({a: parent.a}, child => {
+                            expect(child.a).not.toBe(parent.a)
+                            expect(isDraft(child.a)).toBeTruthy()
+                        })
+                    })
+                })
+
+                it("returns unowned draft if no changes were made", () => {
+                    produce({a: {}}, parent => {
+                        const result = produce({a: parent.a}, () => {})
+                        expect(result.a).toBe(parent.a)
+                    })
+                })
+
+                it("clones the unowned draft when changes are made", () => {
+                    produce({a: {}}, parent => {
+                        const result = produce({a: parent.a}, child => {
+                            child.a.b = 1
+                        })
+                        expect(result.a).not.toBe(parent.a)
+                        expect(result.a.b).toBe(1)
+                        expect("b" in parent.a).toBeFalsy()
+                    })
+                })
+
+                // We cannot auto-freeze the result of a nested producer,
+                // because it may contain a draft from a parent producer.
+                it("never auto-freezes the result", () => {
+                    produce({a: {}}, parent => {
+                        const r = produce({a: parent.a}, child => {
+                            child.b = 1 // Ensure a copy is returned.
+                        })
+                        expect(Object.isFrozen(r)).toBeFalsy()
+                    })
                 })
             })
         })
