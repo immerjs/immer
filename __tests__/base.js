@@ -5,6 +5,7 @@ import produce, {
     nothing,
     isDraft
 } from "../src/index"
+import {shallowCopy} from "../src/common"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -1532,6 +1533,12 @@ function runBaseTest(name, useProxies, freeze, useListener) {
 }
 
 function enumerableOnly(x) {
-    // this can be done better...
-    return JSON.parse(JSON.stringify(x))
+    const copy = shallowCopy(x)
+    for (const key in copy) {
+        const value = copy[key]
+        if (value && typeof value === "object") {
+            copy[key] = enumerableOnly(value)
+        }
+    }
+    return copy
 }
