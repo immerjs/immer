@@ -818,6 +818,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     })
                 })
             })
+
+            // "Upvalues" are variables from a parent scope.
+            it("does not finalize upvalue drafts", () => {
+                produce({a: {}, b: {}}, parent => {
+                    expect(produce({}, () => parent)).toBe(parent)
+                    parent.x // Ensure proxy not revoked.
+
+                    expect(produce({}, () => [parent])[0]).toBe(parent)
+                    parent.x // Ensure proxy not revoked.
+
+                    expect(produce({}, () => parent.a)).toBe(parent.a)
+                    parent.a.x // Ensure proxy not revoked.
+
+                    // Modified parent test
+                    parent.c = 1
+                    expect(produce({}, () => [parent.b])[0]).toBe(parent.b)
+                    parent.b.x // Ensure proxy not revoked.
+                })
+            })
         })
 
         it("should not try to change immutable data, see #66", () => {
