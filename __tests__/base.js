@@ -15,17 +15,25 @@ runBaseTest("es5 (autofreeze)", false, true)
 runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
-    const immer = new Immer({
+    const listener = useListener ? function() {} : undefined
+    const {produce} = createPatchedImmer({
         useProxies,
         autoFreeze
     })
 
-    // make sure logic doesn't break when listener is attached
-    const listener = useListener ? function() {} : undefined
-    const produce = (...args) =>
-        typeof args[1] === "function" && args.length < 3
-            ? immer.produce(...args, listener)
-            : immer.produce(...args)
+    // When `useListener` is true, append a function to the arguments of every
+    // uncurried `produce` call in every test. This makes tests easier to read.
+    function createPatchedImmer(options) {
+        const immer = new Immer(options)
+
+        const {produce} = immer
+        immer.produce = (...args) =>
+            typeof args[1] === "function" && args.length < 3
+                ? produce(...args, listener)
+                : produce(...args)
+
+        return immer
+    }
 
     describe(`base functionality - ${name}`, () => {
         let baseState
@@ -807,8 +815,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 
             it("works with interweaved Immer instances", () => {
                 const options = {useProxies, autoFreeze}
-                const one = new Immer(options)
-                const two = new Immer(options)
+                const one = createPatchedImmer(options)
+                const two = createPatchedImmer(options)
 
                 const base = {}
                 const result = one.produce(base, s1 =>
