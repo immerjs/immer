@@ -406,8 +406,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             produce(baseState, draft => {
                 draft.anArray[0] = 5
                 draft.anArray.unshift("test")
-                // sliced here; jest will also compare non-enumerable keys, which would include the immer Symbols
-                expect(draft.anArray.slice()).toMatchObject([
+                expect(enumerableOnly(draft.anArray)).toEqual([
                     "test",
                     5,
                     2,
