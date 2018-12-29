@@ -1,5 +1,5 @@
 "use strict"
-import {Immer, nothing, isDraft} from "../src/index"
+import {Immer, nothing, original, isDraft} from "../src/index"
 import {shallowCopy} from "../src/common"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
@@ -803,6 +803,27 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     expect(produce({}, () => [parent.b])[0]).toBe(parent.b)
                     parent.b.x // Ensure proxy not revoked.
                 })
+            })
+
+            it("works with interweaved Immer instances", () => {
+                const options = {useProxies, autoFreeze}
+                const one = new Immer(options)
+                const two = new Immer(options)
+
+                const base = {}
+                const result = one.produce(base, s1 =>
+                    two.produce({s1}, s2 => {
+                        expect(original(s2.s1)).toBe(s1)
+                        s2.n = 1
+                        s2.s1 = one.produce({s2}, s3 => {
+                            expect(original(s3.s2)).toBe(s2)
+                            expect(original(s3.s2.s1)).toBe(s2.s1)
+                            return s3.s2.s1
+                        })
+                    })
+                )
+                expect(result.n).toBe(1)
+                expect(result.s1).toBe(base)
             })
         })
 
