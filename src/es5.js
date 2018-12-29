@@ -8,7 +8,9 @@ import {
     isDraft,
     isDraftable,
     shallowCopy,
-    DRAFT_STATE
+    DRAFT_STATE,
+    eachOwn,
+    isEnumerable
 } from "./common"
 
 const descriptors = {}
@@ -33,13 +35,16 @@ export function createDraft(base, parent) {
         const state = base[DRAFT_STATE]
         // Avoid creating new drafts when copying.
         state.finalizing = true
-        draft = shallowCopy(state.draft)
+        draft = shallowCopy(state.draft, true)
         state.finalizing = false
     } else {
         draft = shallowCopy(base)
     }
-    each(base, prop => {
-        Object.defineProperty(draft, "" + prop, createPropertyProxy("" + prop))
+
+    const isArray = Array.isArray(base)
+    eachOwn(draft, prop => {
+        const enumerable = isArray || isEnumerable(base, prop)
+        proxyProperty(draft, prop, enumerable)
     })
 
     // See "proxy.js" for property documentation.
@@ -103,20 +108,23 @@ function prepareCopy(state) {
     if (!state.copy) state.copy = shallowCopy(state.base)
 }
 
-function createPropertyProxy(prop) {
-    return (
-        descriptors[prop] ||
-        (descriptors[prop] = {
+function proxyProperty(draft, prop, enumerable) {
+    let desc = descriptors[prop]
+    if (desc) {
+        desc.enumerable = enumerable
+    } else {
+        descriptors[prop] = desc = {
             configurable: true,
-            enumerable: true,
+            enumerable,
             get() {
                 return get(this[DRAFT_STATE], prop)
             },
             set(value) {
                 set(this[DRAFT_STATE], prop, value)
             }
-        })
-    )
+        }
+    }
+    Object.defineProperty(draft, prop, desc)
 }
 
 function assertUnrevoked(state) {

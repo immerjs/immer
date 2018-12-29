@@ -1,6 +1,6 @@
 "use strict"
-import {Immer, nothing, original, isDraft} from "../src/index"
-import {shallowCopy} from "../src/common"
+import {Immer, nothing, original, isDraft, immerable} from "../src/index"
+import {each, shallowCopy, isEnumerable} from "../src/common"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -259,7 +259,9 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         produce([], d => {
                             d.x = 3
                         })
-                    }).toThrow(/does not support/)
+                    }).toThrow(
+                        "Immer only supports setting array indices and the 'length' property"
+                    )
                 })
 
                 it("throws when a non-numeric property is deleted", () => {
@@ -269,9 +271,84 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         produce(baseState, d => {
                             delete d.x
                         })
-                    }).toThrow(/does not support/)
+                    }).toThrow("Immer only supports deleting array indices")
                 })
             }
+        })
+
+        it("supports `immerable` symbol on constructor", () => {
+            class One {}
+            One[immerable] = true
+            const baseState = new One()
+            const nextState = produce(baseState, draft => {
+                expect(draft).not.toBe(baseState)
+                draft.foo = true
+            })
+            expect(nextState).not.toBe(baseState)
+            expect(nextState.foo).toBeTruthy()
+        })
+
+        it("preserves symbol properties", () => {
+            const test = Symbol("test")
+            const baseState = {[test]: true}
+            const nextState = produce(baseState, s => {
+                expect(s[test]).toBeTruthy()
+                s.foo = true
+            })
+            expect(nextState).toEqual({
+                [test]: true,
+                foo: true
+            })
+        })
+
+        it("preserves non-enumerable properties", () => {
+            const baseState = {}
+            Object.defineProperty(baseState, "foo", {
+                value: true,
+                enumerable: false
+            })
+            const nextState = produce(baseState, s => {
+                expect(s.foo).toBeTruthy()
+                expect(isEnumerable(s, "foo")).toBeFalsy()
+                s.bar = true
+            })
+            expect(nextState.foo).toBeTruthy()
+            expect(isEnumerable(nextState, "foo")).toBeFalsy()
+        })
+
+        it("throws on computed properties", () => {
+            const baseState = {}
+            Object.defineProperty(baseState, "foo", {
+                get: () => {},
+                enumerable: true
+            })
+            expect(() => {
+                produce(baseState, s => {
+                    // Proxies only throw once a change is made.
+                    if (useProxies) {
+                        s.modified = true
+                    }
+                })
+            }).toThrowError("Immer drafts cannot have computed properties")
+        })
+
+        it("allows inherited computed properties", () => {
+            const proto = {}
+            Object.defineProperty(proto, "foo", {
+                get() {
+                    return this.bar
+                },
+                set(val) {
+                    this.bar = val
+                }
+            })
+            const baseState = Object.create(proto)
+            produce(baseState, s => {
+                expect(s.bar).toBeUndefined()
+                s.foo = {}
+                expect(s.bar).toBeDefined()
+                expect(s.foo).toBe(s.bar)
+            })
         })
 
         it("can rename nested objects (no changes)", () => {
@@ -429,7 +506,9 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                             value: 2
                         })
                     })
-                }).toThrow(/does not support/)
+                }).toThrow(
+                    "Object.defineProperty() cannot be used on an Immer draft"
+                )
             })
 
         it("should handle constructor correctly", () => {
@@ -604,7 +683,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             it("throws when Object.setPrototypeOf() is used on a draft", () => {
                 produce({}, draft => {
                     expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
-                        /does not support/
+                        "Object.setPrototypeOf() cannot be used on an Immer draft"
                     )
                 })
             })
@@ -905,12 +984,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 }
 
 function testObjectTypes(produce) {
+    class Foo {
+        constructor(foo) {
+            this.foo = foo
+            this[immerable] = true
+        }
+    }
     const values = {
         "empty object": {},
         "plain object": {a: 1, b: 2},
         "object (no prototype)": Object.create(null),
         "empty array": [],
-        "plain array": [1, 2]
+        "plain array": [1, 2],
+        "class instance (draftable)": new Foo(1)
     }
     for (const name in values) {
         const value = values[name]
@@ -976,7 +1062,7 @@ function testLiteralTypes(produce) {
         "boxed string": new String(""),
         "boxed boolean": new Boolean(),
         "date object": new Date(),
-        "class instance": new Foo()
+        "class instance (not draftable)": new Foo()
     }
     for (const name in values) {
         describe(name, () => {
@@ -1006,12 +1092,11 @@ function testLiteralTypes(produce) {
 }
 
 function enumerableOnly(x) {
-    const copy = shallowCopy(x)
-    for (const key in copy) {
-        const value = copy[key]
+    const copy = Array.isArray(x) ? x.slice() : Object.assign({}, x)
+    each(copy, (prop, value) => {
         if (value && typeof value === "object") {
-            copy[key] = enumerableOnly(value)
+            copy[prop] = enumerableOnly(value)
         }
-    }
+    })
     return copy
 }

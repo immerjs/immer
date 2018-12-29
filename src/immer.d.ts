@@ -123,6 +123,16 @@ declare class Nothing {
 export const nothing: Nothing
 
 /**
+ * To let Immer treat your class instances as plain immutable objects
+ * (albeit with a custom prototype), you must define either an instance property
+ * or a static property on each of your custom classes.
+ *
+ * Otherwise, your class instance will never be drafted, which means it won't be
+ * safe to mutate in a produce callback.
+ */
+export const immerable: unique symbol
+
+/**
  * Pass true to automatically freeze all copies created by Immer.
  *
  * By default, auto-freezing is disabled in production.
