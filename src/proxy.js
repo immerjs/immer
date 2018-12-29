@@ -20,18 +20,27 @@ export const currentScope = () => scopes[scopes.length - 1]
 export function willFinalize() {}
 
 export function createDraft(base, parent) {
-    if (isDraft(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
-
     const state = {
-        modified: false, // this tree is modified (either this object or one of it's children)
-        assigned: {}, // true: value was assigned to these props, false: was removed
+        // Track which produce call this is associated with.
+        scope: parent ? parent.scope : currentScope(),
+        // True for both shallow and deep changes.
+        modified: false,
+        // Used during finalization.
+        finalized: false,
+        // Track which properties have been assigned (true) or deleted (false).
+        assigned: {},
+        // The parent draft state.
         parent,
+        // The base state.
         base,
-        draft: null, // the root proxy
-        drafts: {}, // proxied properties
+        // The base proxy.
+        draft: null,
+        // Any property proxies.
+        drafts: {},
+        // The base copy with any updated values.
         copy: null,
-        revoke: null,
-        finalized: false
+        // Called by the `produce` function.
+        revoke: null
     }
 
     const {revoke, proxy} = Array.isArray(base)
@@ -41,7 +50,7 @@ export function createDraft(base, parent) {
     state.draft = proxy
     state.revoke = revoke
 
-    currentScope().push(state)
+    state.scope.push(state)
     return proxy
 }
 
@@ -86,25 +95,30 @@ arrayTraps.set = function(state, prop, value) {
 }
 
 function source(state) {
-    return state.modified === true ? state.copy : state.base
+    return state.copy || state.base
 }
 
 function get(state, prop) {
     if (prop === DRAFT_STATE) return state
-    if (state.modified) {
-        const value = state.copy[prop]
-        if (value === state.base[prop] && isDraftable(value))
-            // only create proxy if it is not yet a proxy, and not a new object
-            // (new objects don't need proxying, they will be processed in finalize anyway)
-            return (state.copy[prop] = createDraft(value, state))
-        return value
-    } else {
-        if (has(state.drafts, prop)) return state.drafts[prop]
-        const value = state.base[prop]
-        if (!isDraft(value) && isDraftable(value))
-            return (state.drafts[prop] = createDraft(value, state))
-        return value
+    let {drafts} = state
+
+    // Check for existing draft in unmodified state.
+    if (!state.modified && has(drafts, prop)) {
+        return drafts[prop]
     }
+
+    const value = source(state)[prop]
+    if (state.finalized || !isDraftable(value)) return value
+
+    // Check for existing draft in modified state.
+    if (state.modified) {
+        // Assigned values are never drafted. This catches any drafts we created, too.
+        if (value !== state.base[prop]) return value
+        // Store drafts on the copy (when one exists).
+        drafts = state.copy
+    }
+
+    return (drafts[prop] = createDraft(value, state))
 }
 
 function set(state, prop, value) {
@@ -154,9 +168,8 @@ function defineProperty() {
 function markChanged(state) {
     if (!state.modified) {
         state.modified = true
-        state.copy = shallowCopy(state.base)
-        // copy the drafts over the base-copy
-        assign(state.copy, state.drafts) // yup that works for arrays as well
+        state.copy = assign(shallowCopy(state.base), state.drafts)
+        state.drafts = null
         if (state.parent) markChanged(state.parent)
     }
 }
