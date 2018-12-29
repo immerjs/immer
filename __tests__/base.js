@@ -202,6 +202,15 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             ])
         })
 
+        // Reported here: https://github.com/mweststrate/immer/issues/116
+        it("should support changing arrays - 3", () => {
+            const nextState = produce([1, 2, 3], s => {
+                s.pop()
+                s.push(100)
+            })
+            expect(nextState).toEqual([1, 2, 100])
+        })
+
         it("can delete array items", () => {
             const nextState = produce(baseState, s => {
                 s.anArray.length = 3
@@ -961,14 +970,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     return {x: 5}
                 })
             }).toThrow(/An immer producer returned a new value/)
-        })
-
-        it("should fix #116", () => {
-            const nextState = produce([1, 2, 3], s => {
-                s.pop()
-                s.push(100)
-            })
-            expect(nextState).toEqual([1, 2, 100])
         })
 
         it("should fix #117", () => {
