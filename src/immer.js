@@ -9,7 +9,9 @@ import {
     isDraftable,
     shallowCopy,
     DRAFT_STATE,
-    NOTHING
+    NOTHING,
+    isEnumerable,
+    eachOwn
 } from "./common"
 
 function verifyMinified() {}
@@ -161,9 +163,12 @@ export class Immer {
     finalizeTree(root, path, patches, inversePatches) {
         const state = root[DRAFT_STATE]
         if (state) {
-            root = this.useProxies
-                ? state.copy
-                : (state.copy = shallowCopy(state.draft))
+            if (!this.useProxies) {
+                state.finalizing = true
+                state.copy = shallowCopy(state.draft, true)
+                state.finalizing = false
+            }
+            root = state.copy
         }
 
         const {onAssign} = this
@@ -172,14 +177,20 @@ export class Immer {
             const inDraft = !!state && parent === root
 
             if (isDraft(value)) {
-                // prettier-ignore
-                parent[prop] = value =
+                value =
                     // Patches are never generated for assigned properties.
                     patches && inDraft && !state.assigned[prop]
-                        ? this.finalize(value, path.concat(prop), patches, inversePatches)
+                        ? this.finalize(value, path.concat(prop), patches, inversePatches) // prettier-ignore
                         : this.finalize(value)
 
-                // Unchanged drafts are ignored.
+                // Preserve non-enumerable properties.
+                if (Array.isArray(parent) || isEnumerable(parent, prop)) {
+                    parent[prop] = value
+                } else {
+                    Object.defineProperty(parent, prop, {value})
+                }
+
+                // Unchanged drafts are never passed to the `onAssign` hook.
                 if (inDraft && value === state.base[prop]) return
             }
             // Unchanged draft properties are ignored.
@@ -188,7 +199,7 @@ export class Immer {
             }
             // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
             else if (isDraftable(value) && !Object.isFrozen(value)) {
-                each(value, finalizeProperty)
+                eachOwn(value, finalizeProperty)
             }
 
             if (inDraft && onAssign) {
@@ -196,7 +207,7 @@ export class Immer {
             }
         }
 
-        each(root, finalizeProperty)
+        eachOwn(root, finalizeProperty)
         return root
     }
 }

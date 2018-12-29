@@ -3,6 +3,11 @@ export const NOTHING =
         ? Symbol("immer-nothing")
         : {["immer-nothing"]: true}
 
+export const DRAFTABLE =
+    typeof Symbol !== "undefined"
+        ? Symbol("immer-draftable")
+        : "__$immer_draftable"
+
 export const DRAFT_STATE =
     typeof Symbol !== "undefined" ? Symbol("immer-state") : "__$immer_state"
 
@@ -11,11 +16,11 @@ export function isDraft(value) {
 }
 
 export function isDraftable(value) {
-    if (!value) return false
-    if (typeof value !== "object") return false
+    if (!value || typeof value !== "object") return false
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
-    return proto === null || proto === Object.prototype
+    if (!proto || proto === Object.prototype) return true
+    return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
 export function original(value) {
@@ -36,10 +41,39 @@ export const assign =
         return target
     }
 
-export function shallowCopy(value) {
-    if (Array.isArray(value)) return value.slice()
-    const target = value.__proto__ === undefined ? Object.create(null) : {}
-    return assign(target, value)
+export const ownKeys =
+    typeof Reflect !== "undefined"
+        ? Reflect.ownKeys
+        : obj =>
+              Object.getOwnPropertyNames(obj).concat(
+                  Object.getOwnPropertySymbols(obj)
+              )
+
+export function shallowCopy(base, invokeGetters = false) {
+    if (Array.isArray(base)) return base.slice()
+    const clone = Object.create(Object.getPrototypeOf(base))
+    ownKeys(base).forEach(key => {
+        if (key === DRAFT_STATE) {
+            return // Never copy over draft state.
+        }
+        const desc = Object.getOwnPropertyDescriptor(base, key)
+        if (desc.get) {
+            if (!invokeGetters) {
+                throw new Error("Immer drafts cannot have computed properties")
+            }
+            desc.value = desc.get.call(base)
+        }
+        if (desc.enumerable) {
+            clone[key] = desc.value
+        } else {
+            Object.defineProperty(clone, key, {
+                value: desc.value,
+                writable: true,
+                configurable: true
+            })
+        }
+    })
+    return clone
 }
 
 export function each(value, cb) {
@@ -48,6 +82,18 @@ export function each(value, cb) {
     } else {
         for (let key in value) cb(key, value[key], value)
     }
+}
+
+export function eachOwn(value, cb) {
+    if (Array.isArray(value)) {
+        for (let i = 0; i < value.length; i++) cb(i, value[i], value)
+    } else {
+        ownKeys(value).forEach(key => cb(key, value[key], value))
+    }
+}
+
+export function isEnumerable(base, prop) {
+    return Object.getOwnPropertyDescriptor(base, prop).enumerable
 }
 
 export function has(thing, prop) {

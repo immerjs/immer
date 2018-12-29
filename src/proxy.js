@@ -65,12 +65,14 @@ const objectTraps = {
     set,
     deleteProperty,
     getOwnPropertyDescriptor,
-    defineProperty,
+    defineProperty() {
+        throw new Error("Object.defineProperty() cannot be used on an Immer draft") // prettier-ignore
+    },
     getPrototypeOf(target) {
         return Object.getPrototypeOf(target.base)
     },
     setPrototypeOf() {
-        throw new Error("Immer does not support `setPrototypeOf()`.")
+        throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
     }
 }
 
@@ -82,18 +84,15 @@ each(objectTraps, (key, fn) => {
     }
 })
 arrayTraps.deleteProperty = function(state, prop) {
-    if (isNaN(parseInt(prop)))
-        throw new Error(
-            "Immer does not support deleting properties from arrays: " + prop
-        )
+    if (isNaN(parseInt(prop))) {
+        throw new Error("Immer only supports deleting array indices") // prettier-ignore
+    }
     return objectTraps.deleteProperty.call(this, state[0], prop)
 }
 arrayTraps.set = function(state, prop, value) {
-    if (prop !== "length" && isNaN(parseInt(prop)))
-        throw new Error(
-            "Immer does not support setting non-numeric properties on arrays: " +
-                prop
-        )
+    if (prop !== "length" && isNaN(parseInt(prop))) {
+        throw new Error("Immer only supports setting array indices and the 'length' property") // prettier-ignore
+    }
     return objectTraps.set.call(this, state[0], prop, value)
 }
 
@@ -160,12 +159,6 @@ function getOwnPropertyDescriptor(state, prop) {
     if (descriptor && !(Array.isArray(owner) && prop === "length"))
         descriptor.configurable = true
     return descriptor
-}
-
-function defineProperty() {
-    throw new Error(
-        "Immer does not support defining properties on draft objects."
-    )
 }
 
 function markChanged(state) {
