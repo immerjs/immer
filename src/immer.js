@@ -129,6 +129,10 @@ export class Immer {
             if (Object.isFrozen(draft)) return draft
             return this.finalizeTree(draft)
         }
+        // Never finalize drafts owned by an outer scope.
+        if (state.scope !== this.currentScope()) {
+            return draft
+        }
         if (!state.modified) return state.base
         if (!state.finalized) {
             state.finalized = true
@@ -139,7 +143,13 @@ export class Immer {
                     assigned[prop] || this.onDelete(state, prop)
             }
             if (this.onCopy) this.onCopy(state)
-            if (this.autoFreeze) Object.freeze(state.copy)
+
+            // Nested producers must never auto-freeze their result,
+            // because it may contain drafts from parent producers.
+            if (this.autoFreeze && this.scopes.length === 1) {
+                Object.freeze(state.copy)
+            }
+
             if (patches) generatePatches(state, path, patches, inversePatches)
         }
         return state.copy
@@ -168,8 +178,11 @@ export class Immer {
                     patches && inDraft && !state.assigned[prop]
                         ? this.finalize(value, path.concat(prop), patches, inversePatches)
                         : this.finalize(value)
+
+                // Unchanged drafts are ignored.
+                if (inDraft && value === state.base[prop]) return
             }
-            // Unchanged base state is always ignored.
+            // Unchanged draft properties are ignored.
             else if (inDraft && is(value, state.base[prop])) {
                 return
             }

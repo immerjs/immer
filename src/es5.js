@@ -28,28 +28,37 @@ export function willFinalize(result, baseDraft, needPatches) {
 }
 
 export function createDraft(base, parent) {
-    if (isDraft(base)) throw new Error("This should never happen. Please report: https://github.com/mweststrate/immer/issues/new") // prettier-ignore
-
-    const draft = shallowCopy(base)
+    let draft
+    if (isDraft(base)) {
+        const state = base[DRAFT_STATE]
+        // Avoid creating new drafts when copying.
+        state.finalizing = true
+        draft = shallowCopy(state.draft)
+        state.finalizing = false
+    } else {
+        draft = shallowCopy(base)
+    }
     each(base, prop => {
         Object.defineProperty(draft, "" + prop, createPropertyProxy("" + prop))
     })
 
+    // See "proxy.js" for property documentation.
     const state = {
+        scope: parent ? parent.scope : currentScope(),
         modified: false,
-        finalizing: false,
+        finalizing: false, // es5 only
         finalized: false,
-        assigned: {}, // true: value was assigned to these props, false: was removed
+        assigned: {},
         parent,
         base,
         draft,
         copy: null,
         revoke,
-        revoked: false
+        revoked: false // es5 only
     }
 
     createHiddenProperty(draft, DRAFT_STATE, state)
-    currentScope().push(state)
+    state.scope.push(state)
     return draft
 }
 
@@ -74,7 +83,7 @@ function get(state, prop) {
 
 function set(state, prop, value) {
     assertUnrevoked(state)
-    state.assigned[prop] = true // optimization; skip this if there is no listener
+    state.assigned[prop] = true
     if (!state.modified) {
         if (is(source(state)[prop], value)) return
         markChanged(state)
