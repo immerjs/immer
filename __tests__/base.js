@@ -890,28 +890,16 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(next1.x).toBe(4)
         })
 
-        it("issue #89", () => {
-            const state = {
-                users: {
-                    existingID: {
-                        loading: false,
-                        value: "val"
-                    }
-                }
-            }
-            const nextState = produce(state, draft => {
-                draft.users.existingID = {
-                    ...draft.users.existingID,
-                    loading: true
-                }
+        // See here: https://github.com/mweststrate/immer/issues/89
+        it("works with the spread operator", () => {
+            const base = {foo: {x: 0, y: 0}, bar: [0, 0]}
+            const result = produce(base, draft => {
+                draft.foo = {x: 1, ...draft.foo, y: 1}
+                draft.bar = [1, ...draft.bar, 1]
             })
-            expect(nextState).toEqual({
-                users: {
-                    existingID: {
-                        loading: true,
-                        value: "val"
-                    }
-                }
+            expect(result).toEqual({
+                foo: {x: 0, y: 1},
+                bar: [1, 0, 0, 1]
             })
         })
 
