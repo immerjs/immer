@@ -411,6 +411,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             }).toThrowError(/revoked/)
         })
 
+        it("can access a child draft that was created before the draft was modified", () => {
+            produce({a: {}}, s => {
+                const before = s.a
+                s.b = 1
+                expect(s.a).toBe(before)
+            })
+        })
+
         it("should reflect all changes made in the draft immediately", () => {
             produce(baseState, draft => {
                 draft.anArray[0] = 5
