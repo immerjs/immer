@@ -43,12 +43,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             origBaseState = baseState = createBaseState()
         })
 
-        it("should return the original without modifications", () => {
-            const nextState = produce(baseState, () => {})
-            expect(nextState).toBe(baseState)
-        })
-
-        it("should return the original without modifications when reading stuff", () => {
+        it("returns the original state when no changes are made", () => {
             const nextState = produce(baseState, s => {
                 expect(s.aProp).toBe("hi")
                 expect(s.anObject.nested).toMatchObject({yummie: true})
@@ -56,28 +51,26 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).toBe(baseState)
         })
 
-        it("should return a copy when modifying stuff", () => {
+        it("does structural sharing", () => {
+            const random = Math.random()
             const nextState = produce(baseState, s => {
-                s.aProp = "hello world"
+                s.aProp = random
             })
             expect(nextState).not.toBe(baseState)
-            expect(baseState.aProp).toBe("hi")
-            expect(nextState.aProp).toBe("hello world")
-            // structural sharing?
+            expect(nextState.aProp).toBe(random)
             expect(nextState.nested).toBe(baseState.nested)
         })
 
-        it("should preserve type", () => {
+        it("preserves the prototype of drafts", () => {
+            const getProto = Object.getPrototypeOf
             const nextState = produce(baseState, s => {
-                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
-                expect(Array.isArray(s.anArray)).toBe(true)
-                s.anArray.push(3)
-                s.aProp = "hello world"
-                expect(Object.getPrototypeOf(s)).toBe(Object.prototype)
-                expect(Array.isArray(s.anArray)).toBe(true)
+                expect(getProto(s)).toBe(Object.prototype)
+                expect(getProto(s.anArray)).toBe(Array.prototype)
+                s.aProp = Math.random()
+                s.anArray.push(1)
             })
-            expect(Object.getPrototypeOf(nextState)).toBe(Object.prototype)
-            expect(Array.isArray(nextState.anArray)).toBe(true)
+            expect(getProto(nextState)).toBe(Object.prototype)
+            expect(getProto(nextState.anArray)).toBe(Array.prototype)
         })
 
         it("deep change bubbles up", () => {
@@ -132,115 +125,122 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).toBe(baseState)
         })
 
-        it("processes single modification", () => {
+        // Once a draft is marked as modified, it stays that way.
+        it("never removes modified properties from its internal state", () => {
             const nextState = produce(baseState, s => {
+                const original = s.aProp
+                // This assignment marks the draft as modified.
                 s.aProp = "hello"
-                s.aProp = "hi"
+                // This assignment reverts the property to its original value,
+                // but Immer cannot detect this, so the base state is copied anyway.
+                s.aProp = original
             })
             expect(nextState).not.toBe(baseState)
             expect(nextState).toEqual(baseState)
         })
 
-        it("processes with for loop", () => {
-            const base = [{id: 1, a: 1}, {id: 2, a: 1}]
-            const findById = (collection, id) => {
-                for (const item of collection) {
-                    if (item.id === id) return item
+        describe("array drafts", () => {
+            it("supports Array.isArray()", () => {
+                const nextState = produce(baseState, s => {
+                    expect(Array.isArray(s.anArray)).toBeTruthy()
+                    s.anArray.push(1)
+                })
+                expect(Array.isArray(nextState.anArray)).toBeTruthy()
+            })
+
+            it("supports index access", () => {
+                const value = baseState.anArray[0]
+                const nextState = produce(baseState, s => {
+                    expect(s.anArray[0]).toBe(value)
+                })
+                expect(nextState).toBe(baseState)
+            })
+
+            it("supports iteration", () => {
+                const base = [{id: 1, a: 1}, {id: 2, a: 1}]
+                const findById = (collection, id) => {
+                    for (const item of collection) {
+                        if (item.id === id) return item
+                    }
+                    return null
                 }
-                return null
-            }
-            const result = produce(base, draft => {
-                const obj1 = findById(draft, 1)
-                const obj2 = findById(draft, 2)
-                obj1.a = 2
-                obj2.a = 2
+                const result = produce(base, draft => {
+                    const obj1 = findById(draft, 1)
+                    const obj2 = findById(draft, 2)
+                    obj1.a = 2
+                    obj2.a = 2
+                })
+                expect(result[0].a).toEqual(2)
+                expect(result[1].a).toEqual(2)
             })
-            expect(result[0].a).toEqual(2)
-            expect(result[1].a).toEqual(2)
+
+            it("can assign an index via bracket notation", () => {
+                const nextState = produce(baseState, s => {
+                    s.anArray[3] = true
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState.anArray).not.toBe(baseState.anArray)
+                expect(nextState.anArray[3]).toEqual(true)
+            })
+
+            it("can use splice() to both add and remove items", () => {
+                const nextState = produce(baseState, s => {
+                    s.anArray.splice(1, 1, "a", "b")
+                })
+                expect(nextState.anArray).not.toBe(baseState.anArray)
+                expect(nextState.anArray[1]).toBe("a")
+                expect(nextState.anArray[2]).toBe("b")
+            })
+
+            it("can truncate via the length property", () => {
+                const baseLength = baseState.anArray.length
+                const nextState = produce(baseState, s => {
+                    s.anArray.length = baseLength - 1
+                })
+                expect(nextState.anArray).not.toBe(baseState.anArray)
+                expect(nextState.anArray.length).toBe(baseLength - 1)
+            })
+
+            it("can extend via the length property", () => {
+                const baseLength = baseState.anArray.length
+                const nextState = produce(baseState, s => {
+                    s.anArray.length = baseLength + 1
+                })
+                expect(nextState.anArray).not.toBe(baseState.anArray)
+                expect(nextState.anArray.length).toBe(baseLength + 1)
+            })
+
+            // Reported here: https://github.com/mweststrate/immer/issues/116
+            it("can pop then push", () => {
+                const nextState = produce([1, 2, 3], s => {
+                    s.pop()
+                    s.push(100)
+                })
+                expect(nextState).toEqual([1, 2, 100])
+            })
+
+            it("can be sorted", () => {
+                const baseState = [3, 1, 2]
+                const nextState = produce(baseState, s => {
+                    s.sort()
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState).toEqual([1, 2, 3])
+            })
+
+            it("supports modifying nested objects", () => {
+                const baseState = [{a: 1}, {}]
+                const nextState = produce(baseState, s => {
+                    s[0].a++
+                    s[1].a = 0
+                })
+                expect(nextState).not.toBe(baseState)
+                expect(nextState[0].a).toBe(2)
+                expect(nextState[1].a).toBe(0)
+            })
         })
 
-        it("works with objects without proto", () => {
-            const base = Object.create(null)
-            base.x = 1
-            base.y = Object.create(null)
-            base.y.y = 2
-            expect(base.__proto__).toBe(undefined)
-            const next = produce(base, draft => {
-                draft.y.z = 3
-                draft.y.y++
-                draft.x++
-            })
-            expect(next).toEqual({
-                x: 2,
-                y: {y: 3, z: 3}
-            })
-            expect(next.__proto__).toBe(undefined)
-        })
-
-        it("should support reading arrays", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray.slice()
-            })
-            expect(nextState.anArray).toBe(baseState.anArray)
-            expect(nextState).toBe(baseState)
-        })
-
-        it("should support changing arrays", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray[3] = true
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(nextState.anArray[3]).toEqual(true)
-        })
-
-        it("should support changing arrays - 2", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray.splice(1, 1, "a", "b")
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-
-            expect(enumerableOnly(nextState.anArray)).toEqual([
-                3,
-                "a",
-                "b",
-                {c: 3},
-                1
-            ])
-        })
-
-        // Reported here: https://github.com/mweststrate/immer/issues/116
-        it("should support changing arrays - 3", () => {
-            const nextState = produce([1, 2, 3], s => {
-                s.pop()
-                s.push(100)
-            })
-            expect(nextState).toEqual([1, 2, 100])
-        })
-
-        it("can delete array items", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray.length = 3
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anObject).toBe(baseState.anObject)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(nextState.anArray).toEqual([3, 2, {c: 3}])
-        })
-
-        it("should support sorting arrays", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray[2].c = 4
-                s.anArray.sort()
-                s.anArray[3].c = 5
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(enumerableOnly(nextState.anArray)).toEqual([1, 2, 3, {c: 5}])
-        })
-
-        it("should expose property descriptors", () => {
+        it("supports access of property descriptors", () => {
             const nextState = produce([], s => {
                 expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
                 s.unshift("x")
@@ -260,35 +260,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 value: "x",
                 writable: !autoFreeze
             })
-        })
-
-        it("should support sorting arrays - 2", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray.unshift("x")
-                s.anArray[3].c = 4
-                s.anArray.sort()
-                s.anArray[3].c = 5
-                s.anArray.unshift("y")
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(enumerableOnly(nextState.anArray)).toEqual([
-                "y",
-                1,
-                2,
-                3,
-                {c: 5},
-                "x"
-            ])
-        })
-
-        it("should updating inside arrays", () => {
-            const nextState = produce(baseState, s => {
-                s.anArray[2].test = true
-            })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).not.toBe(baseState.anArray)
-            expect(nextState.anArray).toEqual([3, 2, {c: 3, test: true}, 1])
         })
 
         it("can rename nested objects (no changes)", () => {
@@ -370,12 +341,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
-        it("should allow setting to undefined a defined draft property", () => {
+        it("supports assigning undefined to an existing property", () => {
             const nextState = produce(baseState, s => {
                 s.aProp = undefined
             })
             expect(nextState).not.toBe(baseState)
-            expect(baseState.aProp).toBe("hi")
+            expect(nextState.aProp).toBe(undefined)
+        })
+
+        it("supports assigning undefined to a new property", () => {
+            const baseState = {}
+            const nextState = produce(baseState, s => {
+                s.aProp = undefined
+            })
+            expect(nextState).not.toBe(baseState)
             expect(nextState.aProp).toBe(undefined)
         })
 
