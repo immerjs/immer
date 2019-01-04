@@ -66,6 +66,9 @@ const objectTraps = {
     deleteProperty,
     getOwnPropertyDescriptor,
     defineProperty,
+    getPrototypeOf(target) {
+        return Object.getPrototypeOf(target.base)
+    },
     setPrototypeOf() {
         throw new Error("Immer does not support `setPrototypeOf()`.")
     }
