@@ -358,44 +358,65 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState.aProp).toBe(undefined)
         })
 
-        // ES implementation does't protect against all outside modifications, just some..
-        if (useProxies) {
-            it("should revoke the proxy of the baseState after immer function is executed", () => {
-                let proxy
-                const nextState = produce(baseState, s => {
-                    proxy = s
-                    s.aProp = "hello"
-                })
-                expect(nextState).not.toBe(baseState)
-                expect(baseState.aProp).toBe("hi")
-                expect(nextState.aProp).toBe("hello")
+        // NOTE: ES5 drafts only protect existing properties when revoked.
+        it("revokes the draft once produce returns", () => {
+            const expectRevoked = (fn, shouldThrow = true) => {
+                if (shouldThrow) expect(fn).toThrowError(/revoked/)
+                else expect(fn).not.toThrow()
+            }
 
-                expect(() => {
-                    proxy.aProp = "Hallo"
-                }).toThrowError(/revoked/)
-                expect(() => {
-                    const aProp = proxy.aProp
-                }).toThrowError(/revoked/)
-
-                expect(nextState).not.toBe(baseState)
-                expect(baseState.aProp).toBe("hi")
-                expect(nextState.aProp).toBe("hello")
+            // Test object drafts:
+            let draft
+            produce({a: 1, b: 1}, s => {
+                draft = s
+                delete s.b
             })
-        }
 
-        it("should revoke the proxy of the baseState after immer function is executed - 2", () => {
-            let proxy
-            const nextState = produce(baseState, s => {
-                proxy = s.anObject
+            // Access known property on object draft.
+            expectRevoked(() => {
+                draft.a
             })
-            expect(nextState).toBe(baseState)
-            expect(() => {
-                // In ES5 implemenation only protects existing props, but alas..
-                proxy.coffee = "Hallo"
-            }).toThrowError(/revoked/)
-            expect(() => {
-                const test = proxy.coffee
-            }).toThrowError(/revoked/)
+
+            // Assign known property on object draft.
+            expectRevoked(() => {
+                draft.a = true
+            })
+
+            // Access unknown property on object draft.
+            expectRevoked(() => {
+                draft.z
+            }, useProxies)
+
+            // Assign unknown property on object draft.
+            expectRevoked(() => {
+                draft.z = true
+            }, useProxies)
+
+            // Test array drafts:
+            produce([1, 2], s => {
+                draft = s
+                s.pop()
+            })
+
+            // Access known index of an array draft.
+            expectRevoked(() => {
+                draft[0]
+            })
+
+            // Assign known index of an array draft.
+            expectRevoked(() => {
+                draft[0] = true
+            })
+
+            // Access unknown index of an array draft.
+            expectRevoked(() => {
+                draft[1]
+            }, useProxies)
+
+            // Assign unknown index of an array draft.
+            expectRevoked(() => {
+                draft[1] = true
+            }, useProxies)
         })
 
         it("can access a child draft that was created before the draft was modified", () => {
