@@ -1171,90 +1171,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(produce(() => nothing)(3)).toBe(undefined)
         })
 
-        // TODO: use fuzz testing
-        {
-            class Foo {}
-            const primitives = {
-                "falsy number": 0,
-                "truthy number": 1,
-                "negative number": -1,
-                infinity: 1 / 0,
-                true: true,
-                false: false,
-                "empty string": "",
-                "truthy string": "1",
-                null: null,
-                undefined: undefined,
-
-                /**
-                 * These objects are treated as primitives because Immer
-                 * chooses not to make drafts for them.
-                 */
-                "regexp object": /.+/g,
-                "boxed number": new Number(0),
-                "boxed string": new String(""),
-                "boxed boolean": new Boolean(),
-                "date object": new Date(),
-                "class instance": new Foo()
-            }
-            for (const name in primitives) {
-                describe("base state type - " + name, () => {
-                    const value = primitives[name]
-                    it("does not create a draft", () => {
-                        produce(value, draft => {
-                            expect(draft).toBe(value)
-                        })
-                    })
-                    it("returns the same value when the producer returns undefined", () => {
-                        expect(produce(value, () => {})).toBe(value)
-                    })
-                    if (value && typeof value == "object") {
-                        it("does not return a copy when the producer makes changes", () => {
-                            expect(
-                                produce(value, draft => {
-                                    draft.foo = true
-                                })
-                            ).toBe(value)
-                        })
-                    }
-                })
-            }
-            const objects = {
-                "empty object": {},
-                "plain object": {a: 1, b: {c: 1}},
-                "frozen object": Object.freeze({}),
-                "null-prototype object": Object.create(null),
-                "frozen null-prototype object": Object.freeze(
-                    Object.create(null)
-                ),
-                "empty array": [],
-                "plain array": [1, [2, [3, []]]],
-                "frozen array": Object.freeze([])
-            }
-            for (const name in objects) {
-                describe("base state type - " + name, () => {
-                    const value = objects[name]
-                    it("creates a draft", () => {
-                        produce(value, draft => {
-                            expect(draft).not.toBe(value)
-                            expect(enumerableOnly(draft)).toEqual(value)
-                        })
-                    })
-                    it("returns the same value when the producer does nothing", () => {
-                        expect(produce(value, () => {})).toBe(value)
-                    })
-                    it("returns a copy when changes are made", () => {
-                        const random = Math.random()
-                        const result = produce(value, draft => {
-                            draft[0] = random
-                        })
-                        expect(result).not.toBe(value)
-                        expect(result.constructor).toBe(value.constructor)
-                        expect(result[0]).toBe(random)
-                    })
-                })
-            }
-        }
+        testBaseStateTypes(produce)
 
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
@@ -1316,6 +1233,88 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(isDraft(array)).toBeFalsy()
         })
     })
+}
+
+function testBaseStateTypes(produce) {
+    class Foo {}
+    const primitives = {
+        "falsy number": 0,
+        "truthy number": 1,
+        "negative number": -1,
+        infinity: 1 / 0,
+        true: true,
+        false: false,
+        "empty string": "",
+        "truthy string": "1",
+        null: null,
+        undefined: undefined,
+
+        /**
+         * These objects are treated as primitives because Immer
+         * chooses not to make drafts for them.
+         */
+        "regexp object": /.+/g,
+        "boxed number": new Number(0),
+        "boxed string": new String(""),
+        "boxed boolean": new Boolean(),
+        "date object": new Date(),
+        "class instance": new Foo()
+    }
+    for (const name in primitives) {
+        describe("base state type - " + name, () => {
+            const value = primitives[name]
+            it("does not create a draft", () => {
+                produce(value, draft => {
+                    expect(draft).toBe(value)
+                })
+            })
+            it("returns the same value when the producer returns undefined", () => {
+                expect(produce(value, () => {})).toBe(value)
+            })
+            if (value && typeof value == "object") {
+                it("does not return a copy when the producer makes changes", () => {
+                    expect(
+                        produce(value, draft => {
+                            draft.foo = true
+                        })
+                    ).toBe(value)
+                })
+            }
+        })
+    }
+    const objects = {
+        "empty object": {},
+        "plain object": {a: 1, b: {c: 1}},
+        "frozen object": Object.freeze({}),
+        "null-prototype object": Object.create(null),
+        "frozen null-prototype object": Object.freeze(Object.create(null)),
+        "empty array": [],
+        "plain array": [1, [2, [3, []]]],
+        "frozen array": Object.freeze([])
+    }
+    for (const name in objects) {
+        describe("base state type - " + name, () => {
+            const value = objects[name]
+            it("creates a draft", () => {
+                produce(value, draft => {
+                    expect(draft).not.toBe(value)
+                    expect(enumerableOnly(draft)).toEqual(value)
+                })
+            })
+            it("returns the same value when the producer does nothing", () => {
+                expect(produce(value, () => {})).toBe(value)
+            })
+            it("returns a copy when changes are made", () => {
+                const random = Math.random()
+                const result = produce(value, draft => {
+                    draft[0] = random
+                })
+                expect(result).not.toBe(value)
+                expect(result.constructor).toBe(value.constructor)
+                expect(result[0]).toBe(random)
+            })
+        })
+    }
 }
 
 function enumerableOnly(x) {
