@@ -608,6 +608,7 @@ const nextState = produce(state, draft => {
 -   [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
 -   [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
 -   [robodux](https://github.com/neurosnap/robodux) _flexible way to reduce redux boilerplate_
+-   [immer-reducer](https://github.com/epeli/immer-reducer) _Type-safe and terse Redux reducers with Typescript_
 -   ... and [many more](https://www.npmjs.com/browse/depended/immer)
 
 ## How does Immer work?
