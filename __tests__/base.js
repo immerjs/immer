@@ -7,6 +7,10 @@ import * as lodash from "lodash"
 
 jest.setTimeout(1000)
 
+test("immer should have no dependencies", () => {
+    expect(require("../package.json").dependencies).toBeUndefined()
+})
+
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
@@ -61,18 +65,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState.nested).toBe(baseState.nested)
         })
 
-        it("preserves the prototype of drafts", () => {
-            const getProto = Object.getPrototypeOf
-            const nextState = produce(baseState, s => {
-                expect(getProto(s)).toBe(Object.prototype)
-                expect(getProto(s.anArray)).toBe(Array.prototype)
-                s.aProp = Math.random()
-                s.anArray.push(1)
-            })
-            expect(getProto(nextState)).toBe(Object.prototype)
-            expect(getProto(nextState.anArray)).toBe(Array.prototype)
-        })
-
         it("deep change bubbles up", () => {
             const nextState = produce(baseState, s => {
                 s.anObject.nested.yummie = false
@@ -118,25 +110,38 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             }
         })
 
-        it("ignores single non-modification", () => {
-            const nextState = produce(baseState, s => {
-                s.aProp = "hi"
-            })
-            expect(nextState).toBe(baseState)
-        })
+        it("can get property descriptors", () => {
+            const getDescriptor = Object.getOwnPropertyDescriptor
+            const baseState = deepFreeze([{a: 1}])
+            produce(baseState, draft => {
+                const obj = draft[0]
 
-        // Once a draft is marked as modified, it stays that way.
-        it("never removes modified properties from its internal state", () => {
-            const nextState = produce(baseState, s => {
-                const original = s.aProp
-                // This assignment marks the draft as modified.
-                s.aProp = "hello"
-                // This assignment reverts the property to its original value,
-                // but Immer cannot detect this, so the base state is copied anyway.
-                s.aProp = original
+                // Known property
+                expect(getDescriptor(obj, "a")).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+                expect(getDescriptor(draft, 0)).toMatchObject({
+                    configurable: true,
+                    enumerable: true
+                })
+
+                // Deleted property
+                delete obj.a
+                draft.pop()
+                expect(getDescriptor(obj, "a")).toBeUndefined()
+                expect(getDescriptor(draft, 0)).toBeUndefined()
+
+                // Unknown property
+                expect(getDescriptor(obj, "b")).toBeUndefined()
+                expect(getDescriptor(draft, 100)).toBeUndefined()
+
+                // Added property
+                obj.b = 2
+                draft[100] = 1
+                expect(getDescriptor(obj, "b")).toBeDefined()
+                expect(getDescriptor(draft, 100)).toBeDefined()
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState).toEqual(baseState)
         })
 
         describe("array drafts", () => {
@@ -238,107 +243,78 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(nextState[0].a).toBe(2)
                 expect(nextState[1].a).toBe(0)
             })
-        })
 
-        it("supports access of property descriptors", () => {
-            const nextState = produce([], s => {
-                expect(Object.getOwnPropertyDescriptor(s, 0)).toBe(undefined)
-                s.unshift("x")
-                expect(Object.getOwnPropertyDescriptor(s, 0)).toEqual({
-                    configurable: true,
-                    enumerable: true,
-                    value: "x",
-                    writable: true
+            it("never preserves non-numeric properties", () => {
+                const baseState = []
+                baseState.x = 7
+                const nextState = produce(baseState, s => {
+                    s.push(3)
                 })
-                expect(s.length).toBe(1)
-                expect(s[0] === "x").toBe(true)
+                expect("x" in nextState).toBeFalsy()
             })
-            expect(nextState).toEqual(["x"])
-            expect(Object.getOwnPropertyDescriptor(nextState, 0)).toEqual({
-                configurable: !autoFreeze,
-                enumerable: true,
-                value: "x",
-                writable: !autoFreeze
-            })
+
+            if (useProxies) {
+                it("throws when a non-numeric property is added", () => {
+                    expect(() => {
+                        produce([], d => {
+                            d.x = 3
+                        })
+                    }).toThrow(/does not support/)
+                })
+
+                it("throws when a non-numeric property is deleted", () => {
+                    expect(() => {
+                        const baseState = []
+                        baseState.x = 7
+                        produce(baseState, d => {
+                            delete d.x
+                        })
+                    }).toThrow(/does not support/)
+                })
+            }
         })
 
         it("can rename nested objects (no changes)", () => {
-            const nextState = produce(baseState, s => {
-                const obj = s.anObject
-                delete s.anObject
-                s.renamed = obj
+            const nextState = produce({obj: {}}, s => {
+                s.foo = s.obj
+                delete s.obj
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).toBe(baseState.anArray)
-            expect(nextState.renamed.nested).toBe(baseState.anObject.nested)
-            expect(enumerableOnly(nextState)).toEqual({
-                anArray: [3, 2, {c: 3}, 1],
-                aProp: "hi",
-                renamed: {
-                    nested: {
-                        yummie: true
-                    },
-                    coffee: false
-                }
-            })
+            expect(nextState).toEqual({foo: {}})
         })
 
         // Very similar to the test before, but the reused object has one
         // property changed, one added, and one removed.
         it("can rename nested objects (with changes)", () => {
-            const nextState = produce(baseState, s => {
-                const obj = s.anObject
-                delete s.anObject
+            const nextState = produce({obj: {a: 1, b: 1}}, s => {
+                s.obj.a = true // change
+                delete s.obj.b // delete
+                s.obj.c = true // add
 
-                obj.coffee = true // change
-                obj.nested.yummy = true // add
-                delete obj.nested.yummie // delete
-
-                s.renamed = obj
+                s.foo = s.obj
+                delete s.obj
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.anArray).toBe(baseState.anArray)
-            expect(nextState.renamed.nested).not.toBe(baseState.anObject.nested)
-            expect(enumerableOnly(nextState)).toEqual({
-                anArray: [3, 2, {c: 3}, 1],
-                aProp: "hi",
-                renamed: {
-                    nested: {
-                        yummy: true
-                    },
-                    coffee: true
-                }
-            })
+            expect(nextState).toEqual({foo: {a: true, c: true}})
         })
 
         it("can nest a draft in a new object (no changes)", () => {
+            const baseState = {obj: {}}
             const nextState = produce(baseState, s => {
-                s.foo = {bar: s.anObject}
-                delete s.anObject
+                s.foo = {bar: s.obj}
+                delete s.obj
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.foo.bar).toBe(baseState.anObject)
+            expect(nextState.foo.bar).toBe(baseState.obj)
         })
 
-        it("can nest a draft in a new object (with changes)", () => {
-            const nextState = produce(baseState, s => {
-                const obj = s.anObject
-                delete s.anObject
+        it("can nest a modified draft in a new object", () => {
+            const nextState = produce({obj: {a: 1, b: 1}}, s => {
+                s.obj.a = true // change
+                delete s.obj.b // delete
+                s.obj.c = true // add
 
-                obj.coffee = true // change
-                obj.nested.yummy = true // add
-                delete obj.nested.yummie // delete
-
-                s.foo = {bar: obj}
+                s.foo = {bar: s.obj}
+                delete s.obj
             })
-            expect(nextState).not.toBe(baseState)
-            expect(nextState.foo.bar).not.toBe(baseState.anObject)
-            expect(nextState.foo).toEqual({
-                bar: {
-                    coffee: true,
-                    nested: {yummy: true}
-                }
-            })
+            expect(nextState).toEqual({foo: {bar: {a: true, c: true}}})
         })
 
         it("supports assigning undefined to an existing property", () => {
@@ -443,93 +419,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
-        it("should be able to get property descriptors from objects", () => {
-            produce({a: 1}, draft => {
-                expect("a" in draft).toBe(true)
-                expect("b" in draft).toBe(false)
-                expect(
-                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
-                ).toEqual(["a"])
-
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, "a")
-                ).toMatchObject({
-                    configurable: true,
-                    enumerable: true
-                })
-                draft.a = 2
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, "a")
-                ).toMatchObject({
-                    configurable: true,
-                    enumerable: true
-                })
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, "b")
-                ).toBeUndefined()
-                draft.b = 2
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, "b")
-                ).toMatchObject({
-                    configurable: true,
-                    enumerable: true
-                })
-                expect("a" in draft).toBe(true)
-                expect("b" in draft).toBe(true)
-                expect(
-                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
-                ).toEqual(["a", "b"])
-            })
-        })
-
-        it("should be able to get property descriptors from arrays", () => {
-            produce([1], draft => {
-                expect(0 in draft).toBe(true)
-                expect(1 in draft).toBe(false)
-                expect("0" in draft).toBe(true)
-                expect("1" in draft).toBe(false)
-                expect(length in draft).toBe(true)
-                expect(
-                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
-                ).toEqual(["0", "length"])
-
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, "length")
-                ).toMatchObject({
-                    configurable: false,
-                    enumerable: false
-                })
-                draft[0] = 2
-                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
-                    {
-                        configurable: true,
-                        enumerable: true
-                    }
-                )
-                expect(Object.getOwnPropertyDescriptor(draft, 0)).toMatchObject(
-                    {
-                        configurable: true,
-                        enumerable: true
-                    }
-                )
-                expect(
-                    Object.getOwnPropertyDescriptor(draft, 1)
-                ).toBeUndefined()
-                draft[1] = 2
-                expect(Object.getOwnPropertyDescriptor(draft, 1)).toMatchObject(
-                    {
-                        configurable: true,
-                        enumerable: true
-                    }
-                )
-                expect(
-                    Reflect.ownKeys(draft).filter(x => typeof x === "string")
-                ).toEqual(["0", "1", "length"])
-            })
-        })
-
-        if (useProxies === true) {
-            it("should not be possible to set property descriptors", () => {
+        if (useProxies)
+            it("throws when Object.defineProperty() is used on drafts", () => {
                 expect(() => {
                     produce({}, draft => {
                         Object.defineProperty(draft, "xx", {
@@ -538,122 +429,15 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                             value: 2
                         })
                     })
-                }).toThrowError(/not support/)
+                }).toThrow(/does not support/)
             })
-
-            it("should not be possible to add properties to arrays", () => {
-                expect(() => {
-                    produce([], d => {
-                        d.x = 3
-                    })
-                }).toThrow(
-                    "Immer does not support setting non-numeric properties on arrays"
-                )
-            })
-
-            it("should not be possible to remove properties from arrays", () => {
-                expect(() => {
-                    const base = []
-                    base.x = 7
-                    produce(base, d => {
-                        delete d.x
-                    })
-                }).toThrow(
-                    "Immer does not support deleting properties from arrays"
-                )
-            })
-        }
-
-        it("non-numeric array properties will be lost", () => {
-            const base = []
-            base.x = 7
-            const next = produce(base, d => {
-                d.push(3)
-            })
-            expect(next.x).toBe(undefined)
-        })
-
-        it("should not throw error, see #53 - 1", () => {
-            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
-            const result = produce(base, draft => {
-                draft.arr = draft.arr.filter(item => item.count > 2)
-            })
-            expect(result.arr[0].count).toEqual(3)
-            expect(result).toEqual({
-                arr: [{count: 3}]
-            })
-            expect(result.arr[0]).toBe(base.arr[2])
-        })
-
-        it("should not throw error, see #53 - 2", () => {
-            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
-            const result = produce(base, draft => {
-                draft.newArr = draft.arr.filter(item => item.count > 2)
-            })
-            expect(result.newArr[0].count).toEqual(3)
-            expect(result.arr).toBe(base.arr)
-            expect(result).toEqual({
-                arr: [
-                    {
-                        count: 1
-                    },
-                    {
-                        count: 2
-                    },
-                    {
-                        count: 3
-                    }
-                ],
-                newArr: [
-                    {
-                        count: 3
-                    }
-                ]
-            })
-            expect(result.newArr[0]).toBe(base.arr[2])
-            expect(result.arr[2]).toBe(base.arr[2])
-        })
-
-        it("should not throw error, see #53 - 3", () => {
-            const base = {arr: [{count: 1}, {count: 2}, {count: 3}]}
-            const result = produce(base, draft => {
-                draft.newArr = draft.arr.filter(item => item.count > 2)
-                delete draft.arr
-            })
-            expect(result.newArr[0].count).toEqual(3)
-            expect(result).toEqual({
-                newArr: [{count: 3}]
-            })
-            expect(result.newArr[0]).toBe(base.arr[2])
-        })
-
-        it("should not throw error, see #53 - 4", () => {
-            const base = {bear: {age: 10}}
-            const result = produce(base, draft => {
-                draft.bear.legs = 4
-                draft.room = {elephant: {kiddo: draft.bear}}
-            })
-            expect(result).toEqual({
-                bear: {age: 10, legs: 4},
-                room: {elephant: {kiddo: {age: 10, legs: 4}}}
-            })
-
-            const result2 = produce(result, draft => {
-                draft.bear.age = 11
-                draft.room.elephant.kiddo.legs = 5
-            })
-            expect(result2).toEqual({
-                bear: {age: 11, legs: 4},
-                room: {elephant: {kiddo: {age: 10, legs: 5}}}
-            })
-        })
 
         it("should handle constructor correctly", () => {
-            const base = {
+            const baseState = {
                 arr: new Array(),
                 obj: new Object()
             }
-            const result = produce(base, draft => {
+            const result = produce(baseState, draft => {
                 draft.arrConstructed = draft.arr.constructor(1)
                 draft.objConstructed = draft.obj.constructor(1)
             })
@@ -661,50 +445,31 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(result.objConstructed).toEqual(new Object().constructor(1))
         })
 
-        it("should handle dates correctly", () => {
-            const data = {date: new Date()}
-            const next = produce(data, draft => {
-                draft.x = true
-            })
-            expect(next).toEqual({x: true, date: data.date})
-            expect(next.date).toBe(data.date)
-            const next2 = produce(next, draft => {
-                draft.date.setYear(2015)
-            })
-            // This still holds; because produce won't proxy Date objects
-            // and the original is actually modified!
-            expect(next2).toEqual({x: true, date: data.date})
-            expect(next2.date).toBe(next.date)
-            expect(next2.date).toBe(data.date)
-            expect(next2).toBe(next)
-        })
-
         it("should handle equality correctly - 1", () => {
-            const base = {
+            const baseState = {
                 y: 3 / 0,
                 z: NaN
             }
-            const next = produce(base, draft => {
+            const nextState = produce(baseState, draft => {
                 draft.y = 4 / 0
                 draft.z = NaN
             })
-            expect(next).toEqual(base)
-            expect(next).toBe(base)
+            expect(nextState).toBe(baseState)
         })
 
         it("should handle equality correctly - 2", () => {
-            const base = {
+            const baseState = {
                 x: -0
             }
-            const next = produce(base, draft => {
-                draft.x = +1
+            const nextState = produce(baseState, draft => {
+                draft.x = +0
             })
-            expect(next).not.toEqual(base)
-            expect(next).not.toBe(base)
+            expect(nextState).not.toBe(baseState)
+            expect(nextState).not.toEqual(baseState)
         })
 
         // AKA: recursive produce calls
-        describe("a nested producer", () => {
+        describe("nested producers", () => {
             describe("when base state is not a draft", () => {
                 // This test ensures the global state used to manage proxies is
                 // never left in a corrupted state by a nested `produce` call.
@@ -835,72 +600,32 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
-        it("should not try to change immutable data, see #66", () => {
-            const user = require("./test-data")
-
-            const base = {}
-            const next = produce(base, draft => {
-                draft.user = user
-            })
-            expect(next.user).toBe(user)
-            expect(next).not.toBe(base)
-            expect(next.user).toEqual(user)
-        })
-
-        it("should not try to change immutable data, see #66 - 2", () => {
-            const user = deepFreeze(cloneDeep(require("./test-data")))
-
-            const base = {}
-            const next = produce(base, draft => {
-                draft.user = user
-            })
-            expect(next.user).toBe(user)
-            expect(next).not.toBe(base)
-            expect(next.user).toEqual(user)
-        })
-
-        it("should structurally share identical objects in the tree", () => {
-            const base = {bear: {legs: 4}, eagle: {legs: 3}}
-            const next = produce(base, draft => {
-                const animal = draft.bear
-                animal.legs = animal.legs + 1
-                draft.bear = animal
-                draft.eagle = animal
-                draft.cow = animal
-                draft.kiddo = animal
-            })
-            expect(next).toEqual({
-                bear: {legs: 5},
-                eagle: {legs: 5},
-                cow: {legs: 5},
-                kiddo: {legs: 5}
-            })
-            expect(next.bear).toBe(next.cow)
-            expect(next.kiddo).toBe(next.cow)
-        })
-
         if (useProxies)
-            it("should not allow changing prototype", () => {
+            it("throws when Object.setPrototypeOf() is used on a draft", () => {
                 produce({}, draft => {
                     expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
-                        /does not support `setPrototype/
+                        /does not support/
                     )
                 })
             })
 
-        it("'in' should work", () => {
-            produce(createBaseState(), draft => {
+        it("supports the 'in' operator", () => {
+            produce(baseState, draft => {
+                // Known property
                 expect("anArray" in draft).toBe(true)
                 expect(Reflect.has(draft, "anArray")).toBe(true)
 
+                // Unknown property
                 expect("bla" in draft).toBe(false)
                 expect(Reflect.has(draft, "bla")).toBe(false)
 
+                // Known index
                 expect(0 in draft.anArray).toBe(true)
                 expect("0" in draft.anArray).toBe(true)
                 expect(Reflect.has(draft.anArray, 0)).toBe(true)
                 expect(Reflect.has(draft.anArray, "0")).toBe(true)
 
+                // Unknown index
                 expect(17 in draft.anArray).toBe(false)
                 expect("17" in draft.anArray).toBe(false)
                 expect(Reflect.has(draft.anArray, 17)).toBe(false)
@@ -917,7 +642,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(next1.x).toBe(4)
         })
 
-        it("'this' should work - 1", () => {
+        it("'this' should work - 2", () => {
             const base = {x: 3}
             const incrementor = produce(function() {
                 this.x = 4
@@ -928,7 +653,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
         })
 
         // See here: https://github.com/mweststrate/immer/issues/89
-        it("works with the spread operator", () => {
+        it("supports the spread operator", () => {
             const base = {foo: {x: 0, y: 0}, bar: [0, 0]}
             const result = produce(base, draft => {
                 draft.foo = {x: 1, ...draft.foo, y: 1}
@@ -959,35 +684,28 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(result[0].a).toEqual(2)
         })
 
-        it("can produce from no state", () => {
-            expect(
-                produce(3, draft => {
-                    expect(draft).toBe(3)
-                    return 5
+        describe("recipe functions", () => {
+            it("can return a new object", () => {
+                const base = {x: 3}
+                const res = produce(base, draft => {
+                    return {x: draft.x + 1}
                 })
-            ).toBe(5)
-        })
-
-        it("can return something new ", () => {
-            const base = {x: 3}
-            const res = produce(base, draft => {
-                return {x: draft.x + 1}
+                expect(res).not.toBe(base)
+                expect(res).toEqual({x: 4})
             })
-            expect(res).not.toBe(base)
-            expect(res).toEqual({x: 4})
-        })
 
-        it("can return the draft new ", () => {
-            const base = {x: 3}
-            const res = produce(base, draft => {
-                draft.x = 4
-                return draft
+            it("can return the draft", () => {
+                const base = {x: 3}
+                const res = produce(base, draft => {
+                    draft.x = 4
+                    return draft
+                })
+                expect(res).not.toBe(base)
+                expect(res).toEqual({x: 4})
             })
-            expect(res).not.toBe(base)
-            expect(res).toEqual({x: 4})
         })
 
-        it("should throw if modifying the draft and returning something new", () => {
+        it("throws when the draft is modified and another object is returned", () => {
             const base = {x: 3}
             expect(() => {
                 produce(base, draft => {
@@ -997,7 +715,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             }).toThrow(/An immer producer returned a new value/)
         })
 
-        it("should fix #117", () => {
+        it("should fix #117 - 1", () => {
             const reducer = (state, action) =>
                 produce(state, draft => {
                     switch (action.type) {
@@ -1044,23 +762,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(next).toEqual({dots: base.availableStartingDots})
         })
 
-        it("should return an unmodified primitive baseState (#148)", () => {
-            const baseState = "some string"
-            const nextState = produce(baseState, () => {
-                /* no modification  */
-            })
-            expect(nextState).toBe(baseState)
-        })
-
-        it("should return an unmodified null baseState (#148)", () => {
-            const baseState = null
-            const nextState = produce(baseState, () => {
-                /* no modification  */
-            })
-            expect(nextState).toBe(baseState)
-        })
-
-        it("should not detect noop assignments - 0", () => {
+        it("cannot always detect noop assignments - 0", () => {
             const baseState = {x: {y: 3}}
             const nextState = produce(baseState, d => {
                 const a = d.x
@@ -1069,7 +771,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).toBe(baseState)
         })
 
-        it("should not detect noop assignments - 1", () => {
+        it("cannot always detect noop assignments - 1", () => {
             const baseState = {x: {y: 3}}
             const nextState = produce(baseState, d => {
                 const a = d.x
@@ -1082,7 +784,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).not.toBe(baseState)
         })
 
-        it("should not detect noop assignments - 2", () => {
+        it("cannot always detect noop assignments - 2", () => {
             const baseState = {x: {y: 3}}
             const nextState = produce(baseState, d => {
                 const a = d.x
@@ -1096,7 +798,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).not.toBe(baseState)
         })
 
-        it("should not detect noop assignments - 3", () => {
+        it("cannot always detect noop assignments - 3", () => {
             const baseState = {x: 3}
             const nextState = produce(baseState, d => {
                 d.x = 3
@@ -1104,7 +806,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).toBe(baseState)
         })
 
-        it("should not detect noop assignments - 4", () => {
+        it("cannot always detect noop assignments - 4", () => {
             const baseState = {x: 3}
             const nextState = produce(baseState, d => {
                 d.x = 4
@@ -1116,45 +818,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(nextState).not.toBe(baseState)
         })
 
-        it("immer should have no dependencies", () => {
-            expect(require("../package.json").dependencies).toEqual(undefined)
-        })
-
-        it("#174", () => {
-            const nextState = produce([1, 2, 3], s => {
-                s.pop()
-                s.push(100)
-            })
-            expect(nextState).toEqual([1, 2, 100])
-        })
-
-        it("#195 should be able to find items", () => {
-            const state = {
-                items: [
-                    {
-                        id: 0,
-                        task: "drink milk"
-                    },
-                    {id: 1, task: "eat cookie"}
-                ]
-            }
-            produce(state, draft => {
-                expect(draft.items.find(({id}) => id === 1).task).toBe(
-                    "eat cookie"
-                )
-            })
-        })
-
-        it("allows a function as the base state", () => {
-            let fn = () => {}
-            expect(
-                produce(fn, draft => {
-                    expect(fn).toBe(draft)
-                })
-            ).toBe(fn)
-        })
-
-        it("cannot return and produce undefined!", () => {
+        it("cannot produce undefined by returning undefined", () => {
             const base = 3
             expect(produce(base, () => 4)).toBe(4)
             expect(produce(base, () => null)).toBe(null)
@@ -1171,15 +835,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(produce(() => nothing)(3)).toBe(undefined)
         })
 
-        testBaseStateTypes(produce)
+        describe("base state type", () => {
+            testObjectTypes(produce)
+            testLiteralTypes(produce)
+        })
 
         afterEach(() => {
             expect(baseState).toBe(origBaseState)
             expect(baseState).toEqual(createBaseState())
         })
 
+        class Foo {}
         function createBaseState() {
             const data = {
+                anInstance: new Foo(),
                 anArray: [3, 2, {c: 3}, 1],
                 aProp: "hi",
                 anObject: {
@@ -1235,12 +904,60 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
     })
 }
 
-function testBaseStateTypes(produce) {
+function testObjectTypes(produce) {
+    const values = {
+        "empty object": {},
+        "plain object": {a: 1, b: 2},
+        "object (no prototype)": Object.create(null),
+        "empty array": [],
+        "plain array": [1, 2]
+    }
+    for (const name in values) {
+        const value = values[name]
+        const copy = shallowCopy(value)
+        testObjectType(name, value)
+        testObjectType(name + " (frozen)", Object.freeze(copy))
+    }
+    function testObjectType(name, base) {
+        describe(name, () => {
+            it("creates a draft", () => {
+                produce(base, draft => {
+                    expect(draft).not.toBe(base)
+                    expect(shallowCopy(draft, true)).toEqual(base)
+                })
+            })
+
+            it("preserves the prototype", () => {
+                const proto = Object.getPrototypeOf(base)
+                produce(base, draft => {
+                    expect(Object.getPrototypeOf(draft)).toBe(proto)
+                })
+            })
+
+            it("returns the base state when no changes are made", () => {
+                expect(produce(base, () => {})).toBe(base)
+            })
+
+            it("returns a copy when changes are made", () => {
+                const random = Math.random()
+                const result = produce(base, draft => {
+                    draft[0] = random
+                })
+                expect(result).not.toBe(base)
+                expect(result.constructor).toBe(base.constructor)
+                expect(result[0]).toBe(random)
+            })
+        })
+    }
+}
+
+function testLiteralTypes(produce) {
     class Foo {}
-    const primitives = {
+    const values = {
         "falsy number": 0,
         "truthy number": 1,
         "negative number": -1,
+        NaN: NaN,
         infinity: 1 / 0,
         true: true,
         false: false,
@@ -1250,9 +967,10 @@ function testBaseStateTypes(produce) {
         undefined: undefined,
 
         /**
-         * These objects are treated as primitives because Immer
-         * chooses not to make drafts for them.
+         * These objects are treated as literals because Immer
+         * does not know how to draft them.
          */
+        function: () => {},
         "regexp object": /.+/g,
         "boxed number": new Number(0),
         "boxed string": new String(""),
@@ -1260,19 +978,22 @@ function testBaseStateTypes(produce) {
         "date object": new Date(),
         "class instance": new Foo()
     }
-    for (const name in primitives) {
-        describe("base state type - " + name, () => {
-            const value = primitives[name]
+    for (const name in values) {
+        describe(name, () => {
+            const value = values[name]
+
             it("does not create a draft", () => {
                 produce(value, draft => {
                     expect(draft).toBe(value)
                 })
             })
-            it("returns the same value when the producer returns undefined", () => {
+
+            it("returns the base state when no changes are made", () => {
                 expect(produce(value, () => {})).toBe(value)
             })
+
             if (value && typeof value == "object") {
-                it("does not return a copy when the producer makes changes", () => {
+                it("does not return a copy when changes are made", () => {
                     expect(
                         produce(value, draft => {
                             draft.foo = true
@@ -1280,39 +1001,6 @@ function testBaseStateTypes(produce) {
                     ).toBe(value)
                 })
             }
-        })
-    }
-    const objects = {
-        "empty object": {},
-        "plain object": {a: 1, b: {c: 1}},
-        "frozen object": Object.freeze({}),
-        "null-prototype object": Object.create(null),
-        "frozen null-prototype object": Object.freeze(Object.create(null)),
-        "empty array": [],
-        "plain array": [1, [2, [3, []]]],
-        "frozen array": Object.freeze([])
-    }
-    for (const name in objects) {
-        describe("base state type - " + name, () => {
-            const value = objects[name]
-            it("creates a draft", () => {
-                produce(value, draft => {
-                    expect(draft).not.toBe(value)
-                    expect(enumerableOnly(draft)).toEqual(value)
-                })
-            })
-            it("returns the same value when the producer does nothing", () => {
-                expect(produce(value, () => {})).toBe(value)
-            })
-            it("returns a copy when changes are made", () => {
-                const random = Math.random()
-                const result = produce(value, draft => {
-                    draft[0] = random
-                })
-                expect(result).not.toBe(value)
-                expect(result.constructor).toBe(value.constructor)
-                expect(result[0]).toBe(random)
-            })
         })
     }
 }
