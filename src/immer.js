@@ -168,7 +168,11 @@ export class Immer {
 
         const {onAssign} = this
         const finalizeProperty = (prop, value, parent) => {
-            // Only `root` can be a draft in here.
+            if (value === parent) {
+                throw Error("Immer forbids circular references")
+            }
+
+            // The only possible draft (in the scope of a `finalizeTree` call) is the `root` object.
             const inDraft = !!state && parent === root
 
             if (isDraft(value)) {
