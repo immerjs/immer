@@ -351,6 +351,28 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
+        it("supports a base state with multiple references to an object", () => {
+            const obj = {}
+            const res = produce({a: obj, b: obj}, d => {
+                // Two drafts are created for each occurrence of an object in the base state.
+                expect(d.a).not.toBe(d.b)
+                d.a.z = true
+                expect(d.b.z).toBeUndefined()
+            })
+            expect(res.b).toBe(obj)
+            expect(res.a).not.toBe(res.b)
+            expect(res.a.z).toBeTruthy()
+        })
+
+        // NOTE: Except the root draft.
+        it("supports multiple references to any modified draft", () => {
+            const next = produce({a: {b: 1}}, d => {
+                d.a.b++
+                d.b = d.a
+            })
+            expect(next.a).toBe(next.b)
+        })
+
         it("can rename nested objects (no changes)", () => {
             const nextState = produce({obj: {}}, s => {
                 s.foo = s.obj
@@ -766,8 +788,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
         describe("recipe functions", () => {
             it("can return a new object", () => {
                 const base = {x: 3}
-                const res = produce(base, draft => {
-                    return {x: draft.x + 1}
+                const res = produce(base, d => {
+                    return {x: d.x + 1}
                 })
                 expect(res).not.toBe(base)
                 expect(res).toEqual({x: 4})
@@ -775,12 +797,50 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 
             it("can return the draft", () => {
                 const base = {x: 3}
-                const res = produce(base, draft => {
-                    draft.x = 4
-                    return draft
+                const res = produce(base, d => {
+                    d.x = 4
+                    return d
                 })
                 expect(res).not.toBe(base)
                 expect(res).toEqual({x: 4})
+            })
+
+            it("can return a child draft", () => {
+                const base = {a: {}}
+                const res = produce(base, d => {
+                    return d.a
+                })
+                expect(res).toBe(base.a)
+            })
+
+            it("can return a frozen object", () => {
+                const res = deepFreeze([{x: 3}])
+                expect(produce({}, () => res)).toBe(res)
+            })
+
+            it("can return an object with two references to another object", () => {
+                const next = produce({}, d => {
+                    const obj = {}
+                    return {obj, arr: [obj]}
+                })
+                expect(next.obj).toBe(next.arr[0])
+            })
+
+            it("can return an object with two references to any pristine draft", () => {
+                const base = {a: {}}
+                const next = produce(base, d => {
+                    return [d.a, d.a]
+                })
+                expect(next[0]).toBe(base.a)
+                expect(next[0]).toBe(next[1])
+            })
+
+            it("cannot return an object that references itself", () => {
+                const res = {}
+                res.self = res
+                expect(() => {
+                    produce(res, () => res.self)
+                }).toThrow("Immer forbids circular references")
             })
         })
 

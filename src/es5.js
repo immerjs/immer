@@ -131,7 +131,7 @@ function assertUnrevoked(state) {
     if (state.revoked === true)
         throw new Error(
             "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
-                JSON.stringify(state.copy || state.base)
+                JSON.stringify(source(state))
         )
 }
 
