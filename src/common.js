@@ -42,7 +42,7 @@ export const assign =
     }
 
 export const ownKeys =
-    typeof Reflect !== "undefined"
+    typeof Reflect !== "undefined" && Reflect.ownKeys
         ? Reflect.ownKeys
         : obj =>
               Object.getOwnPropertyNames(obj).concat(
