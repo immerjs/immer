@@ -30,21 +30,10 @@ export function willFinalize(result, baseDraft, needPatches) {
 }
 
 export function createDraft(base, parent) {
-    let draft
-    if (isDraft(base)) {
-        const state = base[DRAFT_STATE]
-        // Avoid creating new drafts when copying.
-        state.finalizing = true
-        draft = shallowCopy(state.draft, true)
-        state.finalizing = false
-    } else {
-        draft = shallowCopy(base)
-    }
-
     const isArray = Array.isArray(base)
+    const draft = clonePotentialDraft(base)
     eachOwn(draft, prop => {
-        const enumerable = isArray || isEnumerable(base, prop)
-        proxyProperty(draft, prop, enumerable)
+        proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
     })
 
     // See "proxy.js" for property documentation.
@@ -105,7 +94,18 @@ function markChanged(state) {
 }
 
 function prepareCopy(state) {
-    if (!state.copy) state.copy = shallowCopy(state.base)
+    if (!state.copy) state.copy = clonePotentialDraft(state.base)
+}
+
+function clonePotentialDraft(base) {
+    const state = base && base[DRAFT_STATE]
+    if (state) {
+        state.finalizing = true
+        const draft = shallowCopy(state.draft, true)
+        state.finalizing = false
+        return draft
+    }
+    return shallowCopy(base)
 }
 
 function proxyProperty(draft, prop, enumerable) {
