@@ -292,8 +292,7 @@ describe("same value replacement - 2", () => {
             d.x = 4
             d.x = a
         },
-        // immer does not detect this is not an actual change
-        [{op: "replace", path: ["x"], value: {y: 3}}]
+        []
     )
 })
 
@@ -314,8 +313,7 @@ describe("same value replacement - 4", () => {
             d.x = 4
             d.x = 3
         },
-        // immer does not detect this is not an actual change
-        [{op: "replace", path: ["x"], value: 3}]
+        []
     )
 })
 
