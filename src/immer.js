@@ -56,11 +56,6 @@ export class Immer {
             result = recipe(base)
             if (result === undefined) return base
         }
-        // See #100, don't nest producers
-        else if (isDraft(base)) {
-            result = recipe.call(base, base)
-            if (result === undefined) return base
-        }
         // The given value must be proxied.
         else {
             this.scopes.push([])
