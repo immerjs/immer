@@ -113,34 +113,33 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
         it("can get property descriptors", () => {
             const getDescriptor = Object.getOwnPropertyDescriptor
             const baseState = deepFreeze([{a: 1}])
-            produce(baseState, draft => {
-                const obj = draft[0]
+            produce(baseState, arr => {
+                const obj = arr[0]
+                const desc = {
+                    configurable: true,
+                    enumerable: true,
+                    ...(useProxies && {writable: true})
+                }
 
                 // Known property
-                expect(getDescriptor(obj, "a")).toMatchObject({
-                    configurable: true,
-                    enumerable: true
-                })
-                expect(getDescriptor(draft, 0)).toMatchObject({
-                    configurable: true,
-                    enumerable: true
-                })
+                expect(getDescriptor(obj, "a")).toMatchObject(desc)
+                expect(getDescriptor(arr, 0)).toMatchObject(desc)
 
                 // Deleted property
                 delete obj.a
-                draft.pop()
+                arr.pop()
                 expect(getDescriptor(obj, "a")).toBeUndefined()
-                expect(getDescriptor(draft, 0)).toBeUndefined()
+                expect(getDescriptor(arr, 0)).toBeUndefined()
 
                 // Unknown property
                 expect(getDescriptor(obj, "b")).toBeUndefined()
-                expect(getDescriptor(draft, 100)).toBeUndefined()
+                expect(getDescriptor(arr, 100)).toBeUndefined()
 
                 // Added property
                 obj.b = 2
-                draft[100] = 1
+                arr[100] = 1
                 expect(getDescriptor(obj, "b")).toBeDefined()
-                expect(getDescriptor(draft, 100)).toBeDefined()
+                expect(getDescriptor(arr, 100)).toBeDefined()
             })
         })
 
@@ -303,14 +302,23 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 
         it("preserves non-enumerable properties", () => {
             const baseState = {}
+            // Non-enumerable object property
             Object.defineProperty(baseState, "foo", {
-                value: true,
+                value: {a: 1},
+                enumerable: false
+            })
+            // Non-enumerable primitive property
+            Object.defineProperty(baseState, "bar", {
+                value: 1,
                 enumerable: false
             })
             const nextState = produce(baseState, s => {
                 expect(s.foo).toBeTruthy()
                 expect(isEnumerable(s, "foo")).toBeFalsy()
-                s.bar = true
+                s.bar++
+                expect(isEnumerable(s, "foo")).toBeFalsy()
+                s.foo.a++
+                expect(isEnumerable(s, "foo")).toBeFalsy()
             })
             expect(nextState.foo).toBeTruthy()
             expect(isEnumerable(nextState, "foo")).toBeFalsy()
