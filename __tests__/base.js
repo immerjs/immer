@@ -583,48 +583,28 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 // This test ensures the global state used to manage proxies is
                 // never left in a corrupted state by a nested `produce` call.
                 it("never affects its parent producer implicitly", () => {
-                    const bear = {paw: {honey: true}}
-                    const next = produce(bear, draft => {
-                        const paw2 = produce(bear.paw, draft => {
-                            draft.honey = false
+                    const base = {obj: {a: 1}}
+                    const next = produce(base, draft => {
+                        // Notice how `base.obj` is passed, not `draft.obj`
+                        const obj2 = produce(base.obj, draft2 => {
+                            draft2.a = 0
                         })
-                        expect(paw2.honey).toBe(false)
-                        expect(draft.paw.honey).toBe(true) // effects should not be visible outside
+                        expect(obj2.a).toBe(0)
+                        expect(draft.obj.a).toBe(1) // effects should not be visible outside
                     })
-                    expect(next.paw.honey).toBe(true)
-                    expect(next).toBe(bear)
-                })
-
-                it("returns a normal object", () => {
-                    const bear = {paw: {honey: true}}
-                    const next = produce(bear, draft => {
-                        const paw2 = produce(bear.paw, draft => {
-                            draft.honey = false
-                        })
-                        expect(paw2.honey).toBe(false)
-                        expect(draft.paw.honey).toBe(true)
-                        draft.paw = paw2
-                        expect(draft.paw.honey).toBe(false)
-                    })
-                    expect(next.paw.honey).toBe(false)
-                    expect(next).not.toBe(bear)
+                    expect(next).toBe(base)
                 })
             })
 
             describe("when base state is a draft", () => {
-                it("always reuses the draft", () => {
-                    const bear = {paw: {honey: true}}
-                    const next = produce(bear, bear => {
-                        const paw2 = produce(bear.paw, paw => {
-                            expect(paw).toBe(bear.paw)
-                            paw.honey = false
+                it("always wraps the draft in a new draft", () => {
+                    produce({}, parent => {
+                        produce(parent, child => {
+                            expect(child).not.toBe(parent)
+                            expect(isDraft(child)).toBeTruthy()
+                            expect(original(child)).toBe(parent)
                         })
-                        expect(paw2).toBe(bear.paw)
-                        expect(paw2.honey).toBe(false)
-                        expect(bear.paw.honey).toBe(false)
                     })
-                    expect(next.paw.honey).toBe(false)
-                    expect(next).not.toBe(bear)
                 })
             })
 
@@ -634,6 +614,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         produce({a: parent.a}, child => {
                             expect(child.a).not.toBe(parent.a)
                             expect(isDraft(child.a)).toBeTruthy()
+                            expect(original(child.a)).toBe(parent.a)
                         })
                     })
                 })
