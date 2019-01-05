@@ -150,15 +150,13 @@ function deleteProperty(state, prop) {
 }
 
 function getOwnPropertyDescriptor(state, prop) {
-    const owner = state.modified
-        ? state.copy
-        : has(state.drafts, prop)
-        ? state.drafts
-        : state.base
-    const descriptor = Reflect.getOwnPropertyDescriptor(owner, prop)
-    if (descriptor && !(Array.isArray(owner) && prop === "length"))
-        descriptor.configurable = true
-    return descriptor
+    const owner = source(state)
+    const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
+    if (desc) {
+        desc.writable = true
+        desc.configurable = !Array.isArray(owner) || prop !== "length"
+    }
+    return desc
 }
 
 function markChanged(state) {
