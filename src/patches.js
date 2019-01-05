@@ -58,7 +58,7 @@ function generateObjectPatches(state, basePath, patches, inversePatches) {
         const origValue = base[key]
         const value = copy[key]
         const op = !assignedValue ? "remove" : key in base ? "replace" : "add"
-        if (origValue === base && op === "replace") return
+        if (origValue === value && op === "replace") return
         const path = basePath.concat(key)
         patches.push(op === "remove" ? {op, path} : {op, path, value})
         inversePatches.push(
