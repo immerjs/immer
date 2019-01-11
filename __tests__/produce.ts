@@ -2,8 +2,6 @@ import produce, {
     produce as produce2,
     applyPatches,
     Patch,
-    DraftArray,
-    Draft,
     nothing
 } from "../dist/immer.js"
 
@@ -140,11 +138,15 @@ it("can apply patches", () => {
 })
 
 it("can provide rest parameters to a curried producer", () => {
-    let foo = produce((_1: {}, _2: number, _3: number) => {})
+    type Foo = (base: object, _2: number, _3: number) => object
+    let foo = produce((_1: object, _2: number, _3: number) => {})
+    exactType(foo, {} as Foo)
     foo({}, 1, 2)
 
     // With initial state:
-    let bar = produce((_1: {}, _2: number, _3: number) => {}, {})
+    type Bar = (base: object | undefined, _2: number, _3: number) => object
+    let bar = produce((_1: object, _2: number, _3: number) => {}, {})
+    exactType(bar, {} as Bar)
     bar(undefined, 1, 2)
 })
 
