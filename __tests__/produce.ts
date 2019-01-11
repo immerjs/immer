@@ -150,6 +150,15 @@ it("can provide rest parameters to a curried producer", () => {
     bar(undefined, 1, 2)
 })
 
+it("can pass readonly arrays to curried producers", () => {
+    let foo = produce((_: any[]) => {})
+    foo([] as ReadonlyArray<any>)
+
+    // With initial state:
+    let bar = produce((_: any[]) => {}, [])
+    bar([] as ReadonlyArray<any>)
+})
+
 it("can produce nothing", () => {
     let val: undefined = produce({}, s => nothing)
 })
