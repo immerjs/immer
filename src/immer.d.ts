@@ -88,15 +88,20 @@ export interface IProduce {
         listener?: PatchListener
     ): Produced<Base, Return>
 
-    /** Curried producer */
+    /** Curried producer with a default value */
     <Default = any, Base = Default, Rest extends any[] = [], Return = void>(
         recipe: (
             this: Draft<Base>,
             draft: Draft<Base>,
             ...rest: Rest
         ) => Return,
-        defaultBase?: Default
+        defaultBase: Default
     ): (base: Base | undefined, ...rest: Rest) => Produced<Base, Return>
+
+    /** Curried producer with no default value */
+    <Base = any, Rest extends any[] = [], Return = void>(
+        recipe: (this: Draft<Base>, draft: Draft<Base>, ...rest: Rest) => Return
+    ): (base: Base, ...rest: Rest) => Produced<Base, Return>
 }
 
 export const produce: IProduce
