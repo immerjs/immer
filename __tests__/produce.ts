@@ -183,8 +183,9 @@ it("can produce nothing", () => {
 })
 
 it("works with `void` hack", () => {
-    let obj: {readonly a: number} = {a: 1}
-    let val: typeof obj = produce(obj, s => void s.a++)
+    let obj = {} as {readonly a: number}
+    let res = produce(obj, s => void s.a++)
+    exactType(res, obj)
 })
 
 it("works with generic parameters", () => {
