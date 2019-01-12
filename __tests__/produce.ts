@@ -2,7 +2,8 @@ import produce, {
     produce as produce2,
     applyPatches,
     Patch,
-    nothing
+    nothing,
+    Draft
 } from "../dist/immer.js"
 
 // prettier-ignore
@@ -67,27 +68,28 @@ it("can update readonly state via standard api", () => {
 
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
-    type Producer = (base: number | undefined) => number
-
-    let foo: Producer = {} as any
-    exactType(produce(_ => {}, 1), foo)
-    exactType(foo(2), {} as number)
+    type Producer = <T>(
+        base: (T extends number ? T : number) | undefined
+    ) => number
+    let foo = produce(_ => {}, 1)
+    exactType(foo, {} as Producer)
+    exactType(foo(2), 0 as number)
 })
 
 it("can infer state type from recipe function", () => {
-    type Producer = (
-        base: string | number | undefined,
+    type Base = string | number
+    type Producer = <T>(
+        base: (T extends Base ? T : Base) | undefined,
         _2: number
-    ) => string | number
+    ) => Base
 
-    let foo: Producer = {} as any
-    let recipe = (_: string | number, _2: number) => {}
-    exactType(produce(recipe, 1), foo)
+    let foo = produce((_: string | number, _2: number) => {}, 1)
+    exactType(foo, {} as Producer)
     exactType(foo("", 0), {} as string | number)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
-    exactType(produce(_ => {}), {} as (base: any) => any)
+    exactType(produce(_ => {}), {} as <T>(base: T) => any)
 })
 
 it("can update readonly state via curried api", () => {
@@ -138,13 +140,21 @@ it("can apply patches", () => {
 })
 
 it("can provide rest parameters to a curried producer", () => {
-    type Foo = (base: object, _2: number, _3: number) => object
+    type Foo = <T>(
+        base: Draft<T> extends {} ? T : object,
+        _2: number,
+        _3: number
+    ) => object
     let foo = produce((_1: object, _2: number, _3: number) => {})
     exactType(foo, {} as Foo)
     foo({}, 1, 2)
 
     // With initial state:
-    type Bar = (base: object | undefined, _2: number, _3: number) => object
+    type Bar = <T>(
+        base: (Draft<T> extends {} ? T : object) | undefined,
+        _2: number,
+        _3: number
+    ) => object
     let bar = produce((_1: object, _2: number, _3: number) => {}, {})
     exactType(bar, {} as Bar)
     bar(undefined, 1, 2)

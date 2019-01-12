@@ -96,12 +96,18 @@ export interface IProduce {
             ...rest: Rest
         ) => Return,
         defaultBase: Default
-    ): (base: Base | undefined, ...rest: Rest) => Produced<Base, Return>
+    ): <T>(
+        base: (Draft<T> extends Draft<Base> ? T : Base) | undefined,
+        ...rest: Rest
+    ) => Produced<Base, Return>
 
     /** Curried producer with no default value */
     <Base = any, Rest extends any[] = [], Return = void>(
         recipe: (this: Draft<Base>, draft: Draft<Base>, ...rest: Rest) => Return
-    ): (base: Base, ...rest: Rest) => Produced<Base, Return>
+    ): <T>(
+        base: Draft<T> extends Draft<Base> ? T : Base,
+        ...rest: Rest
+    ) => Produced<Base, Return>
 }
 
 export const produce: IProduce
