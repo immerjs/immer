@@ -5,13 +5,15 @@ declare const toDraft: <T>(value: T) => Draft<T>
 declare const fromDraft: <T>(draft: Draft<T>) => T
 
 // prettier-ignore
-type AssertEqual<T, U> = (<G>() => G extends T ? 1 : 0) extends (<G>() => G extends U ? 1 : 0) ? unknown : never
+type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends (<T>() => T extends B ? 1 : 0)
+    ? (A extends B ? (B extends A ? unknown : never) : never)
+    : never
 
-/** Trigger a compiler error when a value is _not_ an exact type. */
-declare const exactType: <T, U>(
-    draft: T & AssertEqual<T, U>,
-    expected: U & AssertEqual<T, U>
-) => U
+/** Fails when `actual` and `expected` have different types. */
+declare const exactType: <Actual, Expected>(
+    actual: Actual & Exact<Actual, Expected>,
+    expected: Expected & Exact<Actual, Expected>
+) => Expected
 
 // To remove TS2454 errors.
 declare const _: any
@@ -53,7 +55,6 @@ declare const _: any
     let val: ReadonlyArray<ReadonlyArray<[1, 2]>> = _
     let draft: [1, 2][][] = _
     val = exactType(toDraft(val), draft)
-    exactType(fromDraft(draft), val)
 }
 
 // Readonly tuple

@@ -7,13 +7,15 @@ import produce, {
 } from "../dist/immer.js"
 
 // prettier-ignore
-type AssertEqual<T, U> = (<G>() => G extends T ? 1 : 0) extends (<G>() => G extends U ? 1 : 0) ? unknown : never
+type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends (<T>() => T extends B ? 1 : 0)
+    ? (A extends B ? (B extends A ? unknown : never) : never)
+    : never
 
-/** Trigger a compiler error when a value is _not_ an exact type. */
-declare const exactType: <T, U>(
-    draft: T & AssertEqual<T, U>,
-    expected: U & AssertEqual<T, U>
-) => U
+/** Fails when `actual` and `expected` have different types. */
+declare const exactType: <Actual, Expected>(
+    actual: Actual & Exact<Actual, Expected>,
+    expected: Expected & Exact<Actual, Expected>
+) => Expected
 
 interface State {
     readonly num: number
@@ -69,7 +71,7 @@ it("can update readonly state via standard api", () => {
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
     type Producer = <T>(
-        base: (T extends number ? T : number) | undefined
+        base: (Draft<T> extends number ? T : number) | undefined
     ) => number
     let foo = produce(_ => {}, 1)
     exactType(foo, {} as Producer)
@@ -79,7 +81,7 @@ it("can infer state type from default state", () => {
 it("can infer state type from recipe function", () => {
     type Base = string | number
     type Producer = <T>(
-        base: (T extends Base ? T : Base) | undefined,
+        base: (Draft<T> extends Base ? T : Base) | undefined,
         _2: number
     ) => Base
 
