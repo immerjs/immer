@@ -2,9 +2,7 @@ import produce, {
     produce as produce2,
     applyPatches,
     Patch,
-    nothing,
-    Draft,
-    Immutable
+    nothing
 } from "../dist/immer.js"
 
 // prettier-ignore
@@ -71,29 +69,23 @@ it("can update readonly state via standard api", () => {
 
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
-    type Producer = <T>(
-        base: (Draft<T> extends number ? T : number) | undefined
-    ) => Immutable<T>
+    type Producer = (base: number | undefined) => number
     let foo = produce(_ => {}, 1)
     exactType(foo, {} as Producer)
     exactType(foo(2), 0 as number)
 })
 
 it("can infer state type from recipe function", () => {
-    type Base = string | number
-    type Producer = <T>(
-        base: (Draft<T> extends Base ? T : Base) | undefined,
-        _2: number
-    ) => Immutable<T>
+    type T = string | number
+    type Producer = (base: T | undefined, _2: number) => T
 
     let foo = produce((_: string | number, _2: number) => {}, 1)
     exactType(foo, {} as Producer)
-    exactType(foo("", 0), {} as string)
-    exactType(foo(0, 0), {} as number)
+    exactType(foo("", 0), {} as string | number)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
-    exactType(produce(_ => {}), {} as <T>(base: T) => any)
+    exactType(produce(_ => {}), {} as (base: any) => any)
 })
 
 it("can update readonly state via curried api", () => {
@@ -143,34 +135,28 @@ it("can apply patches", () => {
     expect(applyPatches({}, patches)).toEqual({x: 4})
 })
 
-it("can provide rest parameters to a curried producer", () => {
-    type Foo = <T>(
-        base: Draft<T> extends {} ? T : object,
-        _2: number,
-        _3: number
-    ) => Immutable<T>
-    let foo = produce((_1: object, _2: number, _3: number) => {})
-    exactType(foo, {} as Foo)
-    foo({}, 1, 2)
+describe("curried producer", () => {
+    it("supports rest parameters", () => {
+        type Foo = (base: {}, _2: number, _3: number) => {}
+        let foo = produce((_1: {}, _2: number, _3: number) => {})
+        exactType(foo, {} as Foo)
+        foo({}, 1, 2)
 
-    // With initial state:
-    type Bar = <T>(
-        base: (Draft<T> extends {} ? T : object) | undefined,
-        _2: number,
-        _3: number
-    ) => Immutable<T>
-    let bar = produce((_1: object, _2: number, _3: number) => {}, {})
-    exactType(bar, {} as Bar)
-    bar(undefined, 1, 2)
-})
+        // With initial state:
+        type Bar = (base: {} | undefined, _2: number, _3: number) => {}
+        let bar = produce((_1: {}, _2: number, _3: number) => {}, {})
+        exactType(bar, {} as Bar)
+        bar(undefined, 1, 2)
+    })
 
-it("can pass readonly arrays to curried producers", () => {
-    let foo = produce((_: any[]) => {})
-    foo([] as ReadonlyArray<any>)
+    it("can be passed a readonly array", () => {
+        let foo = produce((_: any[]) => {})
+        foo([] as ReadonlyArray<any>)
 
-    // With initial state:
-    let bar = produce((_: any[]) => {}, [])
-    bar([] as ReadonlyArray<any>)
+        // With initial state:
+        let bar = produce((_: any[]) => {}, [])
+        bar([] as ReadonlyArray<any>)
+    })
 })
 
 it("always returns an immutable type", () => {
