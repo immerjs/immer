@@ -56,10 +56,10 @@ type IsVoidLike<T> =
 type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
 
 /** The inferred return type of `produce` */
-type Produced<Base, Return> = 1 extends HasVoidLike<Return>
+type Produced<T, Return> = 1 extends HasVoidLike<Return>
     ? 1 extends IsVoidLike<Return>
-        ? Immutable<Base>
-        : Immutable<Base> | FromNothing<Exclude<Return, void>>
+        ? Immutable<T>
+        : Immutable<T> | FromNothing<Exclude<Return, void>>
     : FromNothing<Return>
 
 type ImmutableTuple<T extends ReadonlyArray<any>> = {
@@ -97,32 +97,22 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <Base, Proxy = Draft<Base>, Return = void>(
-        base: Base,
-        recipe: (this: Proxy, draft: Proxy) => Return,
+    <T = any, D = Draft<T>, Return = void>(
+        base: T,
+        recipe: (this: D, draft: D) => Return,
         listener?: PatchListener
-    ): Produced<Base, Return>
+    ): Produced<D, Return>
 
     /** Curried producer with a default value */
-    <Default = any, Base = Default, Rest extends any[] = [], Return = void>(
-        recipe: (
-            this: Draft<Base>,
-            draft: Draft<Base>,
-            ...rest: Rest
-        ) => Return,
-        defaultBase: Default
-    ): <T>(
-        base: (Draft<T> extends Draft<Base> ? T : Base) | undefined,
-        ...rest: Rest
-    ) => Produced<Base, Return>
+    <T = any, D = Draft<T>, Rest extends any[] = [], Return = void>(
+        recipe: (this: D, draft: D, ...rest: Rest) => Return,
+        defaultBase: T
+    ): (base: Immutable<D> | undefined, ...rest: Rest) => Produced<D, Return>
 
     /** Curried producer with no default value */
-    <Base = any, Rest extends any[] = [], Return = void>(
-        recipe: (this: Draft<Base>, draft: Draft<Base>, ...rest: Rest) => Return
-    ): <T>(
-        base: Draft<T> extends Draft<Base> ? T : Base,
-        ...rest: Rest
-    ) => Produced<Base, Return>
+    <T = any, Rest extends any[] = [], Return = void>(
+        recipe: (this: Draft<T>, draft: Draft<T>, ...rest: Rest) => Return
+    ): (base: Immutable<T>, ...rest: Rest) => Produced<T, Return>
 }
 
 export const produce: IProduce
