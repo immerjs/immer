@@ -3,7 +3,8 @@ import produce, {
     applyPatches,
     Patch,
     nothing,
-    Draft
+    Draft,
+    Immutable
 } from "../dist/immer.js"
 
 // prettier-ignore
@@ -72,7 +73,7 @@ it("can update readonly state via standard api", () => {
 it("can infer state type from default state", () => {
     type Producer = <T>(
         base: (Draft<T> extends number ? T : number) | undefined
-    ) => number
+    ) => Immutable<T>
     let foo = produce(_ => {}, 1)
     exactType(foo, {} as Producer)
     exactType(foo(2), 0 as number)
@@ -83,11 +84,12 @@ it("can infer state type from recipe function", () => {
     type Producer = <T>(
         base: (Draft<T> extends Base ? T : Base) | undefined,
         _2: number
-    ) => Base
+    ) => Immutable<T>
 
     let foo = produce((_: string | number, _2: number) => {}, 1)
     exactType(foo, {} as Producer)
-    exactType(foo("", 0), {} as string | number)
+    exactType(foo("", 0), {} as string)
+    exactType(foo(0, 0), {} as number)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
@@ -146,7 +148,7 @@ it("can provide rest parameters to a curried producer", () => {
         base: Draft<T> extends {} ? T : object,
         _2: number,
         _3: number
-    ) => object
+    ) => Immutable<T>
     let foo = produce((_1: object, _2: number, _3: number) => {})
     exactType(foo, {} as Foo)
     foo({}, 1, 2)
@@ -156,7 +158,7 @@ it("can provide rest parameters to a curried producer", () => {
         base: (Draft<T> extends {} ? T : object) | undefined,
         _2: number,
         _3: number
-    ) => object
+    ) => Immutable<T>
     let bar = produce((_1: object, _2: number, _3: number) => {}, {})
     exactType(bar, {} as Bar)
     bar(undefined, 1, 2)

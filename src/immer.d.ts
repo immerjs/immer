@@ -58,9 +58,24 @@ type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
 /** The inferred return type of `produce` */
 type Produced<Base, Return> = 1 extends HasVoidLike<Return>
     ? 1 extends IsVoidLike<Return>
-        ? Base
-        : Base | FromNothing<Exclude<Return, void>>
+        ? Immutable<Base>
+        : Immutable<Base> | FromNothing<Exclude<Return, void>>
     : FromNothing<Return>
+
+type ImmutableTuple<T extends ReadonlyArray<any>> = {
+    readonly [P in keyof T]: Immutable<T[P]>
+}
+
+/** Convert a mutable type into a readonly type */
+export type Immutable<T> = T extends object
+    ? T extends AtomicObject
+        ? T
+        : T extends ReadonlyArray<any>
+        ? Array<T[number]> extends T
+            ? {[P in keyof T]: ReadonlyArray<Immutable<T[number]>>}[keyof T]
+            : ImmutableTuple<T>
+        : {readonly [P in keyof T]: Immutable<T[P]>}
+    : T
 
 export interface IProduce {
     /**
