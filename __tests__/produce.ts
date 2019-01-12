@@ -171,6 +171,11 @@ it("can pass readonly arrays to curried producers", () => {
     bar([] as ReadonlyArray<any>)
 })
 
+it("always returns an immutable type", () => {
+    let result = produce([] as any[], () => {})
+    exactType(result, {} as ReadonlyArray<any>)
+})
+
 it("can produce nothing", () => {
     let val: undefined = produce({}, s => nothing)
 })
