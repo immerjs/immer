@@ -97,14 +97,14 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <T = any, D = Draft<T>, Return = void>(
+    <T = any, Return = void, D = Draft<T>>(
         base: T,
         recipe: (this: D, draft: D) => Return,
         listener?: PatchListener
     ): Produced<D, Return>
 
     /** Curried producer with a default value */
-    <T = any, D = Draft<T>, Rest extends any[] = [], Return = void>(
+    <T = any, Rest extends any[] = [], Return = void, D = Draft<T>>(
         recipe: (this: D, draft: D, ...rest: Rest) => Return,
         defaultBase: T
     ): (base: Immutable<D> | undefined, ...rest: Rest) => Produced<D, Return>
