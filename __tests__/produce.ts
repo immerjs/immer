@@ -63,8 +63,7 @@ it("can update readonly state via standard api", () => {
         draft.arr2[0].value = "foo"
         draft.arr2.push({value: "asf"})
     })
-    expect(newState).not.toBe(state)
-    expect(newState).toEqual(expectedState)
+    exactType(newState, state)
 })
 
 // NOTE: only when the function type is inferred
@@ -159,9 +158,42 @@ describe("curried producer", () => {
     })
 })
 
-it("always returns an immutable type", () => {
-    let result = produce([] as any[], () => {})
-    exactType(result, {} as ReadonlyArray<any>)
+it("works with return type of: number", () => {
+    let base = {} as {a: number}
+    let result = produce(base, () => 1)
+    exactType(result, {} as number)
+})
+
+it("works with return type of: number | undefined", () => {
+    let base = {} as {a: number}
+    let result = produce(base, draft => {
+        return draft.a < 0 ? 0 : undefined
+    })
+    exactType(result, {} as {a: number} | number)
+})
+
+it("can return an object type that is identical to the base type", () => {
+    let base = {} as {a: number}
+    let result = produce(base, draft => {
+        return draft.a < 0 ? {a: 0} : undefined
+    })
+    // TODO: Can we resolve the weird union of identical object types?
+    exactType(result, {} as {a: number} | {a: number})
+})
+
+it("can return an object type that is _not_ assignable to the base type", () => {
+    let base = {} as {a: number}
+    let result = produce(base, draft => {
+        return draft.a < 0 ? {a: true} : undefined
+    })
+    exactType(result, {} as {a: number} | {a: boolean})
+})
+
+it("does not enforce immutability at the type level", () => {
+    let result = produce([] as any[], draft => {
+        draft.push(1)
+    })
+    exactType(result, {} as any[])
 })
 
 it("can produce nothing", () => {
