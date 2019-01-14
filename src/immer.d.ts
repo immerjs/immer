@@ -58,8 +58,8 @@ type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
 /** The inferred return type of `produce` */
 type Produced<T, Return> = 1 extends HasVoidLike<Return>
     ? 1 extends IsVoidLike<Return>
-        ? Immutable<T>
-        : Immutable<T> | FromNothing<Exclude<Return, void>>
+        ? T
+        : T | FromNothing<Exclude<Return, void>>
     : FromNothing<Return>
 
 type ImmutableTuple<T extends ReadonlyArray<any>> = {
