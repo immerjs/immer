@@ -94,7 +94,7 @@ export interface IProduce {
         base: T,
         recipe: (this: D, draft: D) => Return,
         listener?: PatchListener
-    ): Produced<D, Return>
+    ): Produced<T, Return>
 
     /** Curried producer with a default value */
     <T = any, Rest extends any[] = [], Return = void, D = Draft<T>>(
