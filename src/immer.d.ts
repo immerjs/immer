@@ -154,16 +154,22 @@ export function setUseProxies(useProxies: boolean): void
  */
 export function applyPatches<S>(base: S, patches: Patch[]): S
 
+/** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void
 
+/** For detecting an Immer draft */
 export function isDraft(value: any): boolean
 
 export class Immer {
     constructor(config: {
         useProxies?: boolean
         autoFreeze?: boolean
-        onAssign?: (state: ImmerState, prop: keyof any, value: any) => void
-        onDelete?: (state: ImmerState, prop: keyof any) => void
+        onAssign?: (
+            state: ImmerState,
+            prop: string | number,
+            value: unknown
+        ) => void
+        onDelete?: (state: ImmerState, prop: string | number) => void
         onCopy?: (state: ImmerState) => void
     })
     /**
@@ -213,5 +219,5 @@ export interface ImmerState<T = any> {
     parent?: ImmerState
     base: T
     copy: T
-    assigned: {[prop: string]: boolean}
+    assigned: {[prop: string]: boolean; [index: number]: boolean}
 }
