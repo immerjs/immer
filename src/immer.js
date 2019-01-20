@@ -4,6 +4,7 @@ import {generatePatches} from "./patches"
 import {
     assign,
     each,
+    has,
     is,
     isDraft,
     isDraftable,
@@ -135,9 +136,18 @@ export class Immer {
             state.finalized = true
             this.finalizeTree(state.draft, path, patches, inversePatches)
             if (this.onDelete) {
-                const {assigned} = state
-                for (const prop in assigned)
-                    assigned[prop] || this.onDelete(state, prop)
+                // The `assigned` object is unreliable with ES5 drafts.
+                if (this.useProxies) {
+                    const {assigned} = state
+                    for (const prop in assigned) {
+                        if (!assigned[prop]) this.onDelete(state, prop)
+                    }
+                } else {
+                    const {base, copy} = state
+                    eachOwn(base, prop => {
+                        if (!has(copy, prop)) this.onDelete(state, prop)
+                    })
+                }
             }
             if (this.onCopy) this.onCopy(state)
 
