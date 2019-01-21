@@ -97,7 +97,7 @@ expect(nextState[1]).not.toBe(baseState[1])
 -   Object freezing out of the box
 -   Deep updates are a breeze
 -   Boilerplate reduction. Less noise, more concise code.
--   Small: bundled and minified: 2KB.
+-   Small [![size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js)
 
 Read further to see all these benefits explained.
 
@@ -534,69 +534,56 @@ import unleashTheMagic from "immer"
 import {produce as unleashTheMagic} from "immer"
 ```
 
-## Limitations
+## Supported object types
 
-Immer supports the following types of data:
+Only plain objects and arrays are automatically drafted by Immer. This means other object types should never be mutated **unless** you added the exported `immerable` symbol to the object itself, its prototype, or its class constructor. In that case, the object is essentially an immutable plain object with a custom prototype.
 
-1. All kinds of primitive values
-1. `Date` instances, but: only if not mutated, see below
-1. Arrays, but: non-standard attributes are not supported (like: `array.test = "Test"`)
-1. Plain objects (objects that have as prototype either `null` or `Object`)
-1. Functions, assuming they aren't mutated
-1. Other value types (like class instances) can be stored in the tree, but note that Immer won't work _inside_ those objects. In other words, if you modify a class instance, this will _not_ result in clone and unmodified original, but just in a modified original.
+For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
+
+When working with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.
+
+Built-in classes like `Map` and `Set` are not supported. As a workaround, you should clone them before mutating them in a producer:
+
+```js
+const state = {
+    set: new Set(),
+    map: new Map()
+}
+const nextState = produce(state, draft => {
+    // Don't use any Set methods, as that mutates the instance!
+    draft.set.add("foo") // ❌
+
+    // 1. Instead, clone the set (just once)
+    const newSet = new Set(draft.set) // ✅
+
+    // 2. Mutate the clone (just in this producer)
+    newSet.add("foo")
+
+    // 3. Update the draft with the new set
+    draft.set = newSet
+
+    // Similarly, don't use any Map methods.
+    draft.map.set("foo", "bar") // ❌
+
+    // 1. Instead, clone the map (just once)
+    const newMap = new Map(draft.map) // ✅
+
+    // 2. Mutate it
+    newMap.set("foo", "bar")
+
+    // 3. Update the draft
+    draft.map = newMap
+})
+```
 
 # Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
 1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice in the tree, and there should be no circular references.
-1. Class instances are not, and will not have first-class support. Read [here](https://github.com/mweststrate/immer/issues/155#issuecomment-407725592) why classes are a conceptual mismatch (and technically extremely challenging)
-1. For example, working with `Date` objects is no problem, just make sure you never modify them (by using methods like `setYear` on an existing instance). Instead, always create fresh `Date` instances. Which is probably what you were unconsciously doing already.
 1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also, realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
 1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
 1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistinguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
-1. Immer does not support built-in data-structures like `Map` and `Set`. However, it is fine to just immutably "update" them yourself but still leverage immer wherever possible:
-
-```javascript
-const state = {
-    title: "hello",
-    tokenSet: new Set()
-}
-
-const nextState = produce(state, draft => {
-    draft.title = draft.title.toUpperCase() // let immer do it's job
-    // don't use the operations onSet, as that mutates the instance!
-    // draft.tokenSet.add("c1342")
-
-    // instead: clone the set (once!)
-    const newSet = new Set(draft.tokenSet)
-    // mutate the clone (just in this producer)
-    newSet.add("c1342")
-    // update the draft with the new set
-    draft.tokenSet = newSet
-})
-```
-
-Or a deep update in maps (well, don't use maps for this use case, but as an example):
-
-```javascript
-const state = {
-    users: new Map(["michel", {name: "miche"}])
-}
-
-const nextState = produce(state, draft => {
-    const newUsers = new Map(draft.users)
-    // mutate the new map and set a _new_ user object
-    // but leverage produce again to base the new user object on the original one
-    newUsers.set(
-        "michel",
-        produce(draft.users.get("michel"), draft => {
-            draft.name = "michel"
-        })
-    )
-    draft.users = newUsers
-})
-```
 
 ## Cool things built with immer
 
