@@ -7,10 +7,9 @@ import {
     is,
     isDraft,
     isDraftable,
+    isEnumerable,
     shallowCopy,
-    DRAFT_STATE,
-    eachOwn,
-    isEnumerable
+    DRAFT_STATE
 } from "./common"
 
 const descriptors = {}
@@ -32,7 +31,7 @@ export function willFinalize(result, baseDraft, needPatches) {
 export function createDraft(base, parent) {
     const isArray = Array.isArray(base)
     const draft = clonePotentialDraft(base)
-    eachOwn(draft, prop => {
+    each(draft, prop => {
         proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
     })
 

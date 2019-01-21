@@ -80,14 +80,6 @@ export function each(value, cb) {
     if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) cb(i, value[i], value)
     } else {
-        for (let key in value) cb(key, value[key], value)
-    }
-}
-
-export function eachOwn(value, cb) {
-    if (Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) cb(i, value[i], value)
-    } else {
         ownKeys(value).forEach(key => cb(key, value[key], value))
     }
 }

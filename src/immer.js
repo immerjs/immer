@@ -8,11 +8,10 @@ import {
     is,
     isDraft,
     isDraftable,
+    isEnumerable,
     shallowCopy,
     DRAFT_STATE,
-    NOTHING,
-    isEnumerable,
-    eachOwn
+    NOTHING
 } from "./common"
 
 function verifyMinified() {}
@@ -144,7 +143,7 @@ export class Immer {
                     }
                 } else {
                     const {base, copy} = state
-                    eachOwn(base, prop => {
+                    each(base, prop => {
                         if (!has(copy, prop)) this.onDelete(state, prop)
                     })
                 }
@@ -208,7 +207,7 @@ export class Immer {
             }
             // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
             else if (isDraftable(value) && !Object.isFrozen(value)) {
-                eachOwn(value, finalizeProperty)
+                each(value, finalizeProperty)
             }
 
             if (inDraft && onAssign) {
@@ -216,7 +215,7 @@ export class Immer {
             }
         }
 
-        eachOwn(root, finalizeProperty)
+        each(root, finalizeProperty)
         return root
     }
 }
