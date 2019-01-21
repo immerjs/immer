@@ -197,7 +197,8 @@ it("does not enforce immutability at the type level", () => {
 })
 
 it("can produce nothing", () => {
-    let val: undefined = produce({}, s => nothing)
+    let result = produce({}, _ => nothing)
+    exactType(result, undefined)
 })
 
 it("works with `void` hack", () => {
