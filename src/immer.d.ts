@@ -157,8 +157,11 @@ export function applyPatches<S>(base: S, patches: Patch[]): S
 /** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void
 
-/** For detecting an Immer draft */
+/** Returns true if the given value is an Immer draft */
 export function isDraft(value: any): boolean
+
+/** Returns true if the given value can be drafted by Immer */
+export function isDraftable(value: any): boolean
 
 export class Immer {
     constructor(config: {

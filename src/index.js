@@ -50,6 +50,7 @@ export const applyPatches = produce(applyPatchesImpl)
 export {
     original,
     isDraft,
+    isDraftable,
     NOTHING as nothing,
     DRAFTABLE as immerable
 } from "./common"
