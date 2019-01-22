@@ -44,10 +44,12 @@ export const assign =
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys
         ? Reflect.ownKeys
-        : obj =>
+        : typeof Object.getOwnPropertySymbols !== "undefined"
+        ? obj =>
               Object.getOwnPropertyNames(obj).concat(
                   Object.getOwnPropertySymbols(obj)
               )
+        : Object.getOwnPropertyNames
 
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
