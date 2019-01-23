@@ -39,6 +39,24 @@ function runPatchTest(base, producer, patches, inversePathes) {
 }
 
 describe("applyPatches", () => {
+    it("mutates the base state when it is a draft", () => {
+        produce({a: 1}, draft => {
+            const result = applyPatches(draft, [
+                {op: "replace", path: ["a"], value: 2}
+            ])
+            expect(result).toBe(draft)
+            expect(draft.a).toBe(2)
+        })
+    })
+    it("produces a copy of the base state when not a draft", () => {
+        const base = {a: 1}
+        const result = applyPatches(base, [
+            {op: "replace", path: ["a"], value: 2}
+        ])
+        expect(result).not.toBe(base)
+        expect(result.a).toBe(2)
+        expect(base.a).toBe(1)
+    })
     it('throws when `op` is not "add", "replace", nor "remove"', () => {
         expect(() => {
             const patch = {op: "copy", from: [0], path: [1]}

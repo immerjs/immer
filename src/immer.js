@@ -1,6 +1,6 @@
 import * as legacyProxy from "./es5"
 import * as modernProxy from "./proxy"
-import {generatePatches} from "./patches"
+import {applyPatches, generatePatches} from "./patches"
 import {
     assign,
     each,
@@ -114,6 +114,14 @@ export class Immer {
     setUseProxies(value) {
         this.useProxies = value
         assign(this, value ? modernProxy : legacyProxy)
+    }
+    applyPatches(base, patches) {
+        // Mutate the base state when a draft is passed.
+        if (isDraft(base)) {
+            return applyPatches(base, patches)
+        }
+        // Otherwise, produce a copy of the base state.
+        return this.produce(base, draft => applyPatches(draft, patches))
     }
     /**
      * @internal

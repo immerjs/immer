@@ -6,7 +6,7 @@ export function generatePatches(state, basePath, patches, inversePatches) {
         : generateObjectPatches(state, basePath, patches, inversePatches)
 }
 
-export function generateArrayPatches(state, basePath, patches, inversePatches) {
+function generateArrayPatches(state, basePath, patches, inversePatches) {
     const {base, copy, assigned} = state
     const minLength = Math.min(base.length, copy.length)
 

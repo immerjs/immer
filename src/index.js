@@ -1,4 +1,3 @@
-import {applyPatches as applyPatchesImpl} from "./patches"
 import {Immer} from "./immer"
 
 const immer = new Immer()
@@ -30,7 +29,7 @@ export default produce
  *
  * By default, auto-freezing is disabled in production.
  */
-export const setAutoFreeze = value => immer.setAutoFreeze(value)
+export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 
 /**
  * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
@@ -38,14 +37,14 @@ export const setAutoFreeze = value => immer.setAutoFreeze(value)
  *
  * By default, feature detection is used, so calling this is rarely necessary.
  */
-export const setUseProxies = value => immer.setUseProxies(value)
+export const setUseProxies = immer.setUseProxies.bind(immer)
 
 /**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
  */
-export const applyPatches = produce(applyPatchesImpl)
+export const applyPatches = immer.applyPatches.bind(immer)
 
 export {
     original,
