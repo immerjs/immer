@@ -1,20 +1,24 @@
 "use strict"
-import {Immer} from "../src/index"
+import {Immer, setUseProxies} from "../src/index"
 import matchers from "expect/build/matchers"
 
-describe("hooks -", () => {
+describe("hooks (proxy) -", () => createHookTests(true))
+describe("hooks (es5) -", () => createHookTests(false))
+
+function createHookTests(useProxies) {
     let produce, onAssign, onDelete, onCopy
 
-    const reset = () =>
-        ({produce, onAssign, onDelete, onCopy} = new Immer({
+    beforeEach(() => {
+        ;({produce, onAssign, onDelete, onCopy} = new Immer({
             autoFreeze: true,
+            useProxies,
             onAssign: defuseProxies(jest.fn().mockName("onAssign")),
             onDelete: defuseProxies(jest.fn().mockName("onDelete")),
             onCopy: defuseProxies(jest.fn().mockName("onCopy"))
         }))
+    })
 
     describe("onAssign()", () => {
-        beforeEach(reset)
         useSharedTests(() => onAssign)
         describe("when draft is an object", () => {
             test("assign", () => {
@@ -117,7 +121,6 @@ describe("hooks -", () => {
     })
 
     describe("onDelete()", () => {
-        beforeEach(reset)
         useSharedTests(() => onDelete)
         describe("when draft is an object -", () => {
             test("delete", () => {
@@ -163,7 +166,6 @@ describe("hooks -", () => {
     })
 
     describe("onCopy()", () => {
-        beforeEach(reset)
         useSharedTests(() => onCopy)
         it("is called in the right order", () => {
             const calls = []
@@ -192,7 +194,7 @@ describe("hooks -", () => {
             expect(hook).toHaveBeenCalledTimes(hook == onDelete ? 1 : 3)
         })
     }
-})
+}
 
 // Produce a snapshot of the hook arguments (minus any draft state).
 function expectCalls(hook) {
