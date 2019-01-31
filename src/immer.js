@@ -175,9 +175,9 @@ export class Immer {
                 this.onCopy(state)
             }
 
-            // Nested producers must never auto-freeze their result,
-            // because it may contain drafts from parent producers.
-            if (this.autoFreeze && !scope.parent) {
+            // At this point, all descendants of `state.copy` have been finalized,
+            // so we can be sure that `scope.canAutoFreeze` is accurate.
+            if (this.autoFreeze && scope.canAutoFreeze) {
                 Object.freeze(state.copy)
             }
 
@@ -196,7 +196,7 @@ export class Immer {
      * @internal
      * Finalize all drafts in the given state tree.
      */
-    finalizeTree(root, path, scope) {
+    finalizeTree(root, rootPath, scope) {
         const state = root[DRAFT_STATE]
         if (state) {
             if (!this.useProxies) {
@@ -207,24 +207,28 @@ export class Immer {
             root = state.copy
         }
 
-        const {onAssign} = this
+        const needPatches = !!rootPath && !!scope.patches
         const finalizeProperty = (prop, value, parent) => {
             if (value === parent) {
                 throw Error("Immer forbids circular references")
             }
 
-            // The only possible draft (in the scope of a `finalizeTree` call) is the `root` object.
-            const inDraft = !!state && parent === root
+            // In the `finalizeTree` method, only the `root` object may be a draft.
+            const isDraftProp = !!state && parent === root
 
             if (isDraft(value)) {
-                const needPatches =
-                    inDraft && path && scope.patches && !state.assigned[prop]
+                const path =
+                    isDraftProp && needPatches && !state.assigned[prop]
+                        ? rootPath.concat(prop)
+                        : null
 
-                value = this.finalize(
-                    value,
-                    needPatches ? path.concat(prop) : null,
-                    scope
-                )
+                // Drafts owned by `scope` are finalized here.
+                value = this.finalize(value, path, scope)
+
+                // Drafts from another scope must prevent auto-freezing.
+                if (isDraft(value)) {
+                    scope.canAutoFreeze = false
+                }
 
                 // Preserve non-enumerable properties.
                 if (Array.isArray(parent) || isEnumerable(parent, prop)) {
@@ -234,10 +238,10 @@ export class Immer {
                 }
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
-                if (inDraft && value === state.base[prop]) return
+                if (isDraftProp && value === state.base[prop]) return
             }
             // Unchanged draft properties are ignored.
-            else if (inDraft && is(value, state.base[prop])) {
+            else if (isDraftProp && is(value, state.base[prop])) {
                 return
             }
             // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
@@ -245,8 +249,8 @@ export class Immer {
                 each(value, finalizeProperty)
             }
 
-            if (inDraft && onAssign) {
-                onAssign(state, prop, value)
+            if (isDraftProp && this.onAssign) {
+                this.onAssign(state, prop, value)
             }
         }
 
