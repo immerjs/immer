@@ -861,6 +861,31 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     expect(() => draft.a).toThrowError(/revoked/)
                 }
             })
+
+            it("supports recursive produce calls after await", async () => {
+                const base = {obj: {k: 1}}
+                const res = await produce(base, async d => {
+                    const obj = d.obj
+                    delete d.obj
+
+                    // Force the recipe function to return.
+                    await Promise.resolve()
+
+                    d.a = produce({}, d => {
+                        d.b = obj // Assign a draft owned by the parent scope.
+                    })
+
+                    // Auto-freezing is prevented when an unowned draft exists.
+                    expect(Object.isFrozen(d.a)).toBeFalsy()
+
+                    // Ensure `obj` is not revoked.
+                    obj.c = 1
+                })
+                expect(res).not.toBe(base)
+                expect(res).toEqual({
+                    a: {b: {k: 1, c: 1}}
+                })
+            })
         })
 
         it("throws when the draft is modified and another object is returned", () => {
