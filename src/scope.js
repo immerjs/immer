@@ -6,6 +6,10 @@ export class ImmerScope {
         this.drafts = []
         this.parent = parent
 
+        // Whenever the modified draft contains a draft from another scope, we
+        // need to prevent auto-freezing so the unowned draft can be finalized.
+        this.canAutoFreeze = true
+
         // To avoid prototype lookups:
         this.patches = null
     }
