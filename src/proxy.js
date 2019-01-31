@@ -1,6 +1,4 @@
 "use strict"
-// @ts-check
-
 import {
     assign,
     each,
@@ -11,18 +9,16 @@ import {
     shallowCopy,
     DRAFT_STATE
 } from "./common"
-
-// For nested produce calls:
-export const scopes = []
-export const currentScope = () => scopes[scopes.length - 1]
+import {ImmerScope} from "./scope"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
 
 export function createDraft(base, parent) {
+    const scope = parent ? parent.scope : ImmerScope.current
     const state = {
         // Track which produce call this is associated with.
-        scope: parent ? parent.scope : currentScope(),
+        scope,
         // True for both shallow and deep changes.
         modified: false,
         // Used during finalization.
@@ -50,7 +46,7 @@ export function createDraft(base, parent) {
     state.draft = proxy
     state.revoke = revoke
 
-    state.scope.push(state)
+    scope.drafts.push(proxy)
     return proxy
 }
 

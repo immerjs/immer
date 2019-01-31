@@ -1,6 +1,4 @@
 "use strict"
-// @ts-check
-
 import {
     each,
     has,
@@ -11,20 +9,20 @@ import {
     shallowCopy,
     DRAFT_STATE
 } from "./common"
+import {ImmerScope} from "./scope"
 
 const descriptors = {}
 
-// For nested produce calls:
-export const scopes = []
-export const currentScope = () => scopes[scopes.length - 1]
-
-export function willFinalize(result, baseDraft, needPatches) {
-    const scope = currentScope()
-    scope.forEach(state => (state.finalizing = true))
-    if (result === undefined || result === baseDraft) {
-        if (needPatches) markChangesRecursively(baseDraft)
+export function willFinalize(scope, result, isReplaced) {
+    scope.drafts.forEach(draft => {
+        draft[DRAFT_STATE].finalizing = true
+    })
+    if (!isReplaced) {
+        if (scope.patches) {
+            markChangesRecursively(scope.drafts[0])
+        }
         // This is faster when we don't care about which attributes changed.
-        markChangesSweep(scope)
+        markChangesSweep(scope.drafts)
     }
 }
 
@@ -36,8 +34,9 @@ export function createDraft(base, parent) {
     })
 
     // See "proxy.js" for property documentation.
+    const scope = parent ? parent.scope : ImmerScope.current
     const state = {
-        scope: parent ? parent.scope : currentScope(),
+        scope,
         modified: false,
         finalizing: false, // es5 only
         finalized: false,
@@ -51,7 +50,7 @@ export function createDraft(base, parent) {
     }
 
     createHiddenProperty(draft, DRAFT_STATE, state)
-    state.scope.push(state)
+    scope.drafts.push(draft)
     return draft
 }
 
@@ -135,14 +134,14 @@ function assertUnrevoked(state) {
 }
 
 // This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
-function markChangesSweep(scope) {
+function markChangesSweep(drafts) {
     // The natural order of drafts in the `scope` array is based on when they
     // were accessed. By processing drafts in reverse natural order, we have a
     // better chance of processing leaf nodes first. When a leaf node is known to
     // have changed, we can avoid any traversal of its ancestor nodes.
-    for (let i = scope.length - 1; i >= 0; i--) {
-        const state = scope[i]
-        if (state.modified === false) {
+    for (let i = drafts.length - 1; i >= 0; i--) {
+        const state = drafts[i][DRAFT_STATE]
+        if (!state.modified) {
             if (Array.isArray(state.base)) {
                 if (hasArrayChanges(state)) markChanged(state)
             } else if (hasObjectChanges(state)) markChanged(state)

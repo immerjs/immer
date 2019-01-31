@@ -815,7 +815,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(next.obj).toBe(next.arr[0])
             })
 
-            it("can return an object with two references to any pristine draft", () => {
+            it("can return an object with two references to an unmodified draft", () => {
                 const base = {a: {}}
                 const next = produce(base, d => {
                     return [d.a, d.a]
@@ -830,6 +830,36 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(() => {
                     produce(res, () => res.self)
                 }).toThrow("Immer forbids circular references")
+            })
+        })
+
+        describe("async recipe function", () => {
+            it("can modify the draft", async () => {
+                const base = {a: 0, b: 0}
+                const res = await produce(base, async d => {
+                    d.a = 1
+                    await Promise.resolve()
+                    d.b = 1
+                })
+                expect(res).not.toBe(base)
+                expect(res).toEqual({a: 1, b: 1})
+            })
+
+            it("works with rejected promises", async () => {
+                let draft
+                const base = {a: 0, b: 0}
+                const err = new Error("passed")
+                try {
+                    await produce(base, async d => {
+                        draft = d
+                        draft.b = 1
+                        await Promise.reject(err)
+                    })
+                    throw "failed"
+                } catch (e) {
+                    expect(e).toBe(err)
+                    expect(() => draft.a).toThrowError(/revoked/)
+                }
             })
         })
 
