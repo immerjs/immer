@@ -833,57 +833,61 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
+        // TODO: rewrite tests with async/await once node 6 support is dropped
         describe("async recipe function", () => {
-            it("can modify the draft", async () => {
+            it("can modify the draft", () => {
                 const base = {a: 0, b: 0}
-                const res = await produce(base, async d => {
+                return produce(base, d => {
                     d.a = 1
-                    await Promise.resolve()
-                    d.b = 1
+                    return Promise.resolve().then(() => {
+                        d.b = 1
+                    })
+                }).then(res => {
+                    expect(res).not.toBe(base)
+                    expect(res).toEqual({a: 1, b: 1})
                 })
-                expect(res).not.toBe(base)
-                expect(res).toEqual({a: 1, b: 1})
             })
 
-            it("works with rejected promises", async () => {
+            it("works with rejected promises", () => {
                 let draft
                 const base = {a: 0, b: 0}
                 const err = new Error("passed")
-                try {
-                    await produce(base, async d => {
-                        draft = d
-                        draft.b = 1
-                        await Promise.reject(err)
-                    })
-                    throw "failed"
-                } catch (e) {
-                    expect(e).toBe(err)
-                    expect(() => draft.a).toThrowError(/revoked/)
-                }
+                return produce(base, d => {
+                    draft = d
+                    draft.b = 1
+                    return Promise.reject(err)
+                }).then(
+                    () => {
+                        throw "failed"
+                    },
+                    e => {
+                        expect(e).toBe(err)
+                        expect(() => draft.a).toThrowError(/revoked/)
+                    }
+                )
             })
 
-            it("supports recursive produce calls after await", async () => {
+            it("supports recursive produce calls after await", () => {
                 const base = {obj: {k: 1}}
-                const res = await produce(base, async d => {
+                return produce(base, d => {
                     const obj = d.obj
                     delete d.obj
+                    return Promise.resolve().then(() => {
+                        d.a = produce({}, d => {
+                            d.b = obj // Assign a draft owned by the parent scope.
+                        })
 
-                    // Force the recipe function to return.
-                    await Promise.resolve()
+                        // Auto-freezing is prevented when an unowned draft exists.
+                        expect(Object.isFrozen(d.a)).toBeFalsy()
 
-                    d.a = produce({}, d => {
-                        d.b = obj // Assign a draft owned by the parent scope.
+                        // Ensure `obj` is not revoked.
+                        obj.c = 1
                     })
-
-                    // Auto-freezing is prevented when an unowned draft exists.
-                    expect(Object.isFrozen(d.a)).toBeFalsy()
-
-                    // Ensure `obj` is not revoked.
-                    obj.c = 1
-                })
-                expect(res).not.toBe(base)
-                expect(res).toEqual({
-                    a: {b: {k: 1, c: 1}}
+                }).then(res => {
+                    expect(res).not.toBe(base)
+                    expect(res).toEqual({
+                        a: {b: {k: 1, c: 1}}
+                    })
                 })
             })
         })
