@@ -57,13 +57,15 @@ export class Immer {
         if (isDraftable(base)) {
             const scope = ImmerScope.enter()
             const baseDraft = this.createDraft(base)
+            let hasError = true
             try {
                 result = recipe.call(baseDraft, baseDraft)
-            } catch (error) {
-                scope.revoke()
-                throw error
+                hasError = false
+            } finally {
+                // finally instead of catch + rethrow better preserves original stack
+                if (hasError) scope.revoke()
+                else scope.leave()
             }
-            scope.leave()
             if (result instanceof Promise) {
                 return result.then(
                     result => {

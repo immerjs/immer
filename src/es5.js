@@ -11,6 +11,8 @@ import {
 } from "./common"
 import {ImmerScope} from "./scope"
 
+// property descriptors are recycled to make sure we don't create a get and set closure per property,
+// but share them all instead
 const descriptors = {}
 
 export function willFinalize(scope, result, isReplaced) {
