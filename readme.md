@@ -348,7 +348,7 @@ const user = {
 }
 
 const loadedUser = await produce(user, async function(draft) {
-    user.todos = await (await window.fetch("http://host/" + draft.name)).json()
+    draft.todos = await (await window.fetch("http://host/" + draft.name)).json()
 })
 ```
 
