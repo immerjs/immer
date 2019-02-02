@@ -335,6 +335,46 @@ For a more in-depth study, see [Distributing patches and rebasing actions using 
 
 Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.
 
+## Async producers
+
+It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) itself will return a promise if the producer is async. Example:
+
+```javascript
+import produce from "immer"
+
+const user = {
+    name: "michel",
+    todos: []
+}
+
+const loadedUser = await produce(users, async function(draft) {
+    user.todos = await window.fetch("http://host/" + draft.name).json()
+})
+```
+
+_Warning: please note that the draft shouldn't be 'leaked' from the async process and stored else where. The draft will still be revoked as soon as the async process completes._
+
+## `createDraft` and `finishDraft`
+
+`createDraft` and `finishDraft` are two low-level functions that are mostly useful for libraries that build abstractions on top of immer. It avoids the need to always create a function in order to work with drafts. Instead, one can create a draft, modify it, and at some time in the future finish the draft, in which case the next immutable state will be produced. We could for example rewrite our above example as:
+
+```javascript
+import { createDraft, finishDraft } from "immer"
+
+const user = {
+    name: "michel",
+    todos: []
+}
+
+const draft = createDraft(user)
+const draft.todos = await window.fetch("http://host/" + draft.name).json()
+const loadedUser = finishDraft(draft)
+```
+
+Note: `finishDraft` takes a `patchListener` as second argument, which can be used to record the patches, similarly to `produce`.
+
+_Warning: in general, we recommend to use `produce` instead of the `createDraft` / `finishDraft` combo, `produce` is less error prone in usage, and more clearly separates the concepts of mutability and immutability in your code base._
+
 ## Returning data from producers
 
 It is not needed to return anything from a producer, as Immer will return the (finalized) version of the `draft` anyway. However, it is allowed to just `return draft`.
