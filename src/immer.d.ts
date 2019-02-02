@@ -43,17 +43,15 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
-type IsVoidLike<T> = T extends void | undefined ? 1 : 0
-
 /** Converts `nothing` into `undefined` */
-type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
+type FromNothing<T> = T extends Nothing ? undefined : T
 
 /** The inferred return type of `produce` */
-export type Produced<T, Return> = IsVoidLike<Return> extends 0
-    ? FromNothing<Return>
-    : IsVoidLike<Return> extends 1
-    ? T
-    : T | FromNothing<Exclude<Return, void>>
+export type Produced<Base, Return> = Return extends void
+    ? Base
+    : Return extends Promise<infer Result>
+    ? Promise<Result extends void ? Base : FromNothing<Result>>
+    : FromNothing<Return>
 
 type ImmutableTuple<T extends ReadonlyArray<any>> = {
     readonly [P in keyof T]: Immutable<T[P]>
@@ -168,7 +166,7 @@ export function createDraft<T>(base: T): Draft<T>
  * Pass a function as the 2nd argument to generate Immer patches based on the
  * changes that were made.
  */
-export function finishDraft<T>(base: Draft<T>, listener?: PatchListener): T
+export function finishDraft<T>(draft: T, listener?: PatchListener): Immutable<T>
 
 /** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void
