@@ -46,6 +46,10 @@ export const setUseProxies = immer.setUseProxies.bind(immer)
  */
 export const applyPatches = immer.applyPatches.bind(immer)
 
+export const createDraft = immer.createPublicDraft.bind(immer)
+
+export const finishDraft = immer.finishPublicDraft.bind(immer)
+
 export {
     original,
     isDraft,

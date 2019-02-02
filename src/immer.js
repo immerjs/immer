@@ -86,6 +86,19 @@ export class Immer {
             return result !== NOTHING ? result : undefined
         }
     }
+    createPublicDraft(value) {
+        if (!isDraftable(value)) throw new Error("First argument to createDraft should be a plain-, or immerable object, or array.") // prettier-ignore
+        const scope = ImmerScope.enter()
+        const draft = this.createDraft(value)
+        scope.leave()
+        return draft
+    }
+    finishPublicDraft(draft, patchListener) {
+        if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object created with createDraft.") // prettier-ignore
+        const {scope} = draft[DRAFT_STATE]
+        scope.usePatches(patchListener)
+        return this.processResult(undefined, scope)
+    }
     setAutoFreeze(value) {
         this.autoFreeze = value
     }
