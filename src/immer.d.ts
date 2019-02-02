@@ -154,6 +154,19 @@ export function setUseProxies(useProxies: boolean): void
  */
 export function applyPatches<S>(base: S, patches: Patch[]): S
 
+/**
+ * Creates a mutable draft from an (immutable) object / array.
+ * The draft can be modified until `finishDraft` is called
+ */
+export function createDraft<T>(base: T): Draft<T>
+
+/**
+ * Given a draft that was created using `createDraft`,
+ * finalizes the draft into a new immutable object.
+ * Optionally a patch-listener can be provided to gather the patches that are needed to construct the object.
+ */
+export function finishDraft<T>(base: Draft<T>, listener?: PatchListener): T
+
 /** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void
 
