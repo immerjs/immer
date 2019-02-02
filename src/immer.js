@@ -91,11 +91,17 @@ export class Immer {
         const scope = ImmerScope.enter()
         const proxy = this.createProxy(base)
         scope.leave()
+        proxy[DRAFT_STATE].customDraft = true
         return proxy
     }
     finishDraft(draft, patchListener) {
         if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object from createDraft.") // prettier-ignore
-        const {scope} = draft[DRAFT_STATE]
+        const state = draft[DRAFT_STATE]
+        if (!state.customDraft) throw new Error("The draft provided was not created using `createDraft`") // prettier-ignore
+        if (state.finalized) throw new Error("The draft provided was has already been finished") // prettier-ignore
+        // TODO: check if created with createDraft
+        // TODO: check if not finsihed twice
+        const {scope} = state
         scope.usePatches(patchListener)
         return this.processResult(undefined, scope)
     }

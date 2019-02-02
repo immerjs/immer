@@ -119,5 +119,18 @@ function runTests(name, useProxies) {
                 d: 2
             })
         })
+
+        it("should not finish drafts from produce", () => {
+            produce({x: 1}, draft => {
+                expect(() => finishDraft(draft)).toThrowErrorMatchingSnapshot()
+            })
+        })
+
+        it("should not finish twice", () => {
+            const draft = createDraft({a: 1})
+            draft.a++
+            finishDraft(draft)
+            expect(() => finishDraft(draft)).toThrowErrorMatchingSnapshot()
+        })
     })
 }
