@@ -26,6 +26,10 @@ export function willFinalize(result, baseDraft, needPatches) {
         // This is faster when we don't care about which attributes changed.
         markChangesSweep(scope)
     }
+    // When a child draft is returned, look for changes.
+    else if (isDraft(result) && result[DRAFT_STATE].scope === scope) {
+        markChangesSweep(scope.drafts)
+    }
 }
 
 export function createDraft(base, parent) {

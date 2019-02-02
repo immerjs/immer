@@ -794,12 +794,23 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(res).toEqual({x: 4})
             })
 
-            it("can return a child draft", () => {
+            it("can return an unmodified child draft", () => {
                 const base = {a: {}}
                 const res = produce(base, d => {
                     return d.a
                 })
                 expect(res).toBe(base.a)
+            })
+
+            // TODO: Avoid throwing if only the child draft was modified.
+            it("cannot return a modified child draft", () => {
+                const base = {a: {}}
+                expect(() => {
+                    produce(base, d => {
+                        d.a.b = 1
+                        return d.a
+                    })
+                }).toThrow(/^An immer producer returned/)
             })
 
             it("can return a frozen object", () => {
