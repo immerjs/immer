@@ -1,5 +1,11 @@
 "use strict"
-import {setUseProxies, createDraft, finishDraft, produce} from "../src/index"
+import {
+    setUseProxies,
+    createDraft,
+    finishDraft,
+    produce,
+    isDraft
+} from "../src/index"
 
 runTests("proxy", true)
 runTests("es5", false)
@@ -9,15 +15,10 @@ function runTests(name, useProxies) {
         setUseProxies(useProxies)
 
         it("should check arguments", () => {
-            expect(() => createDraft(3)).toThrow(
-                "argument to createDraft should be a plain"
-            )
-            expect(() => createDraft(new Buffer([]))).toThrow(
-                "argument to createDraft should be a plain"
-            )
-            expect(() => finishDraft({})).toThrow(
-                "First argument to finishDraft should be "
-            )
+            expect(() => createDraft(3)).toThrowErrorMatchingSnapshot()
+            const buf = new Buffer([])
+            expect(() => createDraft(buf)).toThrowErrorMatchingSnapshot()
+            expect(() => finishDraft({})).toThrowErrorMatchingSnapshot()
         })
 
         it("should support manual drafts", () => {
@@ -43,7 +44,7 @@ function runTests(name, useProxies) {
             expect(finishDraft(draft)).toEqual({a: 2})
             expect(() => {
                 draft.a = 3
-            }).toThrow("Cannot use a proxy that has been revoked")
+            }).toThrowErrorMatchingSnapshot()
         })
 
         it("should support patches drafts", () => {
@@ -53,38 +54,12 @@ function runTests(name, useProxies) {
             draft.a = 2
             draft.b = 3
 
-            const patches = []
-            const result = finishDraft(draft, (p, ip) => {
-                patches.push(p, ip)
-            })
+            const listener = jest.fn()
+            const result = finishDraft(draft, listener)
 
             expect(result).not.toBe(state)
             expect(result).toEqual({a: 2, b: 3})
-            expect(patches).toEqual([
-                [
-                    {
-                        op: "replace",
-                        path: ["a"],
-                        value: 2
-                    },
-                    {
-                        op: "add",
-                        path: ["b"],
-                        value: 3
-                    }
-                ],
-                [
-                    {
-                        op: "replace",
-                        path: ["a"],
-                        value: 1
-                    },
-                    {
-                        op: "remove",
-                        path: ["b"]
-                    }
-                ]
-            ])
+            expect(listener.mock.calls).toMatchSnapshot()
         })
 
         it("should handle multiple create draft calls", () => {
