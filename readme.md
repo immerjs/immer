@@ -335,10 +335,6 @@ For a more in-depth study, see [Distributing patches and rebasing actions using 
 
 Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.
 
-## Auto freezing
-
-Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default, it is turned on during local development and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
-
 ## Returning data from producers
 
 It is not needed to return anything from a producer, as Immer will return the (finalized) version of the `draft` anyway. However, it is allowed to just `return draft`.
@@ -422,6 +418,22 @@ produce(state, draft => nothing)
 
 N.B. Note that this problem is specific for the `undefined` value, any other value, including `null`, doesn't suffer from this issue.
 
+## Inline shortcuts using `void`
+
+Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
+
+In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
+
+```javascript
+// Single mutation
+produce(draft => void (draft.user.age += 1))
+
+// Multiple mutations
+produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
+```
+
+Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
+
 ## Extracting the original object from a proxied instance
 
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
@@ -447,72 +459,9 @@ const nextState = produce(baseState, draft => {
 isDraft(nextState) // => false
 ```
 
-## Using `this`
+## Auto freezing
 
-The recipe will be always invoked with the `draft` as `this` context.
-
-This means that the following constructions are also valid:
-
-```javascript
-const base = {counter: 0}
-
-const next = produce(base, function() {
-    this.counter++
-})
-console.log(next.counter) // 1
-
-// OR
-const increment = produce(function() {
-    this.counter++
-})
-console.log(increment(base).counter) // 1
-```
-
-## Inline shortcuts using `void`
-
-Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
-
-In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
-
-```javascript
-// Single mutation
-produce(draft => void (draft.user.age += 1))
-
-// Multiple mutations
-produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
-```
-
-Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
-
-## TypeScript or Flow
-
-The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
-
-The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
-
-```ts
-import produce from "immer"
-
-interface State {
-    readonly x: number
-}
-
-// `x` cannot be modified here
-const state: State = {
-    x: 0
-}
-
-const newState = produce<State>(state, draft => {
-    // `x` can be modified here
-    draft.x++
-})
-
-// `newState.x` cannot be modified here
-```
-
-This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
-
-**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default, it is turned on during local development and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
 
 ## Immer on older JavaScript environments?
 
@@ -574,6 +523,59 @@ const nextState = produce(state, draft => {
     // 3. Update the draft
     draft.map = newMap
 })
+```
+
+## TypeScript or Flow
+
+The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
+
+The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
+
+```ts
+import produce from "immer"
+
+interface State {
+    readonly x: number
+}
+
+// `x` cannot be modified here
+const state: State = {
+    x: 0
+}
+
+const newState = produce<State>(state, draft => {
+    // `x` can be modified here
+    draft.x++
+})
+
+// `newState.x` cannot be modified here
+```
+
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
+
+**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+
+## Using `this`
+
+_Deprecated, this will probably be removed in a next major version, see [#308](https://github.com/mweststrate/immer/issues/308)_
+
+The recipe will be always invoked with the `draft` as `this` context.
+
+This means that the following constructions are also valid:
+
+```javascript
+const base = {counter: 0}
+
+const next = produce(base, function() {
+    this.counter++
+})
+console.log(next.counter) // 1
+
+// OR
+const increment = produce(function() {
+    this.counter++
+})
+console.log(increment(base).counter) // 1
 ```
 
 # Pitfalls
