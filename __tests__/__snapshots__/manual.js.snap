@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`manual - es5 cannot modify after finish 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":2}"`;
+
+exports[`manual - es5 should check arguments 1`] = `"First argument to createDraft should be a plain object, an array, or an immerable object."`;
+
+exports[`manual - es5 should check arguments 2`] = `"First argument to createDraft should be a plain object, an array, or an immerable object."`;
+
+exports[`manual - es5 should check arguments 3`] = `"First argument to finishDraft should be an object from createDraft."`;
+
+exports[`manual - es5 should not finish drafts from produce 1`] = `"The draft provided was not created using \`createDraft\`"`;
+
+exports[`manual - es5 should not finish twice 1`] = `"The draft provided was has already been finished"`;
+
+exports[`manual - es5 should support patches drafts 1`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 2,
+      },
+      Object {
+        "op": "add",
+        "path": Array [
+          "b",
+        ],
+        "value": 3,
+      },
+    ],
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 1,
+      },
+      Object {
+        "op": "remove",
+        "path": Array [
+          "b",
+        ],
+      },
+    ],
+  ],
+]
+`;
+
+exports[`manual - proxy cannot modify after finish 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":2}"`;
+
+exports[`manual - proxy should check arguments 1`] = `"First argument to createDraft should be a plain object, an array, or an immerable object."`;
+
+exports[`manual - proxy should check arguments 2`] = `"First argument to createDraft should be a plain object, an array, or an immerable object."`;
+
+exports[`manual - proxy should check arguments 3`] = `"First argument to finishDraft should be an object from createDraft."`;
+
+exports[`manual - proxy should not finish drafts from produce 1`] = `"The draft provided was not created using \`createDraft\`"`;
+
+exports[`manual - proxy should not finish twice 1`] = `"The draft provided was has already been finished"`;
+
+exports[`manual - proxy should support patches drafts 1`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 2,
+      },
+      Object {
+        "op": "add",
+        "path": Array [
+          "b",
+        ],
+        "value": 3,
+      },
+    ],
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 1,
+      },
+      Object {
+        "op": "remove",
+        "path": Array [
+          "b",
+        ],
+      },
+    ],
+  ],
+]
+`;

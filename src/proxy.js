@@ -1,6 +1,4 @@
 "use strict"
-// @ts-check
-
 import {
     assign,
     each,
@@ -11,18 +9,16 @@ import {
     shallowCopy,
     DRAFT_STATE
 } from "./common"
-
-// For nested produce calls:
-export const scopes = []
-export const currentScope = () => scopes[scopes.length - 1]
+import {ImmerScope} from "./scope"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
 
-export function createDraft(base, parent) {
+export function createProxy(base, parent) {
+    const scope = parent ? parent.scope : ImmerScope.current
     const state = {
         // Track which produce call this is associated with.
-        scope: parent ? parent.scope : currentScope(),
+        scope,
         // True for both shallow and deep changes.
         modified: false,
         // Used during finalization.
@@ -44,13 +40,15 @@ export function createDraft(base, parent) {
     }
 
     const {revoke, proxy} = Array.isArray(base)
-        ? Proxy.revocable([state], arrayTraps)
+        ? // [state] is used for arrays, to make sure the proxy is array-ish and not violate invariants,
+          // although state itself is an object
+          Proxy.revocable([state], arrayTraps)
         : Proxy.revocable(state, objectTraps)
 
     state.draft = proxy
     state.revoke = revoke
 
-    state.scope.push(state)
+    scope.drafts.push(proxy)
     return proxy
 }
 
@@ -96,6 +94,7 @@ arrayTraps.set = function(state, prop, value) {
     return objectTraps.set.call(this, state[0], prop, value)
 }
 
+// returns the object we should be reading the current value from, which is base, until some change has been made
 function source(state) {
     return state.copy || state.base
 }
@@ -120,7 +119,7 @@ function get(state, prop) {
         drafts = state.copy
     }
 
-    return (drafts[prop] = createDraft(value, state))
+    return (drafts[prop] = createProxy(value, state))
 }
 
 function set(state, prop, value) {

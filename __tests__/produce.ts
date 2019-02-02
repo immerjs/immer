@@ -196,15 +196,52 @@ it("does not enforce immutability at the type level", () => {
     exactType(result, {} as any[])
 })
 
-it("can produce nothing", () => {
-    let result = produce({}, _ => nothing)
+it("can produce an undefined value", () => {
+    let base = {} as {readonly a: number}
+
+    // Return only nothing.
+    let result = produce(base, _ => nothing)
     exactType(result, undefined)
+
+    // Return maybe nothing.
+    let result2 = produce(base, draft => {
+        if (draft.a > 0) return nothing
+    })
+    exactType(result2, {} as typeof base | undefined)
+})
+
+it("can return the draft itself", () => {
+    let base = {} as {readonly a: number}
+    let result = produce(base, draft => draft)
+
+    // Currently, the `readonly` modifier is lost.
+    exactType(result, {} as {a: number} | undefined)
+})
+
+it("can return a promise", () => {
+    let base = {} as {readonly a: number}
+
+    // Return a promise only.
+    exactType(
+        produce(base, draft => {
+            return Promise.resolve(draft.a > 0 ? null : undefined)
+        }),
+        {} as Promise<{readonly a: number} | null>
+    )
+
+    // Return a promise or undefined.
+    exactType(
+        produce(base, draft => {
+            if (draft.a > 0) return Promise.resolve()
+        }),
+        {} as (Promise<{readonly a: number}> | {readonly a: number})
+    )
 })
 
 it("works with `void` hack", () => {
-    let obj = {} as {readonly a: number}
-    let res = produce(obj, s => void s.a++)
-    exactType(res, obj)
+    let base = {} as {readonly a: number}
+    let copy = produce(base, s => void s.a++)
+    exactType(copy, base)
 })
 
 it("works with generic parameters", () => {

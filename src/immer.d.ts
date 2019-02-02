@@ -43,17 +43,15 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
-type IsVoidLike<T> = T extends void | undefined ? 1 : 0
-
 /** Converts `nothing` into `undefined` */
-type FromNothing<T> = Nothing extends T ? Exclude<T, Nothing> | undefined : T
+type FromNothing<T> = T extends Nothing ? undefined : T
 
 /** The inferred return type of `produce` */
-export type Produced<T, Return> = IsVoidLike<Return> extends 0
-    ? FromNothing<Return>
-    : IsVoidLike<Return> extends 1
-    ? T
-    : T | FromNothing<Exclude<Return, void>>
+export type Produced<Base, Return> = Return extends void
+    ? Base
+    : Return extends Promise<infer Result>
+    ? Promise<Result extends void ? Base : FromNothing<Result>>
+    : FromNothing<Return>
 
 type ImmutableTuple<T extends ReadonlyArray<any>> = {
     readonly [P in keyof T]: Immutable<T[P]>
@@ -153,6 +151,22 @@ export function setUseProxies(useProxies: boolean): void
  * This function is a producer, which means copy-on-write is in effect.
  */
 export function applyPatches<S>(base: S, patches: Patch[]): S
+
+/**
+ * Create an Immer draft from the given base state, which may be a draft itself.
+ * The draft can be modified until you finalize it with the `finishDraft` function.
+ */
+export function createDraft<T>(base: T): Draft<T>
+
+/**
+ * Finalize an Immer draft from a `createDraft` call, returning the base state
+ * (if no changes were made) or a modified copy. The draft must *not* be
+ * mutated afterwards.
+ *
+ * Pass a function as the 2nd argument to generate Immer patches based on the
+ * changes that were made.
+ */
+export function finishDraft<T>(draft: T, listener?: PatchListener): Immutable<T>
 
 /** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void

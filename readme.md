@@ -335,9 +335,45 @@ For a more in-depth study, see [Distributing patches and rebasing actions using 
 
 Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.
 
-## Auto freezing
+## Async producers
 
-Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default, it is turned on during local development and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
+It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
+
+```javascript
+import produce from "immer"
+
+const user = {
+    name: "michel",
+    todos: []
+}
+
+const loadedUser = await produce(user, async function(draft) {
+    user.todos = await (await window.fetch("http://host/" + draft.name)).json()
+})
+```
+
+_Warning: please note that the draft shouldn't be 'leaked' from the async process and stored else where. The draft will still be revoked as soon as the async process completes._
+
+## `createDraft` and `finishDraft`
+
+`createDraft` and `finishDraft` are two low-level functions that are mostly useful for libraries that build abstractions on top of immer. It avoids the need to always create a function in order to work with drafts. Instead, one can create a draft, modify it, and at some time in the future finish the draft, in which case the next immutable state will be produced. We could for example rewrite our above example as:
+
+```javascript
+import {createDraft, finishDraft} from "immer"
+
+const user = {
+    name: "michel",
+    todos: []
+}
+
+const draft = createDraft(user)
+draft.todos = await (await window.fetch("http://host/" + draft.name)).json()
+const loadedUser = finishDraft(draft)
+```
+
+Note: `finishDraft` takes a `patchListener` as second argument, which can be used to record the patches, similarly to `produce`.
+
+_Warning: in general, we recommend to use `produce` instead of the `createDraft` / `finishDraft` combo, `produce` is less error prone in usage, and more clearly separates the concepts of mutability and immutability in your code base._
 
 ## Returning data from producers
 
@@ -422,6 +458,22 @@ produce(state, draft => nothing)
 
 N.B. Note that this problem is specific for the `undefined` value, any other value, including `null`, doesn't suffer from this issue.
 
+## Inline shortcuts using `void`
+
+Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
+
+In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
+
+```javascript
+// Single mutation
+produce(draft => void (draft.user.age += 1))
+
+// Multiple mutations
+produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
+```
+
+Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
+
 ## Extracting the original object from a proxied instance
 
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
@@ -447,72 +499,9 @@ const nextState = produce(baseState, draft => {
 isDraft(nextState) // => false
 ```
 
-## Using `this`
+## Auto freezing
 
-The recipe will be always invoked with the `draft` as `this` context.
-
-This means that the following constructions are also valid:
-
-```javascript
-const base = {counter: 0}
-
-const next = produce(base, function() {
-    this.counter++
-})
-console.log(next.counter) // 1
-
-// OR
-const increment = produce(function() {
-    this.counter++
-})
-console.log(increment(base).counter) // 1
-```
-
-## Inline shortcuts using `void`
-
-Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
-
-In such cases, you can use javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) operator, which evaluates expressions and returns `undefined`.
-
-```javascript
-// Single mutation
-produce(draft => void (draft.user.age += 1))
-
-// Multiple mutations
-produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
-```
-
-Code style is highly personal, but for code bases that are to be understood by many, we recommend to stick to the classic `draft => { draft.user.age += 1}` to avoid cognitive overhead.
-
-## TypeScript or Flow
-
-The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
-
-The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
-
-```ts
-import produce from "immer"
-
-interface State {
-    readonly x: number
-}
-
-// `x` cannot be modified here
-const state: State = {
-    x: 0
-}
-
-const newState = produce<State>(state, draft => {
-    // `x` can be modified here
-    draft.x++
-})
-
-// `newState.x` cannot be modified here
-```
-
-This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
-
-**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+Immer automatically freezes any state trees that are modified using `produce`. This protects against accidental modifications of the state tree outside of a producer. This comes with a performance impact, so it is recommended to disable this option in production. It is by default enabled. By default, it is turned on during local development and turned off in production. Use `setAutoFreeze(true / false)` to explicitly turn this feature on or off.
 
 ## Immer on older JavaScript environments?
 
@@ -574,6 +563,59 @@ const nextState = produce(state, draft => {
     // 3. Update the draft
     draft.map = newMap
 })
+```
+
+## TypeScript or Flow
+
+The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
+
+The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
+
+```ts
+import produce from "immer"
+
+interface State {
+    readonly x: number
+}
+
+// `x` cannot be modified here
+const state: State = {
+    x: 0
+}
+
+const newState = produce<State>(state, draft => {
+    // `x` can be modified here
+    draft.x++
+})
+
+// `newState.x` cannot be modified here
+```
+
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
+
+**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+
+## Using `this`
+
+_Deprecated, this will probably be removed in a next major version, see [#308](https://github.com/mweststrate/immer/issues/308)_
+
+The recipe will be always invoked with the `draft` as `this` context.
+
+This means that the following constructions are also valid:
+
+```javascript
+const base = {counter: 0}
+
+const next = produce(base, function() {
+    this.counter++
+})
+console.log(next.counter) // 1
+
+// OR
+const increment = produce(function() {
+    this.counter++
+})
+console.log(increment(base).counter) // 1
 ```
 
 # Pitfalls
@@ -668,6 +710,12 @@ Most important observation:
 -   Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
 -   Generating patches doesn't significantly slow immer down
 -   The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
+
+## Migration
+
+**Immer 1.\* -> 2.0**
+
+Make sure you don't return any promises as state, because `produce` will actually invoke the promise and wait until it settles.
 
 ## FAQ
 

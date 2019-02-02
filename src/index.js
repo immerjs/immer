@@ -46,6 +46,22 @@ export const setUseProxies = immer.setUseProxies.bind(immer)
  */
 export const applyPatches = immer.applyPatches.bind(immer)
 
+/**
+ * Create an Immer draft from the given base state, which may be a draft itself.
+ * The draft can be modified until you finalize it with the `finishDraft` function.
+ */
+export const createDraft = immer.createDraft.bind(immer)
+
+/**
+ * Finalize an Immer draft from a `createDraft` call, returning the base state
+ * (if no changes were made) or a modified copy. The draft must *not* be
+ * mutated afterwards.
+ *
+ * Pass a function as the 2nd argument to generate Immer patches based on the
+ * changes that were made.
+ */
+export const finishDraft = immer.finishDraft.bind(immer)
+
 export {
     original,
     isDraft,

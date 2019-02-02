@@ -826,7 +826,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(next.obj).toBe(next.arr[0])
             })
 
-            it("can return an object with two references to any pristine draft", () => {
+            it("can return an object with two references to an unmodified draft", () => {
                 const base = {a: {}}
                 const next = produce(base, d => {
                     return [d.a, d.a]
@@ -841,6 +841,65 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 expect(() => {
                     produce(res, () => res.self)
                 }).toThrow("Immer forbids circular references")
+            })
+        })
+
+        // TODO: rewrite tests with async/await once node 6 support is dropped
+        describe("async recipe function", () => {
+            it("can modify the draft", () => {
+                const base = {a: 0, b: 0}
+                return produce(base, d => {
+                    d.a = 1
+                    return Promise.resolve().then(() => {
+                        d.b = 1
+                    })
+                }).then(res => {
+                    expect(res).not.toBe(base)
+                    expect(res).toEqual({a: 1, b: 1})
+                })
+            })
+
+            it("works with rejected promises", () => {
+                let draft
+                const base = {a: 0, b: 0}
+                const err = new Error("passed")
+                return produce(base, d => {
+                    draft = d
+                    draft.b = 1
+                    return Promise.reject(err)
+                }).then(
+                    () => {
+                        throw "failed"
+                    },
+                    e => {
+                        expect(e).toBe(err)
+                        expect(() => draft.a).toThrowError(/revoked/)
+                    }
+                )
+            })
+
+            it("supports recursive produce calls after await", () => {
+                const base = {obj: {k: 1}}
+                return produce(base, d => {
+                    const obj = d.obj
+                    delete d.obj
+                    return Promise.resolve().then(() => {
+                        d.a = produce({}, d => {
+                            d.b = obj // Assign a draft owned by the parent scope.
+                        })
+
+                        // Auto-freezing is prevented when an unowned draft exists.
+                        expect(Object.isFrozen(d.a)).toBeFalsy()
+
+                        // Ensure `obj` is not revoked.
+                        obj.c = 1
+                    })
+                }).then(res => {
+                    expect(res).not.toBe(base)
+                    expect(res).toEqual({
+                        a: {b: {k: 1, c: 1}}
+                    })
+                })
             })
         })
 

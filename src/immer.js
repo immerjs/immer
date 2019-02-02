@@ -13,6 +13,7 @@ import {
     DRAFT_STATE,
     NOTHING
 } from "./common"
+import {ImmerScope} from "./scope"
 
 function verifyMinified() {}
 
@@ -51,62 +52,58 @@ export class Immer {
         }
 
         let result
-        // Only create proxies for plain objects/arrays.
-        if (!isDraftable(base)) {
+
+        // Only plain objects, arrays, and "immerable classes" are drafted.
+        if (isDraftable(base)) {
+            const scope = ImmerScope.enter()
+            const proxy = this.createProxy(base)
+            let hasError = true
+            try {
+                result = recipe.call(proxy, proxy)
+                hasError = false
+            } finally {
+                // finally instead of catch + rethrow better preserves original stack
+                if (hasError) scope.revoke()
+                else scope.leave()
+            }
+            if (result instanceof Promise) {
+                return result.then(
+                    result => {
+                        scope.usePatches(patchListener)
+                        return this.processResult(result, scope)
+                    },
+                    error => {
+                        scope.revoke()
+                        throw error
+                    }
+                )
+            }
+            scope.usePatches(patchListener)
+            return this.processResult(result, scope)
+        } else {
             result = recipe(base)
             if (result === undefined) return base
+            return result !== NOTHING ? result : undefined
         }
-        // The given value must be proxied.
-        else {
-            this.scopes.push([])
-            const baseDraft = this.createDraft(base)
-            try {
-                result = recipe.call(baseDraft, baseDraft)
-                this.willFinalize(result, baseDraft, !!patchListener)
-
-                // Never generate patches when no listener exists.
-                var patches = patchListener && [],
-                    inversePatches = patchListener && []
-
-                // Finalize the modified draft...
-                if (result === undefined || result === baseDraft) {
-                    result = this.finalize(
-                        baseDraft,
-                        [],
-                        patches,
-                        inversePatches
-                    )
-                }
-                // ...or use a replacement value.
-                else {
-                    // Users must never modify the draft _and_ return something else.
-                    if (baseDraft[DRAFT_STATE].modified)
-                        throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
-
-                    // Finalize the replacement in case it contains (or is) a subset of the draft.
-                    if (isDraftable(result)) result = this.finalize(result)
-
-                    if (patchListener) {
-                        patches.push({
-                            op: "replace",
-                            path: [],
-                            value: result
-                        })
-                        inversePatches.push({
-                            op: "replace",
-                            path: [],
-                            value: base
-                        })
-                    }
-                }
-            } finally {
-                this.currentScope().forEach(state => state.revoke())
-                this.scopes.pop()
-            }
-            patchListener && patchListener(patches, inversePatches)
-        }
-        // Normalize the result.
-        return result === NOTHING ? undefined : result
+    }
+    createDraft(base) {
+        if (!isDraftable(base)) throw new Error("First argument to createDraft should be a plain object, an array, or an immerable object.") // prettier-ignore
+        const scope = ImmerScope.enter()
+        const proxy = this.createProxy(base)
+        scope.leave()
+        proxy[DRAFT_STATE].customDraft = true
+        return proxy
+    }
+    finishDraft(draft, patchListener) {
+        if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object from createDraft.") // prettier-ignore
+        const state = draft[DRAFT_STATE]
+        if (!state.customDraft) throw new Error("The draft provided was not created using `createDraft`") // prettier-ignore
+        if (state.finalized) throw new Error("The draft provided was has already been finished") // prettier-ignore
+        // TODO: check if created with createDraft
+        // TODO: check if not finsihed twice
+        const {scope} = state
+        scope.usePatches(patchListener)
+        return this.processResult(undefined, scope)
     }
     setAutoFreeze(value) {
         this.autoFreeze = value
@@ -123,25 +120,64 @@ export class Immer {
         // Otherwise, produce a copy of the base state.
         return this.produce(base, draft => applyPatches(draft, patches))
     }
+    /** @internal */
+    processResult(result, scope) {
+        const baseDraft = scope.drafts[0]
+        const isReplaced = result !== undefined && result !== baseDraft
+        this.willFinalize(scope, result, isReplaced)
+        if (isReplaced) {
+            if (baseDraft[DRAFT_STATE].modified) {
+                scope.revoke()
+                throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
+            }
+            if (isDraftable(result)) {
+                // Finalize the result in case it contains (or is) a subset of the draft.
+                result = this.finalize(result, null, scope)
+            }
+            if (scope.patches) {
+                scope.patches.push({
+                    op: "replace",
+                    path: [],
+                    value: result
+                })
+                scope.inversePatches.push({
+                    op: "replace",
+                    path: [],
+                    value: baseDraft[DRAFT_STATE].base
+                })
+            }
+        } else {
+            // Finalize the base draft.
+            result = this.finalize(baseDraft, [], scope)
+        }
+        scope.revoke()
+        if (scope.patches) {
+            scope.patchListener(scope.patches, scope.inversePatches)
+        }
+        return result !== NOTHING ? result : undefined
+    }
     /**
      * @internal
      * Finalize a draft, returning either the unmodified base state or a modified
      * copy of the base state.
      */
-    finalize(draft, path, patches, inversePatches) {
+    finalize(draft, path, scope) {
         const state = draft[DRAFT_STATE]
         if (!state) {
             if (Object.isFrozen(draft)) return draft
-            return this.finalizeTree(draft)
+            return this.finalizeTree(draft, null, scope)
         }
-        // Never finalize drafts owned by an outer scope.
-        if (state.scope !== this.currentScope()) {
+        // Never finalize drafts owned by another scope.
+        if (state.scope !== scope) {
             return draft
         }
-        if (!state.modified) return state.base
+        if (!state.modified) {
+            return state.base
+        }
         if (!state.finalized) {
             state.finalized = true
-            this.finalizeTree(state.draft, path, patches, inversePatches)
+            this.finalizeTree(state.draft, path, scope)
+
             if (this.onDelete) {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
@@ -156,15 +192,24 @@ export class Immer {
                     })
                 }
             }
-            if (this.onCopy) this.onCopy(state)
+            if (this.onCopy) {
+                this.onCopy(state)
+            }
 
-            // Nested producers must never auto-freeze their result,
-            // because it may contain drafts from parent producers.
-            if (this.autoFreeze && this.scopes.length === 1) {
+            // At this point, all descendants of `state.copy` have been finalized,
+            // so we can be sure that `scope.canAutoFreeze` is accurate.
+            if (this.autoFreeze && scope.canAutoFreeze) {
                 Object.freeze(state.copy)
             }
 
-            if (patches) generatePatches(state, path, patches, inversePatches)
+            if (path && scope.patches) {
+                generatePatches(
+                    state,
+                    path,
+                    scope.patches,
+                    scope.inversePatches
+                )
+            }
         }
         return state.copy
     }
@@ -172,7 +217,7 @@ export class Immer {
      * @internal
      * Finalize all drafts in the given state tree.
      */
-    finalizeTree(root, path, patches, inversePatches) {
+    finalizeTree(root, rootPath, scope) {
         const state = root[DRAFT_STATE]
         if (state) {
             if (!this.useProxies) {
@@ -183,21 +228,28 @@ export class Immer {
             root = state.copy
         }
 
-        const {onAssign} = this
+        const needPatches = !!rootPath && !!scope.patches
         const finalizeProperty = (prop, value, parent) => {
             if (value === parent) {
                 throw Error("Immer forbids circular references")
             }
 
-            // The only possible draft (in the scope of a `finalizeTree` call) is the `root` object.
-            const inDraft = !!state && parent === root
+            // In the `finalizeTree` method, only the `root` object may be a draft.
+            const isDraftProp = !!state && parent === root
 
             if (isDraft(value)) {
-                value =
-                    // Patches are never generated for assigned properties.
-                    patches && inDraft && !state.assigned[prop]
-                        ? this.finalize(value, path.concat(prop), patches, inversePatches) // prettier-ignore
-                        : this.finalize(value)
+                const path =
+                    isDraftProp && needPatches && !state.assigned[prop]
+                        ? rootPath.concat(prop)
+                        : null
+
+                // Drafts owned by `scope` are finalized here.
+                value = this.finalize(value, path, scope)
+
+                // Drafts from another scope must prevent auto-freezing.
+                if (isDraft(value)) {
+                    scope.canAutoFreeze = false
+                }
 
                 // Preserve non-enumerable properties.
                 if (Array.isArray(parent) || isEnumerable(parent, prop)) {
@@ -207,10 +259,10 @@ export class Immer {
                 }
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
-                if (inDraft && value === state.base[prop]) return
+                if (isDraftProp && value === state.base[prop]) return
             }
             // Unchanged draft properties are ignored.
-            else if (inDraft && is(value, state.base[prop])) {
+            else if (isDraftProp && is(value, state.base[prop])) {
                 return
             }
             // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
@@ -218,8 +270,8 @@ export class Immer {
                 each(value, finalizeProperty)
             }
 
-            if (inDraft && onAssign) {
-                onAssign(state, prop, value)
+            if (isDraftProp && this.onAssign) {
+                this.onAssign(state, prop, value)
             }
         }
 

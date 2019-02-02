@@ -90,3 +90,16 @@ declare export function applyPatches<S>(state: S, patches: Patch[]): S
 declare export function original<S>(value: S): ?S
 
 declare export function isDraft(value: any): boolean
+
+/**
+ * Creates a mutable draft from an (immutable) object / array. 
+ * The draft can be modified until `finishDraft` is called
+ */
+declare export function createDraft<T>(base: T): T
+
+/**
+ * Given a draft that was created using `createDraft`, 
+ * finalizes the draft into a new immutable object.
+ * Optionally a patch-listener can be provided to gather the patches that are needed to construct the object.
+ */
+declare export function finishDraft<T>(base: T, listener?: PatchListener): T
