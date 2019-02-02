@@ -337,7 +337,7 @@ Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstei
 
 ## Async producers
 
-It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) itself will return a promise if the producer is async. Example:
+It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
 
 ```javascript
 import produce from "immer"
@@ -347,8 +347,8 @@ const user = {
     todos: []
 }
 
-const loadedUser = await produce(users, async function(draft) {
-    user.todos = await window.fetch("http://host/" + draft.name).json()
+const loadedUser = await produce(user, async function(draft) {
+    user.todos = await (await window.fetch("http://host/" + draft.name)).json()
 })
 ```
 
@@ -359,7 +359,7 @@ _Warning: please note that the draft shouldn't be 'leaked' from the async proces
 `createDraft` and `finishDraft` are two low-level functions that are mostly useful for libraries that build abstractions on top of immer. It avoids the need to always create a function in order to work with drafts. Instead, one can create a draft, modify it, and at some time in the future finish the draft, in which case the next immutable state will be produced. We could for example rewrite our above example as:
 
 ```javascript
-import { createDraft, finishDraft } from "immer"
+import {createDraft, finishDraft} from "immer"
 
 const user = {
     name: "michel",
@@ -367,7 +367,7 @@ const user = {
 }
 
 const draft = createDraft(user)
-const draft.todos = await window.fetch("http://host/" + draft.name).json()
+draft.todos = await (await window.fetch("http://host/" + draft.name)).json()
 const loadedUser = finishDraft(draft)
 ```
 
