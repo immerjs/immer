@@ -155,15 +155,18 @@ export function setUseProxies(useProxies: boolean): void
 export function applyPatches<S>(base: S, patches: Patch[]): S
 
 /**
- * Creates a mutable draft from an (immutable) object / array.
- * The draft can be modified until `finishDraft` is called
+ * Create an Immer draft from the given base state, which may be a draft itself.
+ * The draft can be modified until you finalize it with the `finishDraft` function.
  */
 export function createDraft<T>(base: T): Draft<T>
 
 /**
- * Given a draft that was created using `createDraft`,
- * finalizes the draft into a new immutable object.
- * Optionally a patch-listener can be provided to gather the patches that are needed to construct the object.
+ * Finalize an Immer draft from a `createDraft` call, returning the base state
+ * (if no changes were made) or a modified copy. The draft must *not* be
+ * mutated afterwards.
+ *
+ * Pass a function as the 2nd argument to generate Immer patches based on the
+ * changes that were made.
  */
 export function finishDraft<T>(base: Draft<T>, listener?: PatchListener): T
 

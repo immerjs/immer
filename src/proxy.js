@@ -14,7 +14,7 @@ import {ImmerScope} from "./scope"
 // Do nothing before being finalized.
 export function willFinalize() {}
 
-export function createDraft(base, parent) {
+export function createProxy(base, parent) {
     const scope = parent ? parent.scope : ImmerScope.current
     const state = {
         // Track which produce call this is associated with.
@@ -119,7 +119,7 @@ function get(state, prop) {
         drafts = state.copy
     }
 
-    return (drafts[prop] = createDraft(value, state))
+    return (drafts[prop] = createProxy(value, state))
 }
 
 function set(state, prop, value) {

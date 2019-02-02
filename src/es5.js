@@ -28,7 +28,7 @@ export function willFinalize(scope, result, isReplaced) {
     }
 }
 
-export function createDraft(base, parent) {
+export function createProxy(base, parent) {
     const isArray = Array.isArray(base)
     const draft = clonePotentialDraft(base)
     each(draft, prop => {
@@ -70,7 +70,7 @@ function get(state, prop) {
     // Drafts are only created for proxyable values that exist in the base state.
     if (!state.finalizing && value === state.base[prop] && isDraftable(value)) {
         prepareCopy(state)
-        return (state.copy[prop] = createDraft(value, state))
+        return (state.copy[prop] = createProxy(value, state))
     }
     return value
 }

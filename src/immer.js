@@ -56,10 +56,10 @@ export class Immer {
         // Only plain objects, arrays, and "immerable classes" are drafted.
         if (isDraftable(base)) {
             const scope = ImmerScope.enter()
-            const baseDraft = this.createDraft(base)
+            const proxy = this.createProxy(base)
             let hasError = true
             try {
-                result = recipe.call(baseDraft, baseDraft)
+                result = recipe.call(proxy, proxy)
                 hasError = false
             } finally {
                 // finally instead of catch + rethrow better preserves original stack
@@ -86,15 +86,15 @@ export class Immer {
             return result !== NOTHING ? result : undefined
         }
     }
-    createPublicDraft(value) {
-        if (!isDraftable(value)) throw new Error("First argument to createDraft should be a plain-, or immerable object, or array.") // prettier-ignore
+    createDraft(base) {
+        if (!isDraftable(base)) throw new Error("First argument to createDraft should be a plain object, an array, or an immerable object.") // prettier-ignore
         const scope = ImmerScope.enter()
-        const draft = this.createDraft(value)
+        const proxy = this.createProxy(base)
         scope.leave()
-        return draft
+        return proxy
     }
-    finishPublicDraft(draft, patchListener) {
-        if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object created with createDraft.") // prettier-ignore
+    finishDraft(draft, patchListener) {
+        if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object from createDraft.") // prettier-ignore
         const {scope} = draft[DRAFT_STATE]
         scope.usePatches(patchListener)
         return this.processResult(undefined, scope)
