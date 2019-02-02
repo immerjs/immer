@@ -711,6 +711,12 @@ Most important observation:
 -   Generating patches doesn't significantly slow immer down
 -   The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
 
+## Migration
+
+**Immer 1.\* -> 2.0**
+
+Make sure you don't return any promises as state, because `produce` will actually invoke the promise and wait until it settles.
+
 ## FAQ
 
 _(for those who skimmed the above instead of actually reading)_
