@@ -525,7 +525,38 @@ import {produce as unleashTheMagic} from "immer"
 
 ## Supported object types
 
-Only plain objects and arrays are automatically drafted by Immer. This means other object types should never be mutated **unless** you added the exported `immerable` symbol to the object itself, its prototype, or its class constructor. In that case, the object is essentially an immutable plain object with a custom prototype.
+Only plain objects and arrays are automatically drafted by Immer. This means other object types should never be mutated **unless** you added the exported `immerable` symbol to the object itself, its prototype, or its class constructor. In that case, the object is essentially an immutable plain object with a custom prototype. So one create a custom class (of which all fiels should be considered immutable) as follows:
+
+```javascript
+class Clock {
+    constructor(hours = 0, minutes = 0) {
+        this.hours = hours
+        this.minutes = minutes
+    }
+
+    increment(hours, minutes = 0) {
+        return produce(this, d => {
+            d.hours += hours
+            d.minutes += minutes
+        })
+    }
+
+    toString() {
+        return `${("" + this.hours).padStart(2, 0)}:${(
+            "" + this.minutes
+        ).padStart(2, 0)}`
+    }
+}
+Clock[immerable] = true // Make Immer aware that the clock Class is 'draftable'
+
+const midnight = new Clock()
+const lunch = midnight.increment(12, 30)
+
+expect(midnight).not.toBe(lunch)
+expect(lunch).toBeInstanceOf(Clock)
+expect(midnight.toString()).toBe("00:00")
+expect(lunch.toString()).toBe("12:30")
+```
 
 For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
 
@@ -596,8 +627,6 @@ This ensures that the only place you can modify your state is in your produce ca
 **Note:** Immer v1.9+ supports Typescript v3.1+ only.
 
 ## Using `this`
-
-_Deprecated, this will probably be removed in a next major version, see [#308](https://github.com/mweststrate/immer/issues/308)_
 
 The recipe will be always invoked with the `draft` as `this` context.
 
