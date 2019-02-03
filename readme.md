@@ -616,8 +616,6 @@ This ensures that the only place you can modify your state is in your produce ca
 
 ## Using `this`
 
-_Deprecated, this will probably be removed in a next major version, see [#308](https://github.com/mweststrate/immer/issues/308)_
-
 The recipe will be always invoked with the `draft` as `this` context.
 
 This means that the following constructions are also valid:
