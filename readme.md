@@ -734,6 +734,10 @@ Most important observation:
 
 ## Migration
 
+**Immer 2.\* -> 3.0**
+
+TODO
+
 **Immer 1.\* -> 2.0**
 
 Make sure you don't return any promises as state, because `produce` will actually invoke the promise and wait until it settles.
