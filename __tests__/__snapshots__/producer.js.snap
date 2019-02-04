@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`producer - es5 supports producer decorator 1`] = `"Property 'increment' does not exist on the specified target (tip: make sure to pass 'Class.prototype', not just 'Class')"`;
+
+exports[`producer - es5 supports producer decorator 2`] = `"Property 'notExisting' does not exist on the specified target (tip: make sure to pass 'Class.prototype', not just 'Class')"`;
+
+exports[`producer - proxy supports producer decorator 1`] = `"Property 'increment' does not exist on the specified target (tip: make sure to pass 'Class.prototype', not just 'Class')"`;
+
+exports[`producer - proxy supports producer decorator 2`] = `"Property 'notExisting' does not exist on the specified target (tip: make sure to pass 'Class.prototype', not just 'Class')"`;

@@ -70,4 +70,6 @@ export {
     DRAFTABLE as immerable
 } from "./common"
 
+export {producer} from "./producer"
+
 export {Immer}
