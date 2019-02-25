@@ -76,19 +76,6 @@ describe("applyPatches", () => {
             applyPatches({}, [patch])
         }).toThrowError(/^Cannot apply patch, path doesn't resolve:/)
     })
-    it("throws when a patch tries to splice an array", () => {
-        // Pop is ok
-        expect(() => {
-            const patch = {op: "remove", path: [0]}
-            applyPatches([1], [patch])
-        }).not.toThrowError()
-
-        // Splice is unsupported
-        expect(() => {
-            const patch = {op: "remove", path: [0]}
-            applyPatches([1, 2], [patch])
-        }).toThrowError(/^Only the last index of an array can be removed/)
-    })
 })
 
 describe("simple assignment - 1", () => {
@@ -108,6 +95,16 @@ describe("simple assignment - 2", () => {
             d.x.y++
         },
         [{op: "replace", path: ["x", "y"], value: 5}]
+    )
+})
+
+describe("simple assignment - 3", () => {
+    runPatchTest(
+        {x: [{y: 4}]},
+        d => {
+            d.x[0].y++
+        },
+        [{op: "replace", path: ["x", 0, "y"], value: 5}]
     )
 })
 
@@ -198,11 +195,20 @@ describe("arrays - prepend", () => {
         d => {
             d.x.unshift(4)
         },
+        [{op: "add", path: ["x", 0], value: 4}]
+    )
+})
+
+describe("arrays - multiple prepend", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            d.x.unshift(4)
+            d.x.unshift(5)
+        },
         [
-            {op: "replace", path: ["x", 0], value: 4},
-            {op: "replace", path: ["x", 1], value: 1},
-            {op: "replace", path: ["x", 2], value: 2},
-            {op: "add", path: ["x", 3], value: 3}
+            {op: "add", path: ["x", 0], value: 5},
+            {op: "add", path: ["x", 1], value: 4}
         ]
     )
 })
@@ -213,8 +219,35 @@ describe("arrays - splice middle", () => {
         d => {
             d.x.splice(1, 1)
         },
+        [{op: "remove", path: ["x", 1]}]
+    )
+})
+
+describe("arrays - multiple splice", () => {
+    runPatchTest(
+        [0, 1, 2, 3, 4, 5, 0],
+        d => {
+            d.splice(4, 2, 3)
+            d.splice(1, 2, 3)
+        },
         [
-            {op: "replace", path: ["x", 1], value: 3},
+            {op: "replace", path: [1], value: 3},
+            {op: "replace", path: [2], value: 3},
+            {op: "remove", path: [5]},
+            {op: "remove", path: [4]}
+        ]
+    )
+})
+
+describe("arrays - modify and shrink", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            d.x[0] = 4
+            d.x.length = 2
+        },
+        [
+            {op: "replace", path: ["x", 0], value: 4},
             {op: "replace", path: ["x", "length"], value: 2}
         ]
     )
@@ -284,6 +317,44 @@ describe("arrays - push multiple", () => {
             {op: "add", path: ["x", 4], value: 5}
         ],
         [{op: "replace", path: ["x", "length"], value: 3}]
+    )
+})
+
+describe("arrays - splice (expand)", () => {
+    runPatchTest(
+        {x: [1, 2, 3]},
+        d => {
+            d.x.splice(1, 1, 4, 5, 6)
+        },
+        [
+            {op: "replace", path: ["x", 1], value: 4},
+            {op: "add", path: ["x", 2], value: 5},
+            {op: "add", path: ["x", 3], value: 6}
+        ],
+        [
+            {op: "replace", path: ["x", 1], value: 2},
+            {op: "remove", path: ["x", 3]},
+            {op: "remove", path: ["x", 2]}
+        ]
+    )
+})
+
+describe("arrays - splice (shrink)", () => {
+    runPatchTest(
+        {x: [1, 2, 3, 4, 5]},
+        d => {
+            d.x.splice(1, 3, 6)
+        },
+        [
+            {op: "replace", path: ["x", 1], value: 6},
+            {op: "remove", path: ["x", 3]},
+            {op: "remove", path: ["x", 2]}
+        ],
+        [
+            {op: "replace", path: ["x", 1], value: 2},
+            {op: "add", path: ["x", 2], value: 3},
+            {op: "add", path: ["x", 3], value: 4}
+        ]
     )
 })
 

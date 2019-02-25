@@ -7,48 +7,74 @@ export function generatePatches(state, basePath, patches, inversePatches) {
 }
 
 function generateArrayPatches(state, basePath, patches, inversePatches) {
-    const {base, copy, assigned} = state
-    const minLength = Math.min(base.length, copy.length)
+    let {base, copy, assigned} = state
+
+    // Guarantee `base` is never longer than `copy`
+    if (copy.length < base.length) {
+        ;[base, copy] = [copy, base]
+        ;[patches, inversePatches] = [inversePatches, patches]
+    }
+
+    const delta = copy.length - base.length
+
+    // Find the first changed index.
+    let start = 0
+    while (base[start] === copy[start] && start < base.length) {
+        ++start
+    }
+
+    // Find the last changed index.
+    let baseEnd = base.length
+    while (baseEnd > start && base[baseEnd - 1] === copy[baseEnd + delta - 1]) {
+        --baseEnd
+    }
 
     // Look for replaced indices.
-    for (let i = 0; i < minLength; i++) {
-        if (assigned[i] && base[i] !== copy[i]) {
-            const path = basePath.concat(i)
-            patches.push({op: "replace", path, value: copy[i]})
-            inversePatches.push({op: "replace", path, value: base[i]})
+    const replaceCount = baseEnd - start
+    for (let i = 0; i < replaceCount; ++i) {
+        const index = start + i
+        const path = basePath.concat([index])
+        if (assigned[index] && copy[index] !== base[index]) {
+            patches.push({
+                op: "replace",
+                path,
+                value: copy[index]
+            })
+            inversePatches.push({
+                op: "replace",
+                path,
+                value: base[index]
+            })
+        }
+    }
+    start += replaceCount
+
+    // For "add" patches that extend the array, we can use a single "replace"
+    // patch (on the `length` property) as the inverse patch, instead of multiple
+    // "remove" patches.
+    const useRemove = start != base.length
+    const replacePatchesCount = patches.length
+    for (let i = delta - 1; i >= 0; --i) {
+        const path = basePath.concat([start + i])
+        patches[i + replacePatchesCount] = {
+            op: "add",
+            path,
+            value: copy[start + i]
+        }
+        if (useRemove) {
+            inversePatches.push({
+                op: "remove",
+                path
+            })
         }
     }
 
-    // Did the array expand?
-    if (minLength < copy.length) {
-        for (let i = minLength; i < copy.length; i++) {
-            patches.push({
-                op: "add",
-                path: basePath.concat(i),
-                value: copy[i]
-            })
-        }
+    if (!useRemove) {
         inversePatches.push({
             op: "replace",
-            path: basePath.concat("length"),
+            path: basePath.concat(["length"]),
             value: base.length
         })
-    }
-
-    // ...or did it shrink?
-    else if (minLength < base.length) {
-        patches.push({
-            op: "replace",
-            path: basePath.concat("length"),
-            value: copy.length
-        })
-        for (let i = minLength; i < base.length; i++) {
-            inversePatches.push({
-                op: "add",
-                path: basePath.concat(i),
-                value: base[i]
-            })
-        }
     }
 }
 
@@ -87,15 +113,19 @@ export function applyPatches(draft, patches) {
             const key = path[path.length - 1]
             switch (patch.op) {
                 case "replace":
-                case "add":
-                    // TODO: add support is not extensive, it does not support insertion or `-` atm!
                     base[key] = patch.value
+                    break
+                case "add":
+                    if (Array.isArray(base)) {
+                        // TODO: support "foo/-" paths for appending to an array
+                        base.splice(key, 0, patch.value)
+                    } else {
+                        base[key] = patch.value
+                    }
                     break
                 case "remove":
                     if (Array.isArray(base)) {
-                        if (key !== base.length - 1)
-                            throw new Error(`Only the last index of an array can be removed, index: ${key}, length: ${base.length}`) // prettier-ignore
-                        base.length -= 1
+                        base.splice(key, 1)
                     } else {
                         delete base[key]
                     }
