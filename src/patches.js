@@ -9,7 +9,7 @@ export function generatePatches(state, basePath, patches, inversePatches) {
 function generateArrayPatches(state, basePath, patches, inversePatches) {
     let {base, copy, assigned} = state
 
-    // Guarantee `base` is never longer than `copy`
+    // Reduce complexity by ensuring `base` is never longer.
     if (copy.length < base.length) {
         ;[base, copy] = [copy, base]
         ;[patches, inversePatches] = [inversePatches, patches]
@@ -17,49 +17,45 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 
     const delta = copy.length - base.length
 
-    // Find the first changed index.
+    // Find the first replaced index.
     let start = 0
     while (base[start] === copy[start] && start < base.length) {
         ++start
     }
 
-    // Find the last changed index.
-    let baseEnd = base.length
-    while (baseEnd > start && base[baseEnd - 1] === copy[baseEnd + delta - 1]) {
-        --baseEnd
+    // Find the last replaced index. Search from the end to optimize splice patches.
+    let end = base.length
+    while (end > start && base[end - 1] === copy[end + delta - 1]) {
+        --end
     }
 
-    // Look for replaced indices.
-    const replaceCount = baseEnd - start
-    for (let i = 0; i < replaceCount; ++i) {
-        const index = start + i
-        const path = basePath.concat([index])
-        if (assigned[index] && copy[index] !== base[index]) {
+    // Process replaced indices.
+    for (let i = start; i < end; ++i) {
+        if (assigned[i] && copy[i] !== base[i]) {
+            const path = basePath.concat([i])
             patches.push({
                 op: "replace",
                 path,
-                value: copy[index]
+                value: copy[i]
             })
             inversePatches.push({
                 op: "replace",
                 path,
-                value: base[index]
+                value: base[i]
             })
         }
     }
-    start += replaceCount
 
-    // For "add" patches that extend the array, we can use a single "replace"
-    // patch (on the `length` property) as the inverse patch, instead of multiple
-    // "remove" patches.
-    const useRemove = start != base.length
-    const replacePatchesCount = patches.length
-    for (let i = delta - 1; i >= 0; --i) {
-        const path = basePath.concat([start + i])
-        patches[i + replacePatchesCount] = {
+    const useRemove = end != base.length
+    const replaceCount = patches.length
+
+    // Process added indices.
+    for (let i = end + delta - 1; i >= end; --i) {
+        const path = basePath.concat([i])
+        patches[replaceCount + i - end] = {
             op: "add",
             path,
-            value: copy[start + i]
+            value: copy[i]
         }
         if (useRemove) {
             inversePatches.push({
@@ -69,6 +65,7 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
         }
     }
 
+    // One "replace" patch reverses all non-splicing "add" patches.
     if (!useRemove) {
         inversePatches.push({
             op: "replace",
