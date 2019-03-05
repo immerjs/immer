@@ -5,11 +5,11 @@ export const NOTHING =
 
 export const DRAFTABLE =
     typeof Symbol !== "undefined"
-        ? Symbol("immer-draftable")
+        ? Symbol.for("immer-draftable")
         : "__$immer_draftable"
 
 export const DRAFT_STATE =
-    typeof Symbol !== "undefined" ? Symbol("immer-state") : "__$immer_state"
+    typeof Symbol !== "undefined" ? Symbol.for("immer-state") : "__$immer_state"
 
 export function isDraft(value) {
     return !!value && !!value[DRAFT_STATE]
