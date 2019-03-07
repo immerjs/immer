@@ -53,6 +53,10 @@ export type Produced<Base, Return> = Return extends void
     ? Promise<Result extends void ? Base : FromNothing<Result>>
     : FromNothing<Return>
 
+type ImmutableArray<T extends ReadonlyArray<any>> = {
+    [P in Extract<keyof T, number>]: ReadonlyArray<Immutable<T[number]>>
+}[Extract<keyof T, number>]
+
 type ImmutableTuple<T extends ReadonlyArray<any>> = {
     readonly [P in keyof T]: Immutable<T[P]>
 }
@@ -63,7 +67,7 @@ export type Immutable<T> = T extends object
         ? T
         : T extends ReadonlyArray<any>
         ? Array<T[number]> extends T
-            ? {[P in keyof T]: ReadonlyArray<Immutable<T[number]>>}[keyof T]
+            ? ImmutableArray<T>
             : ImmutableTuple<T>
         : {readonly [P in keyof T]: Immutable<T[P]>}
     : T
