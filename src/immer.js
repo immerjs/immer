@@ -47,8 +47,12 @@ export class Immer {
 
         // prettier-ignore
         {
-            if (typeof recipe !== "function") throw new Error("if first argument is not a function, the second argument to produce should be a function")
-            if (patchListener !== undefined && typeof patchListener !== "function") throw new Error("the third argument of a producer should not be set or a function")
+            if (typeof recipe !== "function") {
+                throw new Error("The first or second argument to `produce` must be a function")
+            }
+            if (patchListener !== undefined && typeof patchListener !== "function") {
+                throw new Error("The third argument to `produce` must be a function or undefined")
+            }
         }
 
         let result
@@ -87,20 +91,23 @@ export class Immer {
         }
     }
     createDraft(base) {
-        if (!isDraftable(base)) throw new Error("First argument to createDraft should be a plain object, an array, or an immerable object.") // prettier-ignore
+        if (!isDraftable(base)) {
+            throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
+        }
         const scope = ImmerScope.enter()
         const proxy = this.createProxy(base)
+        proxy[DRAFT_STATE].isManual = true
         scope.leave()
-        proxy[DRAFT_STATE].customDraft = true
         return proxy
     }
     finishDraft(draft, patchListener) {
-        if (!isDraft(draft)) throw new Error("First argument to finishDraft should be an object from createDraft.") // prettier-ignore
-        const state = draft[DRAFT_STATE]
-        if (!state.customDraft) throw new Error("The draft provided was not created using `createDraft`") // prettier-ignore
-        if (state.finalized) throw new Error("The draft provided was has already been finished") // prettier-ignore
-        // TODO: check if created with createDraft
-        // TODO: check if not finsihed twice
+        const state = draft && draft[DRAFT_STATE]
+        if (!state || !state.isManual) {
+            throw new Error("First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
+        }
+        if (state.finalized) {
+            throw new Error("The given draft is already finalized") // prettier-ignore
+        }
         const {scope} = state
         scope.usePatches(patchListener)
         return this.processResult(undefined, scope)
