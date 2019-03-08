@@ -258,9 +258,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         produce([], d => {
                             d.x = 3
                         })
-                    }).toThrow(
-                        "Immer only supports setting array indices and the 'length' property"
-                    )
+                    }).toThrowErrorMatchingSnapshot()
                 })
 
                 it("throws when a non-numeric property is deleted", () => {
@@ -270,7 +268,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         produce(baseState, d => {
                             delete d.x
                         })
-                    }).toThrow("Immer only supports deleting array indices")
+                    }).toThrowErrorMatchingSnapshot()
                 })
             }
         })
@@ -337,7 +335,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         s.modified = true
                     }
                 })
-            }).toThrowError("Immer drafts cannot have computed properties")
+            }).toThrowErrorMatchingSnapshot()
         })
 
         it("allows inherited computed properties", () => {
@@ -444,7 +442,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
         // NOTE: ES5 drafts only protect existing properties when revoked.
         it("revokes the draft once produce returns", () => {
             const expectRevoked = (fn, shouldThrow = true) => {
-                if (shouldThrow) expect(fn).toThrowError(/revoked/)
+                if (shouldThrow) expect(fn).toThrowErrorMatchingSnapshot()
                 else expect(fn).not.toThrow()
             }
 
@@ -536,9 +534,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                             value: 2
                         })
                     })
-                }).toThrow(
-                    "Object.defineProperty() cannot be used on an Immer draft"
-                )
+                }).toThrowErrorMatchingSnapshot()
             })
 
         it("should handle constructor correctly", () => {
@@ -693,9 +689,9 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
         if (useProxies)
             it("throws when Object.setPrototypeOf() is used on a draft", () => {
                 produce({}, draft => {
-                    expect(() => Object.setPrototypeOf(draft, Array)).toThrow(
-                        "Object.setPrototypeOf() cannot be used on an Immer draft"
-                    )
+                    expect(() =>
+                        Object.setPrototypeOf(draft, Array)
+                    ).toThrowErrorMatchingSnapshot()
                 })
             })
 
@@ -810,7 +806,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         d.a.b = 1
                         return d.a
                     })
-                }).toThrow(/^An immer producer returned/)
+                }).toThrowErrorMatchingSnapshot()
             })
 
             it("can return a frozen object", () => {
@@ -840,7 +836,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 res.self = res
                 expect(() => {
                     produce(res, () => res.self)
-                }).toThrow("Immer forbids circular references")
+                }).toThrowErrorMatchingSnapshot()
             })
         })
 
@@ -873,7 +869,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     },
                     e => {
                         expect(e).toBe(err)
-                        expect(() => draft.a).toThrowError(/revoked/)
+                        expect(() => draft.a).toThrowErrorMatchingSnapshot()
                     }
                 )
             })
@@ -910,7 +906,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     draft.x = 4
                     return {x: 5}
                 })
-            }).toThrow(/An immer producer returned a new value/)
+            }).toThrowErrorMatchingSnapshot()
         })
 
         it("should fix #117 - 1", () => {

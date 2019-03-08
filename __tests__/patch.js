@@ -61,20 +61,20 @@ describe("applyPatches", () => {
         expect(() => {
             const patch = {op: "copy", from: [0], path: [1]}
             applyPatches([2], [patch])
-        }).toThrowError(/^Unsupported patch operation:/)
+        }).toThrowErrorMatchingSnapshot()
     })
     it("throws when `path` cannot be resolved", () => {
         // missing parent
         expect(() => {
             const patch = {op: "add", path: ["a", "b"], value: 1}
             applyPatches({}, [patch])
-        }).toThrowError(/^Cannot apply patch, path doesn't resolve:/)
+        }).toThrowErrorMatchingSnapshot()
 
         // missing grand-parent
         expect(() => {
             const patch = {op: "add", path: ["a", "b", "c"], value: 1}
             applyPatches({}, [patch])
-        }).toThrowError(/^Cannot apply patch, path doesn't resolve:/)
+        }).toThrowErrorMatchingSnapshot()
     })
 })
 

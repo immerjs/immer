@@ -9,14 +9,12 @@ function runTests(name, useProxies) {
         setUseProxies(useProxies)
 
         it("should check arguments", () => {
-            let error = /if first argument is not a function, the second argument to produce should be a function/
-            expect(() => produce()).toThrow(error)
-            expect(() => produce({})).toThrow(error)
-
-            expect(() => produce({}, {})).toThrow(/should be a function/)
-            expect(() => produce({}, () => {}, [])).toThrow(
-                /third argument of a producer/
-            )
+            expect(() => produce()).toThrowErrorMatchingSnapshot()
+            expect(() => produce({})).toThrowErrorMatchingSnapshot()
+            expect(() => produce({}, {})).toThrowErrorMatchingSnapshot()
+            expect(() =>
+                produce({}, () => {}, [])
+            ).toThrowErrorMatchingSnapshot()
         })
 
         it("should support currying", () => {
