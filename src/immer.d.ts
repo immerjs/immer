@@ -238,3 +238,11 @@ export interface ImmerState<T = any> {
     copy: T
     assigned: {[prop: string]: boolean; [index: number]: boolean}
 }
+
+// Backward compatibility with --target es5
+declare global {
+    interface Set<T> {}
+    interface Map<K, V> {}
+    interface WeakSet<T> {}
+    interface WeakMap<K extends object, V> {}
+}
