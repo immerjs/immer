@@ -198,18 +198,29 @@ function markChangesRecursively(object) {
 function hasObjectChanges(state) {
     const {base, draft} = state
 
-    // Search for added keys. Start at the back, because non-numeric keys
-    // are ordered by time of definition on the object.
+    // Search for added keys and changed keys. Start at the back, because
+    // non-numeric keys are ordered by time of definition on the object.
     const keys = Object.keys(draft)
     for (let i = keys.length - 1; i >= 0; i--) {
+        const key = keys[i]
+        const baseValue = base[key]
         // The `undefined` check is a fast path for pre-existing keys.
-        if (base[keys[i]] === undefined && !has(base, keys[i])) {
+        if (baseValue === undefined && !has(base, key)) {
             return true
+        }
+        // Once a base key is deleted, future changes go undetected, because its
+        // descriptor is erased. This branch detects any missed changes.
+        else {
+            const value = draft[key]
+            const state = value && value[DRAFT_STATE]
+            if (state ? state.base !== baseValue : !is(value, baseValue)) {
+                return true
+            }
         }
     }
 
-    // Since no keys have been added, we can compare lengths to know if an
-    // object has been deleted.
+    // At this point, no keys were added or changed.
+    // Compare key count to determine if keys were deleted.
     return keys.length !== Object.keys(base).length
 }
 
