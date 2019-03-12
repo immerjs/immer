@@ -110,6 +110,32 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             }
         })
 
+        // Found by: https://github.com/mweststrate/immer/issues/328
+        it("can set a property that was just deleted", () => {
+            const baseState = {a: 1}
+            const nextState = produce(baseState, s => {
+                delete s.a
+                s.a = 2
+            })
+            expect(nextState.a).toBe(2)
+        })
+
+        it("can set a property to its original value after deleting it", () => {
+            const baseState = {a: {b: 1}}
+            const nextState = produce(baseState, s => {
+                const a = s.a
+                delete s.a
+                s.a = a
+            })
+            if (useProxies) {
+                expect(nextState).not.toBe(baseState)
+                expect(nextState).toEqual(baseState)
+            } else {
+                // The copy is avoided in ES5.
+                expect(nextState).toBe(baseState)
+            }
+        })
+
         it("can get property descriptors", () => {
             const getDescriptor = Object.getOwnPropertyDescriptor
             const baseState = deepFreeze([{a: 1}])
