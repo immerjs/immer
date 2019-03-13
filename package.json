@@ -4,9 +4,9 @@
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
-  "module": "dist/immer.mjs",
-  "jsnext:main": "dist/immer.mjs",
-  "react-native": "dist/immer.mjs",
+  "module": "dist/immer.module.js",
+  "jsnext:main": "dist/immer.module.js",
+  "react-native": "dist/immer.module.js",
   "types": "./dist/immer.d.ts",
   "scripts": {
     "watch": "jest --watch",

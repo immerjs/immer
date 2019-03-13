@@ -18,6 +18,9 @@ const config: Config = {
         if (format === "umd") {
             config.output.minify = true
         }
+        if (format === "esm") {
+            config.output.fileName = "[name].module.js"
+        }
         return config
     }
 }
