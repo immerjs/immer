@@ -7,7 +7,8 @@ const config: Config = {
     output: {
         format: ["cjs", "umd", "esm"],
         moduleName: "immer",
-        sourceMap: true
+        sourceMap: true,
+        sourceMapExcludeSources: true
     },
     babel: {
         // Replace babel-preset-env with buble

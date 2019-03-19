@@ -39,7 +39,8 @@
   },
   "homepage": "https://github.com/mweststrate/immer#readme",
   "files": [
-    "dist/"
+    "dist",
+    "src"
   ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -50,7 +51,7 @@
     "@types/jest": "^24.0.11",
     "babel-jest": "^24.4.0",
     "babel-preset-modern-browsers": "^13.1.0",
-    "bili": "^4.2.5",
+    "bili": "^4.7.0",
     "coveralls": "^3.0.0",
     "cpx": "^1.5.0",
     "cross-env": "^5.1.3",
