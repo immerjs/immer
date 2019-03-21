@@ -40,6 +40,7 @@ A mindful reader might notice that this is quite similar to `withMutations` of I
 -   Blog: [Immutability in React and Redux: The Complete Guide](https://daveceddia.com/react-redux-immutability-guide/)
 -   Video tutorial: [Using Immer with React.setState](https://codedaily.io/screencasts/86/Immutable-Data-with-Immer-and-React-setState)
 -   [Talk](https://www.youtube.com/watch?v=-gJbS7YjcSo) + [slides](http://immer.surge.sh/) on Immer at React Finland 2018 by Michel Weststrate
+-   [ForwardJS 2019: Immutability is Changing - From Immutable.js to Immer](https://www.youtube.com/watch?v=bFuRvcAEiHg&feature=youtu.be) by [shawn swyx wang](https://twitter.com/swyx/)
 
 ## API
 
