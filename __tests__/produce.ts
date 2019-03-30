@@ -2,7 +2,8 @@ import produce, {
     produce as produce2,
     applyPatches,
     Patch,
-    nothing
+    nothing,
+    Draft
 } from "../dist/immer.js"
 
 // prettier-ignore
@@ -68,23 +69,24 @@ it("can update readonly state via standard api", () => {
 
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
-    type Producer = (base: number | undefined) => number
-    let foo = produce(_ => {}, 1)
-    exactType(foo, {} as Producer)
-    exactType(foo(2), 0 as number)
+    type State = {readonly a: number} | boolean
+    type Recipe = (base?: State | undefined) => State
+
+    let foo = produce(_ => {}, {} as State)
+    exactType(foo, {} as Recipe)
 })
 
 it("can infer state type from recipe function", () => {
-    type T = string | number
-    type Producer = (base: T | undefined, _2: number) => T
+    type State = {readonly a: string} | {readonly b: string}
+    type Recipe = (base: State | undefined, arg: number) => State
 
-    let foo = produce((_: string | number, _2: number) => {}, 1)
-    exactType(foo, {} as Producer)
-    exactType(foo("", 0), {} as string | number)
+    let foo = produce((draft: Draft<State>, arg: number) => {}, {} as any)
+    exactType(foo, {} as Recipe)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
-    exactType(produce(_ => {}), {} as (base: any) => any)
+    const res = produce(_ => {})
+    exactType(res, {} as (base: any) => any)
 })
 
 it("can update readonly state via curried api", () => {
@@ -136,25 +138,53 @@ it("can apply patches", () => {
 
 describe("curried producer", () => {
     it("supports rest parameters", () => {
-        type Foo = (base: {}, _2: number, _3: number) => {}
-        let foo = produce((_1: {}, _2: number, _3: number) => {})
-        exactType(foo, {} as Foo)
-        foo({}, 1, 2)
+        type State = {readonly a: 1}
+
+        // No initial state:
+        let foo = produce<State, number[]>(() => {})
+        exactType(foo, {} as (base: State, ...args: number[]) => State)
+        foo({} as State, 1, 2)
+
+        // TODO: Using argument parameters
+        // let woo = produce((state: Draft<State>, ...args: number[]) => {})
+        // exactType(woo, {} as (base: State, ...args: number[]) => State)
+        // woo({} as State, 1, 2)
 
         // With initial state:
-        type Bar = (base: {} | undefined, _2: number, _3: number) => {}
-        let bar = produce((_1: {}, _2: number, _3: number) => {}, {})
-        exactType(bar, {} as Bar)
-        bar(undefined, 1, 2)
+        let bar = produce(
+            (state: Draft<State>, ...args: number[]) => {},
+            {} as State
+        )
+        exactType(bar, {} as (base?: State, ...args: number[]) => State)
+        bar({} as State | undefined, 1, 2)
+        bar()
+
+        // When args is a tuple:
+        let tup = produce(
+            (state: Draft<State>, ...args: [string, ...number[]]) => {},
+            {} as State
+        )
+        exactType(tup, {} as (
+            base: State | undefined,
+            arg1: string,
+            ...args: number[]
+        ) => State)
+        tup({a: 1}, "", 2)
+        tup(undefined, "", 2)
     })
 
     it("can be passed a readonly array", () => {
-        let foo = produce((_: any[]) => {})
+        // No initial state:
+        let foo = produce<ReadonlyArray<any>>(() => {})
+        exactType(foo, {} as (base: readonly any[]) => readonly any[])
         foo([] as ReadonlyArray<any>)
 
         // With initial state:
-        let bar = produce((_: any[]) => {}, [])
+        let bar = produce(() => {}, [] as ReadonlyArray<any>)
+        exactType(bar, {} as (base?: readonly any[]) => readonly any[])
         bar([] as ReadonlyArray<any>)
+        bar(undefined)
+        bar()
     })
 })
 
@@ -219,23 +249,20 @@ it("can return the draft itself", () => {
 })
 
 it("can return a promise", () => {
-    let base = {} as {readonly a: number}
+    type Base = {readonly a: number}
+    let base = {} as Base
 
     // Return a promise only.
-    exactType(
-        produce(base, draft => {
-            return Promise.resolve(draft.a > 0 ? null : undefined)
-        }),
-        {} as Promise<{readonly a: number} | null>
-    )
+    let res1 = produce(base, draft => {
+        return Promise.resolve(draft.a > 0 ? null : undefined)
+    })
+    exactType(res1, {} as Promise<Base | null>)
 
     // Return a promise or undefined.
-    exactType(
-        produce(base, draft => {
-            if (draft.a > 0) return Promise.resolve()
-        }),
-        {} as (Promise<{readonly a: number}> | {readonly a: number})
-    )
+    let res2 = produce(base, draft => {
+        if (draft.a > 0) return Promise.resolve()
+    })
+    exactType(res2, {} as Base | Promise<Base>)
 })
 
 it("works with `void` hack", () => {
