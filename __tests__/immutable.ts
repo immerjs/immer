@@ -14,19 +14,19 @@ declare const exactType: <Actual, Expected>(
 // array in tuple
 {
     let val = {} as Immutable<[string[], 1]>
-    exactType(val, {} as [ReadonlyArray<string>, 1])
+    exactType(val, {} as readonly [ReadonlyArray<string>, 1])
 }
 
 // tuple in array
 {
     let val = {} as Immutable<[string, 1][]>
-    exactType(val, {} as ReadonlyArray<[string, 1]>)
+    exactType(val, {} as ReadonlyArray<readonly [string, 1]>)
 }
 
 // tuple in tuple
 {
     let val = {} as Immutable<[[string, 1], 1]>
-    exactType(val, {} as [[string, 1], 1])
+    exactType(val, {} as readonly [readonly [string, 1], 1])
 }
 
 // array in array
@@ -38,13 +38,13 @@ declare const exactType: <Actual, Expected>(
 // tuple in object
 {
     let val = {} as Immutable<{a: [string, 1]}>
-    exactType(val, {} as {readonly a: [string, 1]})
+    exactType(val, {} as {readonly a: readonly [string, 1]})
 }
 
 // object in tuple
 {
     let val = {} as Immutable<[{a: string}, 1]>
-    exactType(val, {} as [{readonly a: string}, 1])
+    exactType(val, {} as readonly [{readonly a: string}, 1])
 }
 
 // array in object

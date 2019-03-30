@@ -92,22 +92,32 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <T = any, Return = void, D = Draft<T>>(
-        base: T,
-        recipe: (this: D, draft: D) => Return,
+    <Base = any, Return = void>(
+        base: Base extends Function ? never : Base,
+        recipe: (this: Draft<Base>, draft: Draft<Base>) => Return,
         listener?: PatchListener
-    ): Produced<T, Return>
+    ): Produced<Base, Return>
 
     /** Curried producer with a default value */
-    <T = any, Rest extends any[] = [], Return = void, D = Draft<T>>(
-        recipe: (this: D, draft: D, ...rest: Rest) => Return,
-        defaultBase: T
-    ): (base: Immutable<D> | undefined, ...rest: Rest) => Produced<D, Return>
+    <Base = any, Rest extends any[] = [], Return = void>(
+        recipe: (this: Base, draft: Base, ...rest: Rest) => Return,
+        defaultBase: Immutable<Base>
+    ): Rest[number][] extends Rest | never[]
+        ? (
+              // The `base` argument is optional when `Rest` is optional.
+              base?: Immutable<Base>,
+              ...rest: Rest
+          ) => Produced<Immutable<Base>, Return>
+        : (
+              // The `base` argument is required when `Rest` is required.
+              base: Immutable<Base> | undefined,
+              ...rest: Rest
+          ) => Produced<Immutable<Base>, Return>
 
     /** Curried producer with no default value */
-    <T = any, Rest extends any[] = [], Return = void>(
-        recipe: (this: Draft<T>, draft: Draft<T>, ...rest: Rest) => Return
-    ): (base: Immutable<T>, ...rest: Rest) => Produced<T, Return>
+    <Base = any, Rest extends any[] = [], Return = void>(
+        recipe: (this: Draft<Base>, draft: Draft<Base>, ...rest: Rest) => Return
+    ): (base: Immutable<Base>, ...rest: Rest) => Produced<Base, Return>
 }
 
 export const produce: IProduce
