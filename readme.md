@@ -526,7 +526,23 @@ import {produce as unleashTheMagic} from "immer"
 
 ## Supported object types
 
-Only plain objects and arrays are automatically drafted by Immer. This means other object types should never be mutated **unless** you added the exported `immerable` symbol to the object itself, its prototype, or its class constructor. In that case, the object is essentially an immutable plain object with a custom prototype.
+Plain objects and arrays are always drafted by Immer.
+
+Every other object must use the `immerable` symbol to mark itself as compatible with Immer. When one of these objects is mutated within a producer, its prototype is preserved between copies.
+
+```js
+import {immerable} from 'immer'
+
+class Foo {
+  [immerable] = true // Option 1
+
+  constructor() {
+    this[immerable] = true // Option 2
+  }
+}
+
+Foo[immerable] = true // Option 3
+```
 
 For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
 
