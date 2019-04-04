@@ -628,6 +628,32 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                         })
                     })
                 })
+
+                // Reported by: https://github.com/mweststrate/immer/issues/343
+                it("ensures each property is drafted", () => {
+                    produce({a: {}, b: {}}, parent => {
+                        parent.a // Access "a" but not "b"
+                        produce(parent, child => {
+                            child.c = 1
+                            expect(isDraft(child.a)).toBeTruthy()
+                            expect(isDraft(child.b)).toBeTruthy()
+                        })
+                    })
+                })
+
+                it("preserves any pending changes", () => {
+                    produce({a: 1, b: 1, d: 1}, parent => {
+                        parent.b = 2
+                        parent.c = 2
+                        delete parent.d
+                        produce(parent, child => {
+                            expect(child.a).toBe(1) // unchanged
+                            expect(child.b).toBe(2) // changed
+                            expect(child.c).toBe(2) // added
+                            expect(child.d).toBeUndefined() // deleted
+                        })
+                    })
+                })
             })
 
             describe("when base state contains a draft", () => {
