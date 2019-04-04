@@ -68,11 +68,24 @@ function source(state) {
     return state.copy || state.base
 }
 
+// Access a property without creating an Immer draft.
+function peek(draft, prop) {
+    const state = draft[DRAFT_STATE]
+    if (state && !state.finalizing) {
+        state.finalizing = true
+        const value = draft[prop]
+        state.finalizing = false
+        return value
+    }
+    return draft[prop]
+}
+
 function get(state, prop) {
     assertUnrevoked(state)
-    const value = source(state)[prop]
-    // Drafts are only created for proxyable values that exist in the base state.
-    if (!state.finalizing && value === state.base[prop] && isDraftable(value)) {
+    const value = peek(source(state), prop)
+    if (state.finalizing) return value
+    // Create a draft if the value is unmodified.
+    if (value === peek(state.base, prop) && isDraftable(value)) {
         prepareCopy(state)
         return (state.copy[prop] = createProxy(value, state))
     }
@@ -83,7 +96,7 @@ function set(state, prop, value) {
     assertUnrevoked(state)
     state.assigned[prop] = true
     if (!state.modified) {
-        if (is(source(state)[prop], value)) return
+        if (is(value, peek(source(state), prop))) return
         markChanged(state)
         prepareCopy(state)
     }

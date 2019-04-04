@@ -99,6 +99,16 @@ function source(state) {
     return state.copy || state.base
 }
 
+// Access a property without creating an Immer draft.
+function peek(draft, prop) {
+    const state = draft[DRAFT_STATE]
+    const desc = Reflect.getOwnPropertyDescriptor(
+        state ? source(state) : draft,
+        prop
+    )
+    return desc && desc.value
+}
+
 function get(state, prop) {
     if (prop === DRAFT_STATE) return state
     let {drafts} = state
@@ -114,7 +124,7 @@ function get(state, prop) {
     // Check for existing draft in modified state.
     if (state.modified) {
         // Assigned values are never drafted. This catches any drafts we created, too.
-        if (value !== state.base[prop]) return value
+        if (value !== peek(state.base, prop)) return value
         // Store drafts on the copy (when one exists).
         drafts = state.copy
     }
@@ -124,12 +134,13 @@ function get(state, prop) {
 
 function set(state, prop, value) {
     if (!state.modified) {
+        const baseValue = peek(state.base, prop)
         // Optimize based on value's truthiness. Truthy values are guaranteed to
         // never be undefined, so we can avoid the `in` operator. Lastly, truthy
         // values may be drafts, but falsy values are never drafts.
         const isUnchanged = value
-            ? is(state.base[prop], value) || value === state.drafts[prop]
-            : is(state.base[prop], value) && prop in state.base
+            ? is(baseValue, value) || value === state.drafts[prop]
+            : is(baseValue, value) && prop in state.base
         if (isUnchanged) return true
         markChanged(state)
     }
@@ -140,7 +151,7 @@ function set(state, prop, value) {
 
 function deleteProperty(state, prop) {
     // The `undefined` check is a fast path for pre-existing keys.
-    if (state.base[prop] !== undefined || prop in state.base) {
+    if (peek(state.base, prop) !== undefined || prop in state.base) {
         state.assigned[prop] = false
         markChanged(state)
     }
