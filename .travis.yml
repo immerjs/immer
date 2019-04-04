@@ -18,7 +18,7 @@ script:
     - yarn coveralls
     - yarn test:flow
     - yarn test:dts
-    - yarn add typescript@3.3 -D && yarn test:dts
+    - yarn add typescript@latest -D && yarn test:dts
 jobs:
     include:
         - stage: deploy
