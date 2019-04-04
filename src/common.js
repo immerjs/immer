@@ -59,17 +59,18 @@ export function shallowCopy(base, invokeGetters = false) {
             return // Never copy over draft state.
         }
         const desc = Object.getOwnPropertyDescriptor(base, key)
+        let {value} = desc
         if (desc.get) {
             if (!invokeGetters) {
                 throw new Error("Immer drafts cannot have computed properties")
             }
-            desc.value = desc.get.call(base)
+            value = desc.get.call(base)
         }
         if (desc.enumerable) {
-            clone[key] = desc.value
+            clone[key] = value
         } else {
             Object.defineProperty(clone, key, {
-                value: desc.value,
+                value,
                 writable: true,
                 configurable: true
             })

@@ -119,7 +119,9 @@ function get(state, prop) {
     }
 
     const value = source(state)[prop]
-    if (state.finalized || !isDraftable(value)) return value
+    if (state.finalized || !isDraftable(value)) {
+        return value
+    }
 
     // Check for existing draft in modified state.
     if (state.modified) {
@@ -159,6 +161,8 @@ function deleteProperty(state, prop) {
     return true
 }
 
+// Note: We never coerce `desc.value` into an Immer draft, because we can't make
+// the same guarantee in ES5 mode.
 function getOwnPropertyDescriptor(state, prop) {
     const owner = source(state)
     const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
