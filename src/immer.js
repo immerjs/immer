@@ -229,9 +229,7 @@ export class Immer {
         if (state) {
             if (!this.useProxies) {
                 // Create the final copy, with added keys and without deleted keys.
-                state.finalizing = true
                 state.copy = shallowCopy(state.draft, true)
-                state.finalizing = false
             }
             root = state.copy
         }
