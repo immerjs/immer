@@ -12,27 +12,17 @@ type AtomicObject =
     | Number
     | String
 
-type ArrayMethod = Exclude<keyof [], number>
-type Indices<T> = Exclude<keyof T, ArrayMethod>
-
-export type DraftArray<T extends ReadonlyArray<any>> = Array<
-    {[P in Indices<T>]: Draft<T[P]>}[Indices<T>]
->
-
-export type DraftTuple<T extends ReadonlyArray<any>> = {
-    [P in keyof T]: P extends Indices<T> ? Draft<T[P]> : never
-}
-
-export type Draft<T> = T extends never[]
-    ? T
-    : T extends ReadonlyArray<any>
-    ? T[number][] extends T
-        ? DraftArray<T>
-        : DraftTuple<T>
-    : T extends AtomicObject
+export type Draft<T> = T extends AtomicObject
     ? T
     : T extends object
-    ? {-readonly [P in keyof T]: Draft<T[P]>}
+    ? {-readonly [K in keyof T]: Draft<T[K]>}
+    : T // mostly: unknown & any
+
+/** Convert a mutable type into a readonly type */
+export type Immutable<T> = T extends AtomicObject
+    ? T
+    : T extends object
+    ? {readonly [K in keyof T]: Immutable<T[K]>}
     : T
 
 export interface Patch {
@@ -52,26 +42,6 @@ export type Produced<Base, Return> = Return extends void
     : Return extends Promise<infer Result>
     ? Promise<Result extends void ? Base : FromNothing<Result>>
     : FromNothing<Return>
-
-type ImmutableArray<T extends ReadonlyArray<any>> = {
-    [P in Extract<keyof T, number>]: ReadonlyArray<Immutable<T[number]>>
-}[Extract<keyof T, number>]
-
-type ImmutableTuple<T extends ReadonlyArray<any>> = {
-    readonly [P in keyof T]: Immutable<T[P]>
-}
-
-/** Convert a mutable type into a readonly type */
-export type Immutable<T> = T extends object
-    ? T extends AtomicObject
-        ? T
-        : T extends ReadonlyArray<any>
-        ? Array<T[number]> extends T
-            ? ImmutableArray<T>
-            : ImmutableTuple<T>
-        : {readonly [P in keyof T]: Immutable<T[P]>}
-    : T
-
 export interface IProduce {
     /**
      * The `produce` function takes a value and a "recipe function" (whose
