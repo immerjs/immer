@@ -1,4 +1,4 @@
-import {Draft, DraftArray} from "../dist/immer.js"
+import {Draft} from "../dist/immer.js"
 
 // For checking if a type is assignable to its draft type (and vice versa)
 declare const toDraft: <T>(value: T) => Draft<T>
@@ -23,7 +23,6 @@ declare const _: any
     // NOTE: As of 3.2.2, everything fails without "extends any"
     const $ = <Value extends any>(val: ReadonlyArray<Value>) => {
         val = _ as Draft<typeof val>
-        val = _ as DraftArray<typeof val>
         let elem: Value = _ as Draft<Value>
     }
 }
