@@ -1,3 +1,7 @@
+type Tail<T extends any[]> = ((...t: T) => any) extends ((_: any, ...tail: infer TT) => any)
+    ? TT
+    : []
+
 /** Object types that should never be mapped */
 type AtomicObject =
     | Function
@@ -13,17 +17,18 @@ type AtomicObject =
     | String
 
 export type Draft<T> = T extends AtomicObject
-    ? T
-    : T extends object
-    ? {-readonly [K in keyof T]: Draft<T[K]>}
-    : T // mostly: unknown & any
+  ? T
+  : T extends object
+  ? { -readonly [K in keyof T]: Draft<T[K]> }
+  : T // mostly: unknown & any
 
 /** Convert a mutable type into a readonly type */
-export type Immutable<T> = T extends AtomicObject
-    ? T
-    : T extends object
-    ? {readonly [K in keyof T]: Immutable<T[K]>}
-    : T
+export type Immutable<T> =
+  T extends AtomicObject
+  ? T
+  : T extends object
+  ? { readonly [K in keyof T]: Immutable<T[K]> }
+  : T
 
 export interface Patch {
     op: "replace" | "remove" | "add"
@@ -62,32 +67,32 @@ export interface IProduce {
      * @param {Function} patchListener - optional function that will be called with all the patches produced here
      * @returns {any} a new state, or the initial state if nothing was modified
      */
-    <Base = any, Return = void>(
-        base: Base extends Function ? never : Base,
-        recipe: (this: Draft<Base>, draft: Draft<Base>) => Return,
+
+    /** Curried producer */
+    <
+        Recipe extends (...args: any[]) => any,
+        Params extends any[] = Parameters<Recipe>,
+        T = Params[0],
+    >(
+        recipe: Recipe,
+    ): (state: Immutable<T>, ...rest: Tail<Params>) => Produced<Immutable<T>, ReturnType<Recipe>>
+
+    /** Curried producer with initial state */
+    <
+        Recipe extends (...args: any[]) => any,
+        Params extends any[] = Parameters<Recipe>,
+        T = Params[0],
+    >(
+        recipe: Recipe,
+        initialState: T
+    ): (state?: Immutable<T>, ...rest: Tail<Params>) => Produced<Immutable<T>, ReturnType<Recipe>>
+
+    /** Normal producer */
+    <Base, D = Draft<Base>, Return = void>(
+        base: Base,
+        recipe: (this: D, draft: D) => Return,
         listener?: PatchListener
     ): Produced<Base, Return>
-
-    /** Curried producer with a default value */
-    <Base = any, Rest extends any[] = [], Return = void>(
-        recipe: (this: Base, draft: Base, ...rest: Rest) => Return,
-        defaultBase: Immutable<Base>
-    ): Rest[number][] extends Rest | never[]
-        ? (
-              // The `base` argument is optional when `Rest` is optional.
-              base?: Immutable<Base>,
-              ...rest: Rest
-          ) => Produced<Immutable<Base>, Return>
-        : (
-              // The `base` argument is required when `Rest` is required.
-              base: Immutable<Base> | undefined,
-              ...rest: Rest
-          ) => Produced<Immutable<Base>, Return>
-
-    /** Curried producer with no default value */
-    <Base = any, Rest extends any[] = [], Return = void>(
-        recipe: (this: Draft<Base>, draft: Draft<Base>, ...rest: Rest) => Return
-    ): (base: Immutable<Base>, ...rest: Rest) => Produced<Base, Return>
 }
 
 export const produce: IProduce
