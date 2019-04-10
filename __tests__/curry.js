@@ -54,6 +54,7 @@ function runTests(name, useProxies) {
 
             expect(reducer(undefined, 3)).toEqual({hello: "world", index: 3})
             expect(reducer({}, 3)).toEqual({index: 3})
+            expect(reducer()).toEqual({hello: "world", index: undefined})
         })
 
         it("can has fun with change detection", () => {

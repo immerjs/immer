@@ -3,7 +3,8 @@ import produce, {
     applyPatches,
     Patch,
     nothing,
-    Draft
+    Draft,
+    Immutable
 } from "../dist/immer.js"
 
 // prettier-ignore
@@ -70,27 +71,47 @@ it("can update readonly state via standard api", () => {
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
     type State = {readonly a:number} | boolean
-    type Recipe = (base?: State | undefined) => State
+    type Recipe = (base?: State | boolean) => State
 
-    let foo = produce(_ => {}, {} as State)
+    let foo = produce((x: any) => {}, {} as State)
     exactType(foo, {} as Recipe)
 })
 
 it("can infer state type from recipe function", () => {
     type State = {readonly a: string} | {readonly b: string}
-    type Recipe = (base: State | undefined, arg: number) => State
+    type Recipe = (base: State) => State
 
-    let foo = produce((draft: Draft<State>, arg: number) => {}, {} as any)
+    let foo = produce((draft: Draft<State>) => {})
+    exactType(foo, {} as Recipe)
+})
+
+it("can infer state type from recipe function with arguments", () => {
+    type State = {readonly a: string} | {readonly b: string}
+    type Recipe = (base: State, x: number) => State
+
+    let foo = produce((draft: Draft<State>, x: number) => {})
+    exactType(foo, {} as Recipe)
+})
+
+it("can infer state type from recipe function with arguments and initial state", () => {
+    type State = {readonly a: string} | {readonly b: string}
+    type Recipe = (base: State | undefined, x: number) => State
+
+    let foo = produce((draft: Draft<State>, x: number) => {}, {} as State)
     exactType(foo, {} as Recipe)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
-    const res = produce(_ => {})
+    const res = produce((_: any) => {})
     exactType(res, {} as (base: any) => any)
+
+    // slightly different type inference...
+    const res2 = produce((_) => {})
+    exactType(res2, {} as (base: any, ...rest: any[]) => any)
 })
 
 it("can update readonly state via curried api", () => {
-    const newState = produce<State>(draft => {
+    const newState = produce((draft: Draft<State>) => {
         draft.num++
         draft.foo = "bar"
         draft.bar = "foo"
@@ -106,7 +127,7 @@ it("can update readonly state via curried api", () => {
 })
 
 it("can update use the non-default export", () => {
-    const newState = produce2<State>(draft => {
+    const newState = produce2((draft: Draft<State>) => {
         draft.num++
         draft.foo = "bar"
         draft.bar = "foo"
@@ -141,8 +162,8 @@ describe("curried producer", () => {
         type State = {readonly a: 1}
 
         // No initial state:
-        let foo = produce<State, number[]>(() => {})
-        exactType(foo, {} as (base: State, ...args: number[]) => State)
+        let foo = produce((s: State, a: number, b: number) => {})
+        exactType(foo, {} as (base: State, x: number, y: number) => State)
         foo({} as State, 1, 2)
 
         // TODO: Using argument parameters
@@ -152,8 +173,9 @@ describe("curried producer", () => {
 
         // With initial state:
         let bar = produce((state: Draft<State>, ...args: number[]) => {}, {} as State)
-        exactType(bar, {} as (base?: State, ...args: number[]) => State)
-        bar({} as State | undefined, 1, 2)
+        exactType(bar, {} as (base?: undefined | Immutable<State>, ...args: number[]) => State)
+        bar({} as State, 1, 2)
+        bar({} as State)
         bar()
 
         // When args is a tuple:
@@ -165,9 +187,9 @@ describe("curried producer", () => {
 
     it("can be passed a readonly array", () => {
         // No initial state:
-        let foo = produce<ReadonlyArray<any>>(() => {})
-        exactType(foo, {} as (base: readonly any[]) => readonly any[])
-        foo([] as ReadonlyArray<any>)
+        let foo = produce((state: string[]) => {})
+        exactType(foo, {} as (base: readonly string[]) => readonly string[])
+        foo([] as ReadonlyArray<string>)
 
         // With initial state:
         let bar = produce(() => {}, [] as ReadonlyArray<any>)
@@ -262,8 +284,8 @@ it("works with `void` hack", () => {
 })
 
 it("works with generic parameters", () => {
-    let insert = <T>(array: ReadonlyArray<T>, index: number, elem: T) => {
-        // NOTE: As of 3.2.2, the explicit argument type is required.
+    let insert = <T>(array: readonly T[], index: number, elem: T) => {
+        // Need explicit cast on draft as T[] is wider than readonly T[]
         return produce(array, (draft: T[]) => {
             draft.push(elem)
             draft.splice(index, 0, elem)
