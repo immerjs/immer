@@ -79,10 +79,11 @@ it("can infer state type from default state", () => {
 
 it("can infer state type from recipe function", () => {
     type State = {readonly a: string} | {readonly b: string}
-    type Recipe = (base: State) => State
+    type Recipe = (base: State, n: number) => State
 
-    let foo = produce((draft: Draft<State>) => {})
+    let foo = produce((draft: Draft<State>, number: number) => {})
     exactType(foo, {} as Recipe)
+    const state: State = foo({} as State, 3)
 })
 
 it("can infer state type from recipe function with arguments", () => {
@@ -295,4 +296,69 @@ it("works with generic parameters", () => {
     let val: {readonly a: ReadonlyArray<number>} = 0 as any
     let arr: ReadonlyArray<typeof val> = 0 as any
     insert(arr, 0, val)
+})
+
+it("can work with non-readonly base types", () => {
+    const state = {
+        price: 10,
+        todos: [{
+            title: "test",
+            done: false
+        }]
+    }
+    type State = typeof state
+
+    const newState: State = produce(state, (draft) => {
+        draft.price += 5
+        draft.todos.push({
+            title: "hi",
+            done: true
+        })
+    })
+
+    const reducer = (draft: State) => {
+        draft.price += 5
+        draft.todos.push({
+            title: "hi",
+            done: true
+        })
+    }
+    const newState2: Immutable<State> = produce(reducer)(state)
+    const newState3: Immutable<State> = produce(reducer, state)()
+})
+
+it("can work with readonly base types", () => {
+    type State = {
+        readonly price: number;
+        readonly todos: readonly {
+            readonly title: string;
+            readonly done: boolean;
+        }[];
+    }
+
+    const state: State = {
+        price: 10,
+        todos: [{
+            title: "test",
+            done: false
+        }]
+    }
+
+    const newState: State = produce(state, (draft) => {
+        draft.price + 5
+        draft.todos.push({
+            title: "hi",
+            done: true
+        })
+    })
+
+    const reducer = (draft: Draft<State>) => {
+        draft.price += 5
+        draft.todos.push({
+            title: "hi",
+            done: true
+        })
+    }
+    const newState2: State = produce(reducer)(state)
+    const newState3: State = produce(reducer, state)()
 })
