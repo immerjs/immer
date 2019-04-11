@@ -75,7 +75,10 @@ export interface IProduce {
         T = Params[0],
     >(
         recipe: Recipe,
-    ): (state: Immutable<T>, ...rest: Tail<Params>) => Produced<Immutable<T>, ReturnType<Recipe>>
+    ): <S extends Immutable<T>>(state: S, ...rest: Tail<Params>) => Produced<S, ReturnType<Recipe>>
+    //   ^ by making the returned type generic, the actual type of the passed in object is preferred 
+    //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+    //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
 
     /** Curried producer with initial state */
     <
@@ -84,8 +87,8 @@ export interface IProduce {
         T = Params[0],
     >(
         recipe: Recipe,
-        initialState: T
-    ): (state?: Immutable<T>, ...rest: Tail<Params>) => Produced<Immutable<T>, ReturnType<Recipe>>
+        initialState: Immutable<T>
+    ): <S extends Immutable<T>>(state?: S, ...rest: Tail<Params>) => Produced<S, ReturnType<Recipe>>
 
     /** Normal producer */
     <Base, D = Draft<Base>, Return = void>(

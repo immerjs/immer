@@ -70,8 +70,8 @@ it("can update readonly state via standard api", () => {
 
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
-    type State = {readonly a: number} | boolean
-    type Recipe = (base?: State | undefined) => State
+    type State = {readonly a:number}
+    type Recipe = (base?: State | boolean) => State
 
     let foo = produce((x: any) => {}, {} as State)
     exactType(foo, {} as Recipe)
@@ -338,8 +338,16 @@ it("can work with non-readonly base types", () => {
             done: true
         })
     }
-    const newState2: Immutable<State> = produce(reducer)(state)
-    const newState3: Immutable<State> = produce(reducer, state)()
+
+    // base case for with-initial-state
+    const newState4 = produce(reducer, state)(state)
+    exactType(newState4, {} as State)
+    // no argument case, in that case, immutable version recipe first arg will be inferred
+    const newState5 = produce(reducer, state)()
+    exactType(newState5, {} as Immutable<State>)
+    // we can force the return type of the reducer by passing the generic argument
+    const newState3 = produce(reducer, state)<State>()
+    exactType(newState3, {} as State)
 })
 
 it("can work with readonly base types", () => {
@@ -377,5 +385,15 @@ it("can work with readonly base types", () => {
         })
     }
     const newState2: State = produce(reducer)(state)
-    const newState3: State = produce(reducer, state)()
+    exactType(newState2, {} as State)
+
+    // base case for with-initial-state
+    const newState4 = produce(reducer, state)(state)
+    exactType(newState4, {} as State)
+    // no argument case, in that case, immutable version recipe first arg will be inferred
+    const newState5 = produce(reducer, state)()
+    exactType(newState5, {} as Immutable<State>)
+    // we can force the return type of the reducer by passing the generic argument
+    const newState3 = produce(reducer, state)<State>()
+    exactType(newState3, {} as State)
 })
