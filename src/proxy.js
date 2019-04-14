@@ -6,6 +6,7 @@ import {
     is,
     isDraftable,
     isDraft,
+    isMap,
     shallowCopy,
     DRAFT_STATE
 } from "./common"
@@ -39,11 +40,16 @@ export function createProxy(base, parent) {
         revoke: null
     }
 
-    const {revoke, proxy} = Array.isArray(base)
-        ? // [state] is used for arrays, to make sure the proxy is array-ish and not violate invariants,
-          // although state itself is an object
-          Proxy.revocable([state], arrayTraps)
-        : Proxy.revocable(state, objectTraps)
+    let proxyTarget = state
+    let traps = objectTraps
+    if (Array.isArray(base)) {
+        proxyTarget = [state]
+        traps = arrayTraps
+    } else if (isMap(base)) {
+        traps = mapTraps
+    }
+
+    const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
 
     state.draft = proxy
     state.revoke = revoke
@@ -92,6 +98,106 @@ arrayTraps.set = function(state, prop, value) {
         throw new Error("Immer only supports setting array indices and the 'length' property") // prettier-ignore
     }
     return objectTraps.set.call(this, state[0], prop, value)
+}
+
+const mapTraps = {
+    get(state, prop, receiver) {
+        if (prop === DRAFT_STATE) return state
+        if (prop === "size") return source(state)[prop]
+        if (prop === "has") {
+            const stateCurrent = source(state)
+            return stateCurrent[prop].bind(stateCurrent)
+        }
+        if (prop === "set") {
+            return function(key, value) {
+                markChanged(state)
+                state.assigned[key] = true
+                return state.copy.set(key, value)
+            }
+        }
+        if (prop === "delete") {
+            return function(key) {
+                markChanged(state)
+                state.assigned[key] = false
+                return state.copy.delete(key)
+            }
+        }
+        if (prop === "clear") {
+            return function() {
+                markChanged(state)
+                state.assigned = {}
+                for (const key of source(state).keys()) {
+                    state.assigned[key] = false
+                }
+                return state.copy.clear()
+            }
+        }
+        if (prop === "forEach") {
+            return function(cb) {
+                return source(state).forEach((_, key, map) => {
+                    const value = receiver.get(key)
+                    cb(value, key, map)
+                }, this)
+            }
+        }
+        if (prop === "get") {
+            return function(key) {
+                if (!state.modified && has(state.drafts, key)) {
+                    return state.drafts[key]
+                }
+                if (state.modified && state.copy.has(key)) {
+                    return state.copy.get(key)
+                }
+
+                const value = source(state).get(key)
+
+                if (state.finalized || !isDraftable(value)) {
+                    return value
+                }
+
+                const valueProxied = createProxy(value, state)
+                if (!state.modified) {
+                    state.drafts[key] = valueProxied
+                } else {
+                    state.copy.set(key, valueProxied)
+                }
+                return valueProxied
+            }
+        }
+        if (
+            prop === Symbol.iterator ||
+            prop === "entries" ||
+            prop === "values"
+        ) {
+            let getYieldable = (key, value) => [key, value]
+            if (prop === "values") {
+                getYieldable = (key, value) => value
+            }
+            return function*() {
+                const iterator = source(state)[Symbol.iterator]()
+                let result = iterator.next()
+                while (!result.done) {
+                    const [key] = result.value
+                    const value = receiver.get(key)
+                    yield getYieldable(key, value)
+                    result = iterator.next()
+                }
+            }
+        }
+        if (prop === "keys") {
+            return function*() {
+                const iterator = source(state).keys()
+                let result = iterator.next()
+                while (!result.done) {
+                    const key = result.value
+                    yield key
+                    result = iterator.next()
+                }
+            }
+        }
+
+        return Reflect.get(state, prop, receiver)
+    }
 }
 
 // returns the object we should be reading the current value from, which is base, until some change has been made

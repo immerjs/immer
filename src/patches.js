@@ -1,9 +1,19 @@
-import {each} from "./common"
+import {each, isMap} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
-    Array.isArray(state.base)
-        ? generateArrayPatches(state, basePath, patches, inversePatches)
-        : generateObjectPatches(state, basePath, patches, inversePatches)
+    const generatePatchesFn = Array.isArray(state.base)
+        ? generateArrayPatches
+        : isMap(state.base)
+        ? generatePatchesFromAssigned(
+              (map, key) => map.get(key),
+              (map, key) => map.has(key)
+          )
+        : generatePatchesFromAssigned(
+              (obj, key) => obj[key],
+              (obj, key) => key in obj
+          )
+
+    generatePatchesFn(state, basePath, patches, inversePatches)
 }
 
 function generateArrayPatches(state, basePath, patches, inversePatches) {
@@ -75,23 +85,29 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
     }
 }
 
-function generateObjectPatches(state, basePath, patches, inversePatches) {
-    const {base, copy} = state
-    each(state.assigned, (key, assignedValue) => {
-        const origValue = base[key]
-        const value = copy[key]
-        const op = !assignedValue ? "remove" : key in base ? "replace" : "add"
-        if (origValue === value && op === "replace") return
-        const path = basePath.concat(key)
-        patches.push(op === "remove" ? {op, path} : {op, path, value})
-        inversePatches.push(
-            op === "add"
-                ? {op: "remove", path}
-                : op === "remove"
-                ? {op: "add", path, value: origValue}
-                : {op: "replace", path, value: origValue}
-        )
-    })
+function generatePatchesFromAssigned(getValueByKey, hasKey) {
+    return function(state, basePath, patches, inversePatches) {
+        const {base, copy} = state
+        each(state.assigned, (key, assignedValue) => {
+            const origValue = getValueByKey(base, key)
+            const value = getValueByKey(copy, key)
+            const op = !assignedValue
+                ? "remove"
+                : hasKey(base, key)
+                ? "replace"
+                : "add"
+            if (origValue === value && op === "replace") return
+            const path = basePath.concat(key)
+            patches.push(op === "remove" ? {op, path} : {op, path, value})
+            inversePatches.push(
+                op === "add"
+                    ? {op: "remove", path}
+                    : op === "remove"
+                    ? {op: "add", path, value: origValue}
+                    : {op: "replace", path, value: origValue}
+            )
+        })
+    }
 }
 
 export function applyPatches(draft, patches) {
@@ -103,29 +119,40 @@ export function applyPatches(draft, patches) {
         } else {
             let base = draft
             for (let i = 0; i < path.length - 1; i++) {
-                base = base[path[i]]
+                if (isMap(base.base)) {
+                    base = base.get(path[i])
+                } else {
+                    base = base[path[i]]
+                }
                 if (!base || typeof base !== "object")
                     throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
             }
             const key = path[path.length - 1]
+
+            const replace = (key, value) =>
+                isMap(base.base) ? base.set(key, value) : (base[key] = value)
+            const add = (key, value) =>
+                Array.isArray(base)
+                    ? base.splice(key, 0, value)
+                    : isMap(base.base)
+                    ? base.set(key, value)
+                    : (base[key] = value)
+            const remove = key =>
+                Array.isArray(base)
+                    ? base.splice(key, 1)
+                    : isMap(base.base)
+                    ? base.delete(key)
+                    : delete base[key]
+
             switch (patch.op) {
                 case "replace":
-                    base[key] = patch.value
+                    replace(key, patch.value)
                     break
                 case "add":
-                    if (Array.isArray(base)) {
-                        // TODO: support "foo/-" paths for appending to an array
-                        base.splice(key, 0, patch.value)
-                    } else {
-                        base[key] = patch.value
-                    }
+                    add(key, patch.value)
                     break
                 case "remove":
-                    if (Array.isArray(base)) {
-                        base.splice(key, 1)
-                    } else {
-                        delete base[key]
-                    }
+                    remove(key)
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)
