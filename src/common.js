@@ -20,6 +20,7 @@ export function isDraftable(value) {
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
+    if (isMap(value)) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
@@ -30,16 +31,35 @@ export function original(value) {
     // otherwise return undefined
 }
 
-export const assign =
-    Object.assign ||
-    function assign(target, value) {
-        for (let key in value) {
-            if (has(value, key)) {
-                target[key] = value[key]
+function assignMap(target, overrides) {
+    overrides.forEach(function(override) {
+        for (let key in override) {
+            if (has(override, key)) {
+                target.set(key, override[key])
             }
         }
-        return target
+    })
+    return target
+}
+function assignObjectLegacy(target, overrides) {
+    overrides.forEach(function(override) {
+        for (let key in override) {
+            if (has(override, key)) {
+                target[key] = override[key]
+            }
+        }
+    })
+    return target
+}
+export function assign(target, ...overrides) {
+    if (isMap(target)) {
+        return assignMap(target, overrides)
     }
+    if (Object.assign) {
+        return Object.assign(target, ...overrides)
+    }
+    return assignObjectLegacy(target, overrides)
+}
 
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -53,6 +73,7 @@ export const ownKeys =
 
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
+    if (isMap(base)) return new Map(base)
     const clone = Object.create(Object.getPrototypeOf(base))
     ownKeys(base).forEach(key => {
         if (key === DRAFT_STATE) {
@@ -80,11 +101,11 @@ export function shallowCopy(base, invokeGetters = false) {
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) cb(i, value[i], value)
-    } else {
-        ownKeys(value).forEach(key => cb(key, value[key], value))
+    if (Array.isArray(value) || isMap(value)) {
+        value.forEach((entry, index) => cb(index, entry, value))
+        return
     }
+    ownKeys(value).forEach(key => cb(key, value[key], value))
 }
 
 export function isEnumerable(base, prop) {
@@ -103,4 +124,8 @@ export function is(x, y) {
     } else {
         return x !== x && y !== y
     }
+}
+
+export function isMap(target) {
+    return target instanceof Map
 }
