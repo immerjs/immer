@@ -299,6 +299,205 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             }
         })
 
+        if (useProxies) {
+            describe("map drafts", () => {
+                it("supports key access", () => {
+                    const value = baseState.aMap.get("jedi")
+                    const nextState = produce(baseState, s => {
+                        expect(s.aMap.get("jedi")).toEqual(value)
+                    })
+                    expect(nextState).toBe(baseState)
+                })
+
+                it("supports iteration", () => {
+                    const base = new Map([
+                        ["first", {id: 1, a: 1}],
+                        ["second", {id: 2, a: 1}]
+                    ])
+                    const findById = (map, id) => {
+                        for (const [, item] of map) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(result.get("first").a).toEqual(2)
+                    expect(result.get("second").a).toEqual(2)
+                })
+
+                it("supports 'entries'", () => {
+                    const base = new Map([
+                        ["first", {id: 1, a: 1}],
+                        ["second", {id: 2, a: 1}]
+                    ])
+                    const findById = (map, id) => {
+                        for (const [, item] of map.entries()) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(result.get("first").a).toEqual(2)
+                    expect(result.get("second").a).toEqual(2)
+                })
+
+                it("supports 'values'", () => {
+                    const base = new Map([
+                        ["first", {id: 1, a: 1}],
+                        ["second", {id: 2, a: 1}]
+                    ])
+                    const findById = (map, id) => {
+                        for (const item of map.values()) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(result.get("first").a).toEqual(2)
+                    expect(result.get("second").a).toEqual(2)
+                })
+
+                it("supports 'keys", () => {
+                    const base = new Map([
+                        ["first", Symbol()],
+                        ["second", Symbol()]
+                    ])
+                    const result = produce(base, draft => {
+                        expect([...draft.keys()]).toEqual(["first", "second"])
+                        draft.set("third", Symbol())
+                        expect([...draft.keys()]).toEqual([
+                            "first",
+                            "second",
+                            "third"
+                        ])
+                    })
+                })
+
+                it("supports forEach", () => {
+                    const base = new Map([
+                        ["first", {id: 1, a: 1}],
+                        ["second", {id: 2, a: 1}]
+                    ])
+                    const result = produce(base, draft => {
+                        let sum1 = 0
+                        draft.forEach(({a}) => {
+                            sum1 += a
+                        })
+                        expect(sum1).toBe(2)
+                        let sum2 = 0
+                        draft.get("first").a = 10
+                        draft.get("second").a = 20
+                        draft.forEach(({a}) => {
+                            sum2 += a
+                        })
+                        expect(sum2).toBe(30)
+                    })
+                })
+
+                it("supports forEach mutation", () => {
+                    const base = new Map([
+                        ["first", {id: 1, a: 1}],
+                        ["second", {id: 2, a: 1}]
+                    ])
+                    const result = produce(base, draft => {
+                        draft.forEach(item => {
+                            item.a = 100
+                        })
+                    })
+                    expect(result).not.toBe(base)
+                    expect(result.get("first").a).toEqual(100)
+                    expect(result.get("second").a).toEqual(100)
+                })
+
+                it("can assign by key", () => {
+                    const nextState = produce(baseState, s => {
+                        s.aMap.set("force", true)
+                    })
+                    expect(nextState).not.toBe(baseState)
+                    expect(nextState.aMap).not.toBe(baseState.aMap)
+                    expect(nextState.aMap.get("force")).toEqual(true)
+                })
+
+                it("returns 'size'", () => {
+                    const nextState = produce(baseState, s => {
+                        s.aMap.set("newKey", true)
+                        expect(s.aMap.size).toBe(baseState.aMap.size + 1)
+                    })
+                    expect(nextState).not.toBe(baseState)
+                    expect(nextState.aMap).not.toBe(baseState.aMap)
+                    expect(nextState.aMap.get("newKey")).toEqual(true)
+                    expect(nextState.aMap.size).toEqual(baseState.aMap.size + 1)
+                })
+
+                it("can use 'delete' to remove items", () => {
+                    const nextState = produce(baseState, s => {
+                        expect(s.aMap.has("jedi")).toBe(true)
+                        s.aMap.delete("jedi")
+                        expect(s.aMap.has("jedi")).toBe(false)
+                    })
+                    expect(nextState.aMap).not.toBe(baseState.aMap)
+                    expect(nextState.aMap.size).toBe(baseState.aMap.size - 1)
+                    expect(baseState.aMap.has("jedi")).toBe(true)
+                    expect(nextState.aMap.has("jedi")).toBe(false)
+                })
+
+                it("can use 'clear' to remove items", () => {
+                    const nextState = produce(baseState, s => {
+                        expect(s.aMap.size).not.toBe(0)
+                        s.aMap.clear()
+                        expect(s.aMap.size).toBe(0)
+                    })
+                    expect(nextState.aMap).not.toBe(baseState.aMap)
+                    expect(nextState.aMap.size).toBe(0)
+                })
+
+                it("support 'has'", () => {
+                    const nextState = produce(baseState, s => {
+                        expect(s.aMap.has("newKey")).toBe(false)
+                        s.aMap.set("newKey", true)
+                        expect(s.aMap.has("newKey")).toBe(true)
+                    })
+                    expect(nextState).not.toBe(baseState)
+                    expect(nextState.aMap).not.toBe(baseState.aMap)
+                    expect(nextState.aMap.has("newKey")).toEqual(true)
+                })
+
+                it("supports nested maps", () => {
+                    const base = new Map([
+                        ["first", new Map([["second", {prop: "test"}]])]
+                    ])
+                    const result = produce(base, draft => {
+                        draft.get("first").get("second").prop = "test1"
+                    })
+                    expect(result).not.toBe(base)
+                    expect(result.get("first")).not.toBe(base.get("first"))
+                    expect(result.get("first").get("second")).not.toBe(
+                        base.get("first").get("second")
+                    )
+                    expect(base.get("first").get("second").prop).toBe("test")
+                    expect(result.get("first").get("second").prop).toBe("test1")
+                })
+            })
+        }
+
         it("supports `immerable` symbol on constructor", () => {
             class One {}
             One[immerable] = true
@@ -1101,6 +1300,11 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             const data = {
                 anInstance: new Foo(),
                 anArray: [3, 2, {c: 3}, 1],
+                aMap: new Map([
+                    ["jedi", {name: "Luke", skill: 10}],
+                    ["jediTotal", 42],
+                    ["force", "these aren't the droids you're looking for"]
+                ]),
                 aProp: "hi",
                 anObject: {
                     nested: {
