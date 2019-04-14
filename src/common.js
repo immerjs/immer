@@ -20,6 +20,7 @@ export function isDraftable(value) {
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
+    if (proto === Map.prototype) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
@@ -53,7 +54,9 @@ export const ownKeys =
 
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
-    const clone = Object.create(Object.getPrototypeOf(base))
+    const proto = Object.getPrototypeOf(base)
+    if (proto === Map.prototype) return new Map(base)
+    const clone = Object.create(proto)
     ownKeys(base).forEach(key => {
         if (key === DRAFT_STATE) {
             return // Never copy over draft state.

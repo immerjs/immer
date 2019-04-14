@@ -123,22 +123,29 @@ describe("readme example", () => {
         })
     })
 
-    it("can deep udpate map", () => {
+    it("can deep update map", () => {
         const state = {
             users: new Map([["michel", {name: "miche"}]])
         }
 
         const nextState = produce(state, draft => {
-            const newUsers = new Map(draft.users)
-            // mutate the new map and set a _new_ user object
-            // but leverage produce again to deeply update it's contents
-            newUsers.set(
-                "michel",
-                produce(draft.users.get("michel"), draft => {
-                    draft.name = "michel"
-                })
-            )
-            draft.users = newUsers
+            const user = draft.users.get("michel")
+            user.name = "michel"
+        })
+
+        expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
+        expect(nextState).toEqual({
+            users: new Map([["michel", {name: "michel"}]])
+        })
+    })
+
+    it("can update map", () => {
+        const state = {
+            users: new Map([["michel", {name: "miche"}]])
+        }
+
+        const nextState = produce(state, draft => {
+            draft.users.set("michel", {name: "michel"})
         })
 
         expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})

@@ -39,11 +39,17 @@ export function createProxy(base, parent) {
         revoke: null
     }
 
-    const {revoke, proxy} = Array.isArray(base)
-        ? // [state] is used for arrays, to make sure the proxy is array-ish and not violate invariants,
-          // although state itself is an object
-          Proxy.revocable([state], arrayTraps)
-        : Proxy.revocable(state, objectTraps)
+    let proxyTarget = state
+    let traps = objectTraps
+    if (Array.isArray(base)) {
+        proxyTarget = [state]
+        traps = arrayTraps
+    }
+    if (Object.getPrototypeOf(base) === Map.prototype) {
+        traps = mapTraps
+    }
+
+    const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
 
     state.draft = proxy
     state.revoke = revoke
@@ -92,6 +98,29 @@ arrayTraps.set = function(state, prop, value) {
         throw new Error("Immer only supports setting array indices and the 'length' property") // prettier-ignore
     }
     return objectTraps.set.call(this, state[0], prop, value)
+}
+
+const mapTraps = {
+    get(state, prop) {
+        if (prop === "size") {
+            return source(state)[prop]
+        }
+        if (prop === "get") {
+            return function(key) {
+                const value = source(state).get(key)
+                const valueProxied = createProxy(value, state)
+                state.drafts[prop] = valueProxied
+                return valueProxied
+            }
+        }
+        if (prop === "delete" || prop === "set" || prop === "clear") {
+            return function(...args) {
+                markChanged(state)
+                return state.copy[prop](...args)
+            }
+        }
+        return get(state, prop)
+    }
 }
 
 // returns the object we should be reading the current value from, which is base, until some change has been made
