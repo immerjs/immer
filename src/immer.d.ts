@@ -49,6 +49,7 @@ export type Produced<Base, Return> = Return extends void
     : Return extends Promise<infer Result>
     ? Promise<Result extends void ? Base : FromNothing<Result>>
     : FromNothing<Return>
+
 export interface IProduce {
     /**
      * The `produce` function takes a value and a "recipe function" (whose
@@ -101,7 +102,7 @@ export interface IProduce {
     /** Normal producer */
     <Base, D = Draft<Base>, Return = void>(
         base: Base,
-        recipe: (this: D, draft: D) => Return,
+        recipe: (draft: D) => Return,
         listener?: PatchListener
     ): Produced<Base, Return>
 }
