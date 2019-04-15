@@ -23,7 +23,7 @@ export type Draft<T> = T extends AtomicObject
     ? T
     : T extends object
     ? {-readonly [K in keyof T]: Draft<T[K]>}
-    : T // mostly: unknown & any
+    : T
 
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends AtomicObject
