@@ -1,4 +1,7 @@
-type Tail<T extends any[]> = ((...t: T) => any) extends ((_: any, ...tail: infer TT) => any)
+type Tail<T extends any[]> = ((...t: T) => any) extends ((
+    _: any,
+    ...tail: infer TT
+) => any)
     ? TT
     : []
 
@@ -17,18 +20,17 @@ type AtomicObject =
     | String
 
 export type Draft<T> = T extends AtomicObject
-  ? T
-  : T extends object
-  ? { -readonly [K in keyof T]: Draft<T[K]> }
-  : T // mostly: unknown & any
+    ? T
+    : T extends object
+    ? {-readonly [K in keyof T]: Draft<T[K]>}
+    : T // mostly: unknown & any
 
 /** Convert a mutable type into a readonly type */
-export type Immutable<T> =
-  T extends AtomicObject
-  ? T
-  : T extends object
-  ? { readonly [K in keyof T]: Immutable<T[K]> }
-  : T
+export type Immutable<T> = T extends AtomicObject
+    ? T
+    : T extends object
+    ? {readonly [K in keyof T]: Immutable<T[K]>}
+    : T
 
 export interface Patch {
     op: "replace" | "remove" | "add"
@@ -72,11 +74,14 @@ export interface IProduce {
     <
         Recipe extends (...args: any[]) => any,
         Params extends any[] = Parameters<Recipe>,
-        T = Params[0],
+        T = Params[0]
     >(
-        recipe: Recipe,
-    ): <S extends Immutable<T>>(state: S, ...rest: Tail<Params>) => Produced<S, ReturnType<Recipe>>
-    //   ^ by making the returned type generic, the actual type of the passed in object is preferred 
+        recipe: Recipe
+    ): <S extends Immutable<T>>(
+        state: S,
+        ...rest: Tail<Params>
+    ) => Produced<S, ReturnType<Recipe>>
+    //   ^ by making the returned type generic, the actual type of the passed in object is preferred
     //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
     //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
 
@@ -84,11 +89,14 @@ export interface IProduce {
     <
         Recipe extends (...args: any[]) => any,
         Params extends any[] = Parameters<Recipe>,
-        T = Params[0],
+        T = Params[0]
     >(
         recipe: Recipe,
         initialState: Immutable<T>
-    ): <S extends Immutable<T>>(state?: S, ...rest: Tail<Params>) => Produced<S, ReturnType<Recipe>>
+    ): <S extends Immutable<T>>(
+        state?: S,
+        ...rest: Tail<Params>
+    ) => Produced<S, ReturnType<Recipe>>
 
     /** Normal producer */
     <Base, D = Draft<Base>, Return = void>(
