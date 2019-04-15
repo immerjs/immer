@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mweststrate/immer.git"
+    "url": "https://github.com/immerjs/immer.git"
   },
   "keywords": [
     "immutable",
@@ -34,9 +34,9 @@
   "author": "Michel Weststrate",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mweststrate/immer/issues"
+    "url": "https://github.com/immerjs/immer/issues"
   },
-  "homepage": "https://github.com/mweststrate/immer#readme",
+  "homepage": "https://github.com/immerjs/immer#readme",
   "files": [
     "dist",
     "src"
