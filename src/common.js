@@ -20,7 +20,7 @@ export function isDraftable(value) {
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
-    if (proto === Map.prototype) return true
+    if (isMap(value)) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
@@ -31,25 +31,29 @@ export function original(value) {
     // otherwise return undefined
 }
 
-export const assign = function(target, override) {
-    const proto = Object.getPrototypeOf(target)
-    if (proto === Map.prototype) {
+function assignMap(target, override) {
+    for (let key in override) {
+        if (has(override, key)) {
+            target.set(key, override[key])
+        }
+    }
+    return target
+}
+const assignObject =
+    Object.assign ||
+    function(target, override) {
         for (let key in override) {
             if (has(override, key)) {
-                target.set(key, override[key])
+                target[key] = override[key]
             }
         }
         return target
     }
-    if (Object.assign) {
-        return Object.assign(target, override)
+export function assign(target, override) {
+    if (isMap(target)) {
+        return assignMap(target, override)
     }
-    for (let key in override) {
-        if (has(override, key)) {
-            target[key] = override[key]
-        }
-    }
-    return target
+    return assignObject(target, override)
 }
 
 export const ownKeys =
@@ -64,9 +68,8 @@ export const ownKeys =
 
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
-    const proto = Object.getPrototypeOf(base)
-    if (proto === Map.prototype) return new Map(base)
-    const clone = Object.create(proto)
+    if (isMap(base)) return new Map(base)
+    const clone = Object.create(Object.getPrototypeOf(base))
     ownKeys(base).forEach(key => {
         if (key === DRAFT_STATE) {
             return // Never copy over draft state.
@@ -93,10 +96,7 @@ export function shallowCopy(base, invokeGetters = false) {
 }
 
 export function each(value, cb) {
-    if (
-        Array.isArray(value) ||
-        Object.getPrototypeOf(value) === Map.prototype
-    ) {
+    if (Array.isArray(value) || isMap(value)) {
         value.forEach((valueI, index) => cb(index, valueI, value))
         return
     }
@@ -118,4 +118,8 @@ export function is(x, y) {
     } else {
         return x !== x && y !== y
     }
+}
+
+export function isMap(target) {
+    return target && Object.getPrototypeOf(target) === Map.prototype
 }

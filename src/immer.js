@@ -9,6 +9,7 @@ import {
     isDraft,
     isDraftable,
     isEnumerable,
+    isMap,
     shallowCopy,
     DRAFT_STATE,
     NOTHING
@@ -257,7 +258,7 @@ export class Immer {
                     scope.canAutoFreeze = false
                 }
 
-                this.assignPropertyToParent(parent, prop, value)
+                this.assignPropertyInParent(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
                 if (isDraftProp && value === state.base[prop]) return
@@ -280,13 +281,12 @@ export class Immer {
         return root
     }
 
-    assignPropertyToParent(parent, prop, value) {
-        // Preserve non-enumerable properties.
-        const proto = Object.getPrototypeOf(parent)
-        if (proto === Map.prototype) {
+    assignPropertyInParent(parent, prop, value) {
+        if (isMap(parent)) {
             parent.set(prop, value)
             return
         }
+        // Preserve non-enumerable properties.
         if (Array.isArray(parent) || isEnumerable(parent, prop)) {
             parent[prop] = value
             return
