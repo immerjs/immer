@@ -6,6 +6,7 @@ import {
     is,
     isDraftable,
     isDraft,
+    isMap,
     shallowCopy,
     DRAFT_STATE
 } from "./common"
@@ -45,7 +46,7 @@ export function createProxy(base, parent) {
         proxyTarget = [state]
         traps = arrayTraps
     }
-    if (Object.getPrototypeOf(base) === Map.prototype) {
+    if (isMap(base)) {
         traps = mapTraps
     }
 
