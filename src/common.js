@@ -31,29 +31,35 @@ export function original(value) {
     // otherwise return undefined
 }
 
-function assignMap(target, override) {
-    for (let key in override) {
-        if (has(override, key)) {
-            target.set(key, override[key])
+function assignMap(target, overrides) {
+    overrides.forEach(function(override) {
+        for (let key in override) {
+            if (has(override, key)) {
+                target.set(key, override[key])
+            }
         }
-    }
+    })
     return target
 }
-const assignObject =
-    Object.assign ||
-    function(target, override) {
+function assignObjectLegacy(target, overrides) {
+    overrides.forEach(function(override) {
         for (let key in override) {
             if (has(override, key)) {
                 target[key] = override[key]
             }
         }
-        return target
-    }
-export function assign(target, override) {
+    })
+    return target
+}
+export function assign(target) {
+    const overrides = Array.prototype.slice.call(arguments, 1)
     if (isMap(target)) {
-        return assignMap(target, override)
+        return assignMap(target, overrides)
     }
-    return assignObject(target, override)
+    if (Object.assign) {
+        return Object.assign.apply(this, Array.prototype.slice.call(arguments))
+    }
+    return assignObjectLegacy(target, overrides)
 }
 
 export const ownKeys =
