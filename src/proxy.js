@@ -102,18 +102,60 @@ arrayTraps.set = function(state, prop, value) {
 }
 
 const mapTraps = {
-    get(state, prop) {
+    get(state, prop, receiver) {
         if (prop === "size") {
             return source(state)[prop]
         }
+        if (prop === "forEach") {
+            return function(cb) {
+                return source(state).forEach((_, key, map) => {
+                    const value = receiver.get(key)
+                    cb(value, key, map)
+                })
+            }
+        }
+        if (prop === "entries" || prop === "has") {
+            return source(state)[prop].bind(source(state))
+        }
         if (prop === "get") {
             return function(key) {
+                console.log("get", key)
+                if (!state.modified && has(state.drafts, key)) {
+                    return state.drafts[key]
+                }
+                if (state.modified && state.copy.has(key)) {
+                    return state.copy.get(key)
+                }
+
                 const value = source(state).get(key)
+
+                if (state.finalized || !isDraftable(value)) {
+                    return value
+                }
+
                 const valueProxied = createProxy(value, state)
-                state.drafts[key] = valueProxied
+                if (!state.modified) {
+                    state.drafts[key] = valueProxied
+                } else {
+                    state.copy.set(key, valueProxied)
+                }
                 return valueProxied
             }
         }
+        if (prop === Symbol.iterator) {
+            return function*() {
+                const iterator = source(state)[Symbol.iterator]()
+                let result = iterator.next()
+                while (!result.done) {
+                    console.log("iterator", result.value)
+                    const [key] = result.value
+                    const value = receiver.get(key)
+                    yield [key, value]
+                    result = iterator.next()
+                }
+            }
+        }
+
         if (prop === "delete" || prop === "set" || prop === "clear") {
             return function(...args) {
                 markChanged(state)
