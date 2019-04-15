@@ -892,15 +892,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
-        // TODO: rewrite tests with async/await once node 6 support is dropped
         describe("async recipe function", () => {
             it("can modify the draft", () => {
                 const base = {a: 0, b: 0}
-                return produce(base, d => {
+                return produce(base, async d => {
                     d.a = 1
-                    return Promise.resolve().then(() => {
-                        d.b = 1
-                    })
+                    await Promise.resolve()
+                    d.b = 1
                 }).then(res => {
                     expect(res).not.toBe(base)
                     expect(res).toEqual({a: 1, b: 1})
