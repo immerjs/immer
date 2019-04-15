@@ -6,6 +6,8 @@
 
 _Create the next immutable state tree by simply modifying the current tree_
 
+Winner of the "breakthrough of the year" [open source award](https://osawards.com/react/) in 2019
+
 ### [Release notes](https://github.com/mweststrate/immer/releases)
 
 Did Immer make a difference to your project? Consider buying me a coffee!<br/><a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
@@ -531,14 +533,14 @@ Plain objects and arrays are always drafted by Immer.
 Every other object must use the `immerable` symbol to mark itself as compatible with Immer. When one of these objects is mutated within a producer, its prototype is preserved between copies.
 
 ```js
-import {immerable} from 'immer'
+import {immerable} from "immer"
 
 class Foo {
-  [immerable] = true // Option 1
+    [immerable] = true // Option 1
 
-  constructor() {
-    this[immerable] = true // Option 2
-  }
+    constructor() {
+        this[immerable] = true // Option 2
+    }
 }
 
 Foo[immerable] = true // Option 3
