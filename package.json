@@ -62,7 +62,7 @@
     "jest": "^24.7.1",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
-    "prettier": "^1.9.2",
+    "prettier": "1.17.0",
     "pretty-quick": "^1.8.0",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
