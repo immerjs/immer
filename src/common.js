@@ -31,16 +31,26 @@ export function original(value) {
     // otherwise return undefined
 }
 
-export const assign =
-    Object.assign ||
-    function assign(target, value) {
-        for (let key in value) {
-            if (has(value, key)) {
-                target[key] = value[key]
+export const assign = function(target, override) {
+    const proto = Object.getPrototypeOf(target)
+    if (proto === Map.prototype) {
+        for (let key in override) {
+            if (has(override, key)) {
+                target.set(key, override[key])
             }
         }
         return target
     }
+    if (Object.assign) {
+        return Object.assign(target, override)
+    }
+    for (let key in override) {
+        if (has(override, key)) {
+            target[key] = override[key]
+        }
+    }
+    return target
+}
 
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -83,11 +93,14 @@ export function shallowCopy(base, invokeGetters = false) {
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) cb(i, value[i], value)
-    } else {
-        ownKeys(value).forEach(key => cb(key, value[key], value))
+    if (
+        Array.isArray(value) ||
+        Object.getPrototypeOf(value) === Map.prototype
+    ) {
+        value.forEach((valueI, index) => cb(index, valueI, value))
+        return
     }
+    ownKeys(value).forEach(key => cb(key, value[key], value))
 }
 
 export function isEnumerable(base, prop) {

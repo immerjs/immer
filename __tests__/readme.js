@@ -125,32 +125,18 @@ describe("readme example", () => {
 
     it("can deep update map", () => {
         const state = {
-            users: new Map([["michel", {name: "miche"}]])
+            users: new Map([["michel", {name: "miche", age: 27}]])
         }
 
         const nextState = produce(state, draft => {
-            const user = draft.users.get("michel")
-            user.name = "michel"
+            draft.users.get("michel").name = "michel"
         })
 
-        expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
+        expect(state).toEqual({
+            users: new Map([["michel", {name: "miche", age: 27}]])
+        })
         expect(nextState).toEqual({
-            users: new Map([["michel", {name: "michel"}]])
-        })
-    })
-
-    it("can update map", () => {
-        const state = {
-            users: new Map([["michel", {name: "miche"}]])
-        }
-
-        const nextState = produce(state, draft => {
-            draft.users.set("michel", {name: "michel"})
-        })
-
-        expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
-        expect(nextState).toEqual({
-            users: new Map([["michel", {name: "michel"}]])
+            users: new Map([["michel", {name: "michel", age: 27}]])
         })
     })
 })

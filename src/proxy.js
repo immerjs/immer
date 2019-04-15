@@ -109,7 +109,7 @@ const mapTraps = {
             return function(key) {
                 const value = source(state).get(key)
                 const valueProxied = createProxy(value, state)
-                state.drafts[prop] = valueProxied
+                state.drafts[key] = valueProxied
                 return valueProxied
             }
         }
