@@ -70,16 +70,16 @@ it("can update readonly state via standard api", () => {
 
 // NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
-    type State = {readonly a:number}
+    type State = {readonly a: number}
     type Recipe = (base?: State | boolean) => State
 
     let foo = produce((x: any) => {}, {} as State)
-    
+
     type Arg0 = Parameters<typeof foo>[0]
     type L = Parameters<typeof foo>["length"]
     type Return = ReturnType<typeof foo>
     exactType({} as Arg0, {} as (State | undefined))
-    exactType({} as any as L, 0 as (0 | 1))
+    exactType(({} as any) as L, 0 as (0 | 1))
     exactType({} as Return, {} as State)
 })
 
@@ -92,7 +92,7 @@ it("can infer state type from recipe function", () => {
     type L = Parameters<typeof foo>["length"]
     type Return = ReturnType<typeof foo>
     exactType({} as Arg0, {} as State)
-    exactType({} as any as L, 1 as const)
+    exactType(({} as any) as L, 1 as const)
     exactType({} as Return, {} as State)
 })
 
@@ -108,7 +108,7 @@ it("can infer state type from recipe function with arguments", () => {
     type Return = ReturnType<typeof foo>
     exactType({} as Arg0, {} as State)
     exactType({} as Arg1, {} as number)
-    exactType({} as any as L, 2 as const)
+    exactType(({} as any) as L, 2 as const)
     exactType({} as Return, {} as State)
 })
 
@@ -116,14 +116,14 @@ it("can infer state type from recipe function with arguments and initial state",
     type State = {readonly a: string} | {readonly b: string}
 
     let foo = produce((draft: Draft<State>, x: number) => {}, {} as State)
-    
+
     type Arg0 = Parameters<typeof foo>[0]
     type Arg1 = Parameters<typeof foo>[1]
     type L = Parameters<typeof foo>["length"]
     type Return = ReturnType<typeof foo>
     exactType({} as Arg0, {} as (State | undefined))
     exactType({} as Arg1, {} as number)
-    exactType({} as any as L, 2 as const)
+    exactType(({} as any) as L, 2 as const)
     exactType({} as Return, {} as State)
 })
 
@@ -134,7 +134,7 @@ it("cannot infer state type when the function type and default state are missing
     type L = Parameters<typeof foo>["length"]
     type Return = ReturnType<typeof foo>
     exactType({} as Arg0, {} as any)
-    exactType({} as any as L, 1 as const)
+    exactType(({} as any) as L, 1 as const)
     exactType({} as Return, {} as any)
 })
 
@@ -192,14 +192,14 @@ describe("curried producer", () => {
         {
             // No initial state:
             let foo = produce((s: State, a: number, b: number) => {})
-            
+
             type Arg0 = Parameters<typeof foo>[0]
             type Arg1 = Parameters<typeof foo>[1]
             type L = Parameters<typeof foo>["length"]
             type Return = ReturnType<typeof foo>
             exactType({} as Arg0, {} as (State | undefined))
             exactType({} as Arg1, {} as number)
-            exactType({} as any as L, 3 as const)
+            exactType(({} as any) as L, 3 as const)
             exactType({} as Return, {} as State)
 
             foo({} as State, 1, 2)
@@ -214,13 +214,16 @@ describe("curried producer", () => {
             type L = Parameters<typeof woo>["length"]
             type Return = ReturnType<typeof woo>
             exactType({} as Args, {} as [State, ...number[]])
-            exactType({} as any as L, 3 as number)
+            exactType(({} as any) as L, 3 as number)
             exactType({} as Return, {} as State)
         }
 
         {
             // With initial state:
-            let bar = produce((state: Draft<State>, ...args: number[]) => {}, {} as State)
+            let bar = produce(
+                (state: Draft<State>, ...args: number[]) => {},
+                {} as State
+            )
             bar({} as State, 1, 2)
             bar({} as State)
             bar()
@@ -229,21 +232,27 @@ describe("curried producer", () => {
             type L = Parameters<typeof bar>["length"]
             type Return = ReturnType<typeof bar>
             exactType({} as Args, {} as [State?, ...number[]])
-            exactType({} as any as L, 3 as number)
+            exactType(({} as any) as L, 3 as number)
             exactType({} as Return, {} as State)
         }
 
         {
             // When args is a tuple:
-            let tup = produce((state: Draft<State>, ...args: [string, ...number[]]) => {}, {} as State)
-            tup({a: 1}, '', 2)
-            tup(undefined, '', 2)
+            let tup = produce(
+                (state: Draft<State>, ...args: [string, ...number[]]) => {},
+                {} as State
+            )
+            tup({a: 1}, "", 2)
+            tup(undefined, "", 2)
 
             type Args = Parameters<typeof tup>
             type L = Parameters<typeof tup>["length"]
             type Return = ReturnType<typeof tup>
-            exactType({} as Args, {} as [State|undefined, string, ...number[]])
-            exactType({} as any as L, 3 as number)
+            exactType(
+                {} as Args,
+                {} as [State | undefined, string, ...number[]]
+            )
+            exactType(({} as any) as L, 3 as number)
             exactType({} as Return, {} as State)
         }
     })
@@ -258,7 +267,7 @@ describe("curried producer", () => {
             type L = Parameters<typeof foo>["length"]
             type Return = ReturnType<typeof foo>
             exactType({} as Args, {} as [readonly string[]])
-            exactType({} as any as L, 3 as 1)
+            exactType(({} as any) as L, 3 as 1)
             exactType({} as Return, {} as readonly string[])
         }
 
@@ -272,8 +281,8 @@ describe("curried producer", () => {
             type Args = Parameters<typeof bar>
             type L = Parameters<typeof bar>["length"]
             type Return = ReturnType<typeof bar>
-            exactType({} as Args, {} as [((readonly string[])|undefined)?])
-            exactType({} as any as L, 3 as (0|1))
+            exactType({} as Args, {} as [((readonly string[]) | undefined)?])
+            exactType(({} as any) as L, 3 as (0 | 1))
             exactType({} as Return, {} as readonly string[])
         }
     })
@@ -379,14 +388,16 @@ it("works with generic parameters", () => {
 it("can work with non-readonly base types", () => {
     const state = {
         price: 10,
-        todos: [{
-            title: "test",
-            done: false
-        }]
+        todos: [
+            {
+                title: "test",
+                done: false
+            }
+        ]
     }
     type State = typeof state
 
-    const newState: State = produce(state, (draft) => {
+    const newState: State = produce(state, draft => {
         draft.price += 5
         draft.todos.push({
             title: "hi",
@@ -415,22 +426,24 @@ it("can work with non-readonly base types", () => {
 
 it("can work with readonly base types", () => {
     type State = {
-        readonly price: number;
+        readonly price: number
         readonly todos: readonly {
-            readonly title: string;
-            readonly done: boolean;
-        }[];
+            readonly title: string
+            readonly done: boolean
+        }[]
     }
 
     const state: State = {
         price: 10,
-        todos: [{
-            title: "test",
-            done: false
-        }]
+        todos: [
+            {
+                title: "test",
+                done: false
+            }
+        ]
     }
 
-    const newState: State = produce(state, (draft) => {
+    const newState: State = produce(state, draft => {
         draft.price + 5
         draft.todos.push({
             title: "hi",
