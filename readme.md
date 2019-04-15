@@ -635,28 +635,9 @@ const newState = increment(state, 2)
 // `newState.x` cannot be modified here
 ```
 
-**Note:** Immer v1.9+ supports Typescript v3.1+ only. **Note:** Immer v2.2+ supports Typescript v3.4+ only.
+**Note:** Immer v1.9+ supports TypeScript v3.1+ only.
 
-## Using `this`
-
-The recipe will be always invoked with the `draft` as `this` context.
-
-This means that the following constructions are also valid:
-
-```javascript
-const base = {counter: 0}
-
-const next = produce(base, function() {
-    this.counter++
-})
-console.log(next.counter) // 1
-
-// OR
-const increment = produce(function() {
-    this.counter++
-})
-console.log(increment(base).counter) // 1
-```
+**Note:** Immer v3.0+ supports TypeScript v3.4+ only.
 
 # Pitfalls
 
