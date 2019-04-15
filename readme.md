@@ -602,7 +602,7 @@ const state: State = {
     x: 0
 }
 
-const newState = produce<State>(state, draft => {
+const newState = produce(state, draft => {
     // `x` can be modified here
     draft.x++
 })
@@ -612,7 +612,30 @@ const newState = produce<State>(state, draft => {
 
 This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
 
-**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+For curried reducers, the type is inferred from the first argument of recipe function, so make sure to type it. The `Draft` utility type can be used if the state argument type is immutable:
+
+```ts
+import produce, {Draft} from "immer"
+
+interface State {
+    readonly x: number
+}
+
+// `x` cannot be modified here
+const state: State = {
+    x: 0
+}
+
+const increment = produce((draft: Draft<State>, inc: number) => {
+    // `x` can be modified here
+    draft.x += inc
+})
+
+const newState = increment(state, 2)
+// `newState.x` cannot be modified here
+```
+
+**Note:** Immer v1.9+ supports Typescript v3.1+ only. **Note:** Immer v2.2+ supports Typescript v3.4+ only.
 
 ## Using `this`
 
@@ -739,6 +762,10 @@ TODO
 **Immer 1.\* -> 2.0**
 
 Make sure you don't return any promises as state, because `produce` will actually invoke the promise and wait until it settles.
+
+**Immer 2.1 -> 2.2**
+
+When using TypeScript, for curried reducers that are typed in the form `produce<Type>((arg) => { })`, rewrite this to `produce((arg: Type) => { })` or `produce((arg: Draft<Type>) => { })` for correct inference.
 
 ## FAQ
 
