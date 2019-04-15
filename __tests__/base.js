@@ -771,23 +771,30 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
         })
 
-        it("'this' should work - 1", () => {
+        it("'this' should not be bound anymore - 1", () => {
             const base = {x: 3}
             const next1 = produce(base, function() {
-                this.x = 4
+                expect(this).toBe(undefined)
             })
-            expect(next1).not.toBe(base)
-            expect(next1.x).toBe(4)
         })
 
-        it("'this' should work - 2", () => {
-            const base = {x: 3}
+        it("'this' should not be bound anymore - 2", () => {
             const incrementor = produce(function() {
-                this.x = 4
+                expect(this).toBe(undefined)
             })
-            const next1 = incrementor(base)
-            expect(next1).not.toBe(base)
-            expect(next1.x).toBe(4)
+            incrementor()
+        })
+
+        it("it should be possible to use dynamic bound this", () => {
+            const world = {
+                counter: {count: 1},
+                inc: produce(function(draft) {
+                    expect(this).toBe(world)
+                    draft.counter.count = this.counter.count + 1
+                })
+            }
+
+            expect(world.inc(world).counter.count).toBe(2)
         })
 
         // See here: https://github.com/mweststrate/immer/issues/89
