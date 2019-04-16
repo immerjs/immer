@@ -1,3 +1,4 @@
+import {assert, _} from "spec.ts"
 import produce, {
     produce as produce2,
     applyPatches,
@@ -6,17 +7,6 @@ import produce, {
     Draft,
     Immutable
 } from "../dist/immer.js"
-
-// prettier-ignore
-type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends (<T>() => T extends B ? 1 : 0)
-    ? (A extends B ? (B extends A ? unknown : never) : never)
-    : never
-
-/** Fails when `actual` and `expected` have different types. */
-declare const exactType: <Actual, Expected>(
-    actual: Actual & Exact<Actual, Expected>,
-    expected: Expected & Exact<Actual, Expected>
-) => Expected
 
 interface State {
     readonly num: number
@@ -65,7 +55,7 @@ it("can update readonly state via standard api", () => {
         draft.arr2[0].value = "foo"
         draft.arr2.push({value: "asf"})
     })
-    exactType(newState, state)
+    assert(newState, state)
 })
 
 // NOTE: only when the function type is inferred
@@ -73,8 +63,8 @@ it("can infer state type from default state", () => {
     type State = {readonly a: number}
     type Recipe = <S extends State>(state?: S | undefined) => S
 
-    let foo = produce((_: any) => {}, {} as State)
-    exactType(foo, {} as Recipe)
+    let foo = produce((_: any) => {}, _ as State)
+    assert(foo, _ as Recipe)
 })
 
 it("can infer state type from recipe function", () => {
@@ -82,7 +72,7 @@ it("can infer state type from recipe function", () => {
     type Recipe = <S extends State>(state: S) => S
 
     let foo = produce((_: Draft<State>) => {})
-    exactType(foo, {} as Recipe)
+    assert(foo, _ as Recipe)
 })
 
 it("can infer state type from recipe function with arguments", () => {
@@ -90,21 +80,21 @@ it("can infer state type from recipe function with arguments", () => {
     type Recipe = <S extends State>(state: S, x: number) => S
 
     let foo = produce((draft: Draft<State>, x: number) => {})
-    exactType(foo, {} as Recipe)
+    assert(foo, _ as Recipe)
 })
 
 it("can infer state type from recipe function with arguments and initial state", () => {
     type State = {readonly a: string} | {readonly b: string}
     type Recipe = <S extends State>(state: S | undefined, x: number) => S
 
-    let foo = produce((draft: Draft<State>, x: number) => {}, {} as State)
-    exactType(foo, {} as Recipe)
+    let foo = produce((draft: Draft<State>, x: number) => {}, _ as State)
+    assert(foo, _ as Recipe)
 })
 
 it("cannot infer state type when the function type and default state are missing", () => {
     type Recipe = <S extends any>(state: S) => S
     const foo = produce((_: any) => {})
-    exactType(foo, {} as Recipe)
+    assert(foo, _ as Recipe)
 })
 
 it("can update readonly state via curried api", () => {
@@ -162,16 +152,16 @@ describe("curried producer", () => {
         {
             type Recipe = <S extends State>(state: S, a: number, b: number) => S
             let foo = produce((s: State, a: number, b: number) => {})
-            exactType(foo, {} as Recipe)
-            foo({} as State, 1, 2)
+            assert(foo, _ as Recipe)
+            foo(_ as State, 1, 2)
         }
 
         // Using argument parameters:
         {
             type Recipe = <S extends State>(state: S, ...rest: number[]) => S
             let woo = produce((state: Draft<State>, ...args: number[]) => {})
-            exactType(woo, {} as Recipe)
-            woo({} as State, 1, 2)
+            assert(woo, _ as Recipe)
+            woo(_ as State, 1, 2)
         }
 
         // With initial state:
@@ -182,11 +172,11 @@ describe("curried producer", () => {
             ) => S
             let bar = produce(
                 (state: Draft<State>, ...args: number[]) => {},
-                {} as State
+                _ as State
             )
-            exactType(bar, {} as Recipe)
-            bar({} as State, 1, 2)
-            bar({} as State)
+            assert(bar, _ as Recipe)
+            bar(_ as State, 1, 2)
+            bar(_ as State)
             bar()
         }
 
@@ -199,9 +189,9 @@ describe("curried producer", () => {
             ) => S
             let tup = produce(
                 (state: Draft<State>, ...args: [string, ...number[]]) => {},
-                {} as State
+                _ as State
             )
-            exactType(tup, {} as Recipe)
+            assert(tup, _ as Recipe)
             tup({a: 1}, "", 2)
             tup(undefined, "", 2)
         }
@@ -211,14 +201,14 @@ describe("curried producer", () => {
         // No initial state:
         {
             let foo = produce((state: string[]) => {})
-            exactType(foo, {} as <S extends readonly string[]>(state: S) => S)
+            assert(foo, _ as <S extends readonly string[]>(state: S) => S)
             foo([] as ReadonlyArray<string>)
         }
 
         // With initial state:
         {
             let bar = produce(() => {}, [] as ReadonlyArray<string>)
-            exactType(bar, {} as <S extends readonly string[]>(
+            assert(bar, _ as <S extends readonly string[]>(
                 state?: S | undefined
             ) => S)
             bar([] as ReadonlyArray<string>)
@@ -229,86 +219,86 @@ describe("curried producer", () => {
 })
 
 it("works with return type of: number", () => {
-    let base = {} as {a: number}
+    let base = _ as {a: number}
     let result = produce(base, () => 1)
-    exactType(result, {} as number)
+    assert(result, _ as number)
 })
 
 it("works with return type of: number | undefined", () => {
-    let base = {} as {a: number}
+    let base = _ as {a: number}
     let result = produce(base, draft => {
         return draft.a < 0 ? 0 : undefined
     })
-    exactType(result, {} as {a: number} | number)
+    assert(result, _ as {a: number} | number)
 })
 
 it("can return an object type that is identical to the base type", () => {
-    let base = {} as {a: number}
+    let base = _ as {a: number}
     let result = produce(base, draft => {
         return draft.a < 0 ? {a: 0} : undefined
     })
     // TODO: Can we resolve the weird union of identical object types?
-    exactType(result, {} as {a: number} | {a: number})
+    assert(result, _ as {a: number} | {a: number})
 })
 
 it("can return an object type that is _not_ assignable to the base type", () => {
-    let base = {} as {a: number}
+    let base = _ as {a: number}
     let result = produce(base, draft => {
         return draft.a < 0 ? {a: true} : undefined
     })
-    exactType(result, {} as {a: number} | {a: boolean})
+    assert(result, _ as {a: number} | {a: boolean})
 })
 
 it("does not enforce immutability at the type level", () => {
     let result = produce([] as any[], draft => {
         draft.push(1)
     })
-    exactType(result, {} as any[])
+    assert(result, _ as any[])
 })
 
 it("can produce an undefined value", () => {
-    let base = {} as {readonly a: number}
+    let base = _ as {readonly a: number}
 
     // Return only nothing.
     let result = produce(base, _ => nothing)
-    exactType(result, undefined)
+    assert(result, undefined)
 
     // Return maybe nothing.
     let result2 = produce(base, draft => {
         if (draft.a > 0) return nothing
     })
-    exactType(result2, {} as typeof base | undefined)
+    assert(result2, _ as typeof base | undefined)
 })
 
 it("can return the draft itself", () => {
-    let base = {} as {readonly a: number}
+    let base = _ as {readonly a: number}
     let result = produce(base, draft => draft)
 
     // Currently, the `readonly` modifier is lost.
-    exactType(result, {} as {a: number} | undefined)
+    assert(result, _ as {a: number} | undefined)
 })
 
 it("can return a promise", () => {
     type Base = {readonly a: number}
-    let base = {} as Base
+    let base = _ as Base
 
     // Return a promise only.
     let res1 = produce(base, draft => {
         return Promise.resolve(draft.a > 0 ? null : undefined)
     })
-    exactType(res1, {} as Promise<Base | null>)
+    assert(res1, _ as Promise<Base | null>)
 
     // Return a promise or undefined.
     let res2 = produce(base, draft => {
         if (draft.a > 0) return Promise.resolve()
     })
-    exactType(res2, {} as Base | Promise<Base>)
+    assert(res2, _ as Base | Promise<Base>)
 })
 
 it("works with `void` hack", () => {
-    let base = {} as {readonly a: number}
+    let base = _ as {readonly a: number}
     let copy = produce(base, s => void s.a++)
-    exactType(copy, base)
+    assert(copy, base)
 })
 
 it("works with generic parameters", () => {
@@ -355,13 +345,13 @@ it("can work with non-readonly base types", () => {
 
     // base case for with-initial-state
     const newState4 = produce(reducer, state)(state)
-    exactType(newState4, {} as State)
+    assert(newState4, _ as State)
     // no argument case, in that case, immutable version recipe first arg will be inferred
     const newState5 = produce(reducer, state)()
-    exactType(newState5, {} as Immutable<State>)
+    assert(newState5, _ as Immutable<State>)
     // we can force the return type of the reducer by passing the generic argument
     const newState3 = produce(reducer, state)<State>()
-    exactType(newState3, {} as State)
+    assert(newState3, _ as State)
 })
 
 it("can work with readonly base types", () => {
@@ -399,15 +389,15 @@ it("can work with readonly base types", () => {
         })
     }
     const newState2: State = produce(reducer)(state)
-    exactType(newState2, {} as State)
+    assert(newState2, _ as State)
 
     // base case for with-initial-state
     const newState4 = produce(reducer, state)(state)
-    exactType(newState4, {} as State)
+    assert(newState4, _ as State)
     // no argument case, in that case, immutable version recipe first arg will be inferred
     const newState5 = produce(reducer, state)()
-    exactType(newState5, {} as Immutable<State>)
+    assert(newState5, _ as Immutable<State>)
     // we can force the return type of the reducer by passing the generic argument
     const newState3 = produce(reducer, state)<State>()
-    exactType(newState3, {} as State)
+    assert(newState3, _ as State)
 })
