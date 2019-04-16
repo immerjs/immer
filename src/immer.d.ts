@@ -50,27 +50,26 @@ export type Produced<Base, Return> = Return extends void
     ? Promise<Result extends void ? Base : FromNothing<Result>>
     : FromNothing<Return>
 
+/**
+ * The `produce` function takes a value and a "recipe function" (whose
+ * return value often depends on the base state). The recipe function is
+ * free to mutate its first argument however it wants. All mutations are
+ * only ever applied to a __copy__ of the base state.
+ *
+ * Pass only a function to create a "curried producer" which relieves you
+ * from passing the recipe function every time.
+ *
+ * Only plain objects and arrays are made mutable. All other objects are
+ * considered uncopyable.
+ *
+ * Note: This function is __bound__ to its `Immer` instance.
+ *
+ * @param {any} base - the initial state
+ * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+ * @param {Function} patchListener - optional function that will be called with all the patches produced here
+ * @returns {any} a new state, or the initial state if nothing was modified
+ */
 export interface IProduce {
-    /**
-     * The `produce` function takes a value and a "recipe function" (whose
-     * return value often depends on the base state). The recipe function is
-     * free to mutate its first argument however it wants. All mutations are
-     * only ever applied to a __copy__ of the base state.
-     *
-     * Pass only a function to create a "curried producer" which relieves you
-     * from passing the recipe function every time.
-     *
-     * Only plain objects and arrays are made mutable. All other objects are
-     * considered uncopyable.
-     *
-     * Note: This function is __bound__ to its `Immer` instance.
-     *
-     * @param {any} base - the initial state
-     * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
-     * @param {Function} patchListener - optional function that will be called with all the patches produced here
-     * @returns {any} a new state, or the initial state if nothing was modified
-     */
-
     /** Curried producer */
     <
         Recipe extends (...args: any[]) => any,
@@ -78,10 +77,10 @@ export interface IProduce {
         T = Params[0]
     >(
         recipe: Recipe
-    ): <S extends Immutable<T>>(
-        state: S,
+    ): <Base extends Immutable<T>>(
+        base: Base,
         ...rest: Tail<Params>
-    ) => Produced<S, ReturnType<Recipe>>
+    ) => Produced<Base, ReturnType<Recipe>>
     //   ^ by making the returned type generic, the actual type of the passed in object is preferred
     //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
     //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
@@ -94,10 +93,10 @@ export interface IProduce {
     >(
         recipe: Recipe,
         initialState: Immutable<T>
-    ): <S extends Immutable<T>>(
-        state?: S,
+    ): <Base extends Immutable<T>>(
+        base?: Base,
         ...rest: Tail<Params>
-    ) => Produced<S, ReturnType<Recipe>>
+    ) => Produced<Base, ReturnType<Recipe>>
 
     /** Normal producer */
     <Base, D = Draft<Base>, Return = void>(
