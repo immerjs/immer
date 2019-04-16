@@ -785,7 +785,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             incrementor()
         })
 
-        it("it should be possible to use dynamic bound this", () => {
+        it("should be possible to use dynamic bound this", () => {
             const world = {
                 counter: {count: 1},
                 inc: produce(function(draft) {
