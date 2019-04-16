@@ -39,11 +39,10 @@ export class Immer {
         if (typeof base === "function" && typeof recipe !== "function") {
             const defaultBase = recipe
             recipe = base
-            const self = this
 
-            // prettier-ignore
+            const self = this
             return function curriedProduce(base = defaultBase, ...args) {
-                return self.produce(base, draft => recipe.call(this, draft, ...args))
+                return self.produce(base, draft => recipe.call(this, draft, ...args)) // prettier-ignore
             }
         }
 
