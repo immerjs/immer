@@ -114,12 +114,11 @@ const mapTraps = {
                 })
             }
         }
-        if (prop === "entries" || prop === "has") {
+        if (prop === "has") {
             return source(state)[prop].bind(source(state))
         }
         if (prop === "get") {
             return function(key) {
-                console.log("get", key)
                 if (!state.modified && has(state.drafts, key)) {
                     return state.drafts[key]
                 }
@@ -147,10 +146,44 @@ const mapTraps = {
                 const iterator = source(state)[Symbol.iterator]()
                 let result = iterator.next()
                 while (!result.done) {
-                    console.log("iterator", result.value)
                     const [key] = result.value
                     const value = receiver.get(key)
                     yield [key, value]
+                    result = iterator.next()
+                }
+            }
+        }
+        if (prop === "entries") {
+            return function*() {
+                const iterator = source(state).entries()
+                let result = iterator.next()
+                while (!result.done) {
+                    const [key] = result.value
+                    const value = receiver.get(key)
+                    yield [key, value]
+                    result = iterator.next()
+                }
+            }
+        }
+        if (prop === "keys") {
+            return function*() {
+                const iterator = source(state).keys()
+                let result = iterator.next()
+                while (!result.done) {
+                    const key = result.value
+                    yield key
+                    result = iterator.next()
+                }
+            }
+        }
+        if (prop === "values") {
+            return function*() {
+                const iterator = source(state)[Symbol.iterator]()
+                let result = iterator.next()
+                while (!result.done) {
+                    const [key] = result.value
+                    const value = receiver.get(key)
+                    yield value
                     result = iterator.next()
                 }
             }
