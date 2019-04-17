@@ -103,19 +103,25 @@ arrayTraps.set = function(state, prop, value) {
 
 const mapTraps = {
     get(state, prop, receiver) {
-        if (prop === "size") {
-            return source(state)[prop]
+        if (prop === DRAFT_STATE) return state
+        if (prop === "size") return source(state)[prop]
+        if (prop === "has") {
+            const stateCurrent = source(state)
+            return stateCurrent[prop].bind(stateCurrent)
+        }
+        if (prop === "delete" || prop === "set" || prop === "clear") {
+            return function(...args) {
+                markChanged(state)
+                return state.copy[prop](...args)
+            }
         }
         if (prop === "forEach") {
             return function(cb) {
                 return source(state).forEach((_, key, map) => {
                     const value = receiver.get(key)
                     cb(value, key, map)
-                })
+                }, this)
             }
-        }
-        if (prop === "has") {
-            return source(state)[prop].bind(source(state))
         }
         if (prop === "get") {
             return function(key) {
@@ -141,26 +147,22 @@ const mapTraps = {
                 return valueProxied
             }
         }
-        if (prop === Symbol.iterator) {
+        if (
+            prop === Symbol.iterator ||
+            prop === "entries" ||
+            prop === "values"
+        ) {
+            let getYieldable = (key, value) => [key, value]
+            if (prop === "values") {
+                getYieldable = (key, value) => value
+            }
             return function*() {
                 const iterator = source(state)[Symbol.iterator]()
                 let result = iterator.next()
                 while (!result.done) {
                     const [key] = result.value
                     const value = receiver.get(key)
-                    yield [key, value]
-                    result = iterator.next()
-                }
-            }
-        }
-        if (prop === "entries") {
-            return function*() {
-                const iterator = source(state).entries()
-                let result = iterator.next()
-                while (!result.done) {
-                    const [key] = result.value
-                    const value = receiver.get(key)
-                    yield [key, value]
+                    yield getYieldable(key, value)
                     result = iterator.next()
                 }
             }
@@ -176,26 +178,8 @@ const mapTraps = {
                 }
             }
         }
-        if (prop === "values") {
-            return function*() {
-                const iterator = source(state)[Symbol.iterator]()
-                let result = iterator.next()
-                while (!result.done) {
-                    const [key] = result.value
-                    const value = receiver.get(key)
-                    yield value
-                    result = iterator.next()
-                }
-            }
-        }
 
-        if (prop === "delete" || prop === "set" || prop === "clear") {
-            return function(...args) {
-                markChanged(state)
-                return state.copy[prop](...args)
-            }
-        }
-        return get(state, prop)
+        return Reflect.get(state, prop, receiver)
     }
 }
 

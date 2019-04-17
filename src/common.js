@@ -127,5 +127,5 @@ export function is(x, y) {
 }
 
 export function isMap(target) {
-    return target && Object.getPrototypeOf(target) === Map.prototype
+    return target instanceof Map
 }
