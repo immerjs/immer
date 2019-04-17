@@ -235,17 +235,7 @@ const mapGetters = {
 
         return draft
     },
-    keys(state) {
-        return function*() {
-            const iterator = source(state).keys()
-            let result = iterator.next()
-            while (!result.done) {
-                const key = result.value
-                yield key
-                result = iterator.next()
-            }
-        }
-    },
+    keys: state => () => source(state).keys(),
     values: iterateMapValues,
     entries: iterateMapValues,
     [Symbol.iterator]: iterateMapValues
