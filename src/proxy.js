@@ -246,15 +246,17 @@ function iterateMapValues(state, prop, receiver) {
     const getYieldable =
         prop === "values" ? (key, value) => value : (key, value) => [key, value]
 
-    return function*() {
+    return () => {
         const iterator = source(state)[Symbol.iterator]()
-        let result = iterator.next()
-        while (!result.done) {
-            const [key] = result.value
-            const value = receiver.get(key)
-            yield getYieldable(key, value)
-            result = iterator.next()
-        }
+        return makeIterable(() => {
+            const result = iterator.next()
+            if (!result.done) {
+                const [key] = result.value
+                const value = receiver.get(key)
+                result.value = getYieldable(key, value)
+            }
+            return result
+        })
     }
 }
 
@@ -284,4 +286,12 @@ function markChanged(state) {
         state.drafts = null
         if (state.parent) markChanged(state.parent)
     }
+}
+
+function makeIterable(next) {
+    let self
+    return (self = {
+        [Symbol.iterator]: () => self,
+        next
+    })
 }
