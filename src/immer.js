@@ -40,9 +40,10 @@ export class Immer {
             const defaultBase = recipe
             recipe = base
 
-            // prettier-ignore
-            return (base = defaultBase, ...args) =>
-                this.produce(base, draft => recipe.call(draft, draft, ...args))
+            const self = this
+            return function curriedProduce(base = defaultBase, ...args) {
+                return self.produce(base, draft => recipe.call(this, draft, ...args)) // prettier-ignore
+            }
         }
 
         // prettier-ignore
@@ -63,7 +64,7 @@ export class Immer {
             const proxy = this.createProxy(base)
             let hasError = true
             try {
-                result = recipe.call(proxy, proxy)
+                result = recipe(proxy)
                 hasError = false
             } finally {
                 // finally instead of catch + rethrow better preserves original stack

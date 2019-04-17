@@ -2,13 +2,13 @@
 
 # Immer
 
-[![npm](https://img.shields.io/npm/v/immer.svg)](https://www.npmjs.com/package/immer) [![size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js) [![install size](https://packagephobia.now.sh/badge?p=immer)](https://packagephobia.now.sh/result?p=immer) [![Build Status](https://travis-ci.org/mweststrate/immer.svg?branch=master)](https://travis-ci.org/mweststrate/immer) [![Coverage Status](https://coveralls.io/repos/github/mweststrate/immer/badge.svg?branch=master)](https://coveralls.io/github/mweststrate/immer?branch=master) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/michelweststrate)
+[![npm](https://img.shields.io/npm/v/immer.svg)](https://www.npmjs.com/package/immer) [![size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js) [![Build Status](https://travis-ci.org/mweststrate/immer.svg?branch=master)](https://travis-ci.org/mweststrate/immer) [![Coverage Status](https://coveralls.io/repos/github/mweststrate/immer/badge.svg?branch=master)](https://coveralls.io/github/mweststrate/immer?branch=master) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/michelweststrate)
 
 _Create the next immutable state tree by simply modifying the current tree_
 
 Winner of the "breakthrough of the year" [open source award](https://osawards.com/react/) in 2019
 
-### [Release notes](https://github.com/mweststrate/immer/releases)
+### [Release notes](https://github.com/immerjs/immer/releases)
 
 Did Immer make a difference to your project? Consider buying me a coffee!<br/><a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
@@ -602,7 +602,7 @@ const state: State = {
     x: 0
 }
 
-const newState = produce<State>(state, draft => {
+const newState = produce(state, draft => {
     // `x` can be modified here
     draft.x++
 })
@@ -612,37 +612,38 @@ const newState = produce<State>(state, draft => {
 
 This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
 
-**Note:** Immer v1.9+ supports Typescript v3.1+ only.
+For curried reducers, the type is inferred from the first argument of recipe function, so make sure to type it. The `Draft` utility type can be used if the state argument type is immutable:
 
-## Using `this`
+```ts
+import produce, {Draft} from "immer"
 
-_Deprecated, this will probably be removed in a next major version, see [#308](https://github.com/mweststrate/immer/issues/308)_
+interface State {
+    readonly x: number
+}
 
-The recipe will be always invoked with the `draft` as `this` context.
+// `x` cannot be modified here
+const state: State = {
+    x: 0
+}
 
-This means that the following constructions are also valid:
-
-```javascript
-const base = {counter: 0}
-
-const next = produce(base, function() {
-    this.counter++
+const increment = produce((draft: Draft<State>, inc: number) => {
+    // `x` can be modified here
+    draft.x += inc
 })
-console.log(next.counter) // 1
 
-// OR
-const increment = produce(function() {
-    this.counter++
-})
-console.log(increment(base).counter) // 1
+const newState = increment(state, 2)
+// `newState.x` cannot be modified here
 ```
+
+**Note:** Immer v1.9+ supports TypeScript v3.1+ only.
+
+**Note:** Immer v3.0+ supports TypeScript v3.4+ only.
 
 # Pitfalls
 
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](#returning-data-from-producers).
 1. Immer assumes your state to be a unidirectional tree. That is, no object should appear twice in the tree, and there should be no circular references.
 1. Since Immer uses proxies, reading huge amounts of data from state comes with an overhead (especially in the ES5 implementation). If this ever becomes an issue (measure before you optimize!), do the current state analysis before entering the producer function or read from the `currentState` rather than the `draftState`. Also, realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Also note that `original` can be used to get the original state of an object, which is cheaper to read.
-1. Some debuggers (at least Node 6 is known) have trouble debugging when Proxies are in play. Node 8 is known to work correctly.
 1. Always try to pull `produce` 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
 1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistinguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
 
@@ -734,9 +735,17 @@ Most important observation:
 
 ## Migration
 
+**Immer 2.\* -> 3.0**
+
+TODO
+
 **Immer 1.\* -> 2.0**
 
 Make sure you don't return any promises as state, because `produce` will actually invoke the promise and wait until it settles.
+
+**Immer 2.1 -> 2.2**
+
+When using TypeScript, for curried reducers that are typed in the form `produce<Type>((arg) => { })`, rewrite this to `produce((arg: Type) => { })` or `produce((arg: Draft<Type>) => { })` for correct inference.
 
 ## FAQ
 

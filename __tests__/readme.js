@@ -1,5 +1,5 @@
 "use strict"
-import produce, {applyPatches} from "../src/index"
+import produce, {applyPatches, immerable} from "../src/index"
 
 describe("readme example", () => {
     it("works", () => {
@@ -32,21 +32,6 @@ describe("readme example", () => {
         expect(nextState[0]).toBe(baseState[0])
         // changed data not (dûh)
         expect(nextState[1]).not.toBe(baseState[1])
-    })
-
-    it("it can use this", () => {
-        const base = {counter: 0}
-
-        const next = produce(base, function() {
-            this.counter++
-        })
-        expect(next.counter).toBe(1)
-
-        // OR
-        const increment = produce(function() {
-            this.counter++
-        })
-        expect(increment(base).counter).toBe(1)
     })
 
     it("patches", () => {
@@ -145,5 +130,42 @@ describe("readme example", () => {
         expect(nextState).toEqual({
             users: new Map([["michel", {name: "michel"}]])
         })
+    })
+
+    it("supports immerable", () => {
+        class Clock {
+            constructor(hours = 0, minutes = 0) {
+                this.hours = hours
+                this.minutes = minutes
+            }
+
+            increment(hours, minutes = 0) {
+                return produce(this, d => {
+                    d.hours += hours
+                    d.minutes += minutes
+                })
+            }
+
+            toString() {
+                return `${("" + this.hours).padStart(2, 0)}:${(
+                    "" + this.minutes
+                ).padStart(2, 0)}`
+            }
+        }
+        Clock[immerable] = true
+
+        const midnight = new Clock()
+        const lunch = midnight.increment(12, 30)
+
+        expect(midnight).not.toBe(lunch)
+        expect(lunch).toBeInstanceOf(Clock)
+        expect(midnight.toString()).toBe("00:00")
+        expect(lunch.toString()).toBe("12:30")
+
+        const diner = lunch.increment(6)
+
+        expect(diner).not.toBe(lunch)
+        expect(lunch).toBeInstanceOf(Clock)
+        expect(diner.toString()).toBe("18:30")
     })
 })

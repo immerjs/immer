@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mweststrate/immer.git"
+    "url": "https://github.com/immerjs/immer.git"
   },
   "keywords": [
     "immutable",
@@ -34,9 +34,9 @@
   "author": "Michel Weststrate",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mweststrate/immer/issues"
+    "url": "https://github.com/immerjs/immer/issues"
   },
-  "homepage": "https://github.com/mweststrate/immer#readme",
+  "homepage": "https://github.com/immerjs/immer#readme",
   "files": [
     "dist",
     "src"
@@ -62,12 +62,13 @@
     "jest": "^24.7.1",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
-    "prettier": "^1.9.2",
+    "prettier": "1.17.0",
     "pretty-quick": "^1.8.0",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
     "seamless-immutable": "^7.1.3",
-    "typescript": "3.1.1",
+    "spec.ts": "^1.1.0",
+    "typescript": "3.4.3",
     "yarn-or-npm": "^2.0.4"
   },
   "jest": {

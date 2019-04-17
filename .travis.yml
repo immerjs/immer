@@ -1,6 +1,5 @@
 language: node_js
 node_js:
-    - "6"
     - "8"
     - "10"
     - "node"
@@ -18,7 +17,6 @@ script:
     - yarn coveralls
     - yarn test:flow
     - yarn test:dts
-    - yarn add typescript@3.3 -D && yarn test:dts
 jobs:
     include:
         - stage: deploy

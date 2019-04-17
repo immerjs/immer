@@ -1,3 +1,10 @@
+type Tail<T extends any[]> = ((...t: T) => any) extends ((
+    _: any,
+    ...tail: infer TT
+) => any)
+    ? TT
+    : []
+
 /** Object types that should never be mapped */
 type AtomicObject =
     | Function
@@ -12,27 +19,17 @@ type AtomicObject =
     | Number
     | String
 
-type ArrayMethod = Exclude<keyof [], number>
-type Indices<T> = Exclude<keyof T, ArrayMethod>
-
-export type DraftArray<T extends ReadonlyArray<any>> = Array<
-    {[P in Indices<T>]: Draft<T[P]>}[Indices<T>]
->
-
-export type DraftTuple<T extends ReadonlyArray<any>> = {
-    [P in keyof T]: P extends Indices<T> ? Draft<T[P]> : never
-}
-
-export type Draft<T> = T extends never[]
-    ? T
-    : T extends ReadonlyArray<any>
-    ? T[number][] extends T
-        ? DraftArray<T>
-        : DraftTuple<T>
-    : T extends AtomicObject
+export type Draft<T> = T extends AtomicObject
     ? T
     : T extends object
-    ? {-readonly [P in keyof T]: Draft<T[P]>}
+    ? {-readonly [K in keyof T]: Draft<T[K]>}
+    : T
+
+/** Convert a mutable type into a readonly type */
+export type Immutable<T> = T extends AtomicObject
+    ? T
+    : T extends object
+    ? {readonly [K in keyof T]: Immutable<T[K]>}
     : T
 
 export interface Patch {
@@ -53,57 +50,60 @@ export type Produced<Base, Return> = Return extends void
     ? Promise<Result extends void ? Base : FromNothing<Result>>
     : FromNothing<Return>
 
-type ImmutableTuple<T extends ReadonlyArray<any>> = {
-    readonly [P in keyof T]: Immutable<T[P]>
-}
-
-/** Convert a mutable type into a readonly type */
-export type Immutable<T> = T extends object
-    ? T extends AtomicObject
-        ? T
-        : T extends ReadonlyArray<any>
-        ? Array<T[number]> extends T
-            ? {[P in keyof T]: ReadonlyArray<Immutable<T[number]>>}[keyof T]
-            : ImmutableTuple<T>
-        : {readonly [P in keyof T]: Immutable<T[P]>}
-    : T
-
+/**
+ * The `produce` function takes a value and a "recipe function" (whose
+ * return value often depends on the base state). The recipe function is
+ * free to mutate its first argument however it wants. All mutations are
+ * only ever applied to a __copy__ of the base state.
+ *
+ * Pass only a function to create a "curried producer" which relieves you
+ * from passing the recipe function every time.
+ *
+ * Only plain objects and arrays are made mutable. All other objects are
+ * considered uncopyable.
+ *
+ * Note: This function is __bound__ to its `Immer` instance.
+ *
+ * @param {any} base - the initial state
+ * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+ * @param {Function} patchListener - optional function that will be called with all the patches produced here
+ * @returns {any} a new state, or the initial state if nothing was modified
+ */
 export interface IProduce {
-    /**
-     * The `produce` function takes a value and a "recipe function" (whose
-     * return value often depends on the base state). The recipe function is
-     * free to mutate its first argument however it wants. All mutations are
-     * only ever applied to a __copy__ of the base state.
-     *
-     * Pass only a function to create a "curried producer" which relieves you
-     * from passing the recipe function every time.
-     *
-     * Only plain objects and arrays are made mutable. All other objects are
-     * considered uncopyable.
-     *
-     * Note: This function is __bound__ to its `Immer` instance.
-     *
-     * @param {any} base - the initial state
-     * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
-     * @param {Function} patchListener - optional function that will be called with all the patches produced here
-     * @returns {any} a new state, or the initial state if nothing was modified
-     */
-    <T = any, Return = void, D = Draft<T>>(
-        base: T,
-        recipe: (this: D, draft: D) => Return,
+    /** Curried producer */
+    <
+        Recipe extends (...args: any[]) => any,
+        Params extends any[] = Parameters<Recipe>,
+        T = Params[0]
+    >(
+        recipe: Recipe
+    ): <Base extends Immutable<T>>(
+        base: Base,
+        ...rest: Tail<Params>
+    ) => Produced<Base, ReturnType<Recipe>>
+    //   ^ by making the returned type generic, the actual type of the passed in object is preferred
+    //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+    //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+
+    /** Curried producer with initial state */
+    <
+        Recipe extends (...args: any[]) => any,
+        Params extends any[] = Parameters<Recipe>,
+        T = Params[0]
+    >(
+        recipe: Recipe,
+        initialState: Immutable<T>
+    ): <Base extends Immutable<T>>(
+        base?: Base,
+        ...rest: Tail<Params>
+    ) => Produced<Base, ReturnType<Recipe>>
+
+    /** Normal producer */
+    <Base, D = Draft<Base>, Return = void>(
+        base: Base,
+        recipe: (draft: D) => Return,
         listener?: PatchListener
-    ): Produced<T, Return>
-
-    /** Curried producer with a default value */
-    <T = any, Rest extends any[] = [], Return = void, D = Draft<T>>(
-        recipe: (this: D, draft: D, ...rest: Rest) => Return,
-        defaultBase: T
-    ): (base: Immutable<D> | undefined, ...rest: Rest) => Produced<D, Return>
-
-    /** Curried producer with no default value */
-    <T = any, Rest extends any[] = [], Return = void>(
-        recipe: (this: Draft<T>, draft: Draft<T>, ...rest: Rest) => Return
-    ): (base: Immutable<T>, ...rest: Rest) => Produced<T, Return>
+    ): Produced<Base, Return>
 }
 
 export const produce: IProduce
