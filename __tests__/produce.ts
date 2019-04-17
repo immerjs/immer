@@ -275,7 +275,7 @@ it("can return the draft itself", () => {
     let result = produce(base, draft => draft)
 
     // Currently, the `readonly` modifier is lost.
-    assert(result, _ as {a: number} | undefined)
+    assert(result, _ as {a: number})
 })
 
 it("can return a promise", () => {
