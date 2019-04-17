@@ -109,9 +109,20 @@ const mapTraps = {
             const stateCurrent = source(state)
             return stateCurrent[prop].bind(stateCurrent)
         }
-        if (prop === "delete" || prop === "set" || prop === "clear") {
+        if (prop === "set" || prop === "delete" || prop === "clear") {
+            let assigned = true
+            if (prop === "delete") {
+                assigned = false
+            }
+            if (prop === "clear") {
+                assigned = {}
+                for (const key of source(state).keys()) {
+                    assigned[key] = false
+                }
+            }
             return function(...args) {
                 markChanged(state)
+                state.assigned[prop] = assigned
                 return state.copy[prop](...args)
             }
         }
