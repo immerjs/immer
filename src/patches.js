@@ -128,7 +128,7 @@ export function applyPatches(draft, patches) {
         } else {
             let base = draft
             for (let i = 0; i < path.length - 1; i++) {
-                if (isMap(base)) {
+                if (isMap(base.base)) {
                     base = base.get(path[i])
                 } else {
                     base = base[path[i]]
@@ -139,14 +139,14 @@ export function applyPatches(draft, patches) {
             const key = path[path.length - 1]
 
             function replace(key, value) {
-                if (isMap(base)) {
+                if (isMap(base.base)) {
                     base.set(key, value)
                     return
                 }
                 base[key] = value
             }
             function add(key, value) {
-                if (isMap(base)) {
+                if (isMap(base.base)) {
                     base.set(key, value)
                     return
                 }
@@ -158,7 +158,7 @@ export function applyPatches(draft, patches) {
                 base[key] = value
             }
             function remove(key) {
-                if (isMap(base)) {
+                if (isMap(base.base)) {
                     base.delete(key)
                     return
                 }

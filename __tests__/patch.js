@@ -3,7 +3,13 @@ import produce, {setUseProxies, applyPatches} from "../src/index"
 
 jest.setTimeout(1000)
 
-function runPatchTest(base, producer, patches, inversePathes) {
+function runPatchTest(
+    base,
+    producer,
+    patches,
+    inversePathes,
+    proxyOnly = false
+) {
     function runPatchTestHelper() {
         let recordedPatches
         let recordedInversePatches
@@ -28,13 +34,15 @@ function runPatchTest(base, producer, patches, inversePathes) {
     }
 
     describe(`proxy`, () => {
-        setUseProxies(true)
+        beforeAll(() => setUseProxies(true))
         runPatchTestHelper()
     })
 
     describe(`es5`, () => {
-        setUseProxies(false)
-        runPatchTestHelper()
+        if (!proxyOnly) {
+            beforeAll(() => setUseProxies(false))
+            runPatchTestHelper()
+        }
     })
 }
 
@@ -108,6 +116,30 @@ describe("simple assignment - 3", () => {
     )
 })
 
+describe("simple assignment - 4", () => {
+    runPatchTest(
+        new Map([["x", {y: 4}]]),
+        d => {
+            d.get("x").y++
+        },
+        [{op: "replace", path: ["x", "y"], value: 5}],
+        [{op: "replace", path: ["x", "y"], value: 4}],
+        true
+    )
+})
+
+describe("simple assignment - 5", () => {
+    runPatchTest(
+        {x: new Map([["y", 4]])},
+        d => {
+            d.x.set("y", 5)
+        },
+        [{op: "replace", path: ["x", "y"], value: 5}],
+        [{op: "replace", path: ["x", "y"], value: 4}],
+        true
+    )
+})
+
 describe("delete 1", () => {
     runPatchTest(
         {x: {y: 4}},
@@ -115,6 +147,30 @@ describe("delete 1", () => {
             delete d.x
         },
         [{op: "remove", path: ["x"]}]
+    )
+})
+
+describe("delete 2", () => {
+    runPatchTest(
+        new Map([["x", 1]]),
+        d => {
+            d.delete("x")
+        },
+        [{op: "remove", path: ["x"]}],
+        [{op: "add", path: ["x"], value: 1}],
+        true
+    )
+})
+
+describe("delete 3", () => {
+    runPatchTest(
+        {x: new Map([["y", 1]])},
+        d => {
+            d.x.delete("y")
+        },
+        [{op: "remove", path: ["x", "y"]}],
+        [{op: "add", path: ["x", "y"], value: 1}],
+        true
     )
 })
 
@@ -130,6 +186,25 @@ describe("renaming properties", () => {
                 {op: "add", path: ["x"], value: {b: 1}},
                 {op: "remove", path: ["a"]}
             ]
+        )
+    })
+
+    describe("nested map (no changes)", () => {
+        runPatchTest(
+            new Map([["a", new Map([["b", 1]])]]),
+            d => {
+                d.set("x", d.get("a"))
+                d.delete("a")
+            },
+            [
+                {op: "add", path: ["x"], value: new Map([["b", 1]])},
+                {op: "remove", path: ["a"]}
+            ],
+            [
+                {op: "remove", path: ["x"]},
+                {op: "add", path: ["a"], value: new Map([["b", 1]])}
+            ],
+            true
         )
     })
 
@@ -153,6 +228,31 @@ describe("renaming properties", () => {
         )
     })
 
+    describe("nested map (with changes)", () => {
+        runPatchTest(
+            new Map([["a", new Map([["b", 1], ["c", 1]])]]),
+            d => {
+                let a = d.get("a")
+                a.set("b", 2) // change
+                a.delete("c") // delete
+                a.set("y", 2) // add
+
+                // rename
+                d.set("x", a)
+                d.delete("a")
+            },
+            [
+                {op: "add", path: ["x"], value: new Map([["b", 2], ["y", 2]])},
+                {op: "remove", path: ["a"]}
+            ],
+            [
+                {op: "remove", path: ["x"]},
+                {op: "add", path: ["a"], value: new Map([["b", 1], ["c", 1]])}
+            ],
+            true
+        )
+    })
+
     describe("deeply nested object (with changes)", () => {
         runPatchTest(
             {a: {b: {c: 1, d: 1}}},
@@ -170,6 +270,39 @@ describe("renaming properties", () => {
                 {op: "add", path: ["a", "x"], value: {c: 2, y: 2}},
                 {op: "remove", path: ["a", "b"]}
             ]
+        )
+    })
+
+    describe("deeply nested map (with changes)", () => {
+        runPatchTest(
+            new Map([["a", new Map([["b", new Map([["c", 1], ["d", 1]])]])]]),
+            d => {
+                let b = d.get("a").get("b")
+                b.set("c", 2) // change
+                b.delete("d") // delete
+                b.set("y", 2) // add
+
+                // rename
+                d.get("a").set("x", b)
+                d.get("a").delete("b")
+            },
+            [
+                {
+                    op: "add",
+                    path: ["a", "x"],
+                    value: new Map([["c", 2], ["y", 2]])
+                },
+                {op: "remove", path: ["a", "b"]}
+            ],
+            [
+                {op: "remove", path: ["a", "x"]},
+                {
+                    op: "add",
+                    path: ["a", "b"],
+                    value: new Map([["c", 1], ["d", 1]])
+                }
+            ],
+            true
         )
     })
 })
@@ -403,6 +536,19 @@ describe("same value replacement - 4", () => {
             d.x = 3
         },
         []
+    )
+})
+
+describe("same value replacement - 5", () => {
+    runPatchTest(
+        new Map([["x", 3]]),
+        d => {
+            d.set("x", 4)
+            d.set("x", 3)
+        },
+        [],
+        [],
+        true
     )
 })
 
