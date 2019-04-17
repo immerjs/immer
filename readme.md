@@ -737,7 +737,9 @@ Most important observation:
 
 **Immer 2.\* -> 3.0**
 
-TODO
+In your producers, make sure you're not treating `this` as the draft. (see here: https://github.com/immerjs/immer/issues/308)
+
+Upgrade to `typescript@^3.4` if you're a TypeScript user.
 
 **Immer 1.\* -> 2.0**
 
