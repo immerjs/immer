@@ -259,7 +259,7 @@ export class Immer {
                     scope.canAutoFreeze = false
                 }
 
-                this.assignPropertyInParent(parent, prop, value)
+                setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
                 if (isDraftProp && value === state.base[prop]) return
@@ -281,17 +281,17 @@ export class Immer {
         each(root, finalizeProperty)
         return root
     }
+}
 
-    assignPropertyInParent(parent, prop, value) {
-        if (isMap(parent)) {
-            parent.set(prop, value)
-            return
-        }
-        // Preserve non-enumerable properties.
-        if (Array.isArray(parent) || isEnumerable(parent, prop)) {
-            parent[prop] = value
-            return
-        }
-        Object.defineProperty(parent, prop, {value})
+function setProperty(parent, prop, value) {
+    // Preserve non-enumerable properties.
+    if (Array.isArray(parent) || isEnumerable(parent, prop)) {
+        parent[prop] = value
+        return
     }
+    if (isMap(parent)) {
+        parent.set(prop, value)
+        return
+    }
+    Object.defineProperty(parent, prop, {value})
 }
