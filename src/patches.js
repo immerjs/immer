@@ -1,27 +1,18 @@
 import {each, isMap} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
-    let generatePatchesFn = generatePatchesFromAssigned(
-        function(obj, key) {
-            return obj[key]
-        },
-        function(obj, key) {
-            return key in obj
-        }
-    )
-    if (Array.isArray(state.base)) {
-        generatePatchesFn = generateArrayPatches
-    }
-    if (isMap(state.base)) {
-        generatePatchesFn = generatePatchesFromAssigned(
-            function(map, key) {
-                return map.get(key)
-            },
-            function(map, key) {
-                return map.has(key)
-            }
-        )
-    }
+    const generatePatchesFn = Array.isArray(state.base)
+        ? generateArrayPatches
+        : isMap(state.base)
+        ? generatePatchesFromAssigned(
+              (map, key) => map.get(key),
+              (map, key) => map.has(key)
+          )
+        : generatePatchesFromAssigned(
+              (obj, key) => obj[key],
+              (obj, key) => key in obj
+          )
+
     generatePatchesFn(state, basePath, patches, inversePatches)
 }
 
@@ -138,36 +129,21 @@ export function applyPatches(draft, patches) {
             }
             const key = path[path.length - 1]
 
-            function replace(key, value) {
-                if (isMap(base.base)) {
-                    base.set(key, value)
-                    return
-                }
-                base[key] = value
-            }
-            function add(key, value) {
-                if (isMap(base.base)) {
-                    base.set(key, value)
-                    return
-                }
-                if (Array.isArray(base)) {
-                    // TODO: support "foo/-" paths for appending to an array
-                    base.splice(key, 0, patch.value)
-                    return
-                }
-                base[key] = value
-            }
-            function remove(key) {
-                if (isMap(base.base)) {
-                    base.delete(key)
-                    return
-                }
-                if (Array.isArray(base)) {
-                    base.splice(key, 1)
-                    return
-                }
-                delete base[key]
-            }
+            const replace = (key, value) =>
+                isMap(base.base) ? base.set(key, value) : (base[key] = value)
+            const add = (key, value) =>
+                Array.isArray(base)
+                    ? base.splice(key, 0, value)
+                    : isMap(base.base)
+                    ? base.set(key, value)
+                    : (base[key] = value)
+            const remove = key =>
+                Array.isArray(base)
+                    ? base.splice(key, 1)
+                    : isMap(base.base)
+                    ? base.delete(key)
+                    : delete base[key]
+
             switch (patch.op) {
                 case "replace":
                     replace(key, patch.value)

@@ -45,8 +45,7 @@ export function createProxy(base, parent) {
     if (Array.isArray(base)) {
         proxyTarget = [state]
         traps = arrayTraps
-    }
-    if (isMap(base)) {
+    } else if (isMap(base)) {
         traps = mapTraps
     }
 

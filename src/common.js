@@ -51,13 +51,12 @@ function assignObjectLegacy(target, overrides) {
     })
     return target
 }
-export function assign(target) {
-    const overrides = Array.prototype.slice.call(arguments, 1)
+export function assign(target, ...overrides) {
     if (isMap(target)) {
         return assignMap(target, overrides)
     }
     if (Object.assign) {
-        return Object.assign.apply(this, Array.prototype.slice.call(arguments))
+        return Object.assign(target, ...overrides)
     }
     return assignObjectLegacy(target, overrides)
 }
@@ -103,7 +102,7 @@ export function shallowCopy(base, invokeGetters = false) {
 
 export function each(value, cb) {
     if (Array.isArray(value) || isMap(value)) {
-        value.forEach((valueI, index) => cb(index, valueI, value))
+        value.forEach((entry, index) => cb(index, entry, value))
         return
     }
     ownKeys(value).forEach(key => cb(key, value[key], value))
