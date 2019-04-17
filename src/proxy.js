@@ -179,6 +179,9 @@ const mapTraps = {
         return getter
             ? getter(state, prop, receiver)
             : Reflect.get(state, prop, receiver)
+    },
+    ownKeys(state) {
+        return Reflect.ownKeys(source(state))
     }
 }
 const mapGetters = {
