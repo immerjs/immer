@@ -140,6 +140,23 @@ describe("simple assignment - 5", () => {
     )
 })
 
+describe("simple assignment - 6", () => {
+    runPatchTest(
+        new Map([["x", 1]]),
+        d => {
+            // Map.prototype.set should return the Map itself
+            const res = d.set("x", 2)
+            res.set("y", 3)
+        },
+        [
+            {op: "replace", path: ["x"], value: 2},
+            {op: "add", path: ["y"], value: 3}
+        ],
+        [{op: "replace", path: ["x"], value: 1}, {op: "remove", path: ["y"]}],
+        true
+    )
+})
+
 describe("delete 1", () => {
     runPatchTest(
         {x: {y: 4}},

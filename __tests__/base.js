@@ -1,6 +1,6 @@
 "use strict"
 import {Immer, nothing, original, isDraft, immerable} from "../src/index"
-import {each, shallowCopy, isEnumerable} from "../src/common"
+import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -429,7 +429,9 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 
                 it("can assign by key", () => {
                     const nextState = produce(baseState, s => {
-                        s.aMap.set("force", true)
+                        // Map.prototype.set should return the Map itself
+                        const res = s.aMap.set("force", true)
+                        expect(res).toBe(s.aMap[DRAFT_STATE].draft)
                     })
                     expect(nextState).not.toBe(baseState)
                     expect(nextState.aMap).not.toBe(baseState.aMap)
