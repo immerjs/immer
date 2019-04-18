@@ -191,7 +191,8 @@ const mapGetters = {
     set: state => (key, value) => {
         markChanged(state)
         state.assigned[key] = true
-        return state.copy.set(key, value)
+        state.copy.set(key, value)
+        return state.draft
     },
     delete: state => key => {
         markChanged(state)
