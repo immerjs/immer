@@ -92,11 +92,11 @@ const objectTraps = {
 
         return (drafts[prop] = createProxy(value, state))
     },
-    has(target, prop) {
-        return prop in source(target)
+    has(state, prop) {
+        return prop in source(state)
     },
-    ownKeys(target) {
-        return Reflect.ownKeys(source(target))
+    ownKeys(state) {
+        return Reflect.ownKeys(source(state))
     },
     set(state, prop, value) {
         if (!state.modified) {
@@ -137,8 +137,8 @@ const objectTraps = {
     defineProperty() {
         throw new Error("Object.defineProperty() cannot be used on an Immer draft") // prettier-ignore
     },
-    getPrototypeOf(target) {
-        return Object.getPrototypeOf(target.base)
+    getPrototypeOf(state) {
+        return Object.getPrototypeOf(state.base)
     },
     setPrototypeOf() {
         throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
