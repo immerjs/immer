@@ -89,16 +89,8 @@ describe("readme example", () => {
         }
 
         const nextState = produce(state, draft => {
-            draft.title = draft.title.toUpperCase() // let immer do it's job
-            // don't use the operations onSet, as that mutates the instance!
-            // draft.tokenSet.add("c1342")
-
-            // instead: clone the set (once!)
-            const newSet = new Set(draft.tokenSet)
-            // mutate it once
-            newSet.add("c1342")
-            // update the draft with the new set
-            draft.tokenSet = newSet
+            draft.title = draft.title.toUpperCase()
+            draft.tokenSet.add("c1342")
         })
 
         expect(state).toEqual({title: "hello", tokenSet: new Set()})

@@ -12,7 +12,8 @@ import {
     isMap,
     shallowCopy,
     DRAFT_STATE,
-    NOTHING
+    NOTHING,
+    isSet
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -187,6 +188,7 @@ export class Immer {
             state.finalized = true
             this.finalizeTree(state.draft, path, scope)
 
+            // TODO: It won't fire for Sets because they don't use `assigned`. Is it an issue?
             if (this.onDelete) {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
@@ -195,6 +197,7 @@ export class Immer {
                         if (!assigned[prop]) this.onDelete(state, prop)
                     }
                 } else {
+                    // TODO: Figure it out for Maps and Sets if we need to support ES5
                     const {base, copy} = state
                     each(base, prop => {
                         if (!has(copy, prop)) this.onDelete(state, prop)
@@ -247,7 +250,10 @@ export class Immer {
 
             if (isDraft(value)) {
                 const path =
-                    isDraftProp && needPatches && !state.assigned[prop]
+                    isDraftProp &&
+                    needPatches &&
+                    !isSet(parent) &&
+                    !state.assigned[prop]
                         ? rootPath.concat(prop)
                         : null
 
@@ -262,6 +268,7 @@ export class Immer {
                 setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
+                // TODO: Add tests and support for Maps and Sets
                 if (isDraftProp && value === state.base[prop]) return
             }
             // Unchanged draft properties are ignored.
@@ -291,6 +298,12 @@ function setProperty(parent, prop, value) {
     }
     if (isMap(parent)) {
         parent.set(prop, value)
+        return
+    }
+    if (isSet(parent)) {
+        // Here prop is a proxied value
+        parent.delete(prop)
+        parent.add(value)
         return
     }
     Object.defineProperty(parent, prop, {value})

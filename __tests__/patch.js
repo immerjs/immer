@@ -13,6 +13,7 @@ function runPatchTest(
     function runPatchTestHelper() {
         let recordedPatches
         let recordedInversePatches
+
         const res = produce(base, producer, (p, i) => {
             recordedPatches = p
             recordedInversePatches = i
@@ -187,6 +188,30 @@ describe("delete 3", () => {
         },
         [{op: "remove", path: ["x", "y"]}],
         [{op: "add", path: ["x", "y"], value: 1}],
+        true
+    )
+})
+
+describe("delete 4", () => {
+    runPatchTest(
+        new Set(["x", 1]),
+        d => {
+            d.delete("x")
+        },
+        [{op: "remove", path: [0], value: "x"}],
+        [{op: "add", path: [0], value: "x"}],
+        true
+    )
+})
+
+describe("delete 5", () => {
+    runPatchTest(
+        {x: new Set(["y", 1])},
+        d => {
+            d.x.delete("y")
+        },
+        [{op: "remove", path: ["x", 0], value: "y"}],
+        [{op: "add", path: ["x", 0], value: "y"}],
         true
     )
 })
@@ -508,6 +533,76 @@ describe("arrays - splice (shrink)", () => {
     )
 })
 
+describe("sets - add - 1", () => {
+    runPatchTest(
+        new Set([1]),
+        d => {
+            d.add(2)
+        },
+        [{op: "add", path: [1], value: 2}],
+        [{op: "remove", path: [1], value: 2}],
+        true
+    )
+})
+
+describe("sets - add, delete, add - 1", () => {
+    runPatchTest(
+        new Set([1]),
+        d => {
+            d.add(2)
+            d.delete(2)
+            d.add(2)
+        },
+        [{op: "add", path: [1], value: 2}],
+        [{op: "remove", path: [1], value: 2}],
+        true
+    )
+})
+
+describe("sets - add, delete, add - 2", () => {
+    runPatchTest(
+        new Set([2, 1]),
+        d => {
+            d.add(2)
+            d.delete(2)
+            d.add(2)
+        },
+        [],
+        [],
+        true
+    )
+})
+
+describe("sets - mutate - 1", () => {
+    const findById = (set, id) => {
+        for (const item of set) {
+            if (item.id === id) return item
+        }
+    }
+    runPatchTest(
+        new Set([{id: 1, val: "We"}, {id: 2, val: "will"}]),
+        d => {
+            const obj1 = findById(d, 1)
+            const obj2 = findById(d, 2)
+            obj1.val = "rock"
+            obj2.val = "you"
+        },
+        [
+            {op: "remove", path: [0], value: {id: 1, val: "We"}},
+            {op: "remove", path: [1], value: {id: 2, val: "will"}},
+            {op: "add", path: [0], value: {id: 1, val: "rock"}},
+            {op: "add", path: [1], value: {id: 2, val: "you"}}
+        ],
+        [
+            {op: "remove", path: [1], value: {id: 2, val: "you"}},
+            {op: "remove", path: [0], value: {id: 1, val: "rock"}},
+            {op: "add", path: [1], value: {id: 2, val: "will"}},
+            {op: "add", path: [0], value: {id: 1, val: "We"}}
+        ],
+        true
+    )
+})
+
 describe("simple replacement", () => {
     runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })
@@ -562,6 +657,19 @@ describe("same value replacement - 5", () => {
         d => {
             d.set("x", 4)
             d.set("x", 3)
+        },
+        [],
+        [],
+        true
+    )
+})
+
+describe("same value replacement - 6", () => {
+    runPatchTest(
+        new Set(["x", 3]),
+        d => {
+            d.delete("x")
+            d.add("x")
         },
         [],
         [],

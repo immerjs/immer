@@ -7,8 +7,12 @@ import {
     isDraftable,
     isDraft,
     isMap,
+    isSet,
     shallowCopy,
-    DRAFT_STATE
+    DRAFT_STATE,
+    assignMap,
+    assignSet,
+    original
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -52,6 +56,10 @@ export function createProxy(base, parent) {
         traps = arrayTraps
     } else if (isMap(base)) {
         traps = mapTraps
+    } else if (isSet(base)) {
+        traps = setTraps
+        // We use values of a Set as keys and objects do not support other objects as keys
+        state.drafts = new Map()
     }
 
     const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
@@ -175,9 +183,8 @@ arrayTraps.set = function(state, prop, value) {
 
 const mapTraps = {
     get(state, prop, receiver) {
-        const getter = mapGetters[prop]
-        return getter
-            ? getter(state, prop, receiver)
+        return mapGetters.hasOwnProperty(prop)
+            ? mapGetters[prop](state, prop, receiver)
             : Reflect.get(state, prop, receiver)
     }
 }
@@ -189,9 +196,12 @@ const mapGetters = {
         return state.has.bind(state)
     },
     set: state => (key, value) => {
-        markChanged(state)
-        state.assigned[key] = true
-        state.copy.set(key, value)
+        const stateSource = source(state)
+        if (!stateSource.has(key) || stateSource.get(key) !== value) {
+            markChanged(state)
+            state.assigned[key] = true
+            state.copy.set(key, value)
+        }
         return state.draft
     },
     delete: state => key => {
@@ -263,6 +273,90 @@ function iterateMapValues(state, prop, receiver) {
 }
 
 /**
+ * Set drafts
+ */
+
+const setTraps = {
+    get(state, prop, receiver) {
+        return setGetters.hasOwnProperty(prop)
+            ? setGetters[prop](state, prop, receiver)
+            : Reflect.get(state, prop, receiver)
+    },
+    ownKeys(state) {
+        return Reflect.ownKeys(source(state))
+    }
+}
+const setGetters = {
+    [DRAFT_STATE]: state => state,
+    size: state => source(state).size,
+    has(state, prop) {
+        state = source(state)
+        return state.has.bind(state)
+    },
+    add: state => value => {
+        if (!source(state).has(value)) {
+            markChanged(state)
+            state.copy.add(value)
+        }
+        return state.draft
+    },
+    delete: state => value => {
+        markChanged(state)
+        return state.copy.delete(value)
+    },
+    clear: state => () => {
+        markChanged(state)
+        return state.copy.clear()
+    },
+    forEach: state => (cb, thisArg) => {
+        const iterator = iterateSetValues(state)()
+        let result = iterator.next()
+        while (!result.done) {
+            cb.call(thisArg, result.value, result.value, state.draft)
+            result = iterator.next()
+        }
+    },
+    keys: iterateSetValues,
+    values: iterateSetValues,
+    entries: iterateSetValues,
+    [Symbol.iterator]: iterateSetValues
+}
+
+function iterateSetValues(state, prop) {
+    return () => {
+        const iterator = source(state)[Symbol.iterator]()
+
+        return makeIterable(() => {
+            const result = iterator.next()
+            if (!result.done) {
+                const valueWrapped = wrapSetValue(state, result.value)
+                result.value = valueWrapped
+                if (prop === "entries") {
+                    result.value = [valueWrapped, valueWrapped]
+                }
+            }
+            return result
+        })
+    }
+}
+
+function wrapSetValue(state, value) {
+    const key = original(value) || value
+    let draft = state.drafts.get(key)
+    if (!draft) {
+        if (state.finalized || !isDraftable(value)) {
+            return value
+        }
+        draft = createProxy(value, state)
+        state.drafts.set(key, draft)
+        if (state.modified) {
+            state.copy.add(draft)
+        }
+    }
+    return draft
+}
+
+/**
  * Helpers
  */
 
@@ -282,10 +376,24 @@ function peek(draft, prop) {
 }
 
 function markChanged(state) {
+    let resetDrafts = true
+    let assignFn = assign
+    if (isMap(state.base)) {
+        assignFn = assignMap
+    } else if (isSet(state.base)) {
+        assignFn = assignSet
+        // We need to keep track of how non-proxied objects are related to proxied ones.
+        // For other data structures that support keys we can use those keys to access the item, notwithstanding it being a proxy or not.
+        // Sets, however, do not have keys.
+        // We use original objects as keys and keep proxified values as values.
+        resetDrafts = false
+    }
     if (!state.modified) {
         state.modified = true
-        state.copy = assign(shallowCopy(state.base), state.drafts)
-        state.drafts = null
+        state.copy = assignFn(shallowCopy(state.base), state.drafts)
+        if (resetDrafts) {
+            state.drafts = null
+        }
         if (state.parent) markChanged(state.parent)
     }
 }

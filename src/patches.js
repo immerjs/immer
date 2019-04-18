@@ -1,4 +1,4 @@
-import {each, isMap} from "./common"
+import {each, isMap, isSet} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
     const generatePatchesFn = Array.isArray(state.base)
@@ -8,6 +8,8 @@ export function generatePatches(state, basePath, patches, inversePatches) {
               (map, key) => map.get(key),
               (map, key) => map.has(key)
           )
+        : isSet(state.base)
+        ? generateSetPatches
         : generatePatchesFromAssigned(
               (obj, key) => obj[key],
               (obj, key) => key in obj
@@ -110,6 +112,45 @@ function generatePatchesFromAssigned(getValueByKey, hasKey) {
     }
 }
 
+function generateSetPatches(state, basePath, patches, inversePatches) {
+    let {base, copy} = state
+
+    let i = 0
+    for (const value of base) {
+        if (!copy.has(value)) {
+            const path = basePath.concat([i])
+            patches.push({
+                op: "remove",
+                path,
+                value
+            })
+            inversePatches.unshift({
+                op: "add",
+                path,
+                value
+            })
+        }
+        i++
+    }
+    i = 0
+    for (const value of copy) {
+        if (!base.has(value)) {
+            const path = basePath.concat([i])
+            patches.push({
+                op: "add",
+                path,
+                value
+            })
+            inversePatches.unshift({
+                op: "remove",
+                path,
+                value
+            })
+        }
+        i++
+    }
+}
+
 export function applyPatches(draft, patches) {
     for (let i = 0; i < patches.length; i++) {
         const patch = patches[i]
@@ -119,7 +160,7 @@ export function applyPatches(draft, patches) {
         } else {
             let base = draft
             for (let i = 0; i < path.length - 1; i++) {
-                if (isMap(base.base)) {
+                if (isMap(base)) {
                     base = base.get(path[i])
                 } else {
                     base = base[path[i]]
@@ -129,19 +170,31 @@ export function applyPatches(draft, patches) {
             }
             const key = path[path.length - 1]
 
-            const replace = (key, value) =>
-                isMap(base.base) ? base.set(key, value) : (base[key] = value)
+            const replace = (key, value) => {
+                if (isMap(base)) {
+                    base.set(key, value)
+                    return
+                }
+                if (isSet(base)) {
+                    throw new Error('Sets cannot have "replace" patches.')
+                }
+                base[key] = value
+            }
             const add = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 0, value)
-                    : isMap(base.base)
+                    : isMap(base)
                     ? base.set(key, value)
+                    : isSet(base)
+                    ? base.add(value)
                     : (base[key] = value)
-            const remove = key =>
+            const remove = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 1)
-                    : isMap(base.base)
+                    : isMap(base)
                     ? base.delete(key)
+                    : isSet(base)
+                    ? base.delete(value)
                     : delete base[key]
 
             switch (patch.op) {
@@ -152,7 +205,7 @@ export function applyPatches(draft, patches) {
                     add(key, patch.value)
                     break
                 case "remove":
-                    remove(key)
+                    remove(key, patch.value)
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)

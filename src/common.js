@@ -21,6 +21,7 @@ export function isDraftable(value) {
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
     if (isMap(value)) return true
+    if (isSet(value)) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
@@ -31,8 +32,24 @@ export function original(value) {
     // otherwise return undefined
 }
 
-function assignMap(target, overrides) {
-    overrides.forEach(function(override) {
+// We use Maps as `drafts` for Sets, not Objects
+// See proxy.js
+export function assignSet(target, ...mapOverrides) {
+    mapOverrides.forEach(override => {
+        for (const value of override.values()) {
+            // When we add new drafts we have to remove their originals if present
+            const originalValue = original(value)
+            if (originalValue) {
+                target.delete(originalValue)
+            }
+            target.add(value)
+        }
+    })
+    return target
+}
+
+export function assignMap(target, ...objOverrides) {
+    objOverrides.forEach(override => {
         for (let key in override) {
             if (has(override, key)) {
                 target.set(key, override[key])
@@ -41,8 +58,9 @@ function assignMap(target, overrides) {
     })
     return target
 }
-function assignObjectLegacy(target, overrides) {
-    overrides.forEach(function(override) {
+
+function assignObjectLegacy(target, ...objOverrides) {
+    objOverrides.forEach(function(override) {
         for (let key in override) {
             if (has(override, key)) {
                 target[key] = override[key]
@@ -51,15 +69,7 @@ function assignObjectLegacy(target, overrides) {
     })
     return target
 }
-export function assign(target, ...overrides) {
-    if (isMap(target)) {
-        return assignMap(target, overrides)
-    }
-    if (Object.assign) {
-        return Object.assign(target, ...overrides)
-    }
-    return assignObjectLegacy(target, overrides)
-}
+export const assign = Object.assign || assignObjectLegacy
 
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -74,6 +84,7 @@ export const ownKeys =
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
     if (isMap(base)) return new Map(base)
+    if (isSet(base)) return new Set(base)
     const clone = Object.create(Object.getPrototypeOf(base))
     ownKeys(base).forEach(key => {
         if (key === DRAFT_STATE) {
@@ -101,7 +112,7 @@ export function shallowCopy(base, invokeGetters = false) {
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value) || isMap(value)) {
+    if (Array.isArray(value) || isMap(value) || isSet(value)) {
         value.forEach((entry, index) => cb(index, entry, value))
         return
     }
@@ -128,4 +139,8 @@ export function is(x, y) {
 
 export function isMap(target) {
     return target instanceof Map
+}
+
+export function isSet(target) {
+    return target instanceof Set
 }
