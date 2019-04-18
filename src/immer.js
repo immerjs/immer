@@ -295,6 +295,7 @@ function setProperty(parent, prop, value) {
         return
     }
     if (isSet(parent)) {
+        parent.delete(prop)
         parent.add(value)
         return
     }

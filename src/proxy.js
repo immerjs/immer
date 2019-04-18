@@ -178,9 +178,8 @@ arrayTraps.set = function(state, prop, value) {
 
 const mapTraps = {
     get(state, prop, receiver) {
-        const getter = mapGetters[prop]
-        return getter
-            ? getter(state, prop, receiver)
+        return mapGetters.hasOwnProperty(prop)
+            ? mapGetters[prop](state, prop, receiver)
             : Reflect.get(state, prop, receiver)
     }
 }
@@ -271,9 +270,8 @@ function iterateMapValues(state, prop, receiver) {
 
 const setTraps = {
     get(state, prop, receiver) {
-        const getter = setGetters[prop]
-        return getter
-            ? getter(state, prop, receiver)
+        return setGetters.hasOwnProperty(prop)
+            ? setGetters[prop](state, prop, receiver)
             : Reflect.get(state, prop, receiver)
     },
     ownKeys(state) {
@@ -301,11 +299,12 @@ const setGetters = {
         return state.copy.clear()
     },
     forEach: state => (cb, thisArg) => {
-        const iterator = iterateSetValues(state)
-        source(state).forEach((_, __, map) => {
-            const {value} = iterator.next()
-            cb.call(thisArg, value, value, map)
-        })
+        const iterator = iterateSetValues(state)()
+        let result = iterator.next()
+        while (!result.done) {
+            cb.call(thisArg, result.value, result.value, state.draft)
+            result = iterator.next()
+        }
     },
     keys: iterateSetValues,
     values: iterateSetValues,
@@ -319,7 +318,7 @@ function iterateSetValues(state) {
         return makeIterable(() => {
             const result = iterator.next()
             if (!result.done) {
-                const valueWrapped = wrapSetValue(result.value)
+                const valueWrapped = wrapSetValue(state, result.value)
                 result.value = valueWrapped
             }
             return result
@@ -330,6 +329,10 @@ function iterateSetValues(state) {
 function wrapSetValue(state, value) {
     if (!state.modified && has(state.drafts, value)) {
         return state.drafts[value]
+    }
+
+    if (state.finalized || !isDraftable(value)) {
+        return value
     }
 
     const draft = createProxy(value, state)

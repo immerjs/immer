@@ -36,7 +36,12 @@ function assignSet(target, overrides) {
     overrides.forEach(override => {
         for (let key in override) {
             if (has(override, key)) {
-                target.add(override[key])
+                const value = override[key]
+                target.add(value)
+                // When we add nested drafts we have to remove their originals if present
+                if (typeof value === "object" && value[DRAFT_STATE]) {
+                    target.delete(value[DRAFT_STATE].base)
+                }
             }
         }
     })
