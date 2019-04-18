@@ -12,7 +12,8 @@ import {
     isMap,
     shallowCopy,
     DRAFT_STATE,
-    NOTHING
+    NOTHING,
+    isSet
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -291,6 +292,10 @@ function setProperty(parent, prop, value) {
     }
     if (isMap(parent)) {
         parent.set(prop, value)
+        return
+    }
+    if (isSet(parent)) {
+        parent.add(value)
         return
     }
     Object.defineProperty(parent, prop, {value})

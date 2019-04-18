@@ -7,6 +7,7 @@ import {
     isDraftable,
     isDraft,
     isMap,
+    isSet,
     shallowCopy,
     DRAFT_STATE
 } from "./common"
@@ -52,6 +53,8 @@ export function createProxy(base, parent) {
         traps = arrayTraps
     } else if (isMap(base)) {
         traps = mapTraps
+    } else if (isSet(base)) {
+        traps = setTraps
     }
 
     const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
@@ -260,6 +263,85 @@ function iterateMapValues(state, prop, receiver) {
             return result
         })
     }
+}
+
+/**
+ * Set drafts
+ */
+
+const setTraps = {
+    get(state, prop, receiver) {
+        const getter = setGetters[prop]
+        return getter
+            ? getter(state, prop, receiver)
+            : Reflect.get(state, prop, receiver)
+    },
+    ownKeys(state) {
+        return Reflect.ownKeys(source(state))
+    }
+}
+const setGetters = {
+    [DRAFT_STATE]: state => state,
+    size: state => source(state).size,
+    has(state, prop) {
+        state = source(state)
+        return state.has.bind(state)
+    },
+    add: state => value => {
+        markChanged(state)
+        state.copy.add(value)
+        return state.draft
+    },
+    delete: state => value => {
+        markChanged(state)
+        return state.copy.delete(value)
+    },
+    clear: state => () => {
+        markChanged(state)
+        return state.copy.clear()
+    },
+    forEach: state => (cb, thisArg) => {
+        const iterator = iterateSetValues(state)
+        source(state).forEach((_, __, map) => {
+            const {value} = iterator.next()
+            cb.call(thisArg, value, value, map)
+        })
+    },
+    keys: iterateSetValues,
+    values: iterateSetValues,
+    entries: iterateSetValues,
+    [Symbol.iterator]: iterateSetValues
+}
+
+function iterateSetValues(state) {
+    return () => {
+        const iterator = source(state)[Symbol.iterator]()
+        return makeIterable(() => {
+            const result = iterator.next()
+            if (!result.done) {
+                const valueWrapped = wrapSetValue(result.value)
+                result.value = valueWrapped
+            }
+            return result
+        })
+    }
+}
+
+function wrapSetValue(state, value) {
+    if (!state.modified && has(state.drafts, value)) {
+        return state.drafts[value]
+    }
+
+    const draft = createProxy(value, state)
+
+    if (!state.modified) {
+        state.drafts[value] = draft
+    } else {
+        state.copy.delete(value)
+        state.copy.add(draft)
+    }
+
+    return draft
 }
 
 /**

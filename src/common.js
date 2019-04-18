@@ -21,6 +21,7 @@ export function isDraftable(value) {
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
     if (isMap(value)) return true
+    if (isSet(value)) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
@@ -31,8 +32,18 @@ export function original(value) {
     // otherwise return undefined
 }
 
+function assignSet(target, overrides) {
+    overrides.forEach(override => {
+        for (let key in override) {
+            if (has(override, key)) {
+                target.add(override[key])
+            }
+        }
+    })
+    return target
+}
 function assignMap(target, overrides) {
-    overrides.forEach(function(override) {
+    overrides.forEach(override => {
         for (let key in override) {
             if (has(override, key)) {
                 target.set(key, override[key])
@@ -55,6 +66,9 @@ export function assign(target, ...overrides) {
     if (isMap(target)) {
         return assignMap(target, overrides)
     }
+    if (isSet(target)) {
+        return assignSet(target, overrides)
+    }
     if (Object.assign) {
         return Object.assign(target, ...overrides)
     }
@@ -74,6 +88,7 @@ export const ownKeys =
 export function shallowCopy(base, invokeGetters = false) {
     if (Array.isArray(base)) return base.slice()
     if (isMap(base)) return new Map(base)
+    if (isSet(base)) return new Set(base)
     const clone = Object.create(Object.getPrototypeOf(base))
     ownKeys(base).forEach(key => {
         if (key === DRAFT_STATE) {
@@ -101,7 +116,7 @@ export function shallowCopy(base, invokeGetters = false) {
 }
 
 export function each(value, cb) {
-    if (Array.isArray(value) || isMap(value)) {
+    if (Array.isArray(value) || isMap(value) || isSet(value)) {
         value.forEach((entry, index) => cb(index, entry, value))
         return
     }
@@ -128,4 +143,8 @@ export function is(x, y) {
 
 export function isMap(target) {
     return target instanceof Map
+}
+
+export function isSet(target) {
+    return target instanceof Set
 }
