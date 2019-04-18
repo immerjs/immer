@@ -182,6 +182,7 @@ const mapTraps = {
     }
 }
 const mapGetters = {
+    [DRAFT_STATE]: state => state,
     size: state => source(state).size,
     has(state, prop) {
         state = source(state)
