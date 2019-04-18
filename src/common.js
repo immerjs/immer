@@ -109,7 +109,8 @@ export function each(value, cb) {
 }
 
 export function isEnumerable(base, prop) {
-    return Object.getOwnPropertyDescriptor(base, prop).enumerable
+    const descriptor = Object.getOwnPropertyDescriptor(base, prop)
+    return descriptor && descriptor.enumerable
 }
 
 export function has(thing, prop) {

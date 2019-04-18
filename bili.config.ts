@@ -15,13 +15,6 @@ const config: Config = {
         minimal: true,
         babelrc: false
     },
-    plugins: {
-        buble: {
-            transforms: {
-                generator: false
-            }
-        }
-    },
     extendConfig(config, {format}) {
         if (format === "umd") {
             config.output.minify = true
