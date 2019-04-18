@@ -130,5 +130,18 @@ function runTests(name, useProxies) {
             })
             expect(n).toEqual({c: true, a: [3]})
         })
+
+        it("should freeze Maps and Sets after modifications", () => {
+            const next = produce(baseState, draft => {
+                draft.aMap.set("freezeme", true)
+                draft.aSet.add(4)
+            })
+            expect(() => {
+                next.aMap.set("orNot", false)
+            }).toThrow(/In a frozen state, cannot be mutated/)
+            expect(() => {
+                next.aSet.add(5)
+            }).toThrow(/In a frozen state, cannot be mutated/)
+        })
     })
 }

@@ -1359,6 +1359,129 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             expect(isDraft(array)).toBeFalsy()
         })
     })
+
+    describe(`maps - ${name}`, () => {
+        it("should support Maps as root state", () => {
+            const base = new Map([["type1", "Finnish"]])
+            const array = [1, 2, 3, 4]
+            const result = produce(base, draft => {
+                draft.delete("type1")
+                draft.set("type2", "Italian").set("array", array)
+                return draft
+            })
+            expect(result.get("type1")).toBe(undefined)
+            expect(result.get("type2")).toBe("Italian")
+            expect(result.get("array")).toBe(array)
+        })
+
+        it("should support nested Maps", () => {
+            const base = {a: new Map()}
+            const result = produce(base, draft => {
+                draft.a.set("type", "Argentina")
+                return draft
+            })
+            expect(result.a.get("type")).toBe("Argentina")
+        })
+        it("should iterate over proxied Map in 'for of' loop", () => {
+            const base = new Map([["Jani", "beginner"], ["Petri", "guru"]])
+            const result = produce(base, draft => {
+                for (const [key, value] of draft) {
+                    draft.set(key, value.toUpperCase())
+                }
+                return draft
+            })
+            expect(result).toEqual(
+                new Map([["Jani", "BEGINNER"], ["Petri", "GURU"]])
+            )
+        })
+
+        it("should return a copy when modifying Map", () => {
+            const base = {
+                aMap: new Map([["weather", "cold"]]),
+                anObject: {
+                    nested: {
+                        yummie: true
+                    },
+                    coffee: false
+                },
+                anArray: [1, 2, 3]
+            }
+            const nextState = produce(base, s => {
+                s.aMap.set("weather", "hot")
+                s.anArray.push("me")
+                return s
+            })
+            expect(nextState).not.toBe(base)
+            expect(base.aMap.get("weather")).toBe("cold")
+            expect(nextState.aMap.get("weather")).toBe("hot")
+            expect(nextState.anArray).toEqual([1, 2, 3, "me"])
+            // structural sharing?
+            expect(nextState.nested).toBe(base.nested)
+        })
+
+        it("should not return a copy when methods do not change Map or Set", () => {
+            const nestedMap = new Map([[2, 3]])
+            const base = {
+                b: new Map([[1, nestedMap], [2, 2]])
+            }
+            const nextState = produce(base, s => {
+                s.b.set(1, nestedMap)
+                return s
+            })
+            expect(nextState.b).toBe(base.b)
+        })
+
+        it("should proxy Map and Set non-mutative methods", () => {
+            const base = {
+                aMap: new Map([[1, 1]])
+            }
+            const nextState = produce(base, s => {
+                const mapSize = s.aMap.size
+                expect(mapSize).toBe(1)
+                const array = []
+                expect(s.aMap.get(1)).toBe(1)
+                expect([...s.aMap.entries()]).toEqual([[1, 1]])
+            })
+        })
+
+        it("Array methods should work with Map and Set proxy", () => {
+            const base = {
+                aMap: new Map([[1, 1]]),
+                array: [1, 2, 3]
+            }
+            const nextState = produce(base, s => {
+                s.aMap.set(1, 2)
+                s.array.push(4)
+            })
+            expect(nextState).toEqual({
+                aMap: new Map([[1, 2]]),
+                array: [1, 2, 3, 4]
+            })
+        })
+
+        it("Deeply nested Set and Map updates should return a copy", () => {
+            const aMap = new Map()
+            aMap.set("a", new Map())
+            aMap.get("a").set("b", new Map())
+            const base = {aMap}
+
+            const nextState = produce(base, s => {
+                base.aMap
+                    .get("a")
+                    .get("b")
+                    .set("c", 10)
+            })
+            expect(
+                nextState.aMap
+                    .get("a")
+                    .get("b")
+                    .get("c")
+            ).toEqual(10)
+            expect(nextState.aMap.get("a").get("b")).not.toBe(
+                base.aMap.get("a").get("b")
+            )
+        })
+    })
 }
 
 function testObjectTypes(produce) {
