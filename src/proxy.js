@@ -400,6 +400,33 @@ function makeTrapsForGetters(getters) {
         },
         ownKeys(state) {
             return Reflect.ownKeys(source(state))
+        },
+        set(state, ...args) {
+            return Reflect.set(source(state), ...args)
+        },
+        has(state, ...args) {
+            return Reflect.has(source(state), ...args)
+        },
+        deleteProperty(state, ...args) {
+            return Reflect.deleteProperty(source(state), ...args)
+        },
+        defineProperty(state, ...args) {
+            return Reflect.defineProperty(source(state), ...args)
+        },
+        getOwnPropertyDescriptor(state, ...args) {
+            return Reflect.getOwnPropertyDescriptor(source(state), ...args)
+        },
+        preventExtensions(state) {
+            return Reflect.preventExtensions(source(state))
+        },
+        isExtensible(state) {
+            return Reflect.isExtensible(source(state))
+        },
+        getPrototypeOf(state) {
+            return Reflect.getPrototypeOf(source(state))
+        },
+        setPrototypeOf(state) {
+            throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
         }
     }
 }
