@@ -528,7 +528,7 @@ import {produce as unleashTheMagic} from "immer"
 
 ## Supported object types
 
-Plain objects, arrays, and `Map` objects are always drafted by Immer.
+Plain objects, arrays, `Map` and `Set` objects are always drafted by Immer.
 
 Every other object must use the `immerable` symbol to mark itself as compatible with Immer. When one of these objects is mutated within a producer, its prototype is preserved between copies.
 
@@ -549,27 +549,6 @@ Foo[immerable] = true // Option 3
 For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
 
 When working with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.
-
-`Set` objects cannot be drafted. As a workaround, you should clone them before mutating them in a producer:
-
-```js
-const state = {
-    set: new Set()
-}
-const nextState = produce(state, draft => {
-    // Don't use any Set methods, as that mutates the instance!
-    draft.set.add("foo") // ❌
-
-    // 1. Instead, clone the set (just once)
-    const newSet = new Set(draft.set) // ✅
-
-    // 2. Mutate the clone (just in this producer)
-    newSet.add("foo")
-
-    // 3. Update the draft with the new set
-    draft.set = newSet
-})
-```
 
 ## TypeScript or Flow
 
