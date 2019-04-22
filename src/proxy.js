@@ -361,25 +361,27 @@ function peek(draft, prop) {
 }
 
 function markChanged(state) {
-    let resetDrafts = true
-    let assignFn = assign
-    if (isMap(state.base)) {
-        assignFn = assignMap
-    } else if (isSet(state.base)) {
-        assignFn = assignSet
-        // We need to keep track of how non-proxied objects are related to proxied ones.
-        // For other data structures that support keys we can use those keys to access the item, notwithstanding it being a proxy or not.
-        // Sets, however, do not have keys.
-        // We use original objects as keys and keep proxified values as values.
-        resetDrafts = false
-    }
     if (!state.modified) {
         state.modified = true
-        state.copy = assignFn(shallowCopy(state.base), state.drafts)
-        if (resetDrafts) {
+
+        const {base, drafts, parent} = state
+        const copy = shallowCopy(base)
+
+        if (isSet(base)) {
+            // Note: The `drafts` property is preserved for Set objects, since
+            // we need to keep track of which values are drafted.
+            assignSet(copy, drafts)
+        } else {
+            // Merge nested drafts into the copy.
+            if (isMap(base)) assignMap(copy, drafts)
+            else assign(copy, drafts)
             state.drafts = null
         }
-        if (state.parent) markChanged(state.parent)
+
+        state.copy = copy
+        if (parent) {
+            markChanged(parent)
+        }
     }
 }
 
