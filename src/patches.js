@@ -27,7 +27,19 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
         ;[patches, inversePatches] = [inversePatches, patches]
     }
 
-    const {delta, start, end} = findStartEndDelta(base, copy)
+    const delta = copy.length - base.length
+
+    // Find the first replaced index.
+    let start = 0
+    while (base[start] === copy[start] && start < base.length) {
+        ++start
+    }
+
+    // Find the last replaced index. Search from the end to optimize splice patches.
+    let end = base.length
+    while (end > start && base[end - 1] === copy[end + delta - 1]) {
+        --end
+    }
 
     // Process replaced indices.
     for (let i = start; i < end; ++i) {
@@ -134,28 +146,6 @@ function generateSetPatches(state, basePath, patches, inversePatches) {
     }
 }
 
-function findStartEndDelta(base, copy) {
-    const delta = copy.length - base.length
-
-    // Find the first replaced index.
-    let start = 0
-    while (base[start] === copy[start] && start < base.length) {
-        ++start
-    }
-
-    // Find the last replaced index. Search from the end to optimize splice patches.
-    let end = base.length
-    while (end > start && base[end - 1] === copy[end + delta - 1]) {
-        --end
-    }
-
-    return {
-        start,
-        end,
-        delta
-    }
-}
-
 export function applyPatches(draft, patches) {
     for (let i = 0; i < patches.length; i++) {
         const patch = patches[i]
@@ -165,11 +155,8 @@ export function applyPatches(draft, patches) {
         } else {
             let base = draft
             for (let i = 0; i < path.length - 1; i++) {
-                if (isMap(base.base)) {
+                if (isMap(base)) {
                     base = base.get(path[i])
-                } else if (isSet(base.base)) {
-                    base = [...base]
-                    base = base[path[i]]
                 } else {
                     base = base[path[i]]
                 }
@@ -179,11 +166,11 @@ export function applyPatches(draft, patches) {
             const key = path[path.length - 1]
 
             const replace = (key, value) => {
-                if (isMap(base.base)) {
+                if (isMap(base)) {
                     base.set(key, value)
                     return
                 }
-                if (isSet(base.base)) {
+                if (isSet(base)) {
                     throw new Error('Sets cannot have "replace" patches.')
                 }
                 base[key] = value
@@ -191,17 +178,17 @@ export function applyPatches(draft, patches) {
             const add = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 0, value)
-                    : isMap(base.base)
+                    : isMap(base)
                     ? base.set(key, value)
-                    : isSet(base.base)
+                    : isSet(base)
                     ? base.add(value)
                     : (base[key] = value)
             const remove = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 1)
-                    : isMap(base.base)
+                    : isMap(base)
                     ? base.delete(key)
-                    : isSet(base.base)
+                    : isSet(base)
                     ? base.delete(value)
                     : delete base[key]
 

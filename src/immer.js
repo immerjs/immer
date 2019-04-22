@@ -249,16 +249,6 @@ export class Immer {
             const isDraftProp = !!state && parent === root
 
             if (isDraft(value)) {
-                // let path = null
-                // if (isDraftProp && needPatches) {
-                //     let pathProp = prop
-                //     if (isSet(parent)) {
-                //         pathProp = [...parent].findIndex(item => item === prop)
-                //     }
-                //     if (!state.assigned[prop]) {
-                //         path = rootPath.concat(pathProp)
-                //     }
-                // }
                 const path =
                     isDraftProp &&
                     needPatches &&
