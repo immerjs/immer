@@ -60,12 +60,6 @@ export function createProxy(base, parent) {
         traps = setTraps
         // We use values of a Set as keys and objects do not support other objects as keys
         state.drafts = new Map()
-        // We need to keep track of how non-proxied objects are related to proxied ones.
-        // For other data structures that support keys we can use those keys to access the item, notwithstanding it being a proxy or not.
-        // Sets, however, do not have keys.
-        // We use original objects as keys and keep proxified values as values.
-        // This value is going to be used only in `modified = true` state.
-        state.copies = null
     }
 
     const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
@@ -333,12 +327,8 @@ function iterateSetValues(state, prop) {
 
 function wrapSetValue(state, value) {
     const key = original(value) || value
-    if (!state.modified && state.drafts.has(key)) {
+    if (state.drafts.has(key)) {
         return state.drafts.get(key)
-    }
-
-    if (state.modified && state.copies.has(key)) {
-        return state.copies.get(key)
     }
 
     if (state.finalized || !isDraftable(value)) {
@@ -347,10 +337,8 @@ function wrapSetValue(state, value) {
 
     const draft = createProxy(value, state)
 
-    if (!state.modified) {
-        state.drafts.set(key, draft)
-    } else {
-        state.copies.set(key, draft)
+    state.drafts.set(key, draft)
+    if (state.modified) {
         state.copy.add(draft)
     }
 
@@ -377,20 +365,24 @@ function peek(draft, prop) {
 }
 
 function markChanged(state) {
-    let makeCopyFn = assign
+    let resetDrafts = true
+    let assignFn = assign
     if (isMap(state.base)) {
-        makeCopyFn = assignMap
+        assignFn = assignMap
     } else if (isSet(state.base)) {
-        makeCopyFn = assignSet
+        assignFn = assignSet
+        // We need to keep track of how non-proxied objects are related to proxied ones.
+        // For other data structures that support keys we can use those keys to access the item, notwithstanding it being a proxy or not.
+        // Sets, however, do not have keys.
+        // We use original objects as keys and keep proxified values as values.
+        resetDrafts = false
     }
     if (!state.modified) {
         state.modified = true
-        state.copy = makeCopyFn(shallowCopy(state.base), state.drafts)
-        // state.copies is present for Sets only
-        if (state.copies !== undefined) {
-            state.copies = state.drafts
+        state.copy = assignFn(shallowCopy(state.base), state.drafts)
+        if (resetDrafts) {
+            state.drafts = null
         }
-        state.drafts = null
         if (state.parent) markChanged(state.parent)
     }
 }

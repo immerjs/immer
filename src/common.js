@@ -33,7 +33,7 @@ export function original(value) {
 }
 
 // We use Maps as `drafts` for Sets, not Objects
-// See proxy.js L58
+// See proxy.js
 export function assignSet(target, ...mapOverrides) {
     mapOverrides.forEach(override => {
         for (const value of override.values()) {
