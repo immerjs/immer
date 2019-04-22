@@ -191,6 +191,30 @@ describe("delete 3", () => {
     )
 })
 
+describe("delete 4", () => {
+    runPatchTest(
+        new Set(["x", 1]),
+        d => {
+            d.delete("x")
+        },
+        [{op: "remove", path: [0], value: "x"}],
+        [{op: "add", path: [0], value: "x"}],
+        true
+    )
+})
+
+describe("delete 5", () => {
+    runPatchTest(
+        {x: new Set(["y", 1])},
+        d => {
+            d.x.delete("y")
+        },
+        [{op: "remove", path: ["x", 0], value: "y"}],
+        [{op: "add", path: ["x", 0], value: "y"}],
+        true
+    )
+})
+
 describe("renaming properties", () => {
     describe("nested object (no changes)", () => {
         runPatchTest(
@@ -562,6 +586,19 @@ describe("same value replacement - 5", () => {
         d => {
             d.set("x", 4)
             d.set("x", 3)
+        },
+        [],
+        [],
+        true
+    )
+})
+
+describe("same value replacement - 6", () => {
+    runPatchTest(
+        new Set(["x", 3]),
+        d => {
+            d.delete("x")
+            d.add("x")
         },
         [],
         [],

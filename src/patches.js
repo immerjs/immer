@@ -1,4 +1,4 @@
-import {each, isMap} from "./common"
+import {each, isMap, isSet} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
     const generatePatchesFn = Array.isArray(state.base)
@@ -8,6 +8,8 @@ export function generatePatches(state, basePath, patches, inversePatches) {
               (map, key) => map.get(key),
               (map, key) => map.has(key)
           )
+        : isSet(state.base)
+        ? generateSetPatches
         : generatePatchesFromAssigned(
               (obj, key) => obj[key],
               (obj, key) => key in obj
@@ -16,7 +18,13 @@ export function generatePatches(state, basePath, patches, inversePatches) {
     generatePatchesFn(state, basePath, patches, inversePatches)
 }
 
-function generateArrayPatches(state, basePath, patches, inversePatches) {
+function generateArrayPatches(
+    state,
+    basePath,
+    patches,
+    inversePatches,
+    isSet = false
+) {
     let {base, copy, assigned} = state
 
     // Reduce complexity by ensuring `base` is never longer.
@@ -56,7 +64,7 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
         }
     }
 
-    const useRemove = end != base.length
+    const useRemove = end != base.length || isSet
     const replaceCount = patches.length
 
     // Process added indices.
@@ -68,10 +76,14 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
             value: copy[i]
         }
         if (useRemove) {
-            inversePatches.push({
+            const removePatchData = {
                 op: "remove",
                 path
-            })
+            }
+            if (isSet) {
+                removePatchData.value = copy[i]
+            }
+            inversePatches.push(removePatchData)
         }
     }
 
@@ -110,6 +122,21 @@ function generatePatchesFromAssigned(getValueByKey, hasKey) {
     }
 }
 
+function generateSetPatches(state, basePath, patches, inversePatches) {
+    const {base, copy} = state
+    return generateArrayPatches(
+        {
+            base: [...base],
+            copy: [...copy],
+            assigned: {}
+        },
+        basePath,
+        patches,
+        inversePatches,
+        true
+    )
+}
+
 export function applyPatches(draft, patches) {
     for (let i = 0; i < patches.length; i++) {
         const patch = patches[i]
@@ -129,19 +156,31 @@ export function applyPatches(draft, patches) {
             }
             const key = path[path.length - 1]
 
-            const replace = (key, value) =>
-                isMap(base.base) ? base.set(key, value) : (base[key] = value)
+            const replace = (key, value) => {
+                if (isMap(base.base)) {
+                    base.set(key, value)
+                    return
+                }
+                if (isSet(base.base)) {
+                    throw new Error('Sets cannot have "replace" patches.')
+                }
+                base[key] = value
+            }
             const add = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 0, value)
                     : isMap(base.base)
                     ? base.set(key, value)
+                    : isSet(base.base)
+                    ? base.add(value)
                     : (base[key] = value)
-            const remove = key =>
+            const remove = (key, value) =>
                 Array.isArray(base)
                     ? base.splice(key, 1)
                     : isMap(base.base)
                     ? base.delete(key)
+                    : isSet(base.base)
+                    ? base.delete(value)
                     : delete base[key]
 
             switch (patch.op) {
@@ -152,7 +191,7 @@ export function applyPatches(draft, patches) {
                     add(key, patch.value)
                     break
                 case "remove":
-                    remove(key)
+                    remove(key, patch.value)
                     break
                 default:
                     throw new Error("Unsupported patch operation: " + patch.op)
