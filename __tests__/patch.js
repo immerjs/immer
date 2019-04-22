@@ -14,23 +14,24 @@ function runPatchTest(
         let recordedPatches
         let recordedInversePatches
 
+        const res = produce(base, producer, (p, i) => {
+            recordedPatches = p
+            recordedInversePatches = i
+        })
+
         test("produces the correct patches", () => {
-            const res = produce(base, producer, (p, i) => {
-                recordedPatches = p
-                recordedInversePatches = i
-            })
             expect(recordedPatches).toEqual(patches)
             if (inversePathes)
                 expect(recordedInversePatches).toEqual(inversePathes)
         })
 
-        // test("patches are replayable", () => {
-        //     expect(applyPatches(base, recordedPatches)).toEqual(res)
-        // })
+        test("patches are replayable", () => {
+            expect(applyPatches(base, recordedPatches)).toEqual(res)
+        })
 
-        // test("patches can be reversed", () => {
-        //     expect(applyPatches(res, recordedInversePatches)).toEqual(base)
-        // })
+        test("patches can be reversed", () => {
+            expect(applyPatches(res, recordedInversePatches)).toEqual(base)
+        })
     }
 
     describe(`proxy`, () => {
@@ -197,8 +198,8 @@ describe("delete 4", () => {
         d => {
             d.delete("x")
         },
-        [{op: "remove", path: [0], value: "x"}],
-        [{op: "add", path: [0], value: "x"}],
+        [{op: "remove", path: ["*"], value: "x"}],
+        [{op: "add", path: ["*"], value: "x"}],
         true
     )
 })
@@ -209,8 +210,8 @@ describe("delete 5", () => {
         d => {
             d.x.delete("y")
         },
-        [{op: "remove", path: ["x", 0], value: "y"}],
-        [{op: "add", path: ["x", 0], value: "y"}],
+        [{op: "remove", path: ["x", "*"], value: "y"}],
+        [{op: "add", path: ["x", "*"], value: "y"}],
         true
     )
 })
@@ -538,8 +539,8 @@ describe("sets - add - 1", () => {
         d => {
             d.add(2)
         },
-        [{op: "add", path: [1], value: 2}],
-        [{op: "remove", path: [1], value: 2}],
+        [{op: "add", path: ["*"], value: 2}],
+        [{op: "remove", path: ["*"], value: 2}],
         true
     )
 })
@@ -552,8 +553,8 @@ describe("sets - add, delete, add - 1", () => {
             d.delete(2)
             d.add(2)
         },
-        [{op: "add", path: [1], value: 2}],
-        [{op: "remove", path: [1], value: 2}],
+        [{op: "add", path: ["*"], value: 2}],
+        [{op: "remove", path: ["*"], value: 2}],
         true
     )
 })
@@ -572,7 +573,7 @@ describe("sets - add, delete, add - 2", () => {
     )
 })
 
-describe.only("sets - mutate - 1", () => {
+describe("sets - mutate - 1", () => {
     const findById = (set, id) => {
         for (const item of set) {
             if (item.id === id) return item
@@ -587,16 +588,16 @@ describe.only("sets - mutate - 1", () => {
             obj2.val = "you"
         },
         [
-            {op: "remove", path: [0], value: {id: 1, val: "We"}},
-            {op: "add", path: [1], value: {id: 1, val: "rock"}},
-            {op: "remove", path: [0], value: {id: 2, val: "will"}},
-            {op: "add", path: [1], value: {id: 2, val: "you"}}
+            {op: "remove", path: ["*"], value: {id: 1, val: "We"}},
+            {op: "remove", path: ["*"], value: {id: 2, val: "will"}},
+            {op: "add", path: ["*"], value: {id: 1, val: "rock"}},
+            {op: "add", path: ["*"], value: {id: 2, val: "you"}}
         ],
         [
-            {op: "add", path: [0], value: {id: 1, val: "We"}},
-            {op: "remove", path: [1], value: {id: 1, val: "rock"}},
-            {op: "add", path: [0], value: {id: 2, val: "will"}},
-            {op: "remove", path: [1], value: {id: 2, val: "you"}}
+            {op: "add", path: ["*"], value: {id: 1, val: "We"}},
+            {op: "add", path: ["*"], value: {id: 2, val: "will"}},
+            {op: "remove", path: ["*"], value: {id: 1, val: "rock"}},
+            {op: "remove", path: ["*"], value: {id: 2, val: "you"}}
         ],
         true
     )

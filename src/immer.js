@@ -214,7 +214,6 @@ export class Immer {
                 Object.freeze(state.copy)
             }
 
-            console.log("generatePatches", path)
             if (path && scope.patches) {
                 generatePatches(
                     state,
@@ -223,7 +222,6 @@ export class Immer {
                     scope.inversePatches
                 )
             }
-            console.log("generatePatches", path, scope.patches)
         }
         return state.copy
     }
@@ -251,16 +249,23 @@ export class Immer {
             const isDraftProp = !!state && parent === root
 
             if (isDraft(value)) {
-                let path = null
-                if (isDraftProp && needPatches) {
-                    let pathProp = prop
-                    if (isSet(parent)) {
-                        pathProp = [...parent].findIndex(item => item === prop)
-                    }
-                    if (!state.assigned[prop]) {
-                        path = rootPath.concat(pathProp)
-                    }
-                }
+                // let path = null
+                // if (isDraftProp && needPatches) {
+                //     let pathProp = prop
+                //     if (isSet(parent)) {
+                //         pathProp = [...parent].findIndex(item => item === prop)
+                //     }
+                //     if (!state.assigned[prop]) {
+                //         path = rootPath.concat(pathProp)
+                //     }
+                // }
+                const path =
+                    isDraftProp &&
+                    needPatches &&
+                    !isSet(parent) &&
+                    !state.assigned[prop]
+                        ? rootPath.concat(prop)
+                        : null
 
                 // Drafts owned by `scope` are finalized here.
                 value = this.finalize(value, path, scope)
