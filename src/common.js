@@ -20,8 +20,7 @@ export function isDraftable(value) {
     if (Array.isArray(value)) return true
     const proto = Object.getPrototypeOf(value)
     if (!proto || proto === Object.prototype) return true
-    if (isMap(value)) return true
-    if (isSet(value)) return true
+    if (isMap(value) || isSet(value)) return true
     return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
 }
 
