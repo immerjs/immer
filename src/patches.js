@@ -164,6 +164,9 @@ export function applyPatches(draft, patches) {
             for (let i = 0; i < path.length - 1; i++) {
                 if (isMap(base.base)) {
                     base = base.get(path[i])
+                } else if (isSet(base.base)) {
+                    base = [...base]
+                    base = base[path[i]]
                 } else {
                     base = base[path[i]]
                 }

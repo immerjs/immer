@@ -326,12 +326,12 @@ function iterateSetValues(state, prop) {
 }
 
 function wrapSetValue(state, value) {
+    if (state.finalized || !isDraftable(value)) {
+        return value
+    }
     const key = original(value) || value
     let draft = state.drafts.get(key)
     if (!draft) {
-        if (state.finalized || !isDraftable(value)) {
-            return value
-        }
         draft = createProxy(value, state)
         state.drafts.set(key, draft)
         if (state.modified) {

@@ -188,6 +188,7 @@ export class Immer {
             state.finalized = true
             this.finalizeTree(state.draft, path, scope)
 
+            // TODO: It won't fire for Sets because they don't use `assigned`. Is it an issue?
             if (this.onDelete) {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
@@ -196,6 +197,7 @@ export class Immer {
                         if (!assigned[prop]) this.onDelete(state, prop)
                     }
                 } else {
+                    // TODO: Figure it out for Maps and Sets if we need to support ES5
                     const {base, copy} = state
                     each(base, prop => {
                         if (!has(copy, prop)) this.onDelete(state, prop)
@@ -212,6 +214,7 @@ export class Immer {
                 Object.freeze(state.copy)
             }
 
+            console.log("generatePatches", path)
             if (path && scope.patches) {
                 generatePatches(
                     state,
@@ -220,6 +223,7 @@ export class Immer {
                     scope.inversePatches
                 )
             }
+            console.log("generatePatches", path, scope.patches)
         }
         return state.copy
     }
@@ -247,10 +251,16 @@ export class Immer {
             const isDraftProp = !!state && parent === root
 
             if (isDraft(value)) {
-                const path =
-                    isDraftProp && needPatches && !state.assigned[prop]
-                        ? rootPath.concat(prop)
-                        : null
+                let path = null
+                if (isDraftProp && needPatches) {
+                    let pathProp = prop
+                    if (isSet(parent)) {
+                        pathProp = [...parent].findIndex(item => item === prop)
+                    }
+                    if (!state.assigned[prop]) {
+                        path = rootPath.concat(pathProp)
+                    }
+                }
 
                 // Drafts owned by `scope` are finalized here.
                 value = this.finalize(value, path, scope)
@@ -263,6 +273,7 @@ export class Immer {
                 setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
+                // TODO: Add tests and support for Maps and Sets
                 if (isDraftProp && value === state.base[prop]) return
             }
             // Unchanged draft properties are ignored.
