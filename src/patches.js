@@ -18,13 +18,7 @@ export function generatePatches(state, basePath, patches, inversePatches) {
     generatePatchesFn(state, basePath, patches, inversePatches)
 }
 
-function generateArrayPatches(
-    state,
-    basePath,
-    patches,
-    inversePatches,
-    isSet = false
-) {
+function generateArrayPatches(state, basePath, patches, inversePatches) {
     let {base, copy, assigned} = state
 
     // Reduce complexity by ensuring `base` is never longer.
@@ -33,19 +27,7 @@ function generateArrayPatches(
         ;[patches, inversePatches] = [inversePatches, patches]
     }
 
-    const delta = copy.length - base.length
-
-    // Find the first replaced index.
-    let start = 0
-    while (base[start] === copy[start] && start < base.length) {
-        ++start
-    }
-
-    // Find the last replaced index. Search from the end to optimize splice patches.
-    let end = base.length
-    while (end > start && base[end - 1] === copy[end + delta - 1]) {
-        --end
-    }
+    const {delta, start, end} = findStartEndDelta(base, copy)
 
     // Process replaced indices.
     for (let i = start; i < end; ++i) {
@@ -64,7 +46,7 @@ function generateArrayPatches(
         }
     }
 
-    const useRemove = end != base.length || isSet
+    const useRemove = end != base.length
     const replaceCount = patches.length
 
     // Process added indices.
@@ -76,14 +58,10 @@ function generateArrayPatches(
             value: copy[i]
         }
         if (useRemove) {
-            const removePatchData = {
+            inversePatches.push({
                 op: "remove",
                 path
-            }
-            if (isSet) {
-                removePatchData.value = copy[i]
-            }
-            inversePatches.push(removePatchData)
+            })
         }
     }
 
@@ -123,18 +101,56 @@ function generatePatchesFromAssigned(getValueByKey, hasKey) {
 }
 
 function generateSetPatches(state, basePath, patches, inversePatches) {
-    const {base, copy} = state
-    return generateArrayPatches(
-        {
-            base: [...base],
-            copy: [...copy],
-            assigned: {}
-        },
-        basePath,
-        patches,
-        inversePatches,
-        true
-    )
+    let {base, copy} = state
+
+    base = [...base]
+    copy = [...copy]
+
+    // Reduce complexity by ensuring `base` is never longer.
+    if (copy.length < base.length) {
+        ;[base, copy] = [copy, base]
+        ;[patches, inversePatches] = [inversePatches, patches]
+    }
+
+    const {delta, start, end} = findStartEndDelta(base, copy)
+
+    // Process added indices.
+    for (let i = end + delta - 1; i >= end; --i) {
+        const path = basePath.concat([i])
+        const value = copy[i]
+        patches[i - end] = {
+            op: "add",
+            path,
+            value
+        }
+        inversePatches.push({
+            op: "remove",
+            path,
+            value
+        })
+    }
+}
+
+function findStartEndDelta(base, copy) {
+    const delta = copy.length - base.length
+
+    // Find the first replaced index.
+    let start = 0
+    while (base[start] === copy[start] && start < base.length) {
+        ++start
+    }
+
+    // Find the last replaced index. Search from the end to optimize splice patches.
+    let end = base.length
+    while (end > start && base[end - 1] === copy[end + delta - 1]) {
+        --end
+    }
+
+    return {
+        start,
+        end,
+        delta
+    }
 }
 
 export function applyPatches(draft, patches) {
