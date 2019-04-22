@@ -438,6 +438,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     expect(nextState.aMap.get("force")).toEqual(true)
                 })
 
+                it("state stays the same if the the same item is assigned by key", () => {
+                    const nextState = produce(baseState, s => {
+                        s.aMap.set("jediTotal", 42)
+                    })
+                    expect(nextState).toBe(baseState)
+                    expect(nextState.aMap).toBe(baseState.aMap)
+                })
+
                 it("returns 'size'", () => {
                     const nextState = produce(baseState, s => {
                         s.aMap.set("newKey", true)
@@ -502,131 +510,130 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
             })
 
             describe("set drafts", () => {
-                // it("supports key access", () => {
-                //     const value = baseState.aMap.get("jedi")
-                //     const nextState = produce(baseState, s => {
-                //         expect(s.aMap.get("jedi")).toEqual(value)
-                //     })
-                //     expect(nextState).toBe(baseState)
-                // })
+                it("supports iteration", () => {
+                    const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    const findById = (set, id) => {
+                        for (const item of set) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(base).toEqual(
+                        new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    )
+                    expect(result).toEqual(
+                        new Set([{id: 1, a: 2}, {id: 2, a: 2}])
+                    )
+                })
 
-                // it("supports iteration", () => {
-                //     const base = new Map([
-                //         ["first", {id: 1, a: 1}],
-                //         ["second", {id: 2, a: 1}]
-                //     ])
-                //     const findById = (map, id) => {
-                //         for (const [, item] of map) {
-                //             if (item.id === id) return item
-                //         }
-                //         return null
-                //     }
-                //     const result = produce(base, draft => {
-                //         const obj1 = findById(draft, 1)
-                //         const obj2 = findById(draft, 2)
-                //         obj1.a = 2
-                //         obj2.a = 2
-                //     })
-                //     expect(result).not.toBe(base)
-                //     expect(result.get("first").a).toEqual(2)
-                //     expect(result.get("second").a).toEqual(2)
-                // })
+                it("supports 'entries'", () => {
+                    const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    const findById = (set, id) => {
+                        for (const [item1, item2] of set.entries()) {
+                            expect(item1).toBe(item2)
+                            if (item1.id === id) return item1
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(base).toEqual(
+                        new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    )
+                    expect(result).toEqual(
+                        new Set([{id: 1, a: 2}, {id: 2, a: 2}])
+                    )
+                })
 
-                // it("supports 'entries'", () => {
-                //     const base = new Map([
-                //         ["first", {id: 1, a: 1}],
-                //         ["second", {id: 2, a: 1}]
-                //     ])
-                //     const findById = (map, id) => {
-                //         for (const [, item] of map.entries()) {
-                //             if (item.id === id) return item
-                //         }
-                //         return null
-                //     }
-                //     const result = produce(base, draft => {
-                //         const obj1 = findById(draft, 1)
-                //         const obj2 = findById(draft, 2)
-                //         obj1.a = 2
-                //         obj2.a = 2
-                //     })
-                //     expect(result).not.toBe(base)
-                //     expect(result.get("first").a).toEqual(2)
-                //     expect(result.get("second").a).toEqual(2)
-                // })
+                it("supports 'values'", () => {
+                    const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    const findById = (set, id) => {
+                        for (const item of set.values()) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(base).toEqual(
+                        new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    )
+                    expect(result).toEqual(
+                        new Set([{id: 1, a: 2}, {id: 2, a: 2}])
+                    )
+                })
 
-                // it("supports 'values'", () => {
-                //     const base = new Map([
-                //         ["first", {id: 1, a: 1}],
-                //         ["second", {id: 2, a: 1}]
-                //     ])
-                //     const findById = (map, id) => {
-                //         for (const item of map.values()) {
-                //             if (item.id === id) return item
-                //         }
-                //         return null
-                //     }
-                //     const result = produce(base, draft => {
-                //         const obj1 = findById(draft, 1)
-                //         const obj2 = findById(draft, 2)
-                //         obj1.a = 2
-                //         obj2.a = 2
-                //     })
-                //     expect(result).not.toBe(base)
-                //     expect(result.get("first").a).toEqual(2)
-                //     expect(result.get("second").a).toEqual(2)
-                // })
+                it("supports 'keys'", () => {
+                    const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    const findById = (set, id) => {
+                        for (const item of set.keys()) {
+                            if (item.id === id) return item
+                        }
+                        return null
+                    }
+                    const result = produce(base, draft => {
+                        const obj1 = findById(draft, 1)
+                        const obj2 = findById(draft, 2)
+                        obj1.a = 2
+                        obj2.a = 2
+                    })
+                    expect(result).not.toBe(base)
+                    expect(base).toEqual(
+                        new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+                    )
+                    expect(result).toEqual(
+                        new Set([{id: 1, a: 2}, {id: 2, a: 2}])
+                    )
+                })
 
-                // it("supports 'keys", () => {
-                //     const base = new Map([
-                //         ["first", Symbol()],
-                //         ["second", Symbol()]
-                //     ])
-                //     const result = produce(base, draft => {
-                //         expect([...draft.keys()]).toEqual(["first", "second"])
-                //         draft.set("third", Symbol())
-                //         expect([...draft.keys()]).toEqual([
-                //             "first",
-                //             "second",
-                //             "third"
-                //         ])
-                //     })
-                // })
+                it("supports forEach with mutation after reads", () => {
+                    const base = new Set([{id: 1, a: 1}, {id: 2, a: 2}])
+                    const result = produce(base, draft => {
+                        let sum1 = 0
+                        draft.forEach(({a}) => {
+                            sum1 += a
+                        })
+                        expect(sum1).toBe(3)
+                        let sum2 = 0
+                        draft.forEach(item => {
+                            item.a += 10
+                            sum2 += item.a
+                        })
+                        expect(sum2).toBe(23)
+                    })
+                    expect(result).not.toBe(base)
+                    expect(base).toEqual(
+                        new Set([{id: 1, a: 1}, {id: 2, a: 2}])
+                    )
+                    expect(result).toEqual(
+                        new Set([{id: 1, a: 11}, {id: 2, a: 12}])
+                    )
+                })
 
-                // it("supports forEach", () => {
-                //     const base = new Map([
-                //         ["first", {id: 1, a: 1}],
-                //         ["second", {id: 2, a: 1}]
-                //     ])
-                //     const result = produce(base, draft => {
-                //         let sum1 = 0
-                //         draft.forEach(({a}) => {
-                //             sum1 += a
-                //         })
-                //         expect(sum1).toBe(2)
-                //         let sum2 = 0
-                //         draft.get("first").a = 10
-                //         draft.get("second").a = 20
-                //         draft.forEach(({a}) => {
-                //             sum2 += a
-                //         })
-                //         expect(sum2).toBe(30)
-                //     })
-                // })
-
-                // it("supports forEach mutation", () => {
-                //     const base = new Map([
-                //         ["first", {id: 1, a: 1}],
-                //         ["second", {id: 2, a: 1}]
-                //     ])
-                //     const result = produce(base, draft => {
-                //         draft.forEach(item => {
-                //             item.a = 100
-                //         })
-                //     })
-                //     expect(result).not.toBe(base)
-                //     expect(result.get("first").a).toEqual(100)
-                //     expect(result.get("second").a).toEqual(100)
-                // })
+                it("state stays the same if the same item is added", () => {
+                    const nextState = produce(baseState, s => {
+                        s.aSet.add("Luke")
+                    })
+                    expect(nextState).toBe(baseState)
+                    expect(nextState.aSet).toBe(baseState.aSet)
+                })
 
                 it("can add new items", () => {
                     const nextState = produce(baseState, s => {
@@ -636,6 +643,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     })
                     expect(nextState).not.toBe(baseState)
                     expect(nextState.aSet).not.toBe(baseState.aSet)
+                    expect(baseState.aSet.has("force")).toBe(false)
                     expect(nextState.aSet.has("force")).toBe(true)
                 })
 

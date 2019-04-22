@@ -32,23 +32,24 @@ export function original(value) {
     // otherwise return undefined
 }
 
-function assignSet(target, overrides) {
-    overrides.forEach(override => {
-        for (let key in override) {
-            if (has(override, key)) {
-                const value = override[key]
-                target.add(value)
-                // When we add nested drafts we have to remove their originals if present
-                if (typeof value === "object" && value[DRAFT_STATE]) {
-                    target.delete(value[DRAFT_STATE].base)
-                }
+// We use Maps as `drafts` for Sets, not Objects
+// See proxy.js L58
+export function assignSet(target, ...mapOverrides) {
+    mapOverrides.forEach(override => {
+        for (const value of override.values()) {
+            // When we add new drafts we have to remove their originals if present
+            const originalValue = original(value)
+            if (originalValue) {
+                target.delete(originalValue)
             }
+            target.add(value)
         }
     })
     return target
 }
-function assignMap(target, overrides) {
-    overrides.forEach(override => {
+
+export function assignMap(target, ...objOverrides) {
+    objOverrides.forEach(override => {
         for (let key in override) {
             if (has(override, key)) {
                 target.set(key, override[key])
@@ -57,8 +58,9 @@ function assignMap(target, overrides) {
     })
     return target
 }
-function assignObjectLegacy(target, overrides) {
-    overrides.forEach(function(override) {
+
+function assignObjectLegacy(target, ...objOverrides) {
+    objOverrides.forEach(function(override) {
         for (let key in override) {
             if (has(override, key)) {
                 target[key] = override[key]
@@ -67,18 +69,7 @@ function assignObjectLegacy(target, overrides) {
     })
     return target
 }
-export function assign(target, ...overrides) {
-    if (isMap(target)) {
-        return assignMap(target, overrides)
-    }
-    if (isSet(target)) {
-        return assignSet(target, overrides)
-    }
-    if (Object.assign) {
-        return Object.assign(target, ...overrides)
-    }
-    return assignObjectLegacy(target, overrides)
-}
+export const assign = Object.assign || assignObjectLegacy
 
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys

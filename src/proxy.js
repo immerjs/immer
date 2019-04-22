@@ -9,7 +9,10 @@ import {
     isMap,
     isSet,
     shallowCopy,
-    DRAFT_STATE
+    DRAFT_STATE,
+    assignMap,
+    assignSet,
+    original
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -55,6 +58,14 @@ export function createProxy(base, parent) {
         traps = mapTraps
     } else if (isSet(base)) {
         traps = setTraps
+        // We use values of a Set as keys and objects do not support other objects as keys
+        state.drafts = new Map()
+        // We need to keep track of how non-proxied objects are related to proxied ones.
+        // For other data structures that support keys we can use those keys to access the item, notwithstanding it being a proxy or not.
+        // Sets, however, do not have keys.
+        // We use original objects as keys and keep proxified values as values.
+        // This value is going to be used only in `modified = true` state.
+        state.copies = null
     }
 
     const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
@@ -191,9 +202,12 @@ const mapGetters = {
         return state.has.bind(state)
     },
     set: state => (key, value) => {
-        markChanged(state)
-        state.assigned[key] = true
-        state.copy.set(key, value)
+        const stateSource = source(state)
+        if (!stateSource.has(key) || stateSource.get(key) !== value) {
+            markChanged(state)
+            state.assigned[key] = true
+            state.copy.set(key, value)
+        }
         return state.draft
     },
     delete: state => key => {
@@ -286,8 +300,10 @@ const setGetters = {
         return state.has.bind(state)
     },
     add: state => value => {
-        markChanged(state)
-        state.copy.add(value)
+        if (!source(state).has(value)) {
+            markChanged(state)
+            state.copy.add(value)
+        }
         return state.draft
     },
     delete: state => value => {
@@ -312,14 +328,18 @@ const setGetters = {
     [Symbol.iterator]: iterateSetValues
 }
 
-function iterateSetValues(state) {
+function iterateSetValues(state, prop) {
     return () => {
         const iterator = source(state)[Symbol.iterator]()
+
         return makeIterable(() => {
             const result = iterator.next()
             if (!result.done) {
                 const valueWrapped = wrapSetValue(state, result.value)
                 result.value = valueWrapped
+                if (prop === "entries") {
+                    result.value = [valueWrapped, valueWrapped]
+                }
             }
             return result
         })
@@ -327,8 +347,13 @@ function iterateSetValues(state) {
 }
 
 function wrapSetValue(state, value) {
-    if (!state.modified && has(state.drafts, value)) {
-        return state.drafts[value]
+    const key = original(value) || value
+    if (!state.modified && state.drafts.has(key)) {
+        return state.drafts.get(key)
+    }
+
+    if (state.modified && state.copies.has(key)) {
+        return state.copies.get(key)
     }
 
     if (state.finalized || !isDraftable(value)) {
@@ -338,9 +363,9 @@ function wrapSetValue(state, value) {
     const draft = createProxy(value, state)
 
     if (!state.modified) {
-        state.drafts[value] = draft
+        state.drafts.set(key, draft)
     } else {
-        state.copy.delete(value)
+        state.copies.set(key, draft)
         state.copy.add(draft)
     }
 
@@ -367,9 +392,19 @@ function peek(draft, prop) {
 }
 
 function markChanged(state) {
+    let makeCopyFn = assign
+    if (isMap(state.base)) {
+        makeCopyFn = assignMap
+    } else if (isSet(state.base)) {
+        makeCopyFn = assignSet
+    }
     if (!state.modified) {
         state.modified = true
-        state.copy = assign(shallowCopy(state.base), state.drafts)
+        state.copy = makeCopyFn(shallowCopy(state.base), state.drafts)
+        // state.copies is present for Sets only
+        if (state.copies !== undefined) {
+            state.copies = state.drafts
+        }
         state.drafts = null
         if (state.parent) markChanged(state.parent)
     }
