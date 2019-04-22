@@ -115,34 +115,39 @@ function generatePatchesFromAssigned(getValueByKey, hasKey) {
 function generateSetPatches(state, basePath, patches, inversePatches) {
     let {base, copy} = state
 
-    const path = basePath.concat(["*"])
+    let i = 0
     for (const value of base) {
         if (!copy.has(value)) {
+            const path = basePath.concat([i])
             patches.push({
                 op: "remove",
                 path,
                 value
             })
-            inversePatches.push({
+            inversePatches.unshift({
                 op: "add",
                 path,
                 value
             })
         }
+        i++
     }
+    i = 0
     for (const value of copy) {
         if (!base.has(value)) {
+            const path = basePath.concat([i])
             patches.push({
                 op: "add",
                 path,
                 value
             })
-            inversePatches.push({
+            inversePatches.unshift({
                 op: "remove",
                 path,
                 value
             })
         }
+        i++
     }
 }
 

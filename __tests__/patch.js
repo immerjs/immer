@@ -198,8 +198,8 @@ describe("delete 4", () => {
         d => {
             d.delete("x")
         },
-        [{op: "remove", path: ["*"], value: "x"}],
-        [{op: "add", path: ["*"], value: "x"}],
+        [{op: "remove", path: [0], value: "x"}],
+        [{op: "add", path: [0], value: "x"}],
         true
     )
 })
@@ -210,8 +210,8 @@ describe("delete 5", () => {
         d => {
             d.x.delete("y")
         },
-        [{op: "remove", path: ["x", "*"], value: "y"}],
-        [{op: "add", path: ["x", "*"], value: "y"}],
+        [{op: "remove", path: ["x", 0], value: "y"}],
+        [{op: "add", path: ["x", 0], value: "y"}],
         true
     )
 })
@@ -539,8 +539,8 @@ describe("sets - add - 1", () => {
         d => {
             d.add(2)
         },
-        [{op: "add", path: ["*"], value: 2}],
-        [{op: "remove", path: ["*"], value: 2}],
+        [{op: "add", path: [1], value: 2}],
+        [{op: "remove", path: [1], value: 2}],
         true
     )
 })
@@ -553,8 +553,8 @@ describe("sets - add, delete, add - 1", () => {
             d.delete(2)
             d.add(2)
         },
-        [{op: "add", path: ["*"], value: 2}],
-        [{op: "remove", path: ["*"], value: 2}],
+        [{op: "add", path: [1], value: 2}],
+        [{op: "remove", path: [1], value: 2}],
         true
     )
 })
@@ -588,16 +588,16 @@ describe("sets - mutate - 1", () => {
             obj2.val = "you"
         },
         [
-            {op: "remove", path: ["*"], value: {id: 1, val: "We"}},
-            {op: "remove", path: ["*"], value: {id: 2, val: "will"}},
-            {op: "add", path: ["*"], value: {id: 1, val: "rock"}},
-            {op: "add", path: ["*"], value: {id: 2, val: "you"}}
+            {op: "remove", path: [0], value: {id: 1, val: "We"}},
+            {op: "remove", path: [1], value: {id: 2, val: "will"}},
+            {op: "add", path: [0], value: {id: 1, val: "rock"}},
+            {op: "add", path: [1], value: {id: 2, val: "you"}}
         ],
         [
-            {op: "add", path: ["*"], value: {id: 1, val: "We"}},
-            {op: "add", path: ["*"], value: {id: 2, val: "will"}},
-            {op: "remove", path: ["*"], value: {id: 1, val: "rock"}},
-            {op: "remove", path: ["*"], value: {id: 2, val: "you"}}
+            {op: "remove", path: [1], value: {id: 2, val: "you"}},
+            {op: "remove", path: [0], value: {id: 1, val: "rock"}},
+            {op: "add", path: [1], value: {id: 2, val: "will"}},
+            {op: "add", path: [0], value: {id: 1, val: "We"}}
         ],
         true
     )
