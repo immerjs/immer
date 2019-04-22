@@ -177,11 +177,24 @@ arrayTraps.set = function(state, prop, value) {
     return objectTraps.set.call(this, state[0], prop, value)
 }
 
+// Used by Map and Set drafts
+const reflectTraps = makeReflectTraps([
+    "ownKeys",
+    "has",
+    "set",
+    "deleteProperty",
+    "defineProperty",
+    "getOwnPropertyDescriptor",
+    "preventExtensions",
+    "isExtensible",
+    "getPrototypeOf"
+])
+
 /**
  * Map drafts
  */
 
-const mapGetters = {
+const mapTraps = makeTrapsForGetters({
     [DRAFT_STATE]: state => state,
     size: state => source(state).size,
     has(state, prop) {
@@ -244,8 +257,7 @@ const mapGetters = {
     values: iterateMapValues,
     entries: iterateMapValues,
     [Symbol.iterator]: iterateMapValues
-}
-const mapTraps = makeTrapsForGetters(mapGetters)
+})
 
 /** Map.prototype.values _-or-_ Map.prototype.entries */
 function iterateMapValues(state, prop, receiver) {
@@ -270,7 +282,7 @@ function iterateMapValues(state, prop, receiver) {
  * Set drafts
  */
 
-const setGetters = {
+const setTraps = makeTrapsForGetters({
     [DRAFT_STATE]: state => state,
     size: state => source(state).size,
     has(state, prop) {
@@ -304,8 +316,7 @@ const setGetters = {
     values: iterateSetValues,
     entries: iterateSetValues,
     [Symbol.iterator]: iterateSetValues
-}
-const setTraps = makeTrapsForGetters(setGetters)
+})
 
 function iterateSetValues(state, prop) {
     return () => {
@@ -393,39 +404,21 @@ function makeIterable(next) {
     })
 }
 
+/** Create traps that all use the `Reflect` API on the `source(state)` */
+function makeReflectTraps(names) {
+    return names.reduce((traps, name) => {
+        traps[name] = (state, ...args) => Reflect[name](source(state), ...args)
+        return traps
+    }, {})
+}
+
 function makeTrapsForGetters(getters) {
     return {
+        ...reflectTraps,
         get(state, prop, receiver) {
             return getters.hasOwnProperty(prop)
                 ? getters[prop](state, prop, receiver)
                 : Reflect.get(state, prop, receiver)
-        },
-        ownKeys(state) {
-            return Reflect.ownKeys(source(state))
-        },
-        set(state, ...args) {
-            return Reflect.set(source(state), ...args)
-        },
-        has(state, ...args) {
-            return Reflect.has(source(state), ...args)
-        },
-        deleteProperty(state, ...args) {
-            return Reflect.deleteProperty(source(state), ...args)
-        },
-        defineProperty(state, ...args) {
-            return Reflect.defineProperty(source(state), ...args)
-        },
-        getOwnPropertyDescriptor(state, ...args) {
-            return Reflect.getOwnPropertyDescriptor(source(state), ...args)
-        },
-        preventExtensions(state) {
-            return Reflect.preventExtensions(source(state))
-        },
-        isExtensible(state) {
-            return Reflect.isExtensible(source(state))
-        },
-        getPrototypeOf(state) {
-            return Reflect.getPrototypeOf(source(state))
         },
         setPrototypeOf(state) {
             throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
