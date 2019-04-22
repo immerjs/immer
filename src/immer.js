@@ -295,6 +295,7 @@ function setProperty(parent, prop, value) {
         return
     }
     if (isSet(parent)) {
+        // Here prop is a proxied value
         parent.delete(prop)
         parent.add(value)
         return
