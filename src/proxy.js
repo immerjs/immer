@@ -181,13 +181,6 @@ arrayTraps.set = function(state, prop, value) {
  * Map drafts
  */
 
-const mapTraps = {
-    get(state, prop, receiver) {
-        return mapGetters.hasOwnProperty(prop)
-            ? mapGetters[prop](state, prop, receiver)
-            : Reflect.get(state, prop, receiver)
-    }
-}
 const mapGetters = {
     [DRAFT_STATE]: state => state,
     size: state => source(state).size,
@@ -252,6 +245,7 @@ const mapGetters = {
     entries: iterateMapValues,
     [Symbol.iterator]: iterateMapValues
 }
+const mapTraps = makeTrapsForGetters(mapGetters)
 
 /** Map.prototype.values _-or-_ Map.prototype.entries */
 function iterateMapValues(state, prop, receiver) {
@@ -276,16 +270,6 @@ function iterateMapValues(state, prop, receiver) {
  * Set drafts
  */
 
-const setTraps = {
-    get(state, prop, receiver) {
-        return setGetters.hasOwnProperty(prop)
-            ? setGetters[prop](state, prop, receiver)
-            : Reflect.get(state, prop, receiver)
-    },
-    ownKeys(state) {
-        return Reflect.ownKeys(source(state))
-    }
-}
 const setGetters = {
     [DRAFT_STATE]: state => state,
     size: state => source(state).size,
@@ -321,6 +305,7 @@ const setGetters = {
     entries: iterateSetValues,
     [Symbol.iterator]: iterateSetValues
 }
+const setTraps = makeTrapsForGetters(setGetters)
 
 function iterateSetValues(state, prop) {
     return () => {
@@ -404,4 +389,17 @@ function makeIterable(next) {
         [Symbol.iterator]: () => self,
         next
     })
+}
+
+function makeTrapsForGetters(getters) {
+    return {
+        get(state, prop, receiver) {
+            return getters.hasOwnProperty(prop)
+                ? getters[prop](state, prop, receiver)
+                : Reflect.get(state, prop, receiver)
+        },
+        ownKeys(state) {
+            return Reflect.ownKeys(source(state))
+        }
+    }
 }
