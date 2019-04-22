@@ -327,21 +327,17 @@ function iterateSetValues(state, prop) {
 
 function wrapSetValue(state, value) {
     const key = original(value) || value
-    if (state.drafts.has(key)) {
-        return state.drafts.get(key)
+    let draft = state.drafts.get(key)
+    if (!draft) {
+        if (state.finalized || !isDraftable(value)) {
+            return value
+        }
+        draft = createProxy(value, state)
+        state.drafts.set(key, draft)
+        if (state.modified) {
+            state.copy.add(draft)
+        }
     }
-
-    if (state.finalized || !isDraftable(value)) {
-        return value
-    }
-
-    const draft = createProxy(value, state)
-
-    state.drafts.set(key, draft)
-    if (state.modified) {
-        state.copy.add(draft)
-    }
-
     return draft
 }
 
