@@ -401,3 +401,18 @@ it("can work with readonly base types", () => {
     const newState3 = produce(reducer, state)<State>()
     assert(newState3, _ as State)
 })
+
+it("works with generic array", () => {
+    const append = <T>(queue: T[], item: T) =>
+        // T[] is needed here v. Too bad.
+        produce(queue, (queueDraft: T[]) => {
+            queueDraft.push(item)
+        })
+
+    const queueBefore = [1, 2, 3]
+
+    const queueAfter = append(queueBefore, 4)
+
+    expect(queueAfter).toEqual([1, 2, 3, 4])
+    expect(queueBefore).toEqual([1, 2, 3])
+})
