@@ -59,6 +59,10 @@ export function shallowCopy(base, invokeGetters = false) {
             return // Never copy over draft state.
         }
         const desc = Object.getOwnPropertyDescriptor(base, key)
+        if (!desc)
+            throw new Error(
+                `Failed to obtain descriptor for own property '${key}' on ${base}`
+            )
         let {value} = desc
         if (desc.get) {
             if (!invokeGetters) {
