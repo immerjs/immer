@@ -717,6 +717,10 @@ Make sure you don't return any promises as state, because `produce` will actuall
 
 When using TypeScript, for curried reducers that are typed in the form `produce<Type>((arg) => { })`, rewrite this to `produce((arg: Type) => { })` or `produce((arg: Draft<Type>) => { })` for correct inference.
 
+**Immer 3.\* -> 4.0**
+
+`Maps` and `Sets` are now supported by `immer` and, therefore, immutable. Your current code, where you kept immutability of `Maps` and `Sets` on your own, should keep working as before in simple cases. However, consider covering it with a sufficient number of unit tests to avoid any unexpected outcome.
+
 ## FAQ
 
 _(for those who skimmed the above instead of actually reading)_
