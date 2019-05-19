@@ -194,9 +194,9 @@ export class Immer {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
                     const {assigned} = state
-                    for (const prop in assigned) {
-                        if (!assigned[prop]) this.onDelete(state, prop)
-                    }
+                    each(assigned, (prop, assignedValue) => {
+                        if (!assignedValue) this.onDelete(state, prop)
+                    })
                 } else {
                     // TODO: Figure it out for Maps and Sets if we need to support ES5
                     const {base, copy} = state
@@ -269,7 +269,7 @@ export class Immer {
                 setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
-                // TODO: Add tests and support for Maps and Sets
+                // TODO: Add tests and support for Sets
                 if (isDraftProp && value === get(state.base, prop)) return
             }
             // Unchanged draft properties are ignored.

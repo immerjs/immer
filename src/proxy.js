@@ -215,9 +215,12 @@ const mapTraps = makeTrapsForGetters({
         return state.draft
     },
     delete: state => key => {
-        markChanged(state)
-        state.assigned.set(key, false)
-        return state.copy.delete(key)
+        if (source(state).has(key)) {
+            markChanged(state)
+            state.assigned.set(key, false)
+            return state.copy.delete(key)
+        }
+        return false
     },
     clear: state => () => {
         markChanged(state)
