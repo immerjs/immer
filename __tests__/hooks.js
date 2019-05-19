@@ -118,6 +118,55 @@ function createHookTests(useProxies) {
                 expect(calls).toEqual(["b", "d", "c", "x"])
             })
         })
+
+        if (useProxies) {
+            describe("when draft is a Map", () => {
+                test("assign", () => {
+                    const key1 = {prop: "val1"}
+                    const key2 = {prop: "val2"}
+                    produce(new Map([["a", 0], [key1, 1], [key2, 2]]), s => {
+                        s.set("a", 10)
+                        s.set(key1, 11)
+                    })
+                    expectCalls(onAssign)
+                })
+                test("assign (no change)", () => {
+                    produce(new Map([["a", 0]]), s => {
+                        s.set("a", 0)
+                    })
+                    expect(onAssign).not.toBeCalled()
+                })
+                test("delete", () => {
+                    produce(new Map([["a", 0]]), s => {
+                        s.delete("a")
+                    })
+                    expect(onAssign).not.toBeCalled()
+                })
+                test("nested assignments", () => {
+                    const key1 = {prop: "val1"}
+                    produce(
+                        new Map([
+                            [
+                                "a",
+                                new Map([
+                                    [
+                                        key1,
+                                        new Map([["b", 1], ["c", 1], ["d", 1]])
+                                    ]
+                                ])
+                            ]
+                        ]),
+                        s => {
+                            const nested = s.get("a").get(key1)
+                            nested.set("b", 2)
+                            nested.delete("c")
+                            nested.set("d", 1) // no-op
+                        }
+                    )
+                    expectCalls(onAssign)
+                })
+            })
+        }
     })
 
     describe("onDelete()", () => {
