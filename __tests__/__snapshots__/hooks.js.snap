@@ -195,6 +195,47 @@ Array [
 ]
 `;
 
+exports[`hooks (proxy) - onAssign() when draft is a Set assign 1`] = `
+Array [
+  Array [
+    "a",
+    Set {
+      1,
+      2,
+      3,
+      4,
+    },
+  ],
+]
+`;
+
+exports[`hooks (proxy) - onAssign() when draft is a Set delete 1`] = `
+Array [
+  Array [
+    "a",
+    Set {
+      2,
+      3,
+    },
+  ],
+]
+`;
+
+exports[`hooks (proxy) - onAssign() when draft is a Set nested assignments 1`] = `
+Array [
+  Array [
+    "a",
+    Set {
+      "a",
+      Set {
+        1,
+        2,
+      },
+    },
+  ],
+]
+`;
+
 exports[`hooks (proxy) - onAssign() when draft is an array assign 1`] = `
 Array [
   Array [

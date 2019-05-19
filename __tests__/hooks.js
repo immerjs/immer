@@ -1,6 +1,7 @@
 "use strict"
 import {Immer, setUseProxies} from "../src/index"
 import matchers from "expect/build/matchers"
+import {isSet} from "../src/common"
 
 describe("hooks (proxy) -", () => createHookTests(true))
 describe("hooks (es5) -", () => createHookTests(false))
@@ -163,6 +164,43 @@ function createHookTests(useProxies) {
                             nested.set("d", 1) // no-op
                         }
                     )
+                    expectCalls(onAssign)
+                })
+            })
+
+            describe("when draft is a Set", () => {
+                test("assign", () => {
+                    produce({a: new Set([1, 2, 3])}, s => {
+                        s.a.add(4)
+                    })
+                    expectCalls(onAssign)
+                })
+                test("assign (no change)", () => {
+                    produce({a: new Set([1, 2, 3])}, s => {
+                        s.a.add(3)
+                    })
+                    expect(onAssign).not.toBeCalled()
+                })
+                // Any mutation of a Set results in a new assignment. Including deletes.
+                test("delete", () => {
+                    produce({a: new Set([1, 2, 3])}, s => {
+                        s.a.delete(1)
+                    })
+                    expectCalls(onAssign)
+                })
+                test("nested assignments", () => {
+                    const val1 = {prop: "val1"}
+                    produce({a: new Set(["a", new Set([val1, 1])])}, s => {
+                        let nested
+                        s.a.forEach(value => {
+                            if (isSet(value)) {
+                                nested = value
+                            }
+                        })
+                        nested.add(2)
+                        nested.delete(val1)
+                        nested.add(1) // no-op
+                    })
                     expectCalls(onAssign)
                 })
             })

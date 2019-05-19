@@ -14,7 +14,8 @@ import {
     shallowCopy,
     DRAFT_STATE,
     NOTHING,
-    isSet
+    isSet,
+    original
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -248,12 +249,13 @@ export class Immer {
 
             // In the `finalizeTree` method, only the `root` object may be a draft.
             const isDraftProp = !!state && parent === root
+            const isSetMember = isSet(parent)
 
             if (isDraft(value)) {
                 const path =
                     isDraftProp &&
                     needPatches &&
-                    !isSet(parent) &&
+                    !isSetMember &&
                     !has(state.assigned, prop)
                         ? rootPath.concat(prop)
                         : null
@@ -281,7 +283,8 @@ export class Immer {
                 each(value, finalizeProperty)
             }
 
-            if (isDraftProp && this.onAssign) {
+            // We cannot really assign anything inside of a Set. We can only replace the whole Set.
+            if (isDraftProp && this.onAssign && !isSetMember) {
                 this.onAssign(state, prop, value)
             }
         }
