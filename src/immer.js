@@ -190,8 +190,8 @@ export class Immer {
             state.finalized = true
             this.finalizeTree(state.draft, path, scope)
 
-            // TODO: It won't fire for Sets because they don't use `assigned`. Is it an issue?
-            if (this.onDelete) {
+            // We cannot really delete anything inside of a Set. We can only replace the whole Set.
+            if (this.onDelete && !isSet(state.base)) {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
                     const {assigned} = state
@@ -271,7 +271,6 @@ export class Immer {
                 setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
-                // TODO: Add tests and support for Sets
                 if (isDraftProp && value === get(state.base, prop)) return
             }
             // Unchanged draft properties are ignored.
