@@ -249,18 +249,32 @@ function createHookTests(useProxies) {
     })
 
     describe("onCopy()", () => {
-        useSharedTests(() => onCopy)
-        it("is called in the right order", () => {
-            const calls = []
+        let calls
+        beforeEach(() => {
+            calls = []
             onCopy.mockImplementation(s => {
                 calls.push(s.base)
             })
+        })
+
+        useSharedTests(() => onCopy)
+        it("is called in the right order for objects", () => {
             const base = {a: {b: {c: 1}}}
             produce(base, s => {
                 delete s.a.b.c
             })
             expect(calls).toShallowEqual([base.a.b, base.a, base])
         })
+
+        if (useProxies) {
+            it("is called in the right order for Maps", () => {
+                const base = new Map([["a", new Map([["b", 0]])]])
+                produce(base, s => {
+                    s.get("a").delete("b")
+                })
+                expect(calls).toShallowEqual([base.get("a"), base])
+            })
+        }
     })
 
     function useSharedTests(getHook) {
