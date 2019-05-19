@@ -151,6 +151,50 @@ Array [
 ]
 `;
 
+exports[`hooks (proxy) - onAssign() when draft is a Map assign 1`] = `
+Array [
+  Array [
+    "a",
+    10,
+  ],
+  Array [
+    Object {
+      "prop": "val1",
+    },
+    11,
+  ],
+]
+`;
+
+exports[`hooks (proxy) - onAssign() when draft is a Map nested assignments 1`] = `
+Array [
+  Array [
+    "b",
+    2,
+  ],
+  Array [
+    Object {
+      "prop": "val1",
+    },
+    Map {
+      "b" => 2,
+      "d" => 1,
+    },
+  ],
+  Array [
+    "a",
+    Map {
+      Object {
+        "prop": "val1",
+      } => Map {
+        "b" => 2,
+        "d" => 1,
+      },
+    },
+  ],
+]
+`;
+
 exports[`hooks (proxy) - onAssign() when draft is an array assign 1`] = `
 Array [
   Array [

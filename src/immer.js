@@ -4,6 +4,7 @@ import {applyPatches, generatePatches} from "./patches"
 import {
     assign,
     each,
+    get,
     has,
     is,
     isDraft,
@@ -269,10 +270,10 @@ export class Immer {
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
                 // TODO: Add tests and support for Maps and Sets
-                if (isDraftProp && value === state.base[prop]) return
+                if (isDraftProp && value === get(state.base, prop)) return
             }
             // Unchanged draft properties are ignored.
-            else if (isDraftProp && is(value, state.base[prop])) {
+            else if (isDraftProp && is(value, get(state.base, prop))) {
                 return
             }
             // Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
