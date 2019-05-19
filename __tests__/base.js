@@ -309,6 +309,16 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     expect(nextState).toBe(baseState)
                 })
 
+                it("supports key access for non-primitive keys", () => {
+                    const key = {prop: "val"}
+                    const base = new Map([[key, {id: 1, a: 1}]])
+                    const value = base.get(key)
+                    const nextState = produce(base, s => {
+                        expect(s.get(key)).toEqual(value)
+                    })
+                    expect(nextState).toBe(base)
+                })
+
                 it("supports iteration", () => {
                     const base = new Map([
                         ["first", {id: 1, a: 1}],
@@ -392,24 +402,39 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                 })
 
                 it("supports forEach", () => {
+                    const key1 = {prop: "val1"}
+                    const key2 = {prop: "val2"}
                     const base = new Map([
                         ["first", {id: 1, a: 1}],
-                        ["second", {id: 2, a: 1}]
+                        ["second", {id: 2, a: 1}],
+                        [key1, {id: 3, a: 1}],
+                        [key2, {id: 4, a: 1}]
                     ])
                     const result = produce(base, draft => {
                         let sum1 = 0
                         draft.forEach(({a}) => {
                             sum1 += a
                         })
-                        expect(sum1).toBe(2)
+                        expect(sum1).toBe(4)
                         let sum2 = 0
                         draft.get("first").a = 10
                         draft.get("second").a = 20
+                        draft.get(key1).a = 30
+                        draft.get(key2).a = 40
                         draft.forEach(({a}) => {
                             sum2 += a
                         })
-                        expect(sum2).toBe(30)
+                        expect(sum2).toBe(100)
                     })
+                    expect(result).not.toBe(base)
+                    expect(base.get("first").a).toEqual(1)
+                    expect(base.get("second").a).toEqual(1)
+                    expect(base.get(key1).a).toEqual(1)
+                    expect(base.get(key2).a).toEqual(1)
+                    expect(result.get("first").a).toEqual(10)
+                    expect(result.get("second").a).toEqual(20)
+                    expect(result.get(key1).a).toEqual(30)
+                    expect(result.get(key2).a).toEqual(40)
                 })
 
                 it("supports forEach mutation", () => {
@@ -436,6 +461,18 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
                     expect(nextState).not.toBe(baseState)
                     expect(nextState.aMap).not.toBe(baseState.aMap)
                     expect(nextState.aMap.get("force")).toEqual(true)
+                })
+
+                it("can assign by a non-primitive key", () => {
+                    const key = {prop: "val"}
+                    const value = {id: 1, a: 1}
+                    const base = new Map([[key, value]])
+                    const nextState = produce(base, s => {
+                        s.set(key, true)
+                    })
+                    expect(nextState).not.toBe(base)
+                    expect(base.get(key)).toEqual(value)
+                    expect(nextState.get(key)).toEqual(true)
                 })
 
                 it("state stays the same if the the same item is assigned by key", () => {

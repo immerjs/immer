@@ -33,27 +33,23 @@ export function original(value) {
 
 // We use Maps as `drafts` for Sets, not Objects
 // See proxy.js
-export function assignSet(target, ...mapOverrides) {
-    mapOverrides.forEach(override => {
-        for (const value of override.values()) {
-            // When we add new drafts we have to remove their originals if present
-            const originalValue = original(value)
-            if (originalValue) {
-                target.delete(originalValue)
-            }
-            target.add(value)
+export function assignSet(target, override) {
+    for (const value of override.values()) {
+        // When we add new drafts we have to remove their originals if present
+        const originalValue = original(value)
+        if (originalValue) {
+            target.delete(originalValue)
         }
-    })
+        target.add(value)
+    }
     return target
 }
 
-export function assignMap(target, ...objOverrides) {
-    objOverrides.forEach(override => {
-        for (let key in override) {
-            if (has(override, key)) {
-                target.set(key, override[key])
-            }
-        }
+// We use Maps as `drafts` for Maps, not Objects
+// See proxy.js
+export function assignMap(target, override) {
+    override.forEach((value, key) => {
+        target.set(key, value)
     })
     return target
 }
@@ -124,7 +120,17 @@ export function isEnumerable(base, prop) {
 }
 
 export function has(thing, prop) {
+    if (isMap(thing)) {
+        return thing.has(prop)
+    }
     return Object.prototype.hasOwnProperty.call(thing, prop)
+}
+
+export function get(thing, prop) {
+    if (isMap(thing)) {
+        return thing.get(prop)
+    }
+    return thing[prop]
 }
 
 export function is(x, y) {

@@ -158,6 +158,27 @@ describe("simple assignment - 6", () => {
     )
 })
 
+describe("simple assignment - 7", () => {
+    const key1 = {prop: "val1"}
+    const key2 = {prop: "val2"}
+    runPatchTest(
+        {x: new Map([[key1, 4]])},
+        d => {
+            d.x.set(key1, 5)
+            d.x.set(key2, 6)
+        },
+        [
+            {op: "replace", path: ["x", key1], value: 5},
+            {op: "add", path: ["x", key2], value: 6}
+        ],
+        [
+            {op: "replace", path: ["x", key1], value: 4},
+            {op: "remove", path: ["x", key2]}
+        ],
+        true
+    )
+})
+
 describe("delete 1", () => {
     runPatchTest(
         {x: {y: 4}},
@@ -192,7 +213,25 @@ describe("delete 3", () => {
     )
 })
 
-describe("delete 4", () => {
+describe("delete 5", () => {
+    const key1 = {prop: "val1"}
+    const key2 = {prop: "val2"}
+    runPatchTest(
+        {x: new Map([[key1, 1], [key2, 2]])},
+        d => {
+            d.x.delete(key1)
+            d.x.delete(key2)
+        },
+        [{op: "remove", path: ["x", key1]}, {op: "remove", path: ["x", key2]}],
+        [
+            {op: "add", path: ["x", key1], value: 1},
+            {op: "add", path: ["x", key2], value: 2}
+        ],
+        true
+    )
+})
+
+describe("delete 6", () => {
     runPatchTest(
         new Set(["x", 1]),
         d => {
@@ -204,7 +243,7 @@ describe("delete 4", () => {
     )
 })
 
-describe("delete 5", () => {
+describe("delete 7", () => {
     runPatchTest(
         {x: new Set(["y", 1])},
         d => {
