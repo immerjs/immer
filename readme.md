@@ -338,6 +338,8 @@ For a more in-depth study, see [Distributing patches and rebasing actions using 
 
 Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.
 
+> Be aware, if you non-primitive values as keys for your `Map` you can no longer serialize patches produces by `immer`. There won't any errors, but the result might be not what you expect.
+
 ## Async producers
 
 It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
