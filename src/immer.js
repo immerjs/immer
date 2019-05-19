@@ -253,7 +253,7 @@ export class Immer {
                     isDraftProp &&
                     needPatches &&
                     !isSet(parent) &&
-                    !state.assigned[prop]
+                    !has(state.assigned, prop)
                         ? rootPath.concat(prop)
                         : null
 

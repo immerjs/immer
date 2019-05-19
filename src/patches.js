@@ -1,19 +1,11 @@
-import {each, isMap, isSet} from "./common"
+import {get, each, isMap, isSet, has} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
     const generatePatchesFn = Array.isArray(state.base)
         ? generateArrayPatches
-        : isMap(state.base)
-        ? generatePatchesFromAssigned(
-              (map, key) => map.get(key),
-              (map, key) => map.has(key)
-          )
         : isSet(state.base)
         ? generateSetPatches
-        : generatePatchesFromAssigned(
-              (obj, key) => obj[key],
-              (obj, key) => key in obj
-          )
+        : generatePatchesFromAssigned()
 
     generatePatchesFn(state, basePath, patches, inversePatches)
 }
@@ -87,15 +79,15 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
     }
 }
 
-function generatePatchesFromAssigned(getValueByKey, hasKey) {
+function generatePatchesFromAssigned() {
     return function(state, basePath, patches, inversePatches) {
         const {base, copy} = state
         each(state.assigned, (key, assignedValue) => {
-            const origValue = getValueByKey(base, key)
-            const value = getValueByKey(copy, key)
+            const origValue = get(base, key)
+            const value = get(copy, key)
             const op = !assignedValue
                 ? "remove"
-                : hasKey(base, key)
+                : has(base, key)
                 ? "replace"
                 : "add"
             if (origValue === value && op === "replace") return
@@ -160,11 +152,7 @@ export function applyPatches(draft, patches) {
         } else {
             let base = draft
             for (let i = 0; i < path.length - 1; i++) {
-                if (isMap(base)) {
-                    base = base.get(path[i])
-                } else {
-                    base = base[path[i]]
-                }
+                base = get(base, path[i])
                 if (!base || typeof base !== "object")
                     throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
             }

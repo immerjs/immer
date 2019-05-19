@@ -56,10 +56,14 @@ export function createProxy(base, parent) {
         traps = arrayTraps
     } else if (isMap(base)) {
         traps = mapTraps
+        // Maps need to support non-primitive keys and objects do not support other objects as keys
+        state.drafts = new Map()
+        state.assigned = new Map()
     } else if (isSet(base)) {
         traps = setTraps
         // We use values of a Set as keys and objects do not support other objects as keys
         state.drafts = new Map()
+        // Sets do not need .assigned override since you cannot really assign (read as 'replace') any value in s Set. You can only add or remove values
     }
 
     const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
@@ -205,21 +209,21 @@ const mapTraps = makeTrapsForGetters({
         const stateSource = source(state)
         if (!stateSource.has(key) || stateSource.get(key) !== value) {
             markChanged(state)
-            state.assigned[key] = true
+            state.assigned.set(key, true)
             state.copy.set(key, value)
         }
         return state.draft
     },
     delete: state => key => {
         markChanged(state)
-        state.assigned[key] = false
+        state.assigned.set(key, false)
         return state.copy.delete(key)
     },
     clear: state => () => {
         markChanged(state)
-        state.assigned = {}
+        state.assigned = new Map()
         for (const key of source(state).keys()) {
-            state.assigned[key] = false
+            state.assigned.set(key, false)
         }
         return state.copy.clear()
     },
@@ -229,8 +233,8 @@ const mapTraps = makeTrapsForGetters({
             cb.call(thisArg, value, key, map)
         }),
     get: state => key => {
-        if (!state.modified && has(state.drafts, key)) {
-            return state.drafts[key]
+        if (!state.modified && state.drafts.has(key)) {
+            return state.drafts.get(key)
         }
 
         if (state.modified && state.copy.has(key)) {
@@ -246,7 +250,7 @@ const mapTraps = makeTrapsForGetters({
         const draft = createProxy(value, state)
 
         if (!state.modified) {
-            state.drafts[key] = draft
+            state.drafts.set(key, draft)
         } else {
             state.copy.set(key, draft)
         }
