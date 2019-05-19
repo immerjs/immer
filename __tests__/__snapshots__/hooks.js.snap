@@ -303,6 +303,27 @@ Array [
 ]
 `;
 
+exports[`hooks (proxy) - onDelete() when draft is a Map - delete 1`] = `
+Array [
+  Array [
+    "a",
+  ],
+  Array [
+    Object {
+      "prop": "val1",
+    },
+  ],
+]
+`;
+
+exports[`hooks (proxy) - onDelete() when draft is a Map - nested deletions 1`] = `
+Array [
+  Array [
+    "b",
+  ],
+]
+`;
+
 exports[`hooks (proxy) - onDelete() when draft is an array - length = 0 1`] = `Array []`;
 
 exports[`hooks (proxy) - onDelete() when draft is an array - pop 1`] = `

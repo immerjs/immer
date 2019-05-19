@@ -212,6 +212,40 @@ function createHookTests(useProxies) {
                 expectCalls(onDelete)
             })
         })
+
+        if (useProxies) {
+            describe("when draft is a Map -", () => {
+                test("delete", () => {
+                    const key1 = {prop: "val1"}
+                    const key2 = {prop: "val2"}
+                    produce(new Map([["a", 0], [key1, 1], [key2, 2]]), s => {
+                        s.delete("a")
+                        s.delete(key1)
+                    })
+                    expectCalls(onDelete)
+                })
+                test("delete (no change)", () => {
+                    produce(new Map(), s => {
+                        s.delete("a")
+                    })
+                    expect(onDelete).not.toBeCalled()
+                })
+                test("nested deletions", () => {
+                    const key1 = {prop: "val1"}
+                    produce(
+                        new Map([
+                            ["a", new Map([[key1, new Map([["b", 1]])]])]
+                        ]),
+                        s => {
+                            s.get("a")
+                                .get(key1)
+                                .delete("b")
+                        }
+                    )
+                    expectCalls(onDelete)
+                })
+            })
+        }
     })
 
     describe("onCopy()", () => {
