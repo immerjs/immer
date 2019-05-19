@@ -283,6 +283,15 @@ function createHookTests(useProxies) {
                     expectCalls(onDelete)
                 })
             })
+
+            describe("when draft is a Set -", () => {
+                test("delete", () => {
+                    produce({a: new Set([1])}, s => {
+                        s.a.delete(1)
+                    })
+                    expect(onDelete).not.toBeCalled()
+                })
+            })
         }
     })
 
@@ -311,6 +320,15 @@ function createHookTests(useProxies) {
                     s.get("a").delete("b")
                 })
                 expect(calls).toShallowEqual([base.get("a"), base])
+            })
+
+            it("is called in the right order for Sets", () => {
+                const item1 = {a: 0}
+                const base = new Set([item1])
+                produce(base, s => {
+                    s.forEach(item => item.a++)
+                })
+                expect(calls).toShallowEqual([item1, base])
             })
         }
     })
