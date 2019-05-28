@@ -233,28 +233,18 @@ const mapTraps = makeTrapsForGetters({
             cb.call(thisArg, value, key, map)
         }),
     get: state => key => {
-        if (!state.modified && state.drafts.has(key)) {
-            return state.drafts.get(key)
-        }
-
-        if (state.modified && state.copy.has(key)) {
-            return state.copy.get(key)
+        const drafts = state[state.modified ? "copy" : "drafts"]
+        if (drafts.has(key)) {
+            return drafts.get(key)
         }
 
         const value = latest(state).get(key)
-
         if (state.finalized || !isDraftable(value)) {
             return value
         }
 
         const draft = createProxy(value, state)
-
-        if (!state.modified) {
-            state.drafts.set(key, draft)
-        } else {
-            state.copy.set(key, draft)
-        }
-
+        drafts.set(key, draft)
         return draft
     },
     keys: state => () => latest(state).keys(),
