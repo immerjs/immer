@@ -195,8 +195,8 @@ export class Immer {
                 // The `assigned` object is unreliable with ES5 drafts.
                 if (this.useProxies) {
                     const {assigned} = state
-                    each(assigned, (prop, assignedValue) => {
-                        if (!assignedValue) this.onDelete(state, prop)
+                    each(assigned, (prop, exists) => {
+                        if (!exists) this.onDelete(state, prop)
                     })
                 } else {
                     // TODO: Figure it out for Maps and Sets if we need to support ES5
@@ -255,20 +255,19 @@ export class Immer {
                 const path =
                     isDraftProp &&
                     needPatches &&
-                    !isSetMember &&
-                    !has(state.assigned, prop)
+                    !isSetMember && // Set objects are atomic since they have no keys.
+                    !has(state.assigned, prop) // Skip deep patches for assigned keys.
                         ? rootPath.concat(prop)
                         : null
 
                 // Drafts owned by `scope` are finalized here.
                 value = this.finalize(value, path, scope)
+                replace(parent, prop, value)
 
                 // Drafts from another scope must prevent auto-freezing.
                 if (isDraft(value)) {
                     scope.canAutoFreeze = false
                 }
-
-                setProperty(parent, prop, value)
 
                 // Unchanged drafts are never passed to the `onAssign` hook.
                 if (isDraftProp && value === get(state.base, prop)) return
@@ -293,21 +292,21 @@ export class Immer {
     }
 }
 
-function setProperty(parent, prop, value) {
-    // Preserve non-enumerable properties.
-    if (Array.isArray(parent) || isEnumerable(parent, prop)) {
-        parent[prop] = value
-        return
-    }
+function replace(parent, prop, value) {
     if (isMap(parent)) {
         parent.set(prop, value)
-        return
-    }
-    if (isSet(parent)) {
-        // Here prop is a proxied value
+    } else if (isSet(parent)) {
+        // In this case, the `prop` is actually a draft.
         parent.delete(prop)
         parent.add(value)
-        return
+    } else if (Array.isArray(parent) || isEnumerable(parent, prop)) {
+        // Preserve non-enumerable properties.
+        parent[prop] = value
+    } else {
+        Object.defineProperty(parent, prop, {
+            value,
+            writable: true,
+            configurable: true
+        })
     }
-    Object.defineProperty(parent, prop, {value})
 }
