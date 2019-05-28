@@ -34,37 +34,30 @@ export function original(value) {
 // We use Maps as `drafts` for Sets, not Objects
 // See proxy.js
 export function assignSet(target, override) {
-    for (const value of override.values()) {
+    override.forEach(value => {
         // When we add new drafts we have to remove their originals if present
-        const originalValue = original(value)
-        if (originalValue) {
-            target.delete(originalValue)
-        }
+        const prev = original(value)
+        if (prev) target.delete(prev)
         target.add(value)
-    }
+    })
     return target
 }
 
 // We use Maps as `drafts` for Maps, not Objects
 // See proxy.js
 export function assignMap(target, override) {
-    override.forEach((value, key) => {
-        target.set(key, value)
-    })
+    override.forEach((value, key) => target.set(key, value))
     return target
 }
 
-function assignObjectLegacy(target, ...objOverrides) {
-    objOverrides.forEach(function(override) {
-        for (let key in override) {
-            if (has(override, key)) {
-                target[key] = override[key]
-            }
-        }
+export const assign =
+    Object.assign ||
+    ((target, ...overrides) => {
+        overrides.forEach(override =>
+            Object.keys(override).forEach(key => (target[key] = override[key]))
+        )
+        return target
     })
-    return target
-}
-export const assign = Object.assign || assignObjectLegacy
 
 export const ownKeys =
     typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -106,12 +99,12 @@ export function shallowCopy(base, invokeGetters = false) {
     return clone
 }
 
-export function each(value, cb) {
-    if (Array.isArray(value) || isMap(value) || isSet(value)) {
-        value.forEach((entry, index) => cb(index, entry, value))
-        return
+export function each(obj, iter) {
+    if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
+        obj.forEach((entry, index) => iter(index, entry, obj))
+    } else {
+        ownKeys(obj).forEach(key => iter(key, obj[key], obj))
     }
-    ownKeys(value).forEach(key => cb(key, value[key], value))
 }
 
 export function isEnumerable(base, prop) {
@@ -120,17 +113,13 @@ export function isEnumerable(base, prop) {
 }
 
 export function has(thing, prop) {
-    if (isMap(thing)) {
-        return thing.has(prop)
-    }
-    return Object.prototype.hasOwnProperty.call(thing, prop)
+    return isMap(thing)
+        ? thing.has(prop)
+        : Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
 export function get(thing, prop) {
-    if (isMap(thing)) {
-        return thing.get(prop)
-    }
-    return thing[prop]
+    return isMap(thing) ? thing.get(prop) : thing[prop]
 }
 
 export function is(x, y) {
