@@ -64,7 +64,7 @@ function revoke() {
     this.revoked = true
 }
 
-function source(state) {
+function latest(state) {
     return state.copy || state.base
 }
 
@@ -82,7 +82,7 @@ function peek(draft, prop) {
 
 function get(state, prop) {
     assertUnrevoked(state)
-    const value = peek(source(state), prop)
+    const value = peek(latest(state), prop)
     if (state.finalizing) return value
     // Create a draft if the value is unmodified.
     if (value === peek(state.base, prop) && isDraftable(value)) {
@@ -96,7 +96,7 @@ function set(state, prop, value) {
     assertUnrevoked(state)
     state.assigned[prop] = true
     if (!state.modified) {
-        if (is(value, peek(source(state), prop))) return
+        if (is(value, peek(latest(state), prop))) return
         markChanged(state)
         prepareCopy(state)
     }
@@ -148,7 +148,7 @@ function assertUnrevoked(state) {
     if (state.revoked === true)
         throw new Error(
             "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
-                JSON.stringify(source(state))
+                JSON.stringify(latest(state))
         )
 }
 

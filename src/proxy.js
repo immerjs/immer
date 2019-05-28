@@ -89,7 +89,7 @@ const objectTraps = {
             return drafts[prop]
         }
 
-        const value = source(state)[prop]
+        const value = latest(state)[prop]
         if (state.finalized || !isDraftable(value)) {
             return value
         }
@@ -105,10 +105,10 @@ const objectTraps = {
         return (drafts[prop] = createProxy(value, state))
     },
     has(state, prop) {
-        return prop in source(state)
+        return prop in latest(state)
     },
     ownKeys(state) {
-        return Reflect.ownKeys(source(state))
+        return Reflect.ownKeys(latest(state))
     },
     set(state, prop, value) {
         if (!state.modified) {
@@ -138,7 +138,7 @@ const objectTraps = {
     // Note: We never coerce `desc.value` into an Immer draft, because we can't make
     // the same guarantee in ES5 mode.
     getOwnPropertyDescriptor(state, prop) {
-        const owner = source(state)
+        const owner = latest(state)
         const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
         if (desc) {
             desc.writable = true
@@ -200,14 +200,11 @@ const reflectTraps = makeReflectTraps([
 
 const mapTraps = makeTrapsForGetters({
     [DRAFT_STATE]: state => state,
-    size: state => source(state).size,
-    has(state, prop) {
-        state = source(state)
-        return state.has.bind(state)
-    },
+    size: state => latest(state).size,
+    has: state => key => latest(state).has(key),
     set: state => (key, value) => {
-        const stateSource = source(state)
-        if (!stateSource.has(key) || stateSource.get(key) !== value) {
+        const values = latest(state)
+        if (!values.has(key) || values.get(key) !== value) {
             markChanged(state)
             state.assigned.set(key, true)
             state.copy.set(key, value)
@@ -215,7 +212,7 @@ const mapTraps = makeTrapsForGetters({
         return state.draft
     },
     delete: state => key => {
-        if (source(state).has(key)) {
+        if (latest(state).has(key)) {
             markChanged(state)
             state.assigned.set(key, false)
             return state.copy.delete(key)
@@ -225,13 +222,13 @@ const mapTraps = makeTrapsForGetters({
     clear: state => () => {
         markChanged(state)
         state.assigned = new Map()
-        for (const key of source(state).keys()) {
+        for (const key of latest(state).keys()) {
             state.assigned.set(key, false)
         }
         return state.copy.clear()
     },
     forEach: (state, _, receiver) => (cb, thisArg) =>
-        source(state).forEach((_, key, map) => {
+        latest(state).forEach((_, key, map) => {
             const value = receiver.get(key)
             cb.call(thisArg, value, key, map)
         }),
@@ -244,7 +241,7 @@ const mapTraps = makeTrapsForGetters({
             return state.copy.get(key)
         }
 
-        const value = source(state).get(key)
+        const value = latest(state).get(key)
 
         if (state.finalized || !isDraftable(value)) {
             return value
@@ -260,7 +257,7 @@ const mapTraps = makeTrapsForGetters({
 
         return draft
     },
-    keys: state => () => source(state).keys(),
+    keys: state => () => latest(state).keys(),
     values: iterateMapValues,
     entries: iterateMapValues,
     [Symbol.iterator]: iterateMapValues
@@ -272,7 +269,7 @@ function iterateMapValues(state, prop, receiver) {
         prop === "values" ? (key, value) => value : (key, value) => [key, value]
 
     return () => {
-        const iterator = source(state)[Symbol.iterator]()
+        const iterator = latest(state)[Symbol.iterator]()
         return makeIterable(() => {
             const result = iterator.next()
             if (!result.done) {
@@ -291,13 +288,10 @@ function iterateMapValues(state, prop, receiver) {
 
 const setTraps = makeTrapsForGetters({
     [DRAFT_STATE]: state => state,
-    size: state => source(state).size,
-    has(state, prop) {
-        state = source(state)
-        return state.has.bind(state)
-    },
+    size: state => latest(state).size,
+    has: state => key => latest(state).has(key),
     add: state => value => {
-        if (!source(state).has(value)) {
+        if (!latest(state).has(value)) {
             markChanged(state)
             state.copy.add(value)
         }
@@ -327,7 +321,7 @@ const setTraps = makeTrapsForGetters({
 
 function iterateSetValues(state, prop) {
     return () => {
-        const iterator = source(state)[Symbol.iterator]()
+        const iterator = latest(state)[Symbol.iterator]()
 
         return makeIterable(() => {
             const result = iterator.next()
@@ -363,8 +357,8 @@ function wrapSetValue(state, value) {
  * Helpers
  */
 
-// returns the object we should be reading the current value from, which is base, until some change has been made
-function source(state) {
+// Retrieve the latest values of the draft.
+function latest(state) {
     return state.copy || state.base
 }
 
@@ -372,7 +366,7 @@ function source(state) {
 function peek(draft, prop) {
     const state = draft[DRAFT_STATE]
     const desc = Reflect.getOwnPropertyDescriptor(
-        state ? source(state) : draft,
+        state ? latest(state) : draft,
         prop
     )
     return desc && desc.value
@@ -411,10 +405,10 @@ function makeIterable(next) {
     })
 }
 
-/** Create traps that all use the `Reflect` API on the `source(state)` */
+/** Create traps that all use the `Reflect` API on the `latest(state)` */
 function makeReflectTraps(names) {
     return names.reduce((traps, name) => {
-        traps[name] = (state, ...args) => Reflect[name](source(state), ...args)
+        traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
         return traps
     }, {})
 }
