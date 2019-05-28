@@ -5,7 +5,7 @@ export function generatePatches(state, basePath, patches, inversePatches) {
         ? generateArrayPatches
         : isSet(state.base)
         ? generateSetPatches
-        : generatePatchesFromAssigned()
+        : generatePatchesFromAssigned
 
     generatePatchesFn(state, basePath, patches, inversePatches)
 }
@@ -79,29 +79,28 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
     }
 }
 
-function generatePatchesFromAssigned() {
-    return function(state, basePath, patches, inversePatches) {
-        const {base, copy} = state
-        each(state.assigned, (key, assignedValue) => {
-            const origValue = get(base, key)
-            const value = get(copy, key)
-            const op = !assignedValue
-                ? "remove"
-                : has(base, key)
-                ? "replace"
-                : "add"
-            if (origValue === value && op === "replace") return
-            const path = basePath.concat(key)
-            patches.push(op === "remove" ? {op, path} : {op, path, value})
-            inversePatches.push(
-                op === "add"
-                    ? {op: "remove", path}
-                    : op === "remove"
-                    ? {op: "add", path, value: origValue}
-                    : {op: "replace", path, value: origValue}
-            )
-        })
-    }
+// This is used for both Map objects and normal objects.
+function generatePatchesFromAssigned(state, basePath, patches, inversePatches) {
+    const {base, copy} = state
+    each(state.assigned, (key, assignedValue) => {
+        const origValue = get(base, key)
+        const value = get(copy, key)
+        const op = !assignedValue
+            ? "remove"
+            : has(base, key)
+            ? "replace"
+            : "add"
+        if (origValue === value && op === "replace") return
+        const path = basePath.concat(key)
+        patches.push(op === "remove" ? {op, path} : {op, path, value})
+        inversePatches.push(
+            op === "add"
+                ? {op: "remove", path}
+                : op === "remove"
+                ? {op: "add", path, value: origValue}
+                : {op: "replace", path, value: origValue}
+        )
+    })
 }
 
 function generateSetPatches(state, basePath, patches, inversePatches) {
