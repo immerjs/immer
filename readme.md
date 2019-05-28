@@ -199,17 +199,16 @@ console.dir([{}, {}, {}].map(mapper))
 This mechanism can also nicely be leveraged to further simplify our example reducer:
 
 ```javascript
-import produce from 'immer'
+import produce from "immer"
 
 const byId = produce((draft, action) => {
-  switch (action.type) {
-    case RECEIVE_PRODUCTS:
-      action.products.forEach(product => {
-        draft[product.id] = product
-      })
-      return
-    })
-  }
+    switch (action.type) {
+        case RECEIVE_PRODUCTS:
+            action.products.forEach(product => {
+                draft[product.id] = product
+            })
+            return
+    }
 })
 ```
 
