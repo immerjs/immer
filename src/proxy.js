@@ -49,24 +49,26 @@ export function createProxy(base, parent) {
         revoke: null
     }
 
-    let proxyTarget = state
+    let target = state
     let traps = objectTraps
     if (Array.isArray(base)) {
-        proxyTarget = [state]
+        target = [state]
         traps = arrayTraps
-    } else if (isMap(base)) {
+    }
+    // Map drafts must support object keys, so we use Map objects to track changes.
+    else if (isMap(base)) {
         traps = mapTraps
-        // Maps need to support non-primitive keys and objects do not support other objects as keys
         state.drafts = new Map()
         state.assigned = new Map()
-    } else if (isSet(base)) {
+    }
+    // Set drafts use a Map object to track which of its values are drafted.
+    // And we don't need the "assigned" property, because Set objects have no keys.
+    else if (isSet(base)) {
         traps = setTraps
-        // We use values of a Set as keys and objects do not support other objects as keys
         state.drafts = new Map()
-        // Sets do not need .assigned override since you cannot really assign (read as 'replace') any value in s Set. You can only add or remove values
     }
 
-    const {revoke, proxy} = Proxy.revocable(proxyTarget, traps)
+    const {revoke, proxy} = Proxy.revocable(target, traps)
 
     state.draft = proxy
     state.revoke = revoke
@@ -255,9 +257,7 @@ const mapTraps = makeTrapsForGetters({
 
 /** Map.prototype.values _-or-_ Map.prototype.entries */
 function iterateMapValues(state, prop, receiver) {
-    const getYieldable =
-        prop === "values" ? (key, value) => value : (key, value) => [key, value]
-
+    const isEntries = prop !== "values"
     return () => {
         const iterator = latest(state)[Symbol.iterator]()
         return makeIterable(() => {
@@ -265,7 +265,7 @@ function iterateMapValues(state, prop, receiver) {
             if (!result.done) {
                 const [key] = result.value
                 const value = receiver.get(key)
-                result.value = getYieldable(key, value)
+                result.value = isEntries ? [key, value] : value
             }
             return result
         })
@@ -310,17 +310,14 @@ const setTraps = makeTrapsForGetters({
 })
 
 function iterateSetValues(state, prop) {
+    const isEntries = prop === "entries"
     return () => {
         const iterator = latest(state)[Symbol.iterator]()
-
         return makeIterable(() => {
             const result = iterator.next()
             if (!result.done) {
-                const valueWrapped = wrapSetValue(state, result.value)
-                result.value = valueWrapped
-                if (prop === "entries") {
-                    result.value = [valueWrapped, valueWrapped]
-                }
+                const value = wrapSetValue(state, result.value)
+                result.value = isEntries ? [value, value] : value
             }
             return result
         })
