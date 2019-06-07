@@ -69,43 +69,60 @@ export type Produced<Base, Return> = Return extends void
  * @param {Function} patchListener - optional function that will be called with all the patches produced here
  * @returns {any} a new state, or the initial state if nothing was modified
  */
-export interface IProduce {
-    /** Curried producer */
-    <
-        Recipe extends (...args: any[]) => any,
-        Params extends any[] = Parameters<Recipe>,
-        T = Params[0]
-    >(
-        recipe: Recipe
-    ): <Base extends Immutable<T>>(
-        base: Base,
-        ...rest: Tail<Params>
-    ) => Produced<Base, ReturnType<Recipe>>
-    //   ^ by making the returned type generic, the actual type of the passed in object is preferred
-    //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
-    //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+export interface IProduce
+    extends ProduceFn,
+        CreateProducer,
+        CreateProducerWithState {}
 
-    /** Curried producer with initial state */
-    <
-        Recipe extends (...args: any[]) => any,
-        Params extends any[] = Parameters<Recipe>,
-        T = Params[0]
-    >(
-        recipe: Recipe,
-        initialState: Immutable<T>
-    ): <Base extends Immutable<T>>(
-        base?: Base,
-        ...rest: Tail<Params>
-    ) => Produced<Base, ReturnType<Recipe>>
+/**
+ * Same as `produce` except the return type is always **immutable**!
+ */
+export interface IProduceRO
+    extends SafeReturn<ProduceFn>,
+        SafeReturn<CreateProducer>,
+        SafeReturn<CreateProducerWithState> {}
 
-    /** Normal producer */
-    <Base, D = Draft<Base>, Return = void>(
-        base: Base,
-        recipe: (draft: D) => Return,
-        listener?: PatchListener
-    ): Produced<Base, Return>
-}
+type ProduceFn = <Base, D = Draft<Base>, Return = void>(
+    base: Base,
+    recipe: (draft: D) => Return,
+    listener?: PatchListener
+) => Produced<Base, Return>
 
+type CreateProducer = <
+    Recipe extends (...args: any[]) => any,
+    Params extends any[] = Parameters<Recipe>,
+    T = Params[0]
+>(
+    recipe: Recipe
+) => <Base extends Immutable<T>>(
+    base: Base,
+    ...rest: Tail<Params>
+) => Produced<Base, ReturnType<Recipe>>
+//   ^ by making the returned type generic, the actual type of the passed in object is preferred
+//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+
+type CreateProducerWithState = <
+    Recipe extends (...args: any[]) => any,
+    Params extends any[] = Parameters<Recipe>,
+    T = Params[0]
+>(
+    recipe: Recipe,
+    initialState: Immutable<T>
+) => <Base extends Immutable<T>>(
+    base?: Base,
+    ...rest: Tail<Params>
+) => Produced<Base, ReturnType<Recipe>>
+
+type SafeReturn<T extends (...args: any[]) => any> = (
+    ...args: Parameters<T>
+) => ReturnType<T> extends infer R
+    ? R extends (...args: any[]) => any
+        ? SafeReturn<R>
+        : Immutable<ReturnType<T>>
+    : never
+
+export const produceRO: IProduceRO
 export const produce: IProduce
 export default produce
 

@@ -25,6 +25,11 @@ export const produce = immer.produce
 export default produce
 
 /**
+ * Same as `produce` except the return type is always immutable!
+ */
+export const produceRO = produce
+
+/**
  * Pass true to automatically freeze all copies created by Immer.
  *
  * By default, auto-freezing is disabled in production.
