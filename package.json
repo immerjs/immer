@@ -4,6 +4,8 @@
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
+  "unpkg": "dist/immer.umd.js",
+  "jsdelivr": "dist/immer.umd.js",
   "module": "dist/immer.module.js",
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
