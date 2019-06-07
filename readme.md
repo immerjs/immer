@@ -659,6 +659,7 @@ const newState = increment(state, 2)
 -   [immer-reducer](https://github.com/epeli/immer-reducer) _Type-safe and terse Redux reducers with Typescript_
 -   [redux-ts-utils](https://github.com/knpwrs/redux-ts-utils) _Everything you need to create type-safe applications with Redux with a strong emphasis on simplicity_
 -   [react-state-tree](https://github.com/suchipi/react-state-tree) _Drop-in replacement for useState that persists your state into a redux-like state tree_
+-   [redux-immer](https://github.com/salvoravida/redux-immer) _is used to create an equivalent function of Redux combineReducers that works with `immer` state. Like `redux-immutable` but for `immer`_
 -   ... and [many more](https://www.npmjs.com/browse/depended/immer)
 
 ## How does Immer work?
