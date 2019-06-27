@@ -63,11 +63,11 @@ export const createDraft = immer.createDraft.bind(immer)
 export const finishDraft = immer.finishDraft.bind(immer)
 
 export {
-    original,
-    isDraft,
-    isDraftable,
-    NOTHING as nothing,
-    DRAFTABLE as immerable
+	original,
+	isDraft,
+	isDraftable,
+	NOTHING as nothing,
+	DRAFTABLE as immerable
 } from "./common"
 
 export {Immer}

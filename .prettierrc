@@ -5,9 +5,8 @@
   "requirePragma": false,
   "semi": false,
   "singleQuote": false,
-  "tabWidth": 4,
   "trailingComma": "none",
-  "useTabs": false,
+  "useTabs": true,
   "overrides": [
     {
       "files": [".prettierrc", "*.json"],
