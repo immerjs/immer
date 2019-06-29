@@ -155,6 +155,8 @@ export function applyPatches<S>(base: S, patches: Patch[]): S
 /**
  * Create an Immer draft from the given base state, which may be a draft itself.
  * The draft can be modified until you finalize it with the `finishDraft` function.
+ * If the draft is assigned to an existing draft, it will be finalized when that
+ * draft is finalized.
  */
 export function createDraft<T>(base: T): Draft<T>
 

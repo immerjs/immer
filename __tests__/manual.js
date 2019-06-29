@@ -132,5 +132,49 @@ function runTests(name, useProxies) {
 			finishDraft(draft)
 			expect(() => finishDraft(draft)).toThrowErrorMatchingSnapshot()
 		})
+
+		describe("attach to existing draft", () => {
+			describe("array assign", () => {
+				const b = [{foo: "bar"}, {foo: "baz"}]
+				const c = produce(b, bb => {
+					bb[1] = createDraft({foo: "quux"})
+					expect(isDraft(bb[1])).toBe(true)
+				})
+				expect(c.length).toEqual(2)
+				expect(isDraft(c[1])).toBe(false)
+			})
+			describe("array push", () => {
+				const b = [{foo: "bar"}, {foo: "baz"}]
+				const c = produce(b, bb => {
+					bb.push(createDraft({foo: "quux"}))
+					expect(isDraft(bb[2])).toBe(true)
+				})
+				expect(c.length).toEqual(3)
+				expect(isDraft(c[2])).toBe(false)
+			})
+			describe("object set existing", () => {
+				const b = {foo: {bar: "baz"}}
+				const c = produce(b, bb => {
+					const foo2 = createDraft(Object.freeze({bar: "quux"}))
+					expect(foo2.bar).toEqual("quux")
+
+					foo2.bar = "zip"
+					expect(foo2.bar).toEqual("zip")
+
+					bb.foo = foo2
+					expect(isDraft(bb.foo)).toBe(true)
+				})
+				expect(isDraft(c.foo)).toBe(false)
+				expect(c.foo.bar).toEqual("zip")
+			})
+			describe("object set new", () => {
+				const b = {foo: {bar: "baz"}}
+				const c = produce(b, bb => {
+					bb.bar = createDraft({baz: "quux"})
+					expect(isDraft(bb.bar)).toBe(true)
+				})
+				expect(isDraft(c.bar)).toBe(false)
+			})
+		})
 	})
 }

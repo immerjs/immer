@@ -148,7 +148,22 @@ function set(state, prop, value) {
 	}
 	state.assigned[prop] = true
 	state.copy[prop] = value
+	takeOwnershipIfNeeded(state, value)
 	return true
+}
+
+function takeOwnershipIfNeeded(state, value) {
+	if (!isDraft(value)) return
+	const child = value[DRAFT_STATE]
+	if (!child.isManual) return
+
+	// set child state as if it were created from this object
+	child.parent = state
+	state.scope.drafts.push(...child.scope.drafts)
+	child.scope = state.scope
+
+	if (child.modified) markChanged(state)
+	child.isManual = false
 }
 
 function deleteProperty(state, prop) {
