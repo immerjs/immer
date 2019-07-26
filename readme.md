@@ -481,6 +481,8 @@ Code style is highly personal, but for code bases that are to be understood by m
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
 
 ```js
+import {original} from "immer"
+
 const baseState = {users: [{name: "Richie"}]}
 const nextState = produce(baseState, draftState => {
     original(draftState.users) // is === baseState.users
