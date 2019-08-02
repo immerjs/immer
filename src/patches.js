@@ -1,4 +1,5 @@
 import {each} from "./common"
+import {createDraft} from "./immer"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
 	Array.isArray(state.base)
@@ -95,41 +96,39 @@ function generateObjectPatches(state, basePath, patches, inversePatches) {
 }
 
 export function applyPatches(draft, patches) {
+	// First, find a patch that replaces the entire state, if found, we don't have to apply earlier patches and modify the state
 	for (let i = 0; i < patches.length; i++) {
 		const patch = patches[i]
 		const {path} = patch
-		if (path.length === 0 && patch.op === "replace") {
-			draft = patch.value
-		} else {
-			let base = draft
-			for (let i = 0; i < path.length - 1; i++) {
-				base = base[path[i]]
-				if (!base || typeof base !== "object")
+		if (!path.length) throw new Error("Illegal state")
+		let base = draft
+		for (let i = 0; i < path.length - 1; i++) {
+			base = base[path[i]]
+			if (!base || typeof base !== "object")
 					throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
-			}
-			const key = path[path.length - 1]
-			switch (patch.op) {
-				case "replace":
+		}
+		const key = path[path.length - 1]
+		switch (patch.op) {
+			case "replace":
+				base[key] = patch.value
+				break
+			case "add":
+				if (Array.isArray(base)) {
+					// TODO: support "foo/-" paths for appending to an array
+					base.splice(key, 0, patch.value)
+				} else {
 					base[key] = patch.value
-					break
-				case "add":
-					if (Array.isArray(base)) {
-						// TODO: support "foo/-" paths for appending to an array
-						base.splice(key, 0, patch.value)
-					} else {
-						base[key] = patch.value
-					}
-					break
-				case "remove":
-					if (Array.isArray(base)) {
-						base.splice(key, 1)
-					} else {
-						delete base[key]
-					}
-					break
-				default:
-					throw new Error("Unsupported patch operation: " + patch.op)
-			}
+				}
+				break
+			case "remove":
+				if (Array.isArray(base)) {
+					base.splice(key, 1)
+				} else {
+					delete base[key]
+				}
+				break
+			default:
+				throw new Error("Unsupported patch operation: " + patch.op)
 		}
 	}
 	return draft
