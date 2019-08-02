@@ -156,6 +156,9 @@ function deleteProperty(state, prop) {
 	if (peek(state.base, prop) !== undefined || prop in state.base) {
 		state.assigned[prop] = false
 		markChanged(state)
+	} else if (state.assigned[prop]) {
+		// if an originally not assigned property was deleted
+		delete state.assigned[prop]
 	}
 	if (state.copy) delete state.copy[prop]
 	return true

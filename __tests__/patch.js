@@ -4,6 +4,8 @@ import produce, {setUseProxies, applyPatches} from "../src/index"
 jest.setTimeout(1000)
 
 function runPatchTest(base, producer, patches, inversePathes) {
+	let resultProxies, resultEs5
+
 	function runPatchTestHelper() {
 		let recordedPatches
 		let recordedInversePatches
@@ -24,17 +26,24 @@ function runPatchTest(base, producer, patches, inversePathes) {
 		test("patches can be reversed", () => {
 			expect(applyPatches(res, recordedInversePatches)).toEqual(base)
 		})
+
+		return res
 	}
 
 	describe(`proxy`, () => {
 		setUseProxies(true)
-		runPatchTestHelper()
+		resultProxies = runPatchTestHelper()
 	})
 
 	describe(`es5`, () => {
 		setUseProxies(false)
-		runPatchTestHelper()
+		resultEs5 = runPatchTestHelper()
+		test("ES5 and Proxy implementation yield same result", () => {
+			expect(resultEs5).toEqual(resultProxies)
+		})
 	})
+
+	return resultProxies
 }
 
 describe("applyPatches", () => {
@@ -413,4 +422,66 @@ describe("simple delete", () => {
 			}
 		]
 	)
+})
+
+describe("patch compressions yields correct results", () => {
+	let p1, p2
+	runPatchTest(
+		{},
+		d => {
+			d.x = {test: true}
+		},
+		(p1 = [
+			{
+				op: "add",
+				path: ["x"],
+				value: {
+					test: true
+				}
+			}
+		])
+	)
+	runPatchTest(
+		{x: {test: true}},
+		d => {
+			delete d.x
+		},
+		(p2 = [
+			{
+				op: "remove",
+				path: ["x"]
+			}
+		])
+	)
+	const res = runPatchTest(
+		{},
+		d => {
+			debugger
+			applyPatches(d, [...p1, ...p2])
+		},
+		[]
+	)
+
+	expect(res).toEqual({})
+})
+
+describe("change then delete property", () => {
+	const res = runPatchTest(
+		{
+			x: 1
+		},
+		d => {
+			d.x = 2
+			delete d.x
+		},
+		[
+			{
+				op: "remove",
+				path: ["x"]
+			}
+		]
+	)
+	test("valid result", () => {
+		expect(res).toEqual({})
+	})
 })
