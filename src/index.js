@@ -25,6 +25,12 @@ export const produce = immer.produce
 export default produce
 
 /**
+ * Like `produce`, but `produceWithPatches` always returns a tuple
+ * [nextState, patches, inversePatches] (instead of just the next state)
+ */
+export const produceWithPatches = immer.produceWithPatches.bind(immer)
+
+/**
  * Pass true to automatically freeze all copies created by Immer.
  *
  * By default, auto-freezing is disabled in production.

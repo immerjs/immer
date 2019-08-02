@@ -333,6 +333,47 @@ The generated patches are similar (but not the same) to the [RFC-6902 JSON patch
 ]
 ```
 
+### `produceWithPatches`
+
+Instead of setting up a patch listener, an easier way to obtain the patches is to use `produceWithPatches`, which has the same signature as `produce`, except that it doesn't return just the next state, but a tuple consisting of `[nextState, patches, inversePatches]`. Like `produce`, `produceWithPatches` supports currying as well.
+
+```javascript
+import {produceWithPatches} from "immer"
+
+const [nextState, patches, inversePatches] = produceWithPatches(
+	{
+		age: 33
+	},
+	draft => {
+		draft.age++
+	}
+)
+```
+
+Which produces:
+
+```javascript
+;[
+	{
+		age: 34
+	},
+	[
+		{
+			op: "replace",
+			path: ["age"],
+			value: 34
+		}
+	],
+	[
+		{
+			op: "replace",
+			path: ["age"],
+			value: 33
+		}
+	]
+]
+```
+
 For a more in-depth study, see [Distributing patches and rebasing actions using Immer](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988)
 
 Tip: Check this trick to [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69) produced over time.

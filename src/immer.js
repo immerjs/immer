@@ -91,6 +91,22 @@ export class Immer {
 			return result !== NOTHING ? result : undefined
 		}
 	}
+	produceWithPatches(arg1, arg2, arg3) {
+		if (typeof arg1 === "function") {
+			const self = this
+			return (state, ...args) =>
+				this.produceWithPatches(state, draft => arg1(draft, ...args))
+		}
+		// non-curried form
+		if (arg3)
+			throw new Error("A patch listener cannot be passed to produceWithPatches")
+		let patches, inversePatches
+		const nextState = this.produce(arg1, arg2, (p, ip) => {
+			patches = p
+			inversePatches = ip
+		})
+		return [nextState, patches, inversePatches]
+	}
 	createDraft(base) {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore

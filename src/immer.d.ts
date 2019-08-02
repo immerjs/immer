@@ -109,6 +109,49 @@ export interface IProduce {
 export const produce: IProduce
 export default produce
 
+/**
+ * Like `produce`, but instead of just returning the new state,
+ * a tuple is returned with [nextState, patches, inversePatches]
+ *
+ * Like produce, this function supports currying
+ */
+export interface IProduceWithPatches {
+	/** Curried producer */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe
+	): <Base extends Immutable<T>>(
+		base: Base,
+		...rest: Tail<Params>
+	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
+	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
+	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+
+	/** Curried producer with initial state */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe,
+		initialState: Immutable<T>
+	): <Base extends Immutable<T>>(
+		base?: Base,
+		...rest: Tail<Params>
+	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
+
+	/** Normal producer */
+	<Base, D = Draft<Base>, Return = void>(
+		base: Base,
+		recipe: (draft: D) => Return
+	): [Produced<Base, Return>, Patch[], Patch[]]
+}
+export const produceWithPatches: IProduceWithPatches
+
 /** Use a class type for `nothing` so its type is unique */
 declare class Nothing {
 	// This lets us do `Exclude<T, Nothing>`

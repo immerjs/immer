@@ -1,5 +1,5 @@
 "use strict"
-import produce, {setUseProxies} from "../src/index"
+import produce, {setUseProxies, produceWithPatches} from "../src/index"
 
 runTests("proxy", true)
 runTests("es5", false)
@@ -68,5 +68,29 @@ function runTests(name, useProxies) {
 			expect(spread(base, {z: 3})).toEqual({x: 1, y: 1, z: 3})
 			expect(spread(base, {y: 1})).toBe(base)
 		})
+	})
+
+	it("support currying for produceWithPatches", () => {
+		const increment = produceWithPatches((draft, delta) => {
+			draft.x += delta
+		})
+
+		expect(increment({x: 5}, 2)).toEqual([
+			{x: 7},
+			[
+				{
+					op: "replace",
+					path: ["x"],
+					value: 7
+				}
+			],
+			[
+				{
+					op: "replace",
+					path: ["x"],
+					value: 5
+				}
+			]
+		])
 	})
 }
