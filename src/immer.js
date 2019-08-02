@@ -121,12 +121,25 @@ export class Immer {
 		assign(this, value ? modernProxy : legacyProxy)
 	}
 	applyPatches(base, patches) {
-		// Mutate the base state when a draft is passed.
+		// If a patch replaces the entire state, take that replacement as base
+		// before applying patches
+		let i
+		for (i = patches.length - 1; i >= 0; i--) {
+			const patch = patches[i]
+			if (patch.path.length === 0 && patch.op === "replace") {
+				base = patch.value
+				break
+			}
+		}
+
 		if (isDraft(base)) {
+			// N.B: never hits if some patch a replacement, patches are never drafts
 			return applyPatches(base, patches)
 		}
 		// Otherwise, produce a copy of the base state.
-		return this.produce(base, draft => applyPatches(draft, patches))
+		return this.produce(base, draft =>
+			applyPatches(draft, patches.slice(i + 1))
+		)
 	}
 	/** @internal */
 	processResult(result, scope) {

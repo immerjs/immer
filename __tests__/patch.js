@@ -456,7 +456,6 @@ describe("patch compressions yields correct results", () => {
 	const res = runPatchTest(
 		{},
 		d => {
-			debugger
 			applyPatches(d, [...p1, ...p2])
 		},
 		[]
@@ -484,4 +483,49 @@ describe("change then delete property", () => {
 	test("valid result", () => {
 		expect(res).toEqual({})
 	})
+})
+
+test("replaying patches with interweaved replacements should work correctly", () => {
+	const patches = []
+	const s0 = {x: 1}
+
+	const s1 = produce(
+		s0,
+		draft => {
+			draft.x = 2
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	const s2 = produce(
+		s1,
+		draft => {
+			return {x: 0}
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	const s3 = produce(
+		s2,
+		draft => {
+			draft.x--
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	expect(s3).toEqual({x: -1}) // correct result
+	expect(applyPatches(s0, patches)).toEqual({x: -1}) // correct replay
+
+	// manual replay on a draft should also be correct
+	expect(
+		produce(s0, draft => {
+			return applyPatches(draft, patches)
+		})
+	).toEqual({x: -1})
 })
