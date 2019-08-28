@@ -1,5 +1,9 @@
 "use strict"
-import produce, {setUseProxies, applyPatches} from "../src/index"
+import produce, {
+	setUseProxies,
+	applyPatches,
+	produceWithPatches
+} from "../src/index"
 
 jest.setTimeout(1000)
 
@@ -81,6 +85,28 @@ describe("applyPatches", () => {
 			const patch = {op: "add", path: ["a", "b", "c"], value: 1}
 			applyPatches({}, [patch])
 		}).toThrowErrorMatchingSnapshot()
+	})
+	it("applied patches cannot be modified", () => {
+		// see also: https://github.com/immerjs/immer/issues/411
+		const s0 = {
+			items: [1]
+		}
+
+		const [s1, p1] = produceWithPatches(s0, draft => {
+			draft.items = []
+		})
+
+		const replaceValueBefore = p1[0].value.slice()
+
+		const [s2, p2] = produceWithPatches(s1, draft => {
+			draft.items.push(2)
+		})
+
+		applyPatches(s0, [...p1, ...p2])
+
+		const replaceValueAfter = p1[0].value.slice()
+
+		expect(replaceValueAfter).toStrictEqual(replaceValueBefore)
 	})
 })
 
