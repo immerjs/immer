@@ -97,7 +97,7 @@ function generateObjectPatches(state, basePath, patches, inversePatches) {
 
 // used to clone patch to ensure original patch is not modified
 const clone = obj => {
-	if (typeof obj !== "object") return obj
+	if (obj === null || typeof obj !== "object") return obj
 
 	if (Array.isArray(obj)) return obj.map(clone)
 
@@ -109,7 +109,8 @@ const clone = obj => {
 
 export const applyPatches = (draft, patches) => {
 	for (const patch of patches) {
-		const {path, op, value} = clone(patch)
+		const {path, op} = patch
+		const value = clone(patch.value)
 
 		if (!path.length) throw new Error("Illegal state")
 
