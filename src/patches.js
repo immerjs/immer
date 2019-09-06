@@ -47,7 +47,6 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 		}
 	}
 
-	const useRemove = end != base.length
 	const replaceCount = patches.length
 
 	// Process added indices.
@@ -58,20 +57,9 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 			path,
 			value: copy[i]
 		}
-		if (useRemove) {
-			inversePatches.push({
-				op: "remove",
-				path
-			})
-		}
-	}
-
-	// One "replace" patch reverses all non-splicing "add" patches.
-	if (!useRemove) {
 		inversePatches.push({
-			op: "replace",
-			path: basePath.concat(["length"]),
-			value: base.length
+			op: "remove",
+			path
 		})
 	}
 }

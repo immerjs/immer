@@ -249,9 +249,10 @@ describe("arrays - modify and shrink", () => {
 			d.x[0] = 4
 			d.x.length = 2
 		},
+		[{op: "replace", path: ["x", 0], value: 4}, {op: "remove", path: ["x", 2]}],
 		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", "length"], value: 2}
+			{op: "replace", path: ["x", 0], value: 1},
+			{op: "add", path: ["x", 2], value: 3}
 		]
 	)
 })
@@ -290,7 +291,7 @@ describe("arrays - truncate", () => {
 		d => {
 			d.x.length -= 2
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}],
+		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}],
 		[
 			{op: "add", path: ["x", 1], value: 2},
 			{op: "add", path: ["x", 2], value: 3}
@@ -305,7 +306,7 @@ describe("arrays - pop twice", () => {
 			d.x.pop()
 			d.x.pop()
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}]
+		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}]
 	)
 })
 
@@ -319,7 +320,7 @@ describe("arrays - push multiple", () => {
 			{op: "add", path: ["x", 3], value: 4},
 			{op: "add", path: ["x", 4], value: 5}
 		],
-		[{op: "replace", path: ["x", "length"], value: 3}]
+		[{op: "remove", path: ["x", 4]}, {op: "remove", path: ["x", 3]}]
 	)
 })
 
@@ -358,6 +359,28 @@ describe("arrays - splice (shrink)", () => {
 			{op: "add", path: ["x", 2], value: 3},
 			{op: "add", path: ["x", 3], value: 4}
 		]
+	)
+})
+
+describe("arrays - splice should should result in remove op.", () => {
+	runPatchTest(
+		[1, 2],
+		d => {
+			d.splice(1, 1)
+		},
+		[{op: "remove", path: [1]}],
+		[{op: "add", path: [1], value: 2}]
+	)
+})
+
+describe("arrays - NESTED splice should should result in remove op.", () => {
+	runPatchTest(
+		{a: {b: {c: [1, 2]}}},
+		d => {
+			d.a.b.c.splice(1, 1)
+		},
+		[{op: "remove", path: ["a", "b", "c", 1]}],
+		[{op: "add", path: ["a", "b", "c", 1], value: 2}]
 	)
 })
 
