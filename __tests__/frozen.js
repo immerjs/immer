@@ -50,21 +50,63 @@ function runTests(name, useProxies) {
 				expect(isFrozen(next)).toBeTruthy()
 				expect(isFrozen(next.a)).toBeTruthy()
 			})
+
+			it("a new object replaces a primitive base", () => {
+				const obj = {a: {}}
+				const next = produce(null, () => obj)
+				expect(next).toBe(obj)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+			})
+
+			it("a new object replaces the entire draft", () => {
+				const obj = {a: {b: {}}}
+				const next = produce({}, () => obj)
+				expect(next).toBe(obj)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+				expect(isFrozen(next.a.b)).toBeTruthy()
+			})
+
+			it("a new object is added to the root draft", () => {
+				const base = {}
+				const next = produce(base, draft => {
+					draft.a = {b: []}
+				})
+				expect(next).not.toBe(base)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+				expect(isFrozen(next.b)).toBeTruthy()
+			})
+
+			it("a new object is added to a nested draft", () => {
+				const base = {a: {}}
+				const next = produce(base, draft => {
+					draft.a.b = {c: {}}
+				})
+				expect(next).not.toBe(base)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+				expect(isFrozen(next.a.b)).toBeTruthy()
+				expect(isFrozen(next.a.b.c)).toBeTruthy()
+			})
 		})
 
 		describe("the result is never auto-frozen when", () => {
 			it("the producer is a no-op", () => {
-				const base = {}
+				const base = {a: {}}
 				const next = produce(base, () => {})
 				expect(next).toBe(base)
 				expect(isFrozen(next)).toBeFalsy()
+				expect(isFrozen(next.a)).toBeFalsy()
 			})
 
 			it("the root draft is returned", () => {
-				const base = {}
+				const base = {a: {}}
 				const next = produce(base, draft => draft)
 				expect(next).toBe(base)
 				expect(isFrozen(next)).toBeFalsy()
+				expect(isFrozen(next.a)).toBeFalsy()
 			})
 
 			it("a nested draft is returned", () => {
@@ -79,43 +121,6 @@ function runTests(name, useProxies) {
 				const next = produce(base, () => base)
 				expect(next).toBe(base)
 				expect(isFrozen(next)).toBeFalsy()
-			})
-
-			it("a new object replaces a primitive base", () => {
-				const obj = {}
-				const next = produce(null, () => obj)
-				expect(next).toBe(obj)
-				expect(isFrozen(next)).toBeFalsy()
-			})
-
-			it("a new object replaces the entire draft", () => {
-				const obj = {a: {b: {}}}
-				const next = produce({}, () => obj)
-				expect(next).toBe(obj)
-				expect(isFrozen(next)).toBeFalsy()
-				expect(isFrozen(next.a)).toBeFalsy()
-				expect(isFrozen(next.a.b)).toBeFalsy()
-			})
-
-			it("a new object is added to the root draft", () => {
-				const base = {}
-				const next = produce(base, draft => {
-					draft.a = {}
-				})
-				expect(next).not.toBe(base)
-				expect(isFrozen(next)).toBeTruthy()
-				expect(isFrozen(next.a)).toBeFalsy()
-			})
-
-			it("a new object is added to a nested draft", () => {
-				const base = {a: {}}
-				const next = produce(base, draft => {
-					draft.a.b = {}
-				})
-				expect(next).not.toBe(base)
-				expect(isFrozen(next)).toBeTruthy()
-				expect(isFrozen(next.a)).toBeTruthy()
-				expect(isFrozen(next.a.b)).toBeFalsy()
 			})
 		})
 
