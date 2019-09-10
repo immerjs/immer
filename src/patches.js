@@ -1,4 +1,4 @@
-import {each} from "./common"
+import {each, clone} from "./common"
 import {createDraft} from "./immer"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
@@ -95,22 +95,10 @@ function generateObjectPatches(state, basePath, patches, inversePatches) {
 	})
 }
 
-// used to clone patch to ensure original patch is not modified
-const clone = obj => {
-	if (obj === null || typeof obj !== "object") return obj
-
-	if (Array.isArray(obj)) return obj.map(clone)
-
-	const cloned = {}
-	for (const key in obj) cloned[key] = clone(obj[key])
-
-	return cloned
-}
-
 export const applyPatches = (draft, patches) => {
 	for (const patch of patches) {
 		const {path, op} = patch
-		const value = clone(patch.value)
+		const value = clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 
 		if (!path.length) throw new Error("Illegal state")
 

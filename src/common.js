@@ -18,11 +18,17 @@ export function isDraft(value) {
 }
 
 export function isDraftable(value) {
+	if (!value) return false
+	return (
+		isPlainObject(value) || !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
+	)
+}
+
+export function isPlainObject(value) {
 	if (!value || typeof value !== "object") return false
 	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
-	if (!proto || proto === Object.prototype) return true
-	return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
+	return !proto || proto === Object.prototype
 }
 
 export function original(value) {
@@ -105,4 +111,12 @@ export function is(x, y) {
 	} else {
 		return x !== x && y !== y
 	}
+}
+
+export function clone(obj) {
+	if (!isDraftable(obj)) return obj
+	if (Array.isArray(obj)) return obj.map(clone)
+	const cloned = Object.create(Object.getPrototypeOf(obj))
+	for (const key in obj) cloned[key] = clone(obj[key])
+	return cloned
 }
