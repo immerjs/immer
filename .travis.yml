@@ -1,28 +1,28 @@
 language: node_js
 node_js:
-    - "8"
-    - "10"
-    - "node"
+  - "8"
+  - "10"
+  - "node"
 env:
-    - NODE_ENV=TEST
+  - NODE_ENV=TEST
 cache:
-    yarn: true
-    directories:
-        - "node_modules"
+  yarn: true
+  directories:
+    - "node_modules"
 before_script:
-    - yarn global add if-node-version
+  - yarn global add if-node-version
 script:
-    - yarn build || travis_terminate 1
-    - if-node-version 10 || { yarn test && travis_terminate 0; }
-    - yarn coveralls
-    - yarn test:flow
-    - yarn test:dts
+  - yarn build || travis_terminate 1
+  - if-node-version 10 || { yarn test && travis_terminate 0; }
+  - yarn coveralls
+  - yarn test:flow
+  - yarn test:dts
 jobs:
-    include:
-        - stage: deploy
-          if: branch == master && !fork
-          node_js: "8.9.1" # pre-installed version
-          script:
-              - yarn build
-              - yarn global add semantic-release@^15
-              - semantic-release
+  include:
+    - stage: deploy
+      if: branch == master && !fork
+      node_js: "8.12.0" # pre-installed version
+      script:
+        - yarn build
+        - yarn global add semantic-release@^15
+        - semantic-release
