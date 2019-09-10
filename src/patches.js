@@ -95,29 +95,46 @@ function generateObjectPatches(state, basePath, patches, inversePatches) {
 	})
 }
 
-export function applyPatches(draft, patches) {
-	// First, find a patch that replaces the entire state, if found, we don't have to apply earlier patches and modify the state
-	for (let i = 0; i < patches.length; i++) {
-		const patch = patches[i]
-		const {path} = patch
+// used to clone patch to ensure original patch is not modified
+const clone = obj => {
+	if (obj === null || typeof obj !== "object") return obj
+
+	if (Array.isArray(obj)) return obj.map(clone)
+
+	const cloned = {}
+	for (const key in obj) cloned[key] = clone(obj[key])
+
+	return cloned
+}
+
+export const applyPatches = (draft, patches) => {
+	for (const patch of patches) {
+		const {path, op} = patch
+		const value = clone(patch.value)
+
 		if (!path.length) throw new Error("Illegal state")
+
 		let base = draft
 		for (let i = 0; i < path.length - 1; i++) {
 			base = base[path[i]]
 			if (!base || typeof base !== "object")
-					throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
+				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
 		}
+
 		const key = path[path.length - 1]
-		switch (patch.op) {
+		switch (op) {
 			case "replace":
-				base[key] = patch.value
+				// if value is an object, then it's assigned by reference
+				// in the following add or remove ops, the value field inside the patch will also be modifyed
+				// so we use value from the cloned patch
+				base[key] = value
 				break
 			case "add":
 				if (Array.isArray(base)) {
 					// TODO: support "foo/-" paths for appending to an array
-					base.splice(key, 0, patch.value)
+					base.splice(key, 0, value)
 				} else {
-					base[key] = patch.value
+					base[key] = value
 				}
 				break
 			case "remove":
@@ -128,8 +145,9 @@ export function applyPatches(draft, patches) {
 				}
 				break
 			default:
-				throw new Error("Unsupported patch operation: " + patch.op)
+				throw new Error("Unsupported patch operation: " + op)
 		}
 	}
+
 	return draft
 }
