@@ -122,10 +122,8 @@ export function clone(obj) {
 }
 
 export function deepFreeze(obj) {
-	if (!isDraftable(obj)) return
-	if (Object.isFrozen(obj)) return
-	if (isDraft(obj)) return
+	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
 	Object.freeze(obj)
 	if (Array.isArray(obj)) obj.forEach(deepFreeze)
-	for (const key in obj) deepFreeze(obj[key])
+	else for (const key in obj) deepFreeze(obj[key])
 }

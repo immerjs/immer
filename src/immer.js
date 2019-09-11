@@ -304,7 +304,6 @@ export class Immer {
 			// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 			else if (isDraftable(value) && !Object.isFrozen(value)) {
 				each(value, finalizeProperty)
-				// for externally incoming object trees, we wan't to make sure they're frozen automatically
 				this.maybeFreeze(value)
 			}
 
