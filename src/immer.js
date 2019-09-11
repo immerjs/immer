@@ -11,7 +11,8 @@ import {
 	isEnumerable,
 	shallowCopy,
 	DRAFT_STATE,
-	NOTHING
+	NOTHING,
+	deepFreeze
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -87,8 +88,10 @@ export class Immer {
 			return this.processResult(result, scope)
 		} else {
 			result = recipe(base)
-			if (result === undefined) return base
-			return result !== NOTHING ? result : undefined
+			if (result === NOTHING) return undefined
+			if (result === undefined) result = base
+			this.maybeFreeze(result, true)
+			return result
 		}
 	}
 	produceWithPatches(arg1, arg2, arg3) {
@@ -170,6 +173,7 @@ export class Immer {
 			if (isDraftable(result)) {
 				// Finalize the result in case it contains (or is) a subset of the draft.
 				result = this.finalize(result, null, scope)
+				this.maybeFreeze(result)
 			}
 			if (scope.patches) {
 				scope.patches.push({
@@ -209,6 +213,7 @@ export class Immer {
 			return draft
 		}
 		if (!state.modified) {
+			this.maybeFreeze(state.base, true)
 			return state.base
 		}
 		if (!state.finalized) {
@@ -299,6 +304,8 @@ export class Immer {
 			// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 			else if (isDraftable(value) && !Object.isFrozen(value)) {
 				each(value, finalizeProperty)
+				// for externally incoming object trees, we wan't to make sure they're frozen automatically
+				this.maybeFreeze(value)
 			}
 
 			if (isDraftProp && this.onAssign) {
@@ -308,5 +315,11 @@ export class Immer {
 
 		each(root, finalizeProperty)
 		return root
+	}
+	maybeFreeze(value, deep = false) {
+		if (this.autoFreeze && !isDraft(value)) {
+			if (deep) deepFreeze(value)
+			else Object.freeze(value)
+		}
 	}
 }

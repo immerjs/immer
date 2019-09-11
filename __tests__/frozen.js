@@ -51,14 +51,6 @@ function runTests(name, useProxies) {
 				expect(isFrozen(next.a)).toBeTruthy()
 			})
 
-			it("a new object replaces a primitive base", () => {
-				const obj = {a: {}}
-				const next = produce(null, () => obj)
-				expect(next).toBe(obj)
-				expect(isFrozen(next)).toBeTruthy()
-				expect(isFrozen(next.a)).toBeTruthy()
-			})
-
 			it("a new object replaces the entire draft", () => {
 				const obj = {a: {b: {}}}
 				const next = produce({}, () => obj)
@@ -90,37 +82,43 @@ function runTests(name, useProxies) {
 				expect(isFrozen(next.a.b)).toBeTruthy()
 				expect(isFrozen(next.a.b.c)).toBeTruthy()
 			})
-		})
-
-		describe("the result is never auto-frozen when", () => {
-			it("the producer is a no-op", () => {
-				const base = {a: {}}
-				const next = produce(base, () => {})
-				expect(next).toBe(base)
-				expect(isFrozen(next)).toBeFalsy()
-				expect(isFrozen(next.a)).toBeFalsy()
-			})
-
-			it("the root draft is returned", () => {
-				const base = {a: {}}
-				const next = produce(base, draft => draft)
-				expect(next).toBe(base)
-				expect(isFrozen(next)).toBeFalsy()
-				expect(isFrozen(next.a)).toBeFalsy()
-			})
 
 			it("a nested draft is returned", () => {
 				const base = {a: {}}
 				const next = produce(base, draft => draft.a)
 				expect(next).toBe(base.a)
-				expect(isFrozen(next)).toBeFalsy()
+				expect(isFrozen(next)).toBeTruthy()
 			})
 
 			it("the base state is returned", () => {
 				const base = {}
 				const next = produce(base, () => base)
 				expect(next).toBe(base)
-				expect(isFrozen(next)).toBeFalsy()
+				expect(isFrozen(next)).toBeTruthy()
+			})
+
+			it("the producer is a no-op", () => {
+				const base = {a: {}}
+				const next = produce(base, () => {})
+				expect(next).toBe(base)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+			})
+
+			it("the root draft is returned", () => {
+				const base = {a: {}}
+				const next = produce(base, draft => draft)
+				expect(next).toBe(base)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+			})
+
+			it("a new object replaces a primitive base", () => {
+				const obj = {a: {}}
+				const next = produce(null, () => obj)
+				expect(next).toBe(obj)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
 			})
 		})
 
