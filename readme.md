@@ -833,3 +833,5 @@ Special thanks to @Mendix, which supports its employees to experiment completely
 ## Donations
 
 A significant part of my OSS work is unpaid. So [donations](https://mobx.js.org/donate.html) are greatly appreciated :)
+
+.
