@@ -3,30 +3,17 @@
 	"localized-strings": {
 		"next": "Next",
 		"previous": "Previous",
-		"tagline": "A website for testing",
+		"tagline": "Create the next immutable state by mutating the current one",
 		"docs": {
 			"doc1": {
 				"title": "Latin-ish",
 				"sidebar_label": "Example Page"
-			},
-			"doc2": {
-				"title": "document number 2"
-			},
-			"doc3": {
-				"title": "This is document number 3"
-			},
-			"doc4": {
-				"title": "Other Document"
-			},
-			"doc5": {
-				"title": "Fifth Document"
 			}
 		},
 		"links": {
 			"Docs": "Docs",
 			"API": "API",
-			"Help": "Help",
-			"Blog": "Blog"
+			"Help": "Help"
 		},
 		"categories": {
 			"Docusaurus": "Docusaurus",
