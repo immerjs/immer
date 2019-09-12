@@ -13,6 +13,8 @@ const siteConfig = {
 	tagline: "Create the next immutable state by mutating the current one",
 	url: "https://immerjs.github.io", // Your website URL
 	baseUrl: "/immer/", // Base URL for your project */
+	editUrl: "https://github.com/immerjs/immer/edit/master/docs/",
+	noIndex: true,
 	// For github.io type URLs, you would set the url and baseUrl like:
 	//   url: 'https://facebook.github.io',
 	//   baseUrl: '/test-site/',
@@ -20,6 +22,7 @@ const siteConfig = {
 	// Used for publishing and more
 	projectName: "immer",
 	organizationName: "immerjs",
+	gaTrackingId: "UA-65632006-3",
 	// For top-level user or org sites, the organization is still the same.
 	// e.g., for the https://JoelMarcey.github.io site, it would be set like...
 	//   organizationName: 'JoelMarcey'
@@ -61,7 +64,10 @@ const siteConfig = {
 	},
 
 	// Add custom scripts here that would be placed in <script> tags.
-	scripts: ["https://buttons.github.io/buttons.js"],
+	scripts: [
+		"https://buttons.github.io/buttons.js",
+		"https://codefund.io/properties/439/funder.js"
+	],
 
 	// On page navigation for the current documentation page.
 	onPageNav: "separate",

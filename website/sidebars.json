@@ -1,10 +1,7 @@
 {
-	"docs": {
-		"Docusaurus": ["doc1"],
-		"First Category": ["doc2"],
-		"Second Category": ["doc3"]
-	},
-	"docs-other": {
-		"First Category": ["doc4", "doc5"]
+	"Immer": {
+		"Basics": ["introduction", "installation", "produce", "curried-produce", "api", "example-reducer", "example-setstate"],
+		"Advanced Features": ["return", "patches", "freezing", "original", "async", "complex-objects"],
+		"Reources": ["resources", "faq", "pitfalls", "built-with", "sponsor"]
 	}
 }

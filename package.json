@@ -18,7 +18,8 @@
 		"watch": "jest --watch",
 		"coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
 		"build": "rimraf dist/ && yarn-or-npm bili && yarn-or-npm typed",
-		"typed": "cpx 'src/immer.{d.ts,js.flow}' dist -v"
+		"typed": "cpx 'src/immer.{d.ts,js.flow}' dist -v",
+		"publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages"
 	},
 	"husky": {
 		"hooks": {

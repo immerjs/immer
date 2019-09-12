@@ -14,3 +14,11 @@
 
 @media only screen and (min-width: 1500px) {
 }
+
+a {
+	color: #c200c2;
+}
+
+a:hover {
+	text-decoration: underline;
+}
