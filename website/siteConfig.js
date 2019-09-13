@@ -28,7 +28,14 @@ const siteConfig = {
 	//   organizationName: 'JoelMarcey'
 
 	// For no header links in the top nav bar -> headerLinks: [],
-	headerLinks: [{doc: "doc1", label: "Docs"}, {page: "help", label: "Help"}],
+	headerLinks: [
+		{
+			doc: "introduction",
+			label: "Documentation"
+		},
+		{href: "https://github.com/immerjs/immer", label: "GitHub"},
+		{doc: "support", label: "Support Immer"}
+	],
 
 	/* path to images for header/footer */
 	headerIcon: "img/favicon.ico",

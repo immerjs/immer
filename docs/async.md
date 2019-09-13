@@ -1,7 +1,7 @@
 ---
 id: async
 title: Async producers & createDraft / finishDraft
-sidebar_label: async / createDraft
+sidebar_label: Async produce / createDraft
 ---
 
 <div id="codefund"><!-- fallback content --></div>

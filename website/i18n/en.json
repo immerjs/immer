@@ -21,10 +21,6 @@
 			"curried-produce": {
 				"title": "Curried producers"
 			},
-			"doc1": {
-				"title": "Latin-ish",
-				"sidebar_label": "Example Page"
-			},
 			"example-reducer": {
 				"title": "Example Reducer"
 			},
@@ -76,13 +72,14 @@
 			}
 		},
 		"links": {
-			"Docs": "Docs",
-			"Help": "Help"
+			"Documentation": "Documentation",
+			"GitHub": "GitHub",
+			"Support Immer": "Support Immer"
 		},
 		"categories": {
 			"Basics": "Basics",
 			"Advanced Features": "Advanced Features",
-			"Reources": "Reources"
+			"Resources": "Resources"
 		}
 	},
 	"pages-strings": {

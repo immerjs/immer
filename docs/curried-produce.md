@@ -58,18 +58,3 @@ const byId = produce(
 	}
 )
 ```
-
-##### Fun with currying
-
-A random fun example just for inspiration: a neat trick is to turn `Object.assign` into a producer to create a "spread" function that is smarter than the normal spread operator, as it doesn't produce a new state if the result doesn't actually change ([details & explanation](https://twitter.com/mweststrate/status/1045059430256119809)). Quick example:
-
-```javascript
-import produce from "immer"
-const spread = produce(Object.assign)
-
-const base = {x: 1, y: 1}
-
-console.log({...base, y: 1} === base) // false
-console.log(spread(base, {y: 1}) === base) // true! base is recycled as no actual new value was produced
-console.log(spread(base, {y: 2}) === base)`` // false, produced a new object as it should
-```

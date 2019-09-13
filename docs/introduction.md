@@ -25,9 +25,7 @@ The basic idea is that you will apply all your changes to a temporary _draftStat
 
 Using Immer is like having a personal assistant; he takes a letter (the current state) and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
-A mindful reader might notice that this is quite similar to `withMutations` of ImmutableJS. It is indeed, but generalized and applied to plain, native JavaScript data structures (arrays and objects) without further needing any library.
-
-## Example
+## Quick Example
 
 ```javascript
 import produce from "immer"
@@ -49,7 +47,7 @@ const nextState = produce(baseState, draftState => {
 })
 ```
 
-The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will reflect all changes made to `draftState`.
+The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will a new immutable tree that reflects all changes made to `draftState` (and strucurally sharing the things that weren't changed).
 
 Head to the [next section](produce) to further dive into `produce`.
 

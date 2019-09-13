@@ -8,8 +8,10 @@ _Create the next immutable state tree by simply modifying the current tree_
 
 Winner of the "Breakthrough of the year" [React open source award](https://osawards.com/react/) and "Most impactful contribution" [JavaScript open source award](https://osawards.com/javascript/) in 2019
 
+# Documentation
+
+Can now be found on https://immerjs.github.io/immer/
+
 ### [Release notes](https://github.com/immerjs/immer/releases)
 
 Did Immer make a difference to your project? Consider buying me a coffee!<br/><a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-
----

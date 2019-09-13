@@ -5,13 +5,13 @@ title: Immer performance
 
 <div id="codefund"><!-- fallback content --></div>
 
-Here is a [simple benchmark](__performance_tests__/todo.js) on the performance of Immer. This test takes 50,000 todo items and updates 5,000 of them. _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
+Here is a [simple benchmark](https://github.com/immerjs/immer/blob/master/__performance_tests__/todo.js) on the performance of Immer. This test takes 50,000 todo items and updates 5,000 of them. _Freeze_ indicates that the state tree has been frozen after producing it. This is a _development_ best practice, as it prevents developers from accidentally modifying the state tree.
 
 Something that isn't reflected in the numbers above, but in reality, Immer is sometimes significantly _faster_ than a hand written reducer. The reason for that is that Immer will detect "no-op" state changes, and return the original state if nothing actually changed, which can avoid a lot of re-renderings for example. Cases are known where simply applying immer solved critical performance issues.
 
 These tests were executed on Node 10.15.1. Use `yarn test:perf` to reproduce them locally.
 
-![performance.png](images/performance.png)
+![performance.png](/immer/img/performance.png)
 
 Most important observation:
 
