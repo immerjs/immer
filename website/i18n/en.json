@@ -10,7 +10,7 @@
 			},
 			"async": {
 				"title": "Async producers & createDraft / finishDraft",
-				"sidebar_label": "async / createDraft"
+				"sidebar_label": "Async produce / createDraft"
 			},
 			"built-with": {
 				"title": "Built with Immer"
