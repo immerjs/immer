@@ -34,6 +34,7 @@ const byId = produce((draft, action) => {
 			action.products.forEach(product => {
 				draft[product.id] = product
 			})
+			break;
 	}
 })
 ```
