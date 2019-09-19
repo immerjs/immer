@@ -47,7 +47,7 @@ const nextState = produce(baseState, draftState => {
 })
 ```
 
-The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will a new immutable tree that reflects all changes made to `draftState` (and strucurally sharing the things that weren't changed).
+The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will be a new immutable tree that reflects all changes made to `draftState` (and structurally sharing the things that weren't changed).
 
 Head to the [next section](produce) to further dive into `produce`.
 
