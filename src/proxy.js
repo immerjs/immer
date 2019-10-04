@@ -9,10 +9,13 @@ import {
     isMap,
     isSet,
     shallowCopy,
+    makeIterable,
     DRAFT_STATE,
     assignMap,
     assignSet,
-    original
+    original,
+    iterateMapValues,
+    makeIterateSetValues
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -255,23 +258,7 @@ const mapTraps = makeTrapsForGetters({
     [Symbol.iterator]: iterateMapValues
 })
 
-/** Map.prototype.values _-or-_ Map.prototype.entries */
-function iterateMapValues(state, prop, receiver) {
-    const isEntries = prop !== "values"
-    return () => {
-        const iterator = latest(state)[Symbol.iterator]()
-        return makeIterable(() => {
-            const result = iterator.next()
-            if (!result.done) {
-                const [key] = result.value
-                const value = receiver.get(key)
-                result.value = isEntries ? [key, value] : value
-            }
-            return result
-        })
-    }
-}
-
+const iterateSetValues = makeIterateSetValues(createProxy)
 /**
  * Set drafts
  */
@@ -308,37 +295,6 @@ const setTraps = makeTrapsForGetters({
     entries: iterateSetValues,
     [Symbol.iterator]: iterateSetValues
 })
-
-function iterateSetValues(state, prop) {
-    const isEntries = prop === "entries"
-    return () => {
-        const iterator = latest(state)[Symbol.iterator]()
-        return makeIterable(() => {
-            const result = iterator.next()
-            if (!result.done) {
-                const value = wrapSetValue(state, result.value)
-                result.value = isEntries ? [value, value] : value
-            }
-            return result
-        })
-    }
-}
-
-function wrapSetValue(state, value) {
-    const key = original(value) || value
-    let draft = state.drafts.get(key)
-    if (!draft) {
-        if (state.finalized || !isDraftable(value)) {
-            return value
-        }
-        draft = createProxy(value, state)
-        state.drafts.set(key, draft)
-        if (state.modified) {
-            state.copy.add(draft)
-        }
-    }
-    return draft
-}
 
 /**
  * Helpers
@@ -382,14 +338,6 @@ function markChanged(state) {
             markChanged(parent)
         }
     }
-}
-
-function makeIterable(next) {
-    let self
-    return (self = {
-        [Symbol.iterator]: () => self,
-        next
-    })
 }
 
 /** Create traps that all use the `Reflect` API on the `latest(state)` */
