@@ -19,7 +19,10 @@ import {ImmerScope} from "./scope"
 function verifyMinified() {}
 
 const configDefaults = {
-	useProxies: typeof Proxy !== "undefined" && typeof Reflect !== "undefined",
+	useProxies:
+		typeof Proxy !== "undefined" &&
+		typeof Proxy.revocable !== "undefined" &&
+		typeof Reflect !== "undefined",
 	autoFreeze:
 		typeof process !== "undefined"
 			? process.env.NODE_ENV !== "production"
