@@ -6,7 +6,7 @@ import {
 	is,
 	isDraftable,
 	isDraft,
-	ownKeys
+	ownKeys,
 	shallowCopy,
 	DRAFT_STATE
 } from "./common"
