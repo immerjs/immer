@@ -6,6 +6,7 @@ import {
 	is,
 	isDraftable,
 	isDraft,
+	ownKeys
 	shallowCopy,
 	DRAFT_STATE
 } from "./common"
@@ -130,6 +131,10 @@ function get(state, prop) {
 		// Store drafts on the copy (when one exists).
 		drafts = state.copy
 	}
+	
+	if (!ownKeys(state.base).includes(prop)) {
+    	        return value
+        } 
 
 	return (drafts[prop] = createProxy(value, state))
 }
