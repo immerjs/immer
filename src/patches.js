@@ -1,5 +1,4 @@
 import {each, clone} from "./common"
-import {createDraft} from "./immer"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
 	Array.isArray(state.base)
