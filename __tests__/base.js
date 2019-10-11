@@ -1185,6 +1185,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(state.bar).toEqual({ baz: 1 })
 			const newState2 = state.syncFoo()
 			expect(newState2.foo).toEqual(1)
+			expect(newState2.bar).toEqual({baz: 1})
 		})
 		
 	});
