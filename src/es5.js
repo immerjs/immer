@@ -54,7 +54,7 @@ export function createProxy(base, parent) {
         modified: false,
         finalizing: false, // es5 only
         finalized: false,
-        assigned: {},
+        assigned: isMap(base) ? new Map() : {},
         parent,
         base,
         draft,
@@ -171,6 +171,39 @@ function proxyMap(target) {
 
 const mapTraps = finalizeTraps({
     size: state => latest(state).size,
+    has: state => key => latest(state).has(key),
+    set: state => (key, value) => {
+        if (latest(state).get(key) !== value) {
+            prepareCopy(state)
+            markChanged(state)
+            state.assigned.set(key, true)
+            state.copy.set(key, value)
+        }
+        return state.draft
+    },
+    delete: state => key => {
+        prepareCopy(state)
+        markChanged(state)
+        state.assigned.set(key, false)
+        state.copy.delete(key)
+        return false
+    },
+    clear: state => () => {
+        if (!state.copy) {
+            prepareCopy(state)
+        }
+        markChanged(state)
+        state.assigned = new Map()
+        for (const key of latest(state).keys()) {
+            state.assigned.set(key, false)
+        }
+        return state.copy.clear()
+    },
+    forEach: (state, key, reciever) => cb => {
+        latest(state).forEach((value, key, map) => {
+            cb(reciever.get(key), key, map)
+        })
+    },
     get: state => key => {
         const value = latest(state).get(key)
 
@@ -186,38 +219,7 @@ const mapTraps = finalizeTraps({
         state.copy.set(key, draft)
         return draft
     },
-    set: state => (key, value) => {
-        if (latest(state).get(key) !== value) {
-            prepareCopy(state)
-            markChanged(state)
-            state.copy.set(key, value)
-        }
-        return state.draft
-    },
-    delete: state => key => {
-        prepareCopy(state)
-        markChanged(state)
-        state.copy.delete(key)
-        return false
-    },
-    clear: state => () => {
-        if (!state.copy) {
-            prepareCopy(state)
-        }
-        markChanged(state)
-        return state.copy.clear()
-    },
-    has: state => key => {
-        return latest(state).has(key)
-    },
-    forEach: (state, key, reciever) => cb => {
-        latest(state).forEach((value, key, map) => {
-            cb(reciever.get(key), key, map)
-        })
-    },
-    keys: state => () => {
-        return latest(state).keys()
-    },
+    keys: state => () => latest(state).keys(),
     values: iterateMapValues,
     entries: iterateMapValues
 })
