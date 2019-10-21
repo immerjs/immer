@@ -29,12 +29,12 @@ function runPatchTest(base, producer, patches, inversePathes) {
     }
 
     describe(`proxy`, () => {
-        beforeAll(() => setUseProxies(true))
+        setUseProxies(true)
         runPatchTestHelper()
     })
 
     describe(`es5`, () => {
-        beforeAll(() => setUseProxies(false))
+        setUseProxies(false)
         runPatchTestHelper()
     })
 }
