@@ -6,14 +6,15 @@ import {
     isDraft,
     isDraftable,
     isEnumerable,
+    isMap,
+    isSet,
     shallowCopy,
-    DRAFT_STATE
+    DRAFT_STATE,
+    iterateMapValues,
+    makeIterable,
+    makeIterateSetValues
 } from "./common"
 import {ImmerScope} from "./scope"
-
-// property descriptors are recycled to make sure we don't create a get and set closure per property,
-// but share them all instead
-const descriptors = {}
 
 export function willFinalize(scope, result, isReplaced) {
     scope.drafts.forEach(draft => {
@@ -35,9 +36,16 @@ export function willFinalize(scope, result, isReplaced) {
 export function createProxy(base, parent) {
     const isArray = Array.isArray(base)
     const draft = clonePotentialDraft(base)
-    each(draft, prop => {
-        proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
-    })
+
+    if (isMap(base)) {
+        proxyMap(draft)
+    } else if (isSet(base)) {
+        proxySet(draft)
+    } else {
+        each(draft, prop => {
+            proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
+        })
+    }
 
     // See "proxy.js" for property documentation.
     const scope = parent ? parent.scope : ImmerScope.current
@@ -46,10 +54,11 @@ export function createProxy(base, parent) {
         modified: false,
         finalizing: false, // es5 only
         finalized: false,
-        assigned: {},
+        assigned: isMap(base) ? new Map() : {},
         parent,
         base,
         draft,
+        drafts: isSet(base) ? new Map() : null,
         copy: null,
         revoke,
         revoked: false // es5 only
@@ -125,6 +134,10 @@ function clonePotentialDraft(base) {
     return shallowCopy(base)
 }
 
+// property descriptors are recycled to make sure we don't create a get and set closure per property,
+// but share them all instead
+const descriptors = {}
+
 function proxyProperty(draft, prop, enumerable) {
     let desc = descriptors[prop]
     if (desc) {
@@ -142,6 +155,161 @@ function proxyProperty(draft, prop, enumerable) {
         }
     }
     Object.defineProperty(draft, prop, desc)
+}
+
+function proxyMap(target) {
+    Object.defineProperties(target, mapTraps)
+
+    if (typeof Symbol !== undefined) {
+        Object.defineProperty(
+            target,
+            Symbol.iterator,
+            proxyMethod(iterateMapValues)
+        )
+    }
+}
+
+const mapTraps = finalizeTraps({
+    size: state => latest(state).size,
+    has: state => key => latest(state).has(key),
+    set: state => (key, value) => {
+        if (latest(state).get(key) !== value) {
+            prepareCopy(state)
+            markChanged(state)
+            state.assigned.set(key, true)
+            state.copy.set(key, value)
+        }
+        return state.draft
+    },
+    delete: state => key => {
+        prepareCopy(state)
+        markChanged(state)
+        state.assigned.set(key, false)
+        state.copy.delete(key)
+        return false
+    },
+    clear: state => () => {
+        if (!state.copy) {
+            prepareCopy(state)
+        }
+        markChanged(state)
+        state.assigned = new Map()
+        for (const key of latest(state).keys()) {
+            state.assigned.set(key, false)
+        }
+        return state.copy.clear()
+    },
+    forEach: (state, key, reciever) => cb => {
+        latest(state).forEach((value, key, map) => {
+            cb(reciever.get(key), key, map)
+        })
+    },
+    get: state => key => {
+        const value = latest(state).get(key)
+
+        if (state.finalizing || state.finalized || !isDraftable(value)) {
+            return value
+        }
+
+        if (value !== state.base.get(key)) {
+            return value
+        }
+        const draft = createProxy(value, state)
+        prepareCopy(state)
+        state.copy.set(key, draft)
+        return draft
+    },
+    keys: state => () => latest(state).keys(),
+    values: iterateMapValues,
+    entries: iterateMapValues
+})
+
+function proxySet(target) {
+    Object.defineProperties(target, setTraps)
+
+    if (typeof Symbol !== undefined) {
+        Object.defineProperty(
+            target,
+            Symbol.iterator,
+            proxyMethod(iterateSetValues)
+        )
+    }
+}
+
+const iterateSetValues = makeIterateSetValues(createProxy)
+
+const setTraps = finalizeTraps({
+    size: state => {
+        return latest(state).size
+    },
+    add: state => value => {
+        if (!latest(state).has(value)) {
+            markChanged(state)
+            if (!state.copy) {
+                prepareCopy(state)
+            }
+            state.copy.add(value)
+        }
+        return state.draft
+    },
+    delete: state => value => {
+        markChanged(state)
+        if (!state.copy) {
+            prepareCopy(state)
+        }
+        return state.copy.delete(value)
+    },
+    has: state => key => {
+        return latest(state).has(key)
+    },
+    clear: state => () => {
+        markChanged(state)
+        if (!state.copy) {
+            prepareCopy(state)
+        }
+        return state.copy.clear()
+    },
+    keys: iterateSetValues,
+    entries: iterateSetValues,
+    values: iterateSetValues,
+    forEach: state => (cb, thisArg) => {
+        const iterator = iterateSetValues(state)()
+        let result = iterator.next()
+        while (!result.done) {
+            cb.call(thisArg, result.value, result.value, state.draft)
+            result = iterator.next()
+        }
+    }
+})
+
+function finalizeTraps(traps) {
+    return Object.keys(traps).reduce(function(acc, key) {
+        const builder = key === "size" ? proxyAttr : proxyMethod
+        acc[key] = builder(traps[key], key)
+        return acc
+    }, {})
+}
+
+function proxyAttr(fn) {
+    return {
+        get() {
+            const state = this[DRAFT_STATE]
+            assertUnrevoked(state)
+            return fn(state)
+        }
+    }
+}
+
+function proxyMethod(trap, key) {
+    return {
+        get() {
+            return (...args) => {
+                const state = this[DRAFT_STATE]
+                assertUnrevoked(state)
+                return trap(state, key, state.draft)(...args)
+            }
+        }
+    }
 }
 
 function assertUnrevoked(state) {
@@ -163,7 +331,13 @@ function markChangesSweep(drafts) {
         if (!state.modified) {
             if (Array.isArray(state.base)) {
                 if (hasArrayChanges(state)) markChanged(state)
-            } else if (hasObjectChanges(state)) markChanged(state)
+            } else if (isMap(state.base)) {
+                if (hasMapChanges(state)) markChanged(state)
+            } else if (isSet(state.base)) {
+                if (hasSetChanges(state)) markChanged(state)
+            } else if (hasObjectChanges(state)) {
+                markChanged(state)
+            }
         }
     }
 }
@@ -252,6 +426,38 @@ function hasArrayChanges(state) {
     if (descriptor && !descriptor.get) return true
     // For all other cases, we don't have to compare, as they would have been picked up by the index setters
     return false
+}
+
+function hasMapChanges(state) {
+    const {base, draft} = state
+
+    if (base.size !== draft.size) return true
+
+    // IE11 supports only forEach iteration
+    let hasChanges = false
+    draft.forEach(function(value, key) {
+        if (!hasChanges) {
+            hasChanges = isDraftable(value)
+                ? value.modified
+                : value !== base.get(key)
+        }
+    })
+    return hasChanges
+}
+
+function hasSetChanges(state) {
+    const {base, draft} = state
+
+    if (base.size !== draft.size) return true
+
+    // IE11 supports only forEach iteration
+    let hasChanges = false
+    draft.forEach(function(value, key) {
+        if (!hasChanges) {
+            hasChanges = isDraftable(value) ? value.modified : !base.has(key)
+        }
+    })
+    return hasChanges
 }
 
 function createHiddenProperty(target, prop, value) {

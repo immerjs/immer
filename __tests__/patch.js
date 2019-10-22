@@ -3,13 +3,7 @@ import produce, {setUseProxies, applyPatches} from "../src/index"
 
 jest.setTimeout(1000)
 
-function runPatchTest(
-    base,
-    producer,
-    patches,
-    inversePathes,
-    proxyOnly = false
-) {
+function runPatchTest(base, producer, patches, inversePathes) {
     function runPatchTestHelper() {
         let recordedPatches
         let recordedInversePatches
@@ -35,15 +29,13 @@ function runPatchTest(
     }
 
     describe(`proxy`, () => {
-        beforeAll(() => setUseProxies(true))
+        setUseProxies(true)
         runPatchTestHelper()
     })
 
     describe(`es5`, () => {
-        if (!proxyOnly) {
-            beforeAll(() => setUseProxies(false))
-            runPatchTestHelper()
-        }
+        setUseProxies(false)
+        runPatchTestHelper()
     })
 }
 
@@ -124,8 +116,7 @@ describe("simple assignment - 4", () => {
             d.get("x").y++
         },
         [{op: "replace", path: ["x", "y"], value: 5}],
-        [{op: "replace", path: ["x", "y"], value: 4}],
-        true
+        [{op: "replace", path: ["x", "y"], value: 4}]
     )
 })
 
@@ -136,8 +127,7 @@ describe("simple assignment - 5", () => {
             d.x.set("y", 5)
         },
         [{op: "replace", path: ["x", "y"], value: 5}],
-        [{op: "replace", path: ["x", "y"], value: 4}],
-        true
+        [{op: "replace", path: ["x", "y"], value: 4}]
     )
 })
 
@@ -153,8 +143,7 @@ describe("simple assignment - 6", () => {
             {op: "replace", path: ["x"], value: 2},
             {op: "add", path: ["y"], value: 3}
         ],
-        [{op: "replace", path: ["x"], value: 1}, {op: "remove", path: ["y"]}],
-        true
+        [{op: "replace", path: ["x"], value: 1}, {op: "remove", path: ["y"]}]
     )
 })
 
@@ -174,8 +163,7 @@ describe("simple assignment - 7", () => {
         [
             {op: "replace", path: ["x", key1], value: 4},
             {op: "remove", path: ["x", key2]}
-        ],
-        true
+        ]
     )
 })
 
@@ -196,8 +184,7 @@ describe("delete 2", () => {
             d.delete("x")
         },
         [{op: "remove", path: ["x"]}],
-        [{op: "add", path: ["x"], value: 1}],
-        true
+        [{op: "add", path: ["x"], value: 1}]
     )
 })
 
@@ -208,8 +195,7 @@ describe("delete 3", () => {
             d.x.delete("y")
         },
         [{op: "remove", path: ["x", "y"]}],
-        [{op: "add", path: ["x", "y"], value: 1}],
-        true
+        [{op: "add", path: ["x", "y"], value: 1}]
     )
 })
 
@@ -226,8 +212,7 @@ describe("delete 5", () => {
         [
             {op: "add", path: ["x", key1], value: 1},
             {op: "add", path: ["x", key2], value: 2}
-        ],
-        true
+        ]
     )
 })
 
@@ -238,8 +223,7 @@ describe("delete 6", () => {
             d.delete("x")
         },
         [{op: "remove", path: [0], value: "x"}],
-        [{op: "add", path: [0], value: "x"}],
-        true
+        [{op: "add", path: [0], value: "x"}]
     )
 })
 
@@ -250,8 +234,7 @@ describe("delete 7", () => {
             d.x.delete("y")
         },
         [{op: "remove", path: ["x", 0], value: "y"}],
-        [{op: "add", path: ["x", 0], value: "y"}],
-        true
+        [{op: "add", path: ["x", 0], value: "y"}]
     )
 })
 
@@ -284,8 +267,7 @@ describe("renaming properties", () => {
             [
                 {op: "remove", path: ["x"]},
                 {op: "add", path: ["a"], value: new Map([["b", 1]])}
-            ],
-            true
+            ]
         )
     })
 
@@ -329,8 +311,7 @@ describe("renaming properties", () => {
             [
                 {op: "remove", path: ["x"]},
                 {op: "add", path: ["a"], value: new Map([["b", 1], ["c", 1]])}
-            ],
-            true
+            ]
         )
     })
 
@@ -382,8 +363,7 @@ describe("renaming properties", () => {
                     path: ["a", "b"],
                     value: new Map([["c", 1], ["d", 1]])
                 }
-            ],
-            true
+            ]
         )
     })
 })
@@ -579,8 +559,7 @@ describe("sets - add - 1", () => {
             d.add(2)
         },
         [{op: "add", path: [1], value: 2}],
-        [{op: "remove", path: [1], value: 2}],
-        true
+        [{op: "remove", path: [1], value: 2}]
     )
 })
 
@@ -593,8 +572,7 @@ describe("sets - add, delete, add - 1", () => {
             d.add(2)
         },
         [{op: "add", path: [1], value: 2}],
-        [{op: "remove", path: [1], value: 2}],
-        true
+        [{op: "remove", path: [1], value: 2}]
     )
 })
 
@@ -607,8 +585,7 @@ describe("sets - add, delete, add - 2", () => {
             d.add(2)
         },
         [],
-        [],
-        true
+        []
     )
 })
 
@@ -637,8 +614,7 @@ describe("sets - mutate - 1", () => {
             {op: "remove", path: [0], value: {id: 1, val: "rock"}},
             {op: "add", path: [1], value: {id: 2, val: "will"}},
             {op: "add", path: [0], value: {id: 1, val: "We"}}
-        ],
-        true
+        ]
     )
 })
 
@@ -698,8 +674,7 @@ describe("same value replacement - 5", () => {
             d.set("x", 3)
         },
         [],
-        [],
-        true
+        []
     )
 })
 
@@ -711,8 +686,7 @@ describe("same value replacement - 6", () => {
             d.add("x")
         },
         [],
-        [],
-        true
+        []
     )
 })
 

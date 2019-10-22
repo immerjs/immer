@@ -131,10 +131,78 @@ export function is(x, y) {
     }
 }
 
+const hasMap = typeof Map !== "undefined"
+
 export function isMap(target) {
-    return target instanceof Map
+    return hasMap && target instanceof Map
 }
 
+const hasSet = typeof Set !== "undefined"
+
 export function isSet(target) {
-    return target instanceof Set
+    return hasSet && target instanceof Set
+}
+
+export function makeIterable(next) {
+    let self
+    return (self = {
+        [Symbol.iterator]: () => self,
+        next
+    })
+}
+
+/** Map.prototype.values _-or-_ Map.prototype.entries */
+export function iterateMapValues(state, prop, receiver) {
+    const isEntries = prop !== "values"
+    return () => {
+        const iterator = latest(state)[Symbol.iterator]()
+        return makeIterable(() => {
+            const result = iterator.next()
+            if (!result.done) {
+                const [key] = result.value
+                const value = receiver.get(key)
+                result.value = isEntries ? [key, value] : value
+            }
+            return result
+        })
+    }
+}
+
+export function makeIterateSetValues(createProxy) {
+    function iterateSetValues(state, prop) {
+        const isEntries = prop === "entries"
+        return () => {
+            const iterator = latest(state)[Symbol.iterator]()
+            return makeIterable(() => {
+                const result = iterator.next()
+                if (!result.done) {
+                    const value = wrapSetValue(state, result.value)
+                    result.value = isEntries ? [value, value] : value
+                }
+                return result
+            })
+        }
+    }
+
+    function wrapSetValue(state, value) {
+        const key = original(value) || value
+        let draft = state.drafts.get(key)
+        if (!draft) {
+            if (state.finalized || !isDraftable(value) || state.finalizing) {
+                return value
+            }
+            draft = createProxy(value, state)
+            state.drafts.set(key, draft)
+            if (state.modified) {
+                state.copy.add(draft)
+            }
+        }
+        return draft
+    }
+
+    return iterateSetValues
+}
+
+function latest(state) {
+    return state.copy || state.base
 }
