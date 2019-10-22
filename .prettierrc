@@ -12,7 +12,8 @@
       "files": [".prettierrc", "*.json"],
       "options": {
         "printWidth": 200,
-        "tabWidth": 2
+        "tabWidth": 2,
+        "useTabs": false
       }
     }
   ]
