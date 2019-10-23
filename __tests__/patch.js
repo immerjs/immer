@@ -1,13 +1,18 @@
 "use strict"
-import produce, {setUseProxies, applyPatches} from "../src/index"
+import produce, {
+	setUseProxies,
+	applyPatches,
+	produceWithPatches
+} from "../src/index"
 
 jest.setTimeout(1000)
 
 function runPatchTest(base, producer, patches, inversePathes) {
+	let resultProxies, resultEs5
+
 	function runPatchTestHelper() {
 		let recordedPatches
 		let recordedInversePatches
-
 		const res = produce(base, producer, (p, i) => {
 			recordedPatches = p
 			recordedInversePatches = i
@@ -25,17 +30,24 @@ function runPatchTest(base, producer, patches, inversePathes) {
 		test("patches can be reversed", () => {
 			expect(applyPatches(res, recordedInversePatches)).toEqual(base)
 		})
+
+		return res
 	}
 
 	describe(`proxy`, () => {
 		setUseProxies(true)
-		runPatchTestHelper()
+		resultProxies = runPatchTestHelper()
 	})
 
 	describe(`es5`, () => {
 		setUseProxies(false)
-		runPatchTestHelper()
+		resultEs5 = runPatchTestHelper()
+		test("ES5 and Proxy implementation yield same result", () => {
+			expect(resultEs5).toEqual(resultProxies)
+		})
 	})
+
+	return resultProxies
 }
 
 describe("applyPatches", () => {
@@ -73,6 +85,28 @@ describe("applyPatches", () => {
 			const patch = {op: "add", path: ["a", "b", "c"], value: 1}
 			applyPatches({}, [patch])
 		}).toThrowErrorMatchingSnapshot()
+	})
+	it("applied patches cannot be modified", () => {
+		// see also: https://github.com/immerjs/immer/issues/411
+		const s0 = {
+			items: [1]
+		}
+
+		const [s1, p1] = produceWithPatches(s0, draft => {
+			draft.items = []
+		})
+
+		const replaceValueBefore = p1[0].value.slice()
+
+		const [s2, p2] = produceWithPatches(s1, draft => {
+			draft.items.push(2)
+		})
+
+		applyPatches(s0, [...p1, ...p2])
+
+		const replaceValueAfter = p1[0].value.slice()
+
+		expect(replaceValueAfter).toStrictEqual(replaceValueBefore)
 	})
 })
 
@@ -434,9 +468,10 @@ describe("arrays - modify and shrink", () => {
 			d.x[0] = 4
 			d.x.length = 2
 		},
+		[{op: "replace", path: ["x", 0], value: 4}, {op: "remove", path: ["x", 2]}],
 		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", "length"], value: 2}
+			{op: "replace", path: ["x", 0], value: 1},
+			{op: "add", path: ["x", 2], value: 3}
 		]
 	)
 })
@@ -475,7 +510,7 @@ describe("arrays - truncate", () => {
 		d => {
 			d.x.length -= 2
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}],
+		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}],
 		[
 			{op: "add", path: ["x", 1], value: 2},
 			{op: "add", path: ["x", 2], value: 3}
@@ -490,7 +525,7 @@ describe("arrays - pop twice", () => {
 			d.x.pop()
 			d.x.pop()
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}]
+		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}]
 	)
 })
 
@@ -504,7 +539,7 @@ describe("arrays - push multiple", () => {
 			{op: "add", path: ["x", 3], value: 4},
 			{op: "add", path: ["x", 4], value: 5}
 		],
-		[{op: "replace", path: ["x", "length"], value: 3}]
+		[{op: "remove", path: ["x", 4]}, {op: "remove", path: ["x", 3]}]
 	)
 })
 
@@ -612,6 +647,28 @@ describe("sets - mutate - 1", () => {
 	)
 })
 
+describe("arrays - splice should should result in remove op.", () => {
+	runPatchTest(
+		[1, 2],
+		d => {
+			d.splice(1, 1)
+		},
+		[{op: "remove", path: [1]}],
+		[{op: "add", path: [1], value: 2}]
+	)
+})
+
+describe("arrays - NESTED splice should should result in remove op.", () => {
+	runPatchTest(
+		{a: {b: {c: [1, 2]}}},
+		d => {
+			d.a.b.c.splice(1, 1)
+		},
+		[{op: "remove", path: ["a", "b", "c", 1]}],
+		[{op: "add", path: ["a", "b", "c", 1], value: 2}]
+	)
+})
+
 describe("simple replacement", () => {
 	runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })
@@ -697,4 +754,110 @@ describe("simple delete", () => {
 			}
 		]
 	)
+})
+
+describe("patch compressions yields correct results", () => {
+	let p1, p2
+	runPatchTest(
+		{},
+		d => {
+			d.x = {test: true}
+		},
+		(p1 = [
+			{
+				op: "add",
+				path: ["x"],
+				value: {
+					test: true
+				}
+			}
+		])
+	)
+	runPatchTest(
+		{x: {test: true}},
+		d => {
+			delete d.x
+		},
+		(p2 = [
+			{
+				op: "remove",
+				path: ["x"]
+			}
+		])
+	)
+	const res = runPatchTest(
+		{},
+		d => {
+			applyPatches(d, [...p1, ...p2])
+		},
+		[]
+	)
+
+	expect(res).toEqual({})
+})
+
+describe("change then delete property", () => {
+	const res = runPatchTest(
+		{
+			x: 1
+		},
+		d => {
+			d.x = 2
+			delete d.x
+		},
+		[
+			{
+				op: "remove",
+				path: ["x"]
+			}
+		]
+	)
+	test("valid result", () => {
+		expect(res).toEqual({})
+	})
+})
+
+test("replaying patches with interweaved replacements should work correctly", () => {
+	const patches = []
+	const s0 = {x: 1}
+
+	const s1 = produce(
+		s0,
+		draft => {
+			draft.x = 2
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	const s2 = produce(
+		s1,
+		draft => {
+			return {x: 0}
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	const s3 = produce(
+		s2,
+		draft => {
+			draft.x--
+		},
+		p => {
+			patches.push(...p)
+		}
+	)
+
+	expect(s3).toEqual({x: -1}) // correct result
+	expect(applyPatches(s0, patches)).toEqual({x: -1}) // correct replay
+
+	// manual replay on a draft should also be correct
+	expect(
+		produce(s0, draft => {
+			return applyPatches(draft, patches)
+		})
+	).toEqual({x: -1})
 })

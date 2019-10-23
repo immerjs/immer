@@ -4,25 +4,28 @@ import {applyPatches, generatePatches} from "./patches"
 import {
 	assign,
 	each,
-	get,
 	has,
 	is,
 	isDraft,
+	isSet,
+	get,
+	isMap,
 	isDraftable,
 	isEnumerable,
-	isMap,
 	shallowCopy,
 	DRAFT_STATE,
 	NOTHING,
-	isSet,
-	original
+	deepFreeze
 } from "./common"
 import {ImmerScope} from "./scope"
 
 function verifyMinified() {}
 
 const configDefaults = {
-	useProxies: typeof Proxy !== "undefined" && typeof Reflect !== "undefined",
+	useProxies:
+		typeof Proxy !== "undefined" &&
+		typeof Proxy.revocable !== "undefined" &&
+		typeof Reflect !== "undefined",
 	autoFreeze:
 		typeof process !== "undefined"
 			? process.env.NODE_ENV !== "production"
@@ -52,13 +55,13 @@ export class Immer {
 
 		// prettier-ignore
 		{
-            if (typeof recipe !== "function") {
-                throw new Error("The first or second argument to `produce` must be a function")
-            }
-            if (patchListener !== undefined && typeof patchListener !== "function") {
-                throw new Error("The third argument to `produce` must be a function or undefined")
-            }
-        }
+			if (typeof recipe !== "function") {
+				throw new Error("The first or second argument to `produce` must be a function")
+			}
+			if (patchListener !== undefined && typeof patchListener !== "function") {
+				throw new Error("The third argument to `produce` must be a function or undefined")
+			}
+		}
 
 		let result
 
@@ -91,9 +94,27 @@ export class Immer {
 			return this.processResult(result, scope)
 		} else {
 			result = recipe(base)
-			if (result === undefined) return base
-			return result !== NOTHING ? result : undefined
+			if (result === NOTHING) return undefined
+			if (result === undefined) result = base
+			this.maybeFreeze(result, true)
+			return result
 		}
+	}
+	produceWithPatches(arg1, arg2, arg3) {
+		if (typeof arg1 === "function") {
+			const self = this
+			return (state, ...args) =>
+				this.produceWithPatches(state, draft => arg1(draft, ...args))
+		}
+		// non-curried form
+		if (arg3)
+			throw new Error("A patch listener cannot be passed to produceWithPatches")
+		let patches, inversePatches
+		const nextState = this.produce(arg1, arg2, (p, ip) => {
+			patches = p
+			inversePatches = ip
+		})
+		return [nextState, patches, inversePatches]
 	}
 	createDraft(base) {
 		if (!isDraftable(base)) {
@@ -125,12 +146,25 @@ export class Immer {
 		assign(this, value ? modernProxy : legacyProxy)
 	}
 	applyPatches(base, patches) {
-		// Mutate the base state when a draft is passed.
+		// If a patch replaces the entire state, take that replacement as base
+		// before applying patches
+		let i
+		for (i = patches.length - 1; i >= 0; i--) {
+			const patch = patches[i]
+			if (patch.path.length === 0 && patch.op === "replace") {
+				base = patch.value
+				break
+			}
+		}
+
 		if (isDraft(base)) {
+			// N.B: never hits if some patch a replacement, patches are never drafts
 			return applyPatches(base, patches)
 		}
 		// Otherwise, produce a copy of the base state.
-		return this.produce(base, draft => applyPatches(draft, patches))
+		return this.produce(base, draft =>
+			applyPatches(draft, patches.slice(i + 1))
+		)
 	}
 	/** @internal */
 	processResult(result, scope) {
@@ -145,6 +179,7 @@ export class Immer {
 			if (isDraftable(result)) {
 				// Finalize the result in case it contains (or is) a subset of the draft.
 				result = this.finalize(result, null, scope)
+				this.maybeFreeze(result)
 			}
 			if (scope.patches) {
 				scope.patches.push({
@@ -184,6 +219,7 @@ export class Immer {
 			return draft
 		}
 		if (!state.modified) {
+			this.maybeFreeze(state.base, true)
 			return state.base
 		}
 		if (!state.finalized) {
@@ -274,9 +310,9 @@ export class Immer {
 			// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 			else if (isDraftable(value) && !Object.isFrozen(value)) {
 				each(value, finalizeProperty)
+				this.maybeFreeze(value)
 			}
 
-			// We cannot really assign anything inside of a Set. We can only replace the whole Set.
 			if (isDraftProp && this.onAssign && !isSetMember) {
 				this.onAssign(state, prop, value)
 			}
@@ -284,6 +320,12 @@ export class Immer {
 
 		each(root, finalizeProperty)
 		return root
+	}
+	maybeFreeze(value, deep = false) {
+		if (this.autoFreeze && !isDraft(value)) {
+			if (deep) deepFreeze(value)
+			else Object.freeze(value)
+		}
 	}
 }
 

@@ -4,6 +4,8 @@
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
+  "unpkg": "dist/immer.umd.js",
+  "jsdelivr": "dist/immer.umd.js",
   "module": "dist/immer.module.js",
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
@@ -13,9 +15,12 @@
     "test:perf": "NODE_ENV=production yarn-or-npm build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
     "test:flow": "yarn-or-npm flow check __tests__/flow",
     "test:dts": "tsc -p __tests__/tsconfig.json --noEmit",
+    "watch": "jest --watch",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "build": "rimraf dist/ && yarn-or-npm bili && yarn-or-npm typed",
-    "typed": "cpx 'src/immer.{d.ts,js.flow}' dist -v"
+    "typed": "cpx 'src/immer.{d.ts,js.flow}' dist -v",
+    "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
+    "start": "cd website && yarn start"
   },
   "husky": {
     "hooks": {

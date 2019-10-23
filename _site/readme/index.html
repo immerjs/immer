@@ -1,0 +1,1190 @@
+<img src="images/immer-logo.png" height="200px" align="right" />
+<h1>Immer</h1>
+<p>
+	<a href="https://www.npmjs.com/package/immer"
+		><img src="https://img.shields.io/npm/v/immer.svg" alt="npm"
+	/></a>
+	<a href="https://travis-ci.org/immerjs/immer"
+		><img
+			src="https://travis-ci.org/immerjs/immer.svg?branch=master"
+			alt="Build Status"
+	/></a>
+	<a href="https://coveralls.io/github/immerjs/immer?branch=master"
+		><img
+			src="https://coveralls.io/repos/github/immerjs/immer/badge.svg?branch=master"
+			alt="Coverage Status"
+	/></a>
+	<a href="https://bundlephobia.com/result?p=immer"
+		><img
+			src="https://img.shields.io/bundlephobia/minzip/immer.svg"
+			alt="Minzipped size"
+	/></a>
+	<a href="https://github.com/prettier/prettier"
+		><img
+			src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg"
+			alt="code style: prettier"
+	/></a>
+	<a href="https://www.paypal.me/michelweststrate"
+		><img
+			src="https://img.shields.io/badge/Donate-PayPal-green.svg"
+			alt="Donate"
+	/></a>
+</p>
+<p>
+	<em
+		>Create the next immutable state tree by simply modifying the current
+		tree</em
+	>
+</p>
+<p>
+	Winner of the &quot;Breakthrough of the year&quot;
+	<a href="https://osawards.com/react/">React open source award</a> and
+	&quot;Most impactful contribution&quot;
+	<a href="https://osawards.com/javascript/">JavaScript open source award</a> in
+	2019
+</p>
+<h3><a href="https://github.com/immerjs/immer/releases">Release notes</a></h3>
+<p>
+	Did Immer make a difference to your project? Consider buying me a coffee!<br /><a
+		href="https://www.buymeacoffee.com/mweststrate"
+		target="_blank"
+		><img
+			src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"
+			alt="Buy Me A Coffee"
+			style="height: auto !important;width: auto !important;"
+	/></a>
+</p>
+<hr />
+<ul>
+	<li>NPM: <code>npm install immer</code></li>
+	<li>Yarn: <code>yarn add immer</code></li>
+	<li>
+		CDN: Exposed global is <code>immer</code>
+		<ul>
+			<li>
+				Unpkg:
+				<code
+					>&lt;script
+					src=&quot;https://unpkg.com/immer/dist/immer.umd.js&quot;&gt;&lt;/script&gt;</code
+				>
+			</li>
+			<li>
+				JSDelivr:
+				<code
+					>&lt;script
+					src=&quot;https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js&quot;&gt;&lt;/script&gt;</code
+				>
+			</li>
+		</ul>
+	</li>
+</ul>
+<hr />
+<ul>
+	<li>
+		Egghead lesson covering all of immer (7m):
+		<a
+			href="https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer"
+			>Simplify creating immutable data trees with Immer</a
+		>
+	</li>
+	<li>
+		Introduction blogpost:
+		<a
+			href="https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3"
+			>Immer: Immutability the easy way</a
+		>
+	</li>
+</ul>
+<p>
+	Immer (German for: always) is a tiny package that allows you to work with
+	immutable state in a more convenient way. It is based on the
+	<a href="https://en.wikipedia.org/wiki/Copy-on-write"
+		><em>copy-on-write</em></a
+	>
+	mechanism.
+</p>
+<p>
+	The basic idea is that you will apply all your changes to a temporary
+	<em>draftState</em>, which is a proxy of the <em>currentState</em>. Once all
+	your mutations are completed, Immer will produce the <em>nextState</em> based
+	on the mutations to the draft state. This means that you can interact with
+	your data by simply modifying it while keeping all the benefits of immutable
+	data.
+</p>
+<p><img src="images/hd/immer.png" alt="immer-hd.png" /></p>
+<p>
+	Using Immer is like having a personal assistant; he takes a letter (the
+	current state) and gives you a copy (draft) to jot changes onto. Once you are
+	done, the assistant will take your draft and produce the real immutable, final
+	letter for you (the next state).
+</p>
+<p>
+	A mindful reader might notice that this is quite similar to
+	<code>withMutations</code> of ImmutableJS. It is indeed, but generalized and
+	applied to plain, native JavaScript data structures (arrays and objects)
+	without further needing any library.
+</p>
+<h2>External resources</h2>
+<ul>
+	<li>
+		Blog:
+		<a
+			href="https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/"
+			>The Rise of Immer in React</a
+		>
+	</li>
+	<li>
+		Blog: by Workday Prism on why they picked Immer to manage immutable state
+		<a
+			href="https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5"
+			>The Search for a Strongly-Typed, Immutable State</a
+		>
+	</li>
+	<li>
+		Blog:
+		<a href="https://daveceddia.com/react-redux-immutability-guide/"
+			>Immutability in React and Redux: The Complete Guide</a
+		>
+	</li>
+	<li>
+		Video tutorial:
+		<a
+			href="https://codedaily.io/screencasts/86/Immutable-Data-with-Immer-and-React-setState"
+			>Using Immer with React.setState</a
+		>
+	</li>
+	<li>
+		<a href="https://www.youtube.com/watch?v=-gJbS7YjcSo">Talk</a> +
+		<a href="http://immer.surge.sh/">slides</a> on Immer at React Finland 2018
+		by Michel Weststrate
+	</li>
+	<li>
+		<a href="https://www.youtube.com/watch?v=bFuRvcAEiHg&amp;feature=youtu.be"
+			>ForwardJS 2019: Immutability is Changing - From Immutable.js to Immer</a
+		>
+		by <a href="https://twitter.com/swyx/">shawn swyx wang</a>
+	</li>
+</ul>
+<h2>API</h2>
+<p>The Immer package exposes a default function that does all the work.</p>
+<p>
+	<code
+		>produce(currentState, producer: (draftState) =&gt; void): nextState</code
+	>
+</p>
+<p>
+	There is also a curried overload that is explained
+	<a href="#currying">below</a>.
+</p>
+<h2>Example</h2>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+const baseState = [
+	{
+		todo: &quot;Learn typescript&quot;,
+		done: true
+	},
+	{
+		todo: &quot;Try immer&quot;,
+		done: false
+	}
+]
+
+const nextState = produce(baseState, draftState =&gt; {
+	draftState.push({todo: &quot;Tweet about it&quot;})
+	draftState[1].done = true
+})
+</code></pre>
+<p>
+	The interesting thing about Immer is that the <code>baseState</code> will be
+	untouched, but the <code>nextState</code> will reflect all changes made to
+	<code>draftState</code>.
+</p>
+<pre><code class="language-javascript">// the new item is only added to the next state,
+// base state is unmodified
+expect(baseState.length).toBe(2)
+expect(nextState.length).toBe(3)
+
+// same for the changed 'done' prop
+expect(baseState[1].done).toBe(false)
+expect(nextState[1].done).toBe(true)
+
+// unchanged data is structurally shared
+expect(nextState[0]).toBe(baseState[0])
+// changed data not (dûh)
+expect(nextState[1]).not.toBe(baseState[1])
+</code></pre>
+<h2>Benefits</h2>
+<ul>
+	<li>
+		Immutability with normal JavaScript objects and arrays. No new APIs to
+		learn!
+	</li>
+	<li>Strongly typed, no string based paths selectors etc.</li>
+	<li>Structural sharing out of the box</li>
+	<li>Object freezing out of the box</li>
+	<li>Deep updates are a breeze</li>
+	<li>Boilerplate reduction. Less noise, more concise code.</li>
+	<li>
+		Small
+		<a
+			href="http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"
+			><img
+				src="http://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip"
+				alt="size"
+		/></a>
+	</li>
+</ul>
+<p>Read further to see all these benefits explained.</p>
+<h2>Reducer Example</h2>
+<p>
+	Here is a simple example of the difference that Immer could make in practice.
+</p>
+<pre><code class="language-javascript">// Redux reducer
+// Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
+const byId = (state, action) =&gt; {
+	switch (action.type) {
+		case RECEIVE_PRODUCTS:
+			return {
+				...state,
+				...action.products.reduce((obj, product) =&gt; {
+					obj[product.id] = product
+					return obj
+				}, {})
+			}
+		default:
+			return state
+	}
+}
+</code></pre>
+<p>After using Immer, that simply becomes:</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+const byId = (state, action) =&gt;
+	produce(state, draft =&gt; {
+		switch (action.type) {
+			case RECEIVE_PRODUCTS:
+				action.products.forEach(product =&gt; {
+					draft[product.id] = product
+				})
+		}
+	})
+</code></pre>
+<p>
+	Notice that it is not needed to handle the default case, a producer that
+	doesn't do anything will simply return the original state.
+</p>
+<p>
+	Creating Redux reducer is just a sample application of the Immer package.
+	Immer is not just designed to simplify Redux reducers. It can be used in any
+	context where you have an immutable data tree that you want to clone and
+	modify (with structural sharing).
+</p>
+<p>
+	<em
+		>Note: it might be tempting after using producers for a while, to just place
+		<code>produce</code> in your root reducer and then pass the draft to each
+		reducer and work directly over such draft. Don't do that. It kills the point
+		of Redux where each reducer is testable as pure reducer. Immer is best used
+		when applying it to small individual pieces of logic.</em
+	>
+</p>
+<h2>React.setState example</h2>
+<p>
+	Deep updates in the state of React components can be greatly simplified as
+	well by using immer. Take for example the following onClick handlers (Try in
+	<a href="https://codesandbox.io/s/m4yp57632j">codesandbox</a>):
+</p>
+<pre><code class="language-javascript">/**
+ * Classic React.setState with a deep merge
+ */
+onBirthDayClick1 = () =&gt; {
+	this.setState(prevState =&gt; ({
+		user: {
+			...prevState.user,
+			age: prevState.user.age + 1
+		}
+	}))
+}
+
+/**
+ * ...But, since setState accepts functions,
+ * we can just create a curried producer and further simplify!
+ */
+onBirthDayClick2 = () =&gt; {
+	this.setState(
+		produce(draft =&gt; {
+			draft.user.age += 1
+		})
+	)
+}
+</code></pre>
+<h2>Currying</h2>
+<p>
+	Passing a function as the first argument to <code>produce</code> is intended
+	to be used for currying. This means that you get a pre-bound producer that
+	only needs a state to produce the value from. The producer function gets
+	passed in the draft and any further arguments that were passed to the curried
+	function.
+</p>
+<p>For example:</p>
+<pre><code class="language-javascript">// mapper will be of signature (state, index) =&gt; state
+const mapper = produce((draft, index) =&gt; {
+	draft.index = index
+})
+
+// example usage
+console.dir([{}, {}, {}].map(mapper))
+//[{index: 0}, {index: 1}, {index: 2}])
+</code></pre>
+<p>
+	This mechanism can also nicely be leveraged to further simplify our example
+	reducer:
+</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+const byId = produce((draft, action) =&gt; {
+	switch (action.type) {
+		case RECEIVE_PRODUCTS:
+			action.products.forEach(product =&gt; {
+				draft[product.id] = product
+			})
+			return
+	}
+})
+</code></pre>
+<p>
+	Note that <code>state</code> is now factored out (the created reducer will
+	accept a state, and invoke the bound producer with it).
+</p>
+<p>
+	If you want to initialize an uninitialized state using this construction, you
+	can do so by passing the initial state as second argument to
+	<code>produce</code>:
+</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+const byId = produce(
+	(draft, action) =&gt; {
+		switch (action.type) {
+			case RECEIVE_PRODUCTS:
+				action.products.forEach(product =&gt; {
+					draft[product.id] = product
+				})
+				return
+		}
+	},
+	{
+		1: {id: 1, name: &quot;product-1&quot;}
+	}
+)
+</code></pre>
+<h5>Fun with currying</h5>
+<p>
+	A random fun example just for inspiration: a neat trick is to turn
+	<code>Object.assign</code> into a producer to create a &quot;spread&quot;
+	function that is smarter than the normal spread operator, as it doesn't
+	produce a new state if the result doesn't actually change (<a
+		href="https://twitter.com/mweststrate/status/1045059430256119809"
+		>details &amp; explanation</a
+	>). Quick example:
+</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+const spread = produce(Object.assign)
+
+const base = {x: 1, y: 1}
+
+console.log({...base, y: 1} === base) // false
+console.log(spread(base, {y: 1}) === base) // true! base is recycled as no actual new value was produced
+console.log(spread(base, {y: 2}) === base) // false, produced a new object as it should
+</code></pre>
+<h2>Patches</h2>
+<p>
+	During the run of a producer, Immer can record all the patches that would
+	replay the changes made by the reducer. This is a very powerful tool if you
+	want to fork your state temporarily and replay the changes to the original.
+</p>
+<p>Patches are useful in few scenarios:</p>
+<ul>
+	<li>
+		To exchange incremental updates with other parties, for example over
+		websockets
+	</li>
+	<li>
+		For debugging / traces, to see precisely how state is changed over time
+	</li>
+	<li>
+		As basis for undo/redo or as an approach to replay changes on a slightly
+		different state tree
+	</li>
+</ul>
+<p>
+	To help with replaying patches, <code>applyPatches</code> comes in handy. Here
+	is an example how patches could be used to record the incremental updates and
+	(inverse) apply them:
+</p>
+<pre><code class="language-javascript">import produce, {applyPatches} from &quot;immer&quot;
+
+let state = {
+	name: &quot;Micheal&quot;,
+	age: 32
+}
+
+// Let's assume the user is in a wizard, and we don't know whether
+// his changes should end up in the base state ultimately or not...
+let fork = state
+// all the changes the user made in the wizard
+let changes = []
+// the inverse of all the changes made in the wizard
+let inverseChanges = []
+
+fork = produce(
+	fork,
+	draft =&gt; {
+		draft.age = 33
+	},
+	// The third argument to produce is a callback to which the patches will be fed
+	(patches, inversePatches) =&gt; {
+		changes.push(...patches)
+		inverseChanges.push(...inversePatches)
+	}
+)
+
+// In the meantime, our original state is replaced, as, for example,
+// some changes were received from the server
+state = produce(state, draft =&gt; {
+	draft.name = &quot;Michel&quot;
+})
+
+// When the wizard finishes (successfully) we can replay the changes that were in the fork onto the *new* state!
+state = applyPatches(state, changes)
+
+// state now contains the changes from both code paths!
+expect(state).toEqual({
+	name: &quot;Michel&quot;, // changed by the server
+	age: 33 // changed by the wizard
+})
+
+// Finally, even after finishing the wizard, the user might change his mind and undo his changes...
+state = applyPatches(state, inverseChanges)
+expect(state).toEqual({
+	name: &quot;Michel&quot;, // Not reverted
+	age: 32 // Reverted
+})
+</code></pre>
+<p>
+	The generated patches are similar (but not the same) to the
+	<a href="http://tools.ietf.org/html/rfc6902">RFC-6902 JSON patch standard</a>,
+	except that the <code>path</code> property is an array, rather than a string.
+	This makes processing patches easier. If you want to normalize to the official
+	specification, <code>patch.path = patch.path.join(&quot;/&quot;)</code> should
+	do the trick. Anyway, this is what a bunch of patches and their inverse could
+	look like:
+</p>
+<pre><code class="language-json">[
+	{
+		&quot;op&quot;: &quot;replace&quot;,
+		&quot;path&quot;: [&quot;profile&quot;],
+		&quot;value&quot;: {&quot;name&quot;: &quot;Veria&quot;, &quot;age&quot;: 5}
+	},
+	{&quot;op&quot;: &quot;remove&quot;, &quot;path&quot;: [&quot;tags&quot;, 3]}
+]
+</code></pre>
+<pre><code class="language-json">[
+	{&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: [&quot;profile&quot;], &quot;value&quot;: {&quot;name&quot;: &quot;Noa&quot;, &quot;age&quot;: 6}},
+	{&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: [&quot;tags&quot;, 3], &quot;value&quot;: &quot;kiddo&quot;}
+]
+</code></pre>
+<h3><code>produceWithPatches</code></h3>
+<p>
+	Instead of setting up a patch listener, an easier way to obtain the patches is
+	to use <code>produceWithPatches</code>, which has the same signature as
+	<code>produce</code>, except that it doesn't return just the next state, but a
+	tuple consisting of <code>[nextState, patches, inversePatches]</code>. Like
+	<code>produce</code>, <code>produceWithPatches</code> supports currying as
+	well.
+</p>
+<pre><code class="language-javascript">import {produceWithPatches} from &quot;immer&quot;
+
+const [nextState, patches, inversePatches] = produceWithPatches(
+	{
+		age: 33
+	},
+	draft =&gt; {
+		draft.age++
+	}
+)
+</code></pre>
+<p>Which produces:</p>
+<pre><code class="language-javascript">;[
+	{
+		age: 34
+	},
+	[
+		{
+			op: &quot;replace&quot;,
+			path: [&quot;age&quot;],
+			value: 34
+		}
+	],
+	[
+		{
+			op: &quot;replace&quot;,
+			path: [&quot;age&quot;],
+			value: 33
+		}
+	]
+]
+</code></pre>
+<p>
+	For a more in-depth study, see
+	<a
+		href="https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988"
+		>Distributing patches and rebasing actions using Immer</a
+	>
+</p>
+<p>
+	Tip: Check this trick to
+	<a
+		href="https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69"
+		>compress patches</a
+	>
+	produced over time.
+</p>
+<h2>Async producers</h2>
+<p>
+	It is allowed to return Promise objects from recipes. Or, in other words, to
+	use <code>async / await</code>. This can be pretty useful for long running
+	processes, that only produce the new object once the promise chain resolves.
+	Note that <code>produce</code> itself (even in the curried form) will return a
+	promise if the producer is async. Example:
+</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+const user = {
+	name: &quot;michel&quot;,
+	todos: []
+}
+
+const loadedUser = await produce(user, async function(draft) {
+	draft.todos = await (await window.fetch(&quot;http://host/&quot; + draft.name)).json()
+})
+</code></pre>
+<p>
+	<em
+		>Warning: please note that the draft shouldn't be 'leaked' from the async
+		process and stored else where. The draft will still be revoked as soon as
+		the async process completes.</em
+	>
+</p>
+<h2><code>createDraft</code> and <code>finishDraft</code></h2>
+<p>
+	<code>createDraft</code> and <code>finishDraft</code> are two low-level
+	functions that are mostly useful for libraries that build abstractions on top
+	of immer. It avoids the need to always create a function in order to work with
+	drafts. Instead, one can create a draft, modify it, and at some time in the
+	future finish the draft, in which case the next immutable state will be
+	produced. We could for example rewrite our above example as:
+</p>
+<pre><code class="language-javascript">import {createDraft, finishDraft} from &quot;immer&quot;
+
+const user = {
+	name: &quot;michel&quot;,
+	todos: []
+}
+
+const draft = createDraft(user)
+draft.todos = await (await window.fetch(&quot;http://host/&quot; + draft.name)).json()
+const loadedUser = finishDraft(draft)
+</code></pre>
+<p>
+	Note: <code>finishDraft</code> takes a <code>patchListener</code> as second
+	argument, which can be used to record the patches, similarly to
+	<code>produce</code>.
+</p>
+<p>
+	<em
+		>Warning: in general, we recommend to use <code>produce</code> instead of
+		the <code>createDraft</code> / <code>finishDraft</code> combo,
+		<code>produce</code> is less error prone in usage, and more clearly
+		separates the concepts of mutability and immutability in your code base.</em
+	>
+</p>
+<h2>Returning data from producers</h2>
+<p>
+	It is not needed to return anything from a producer, as Immer will return the
+	(finalized) version of the <code>draft</code> anyway. However, it is allowed
+	to just <code>return draft</code>.
+</p>
+<p>
+	It is also allowed to return arbitrarily other data from the producer
+	function. But <em>only</em> if you didn't modify the draft. This can be useful
+	to produce an entirely new state. Some examples:
+</p>
+<pre><code class="language-javascript">const userReducer = produce((draft, action) =&gt; {
+	switch (action.type) {
+		case &quot;renameUser&quot;:
+			// OK: we modify the current state
+			draft.users[action.payload.id].name = action.payload.name
+			return draft // same as just 'return'
+		case &quot;loadUsers&quot;:
+			// OK: we return an entirely new state
+			return action.payload
+		case &quot;adduser-1&quot;:
+			// NOT OK: This doesn't do change the draft nor return a new state!
+			// It doesn't modify the draft (it just redeclares it)
+			// In fact, this just doesn't do anything at all
+			draft = {users: [...draft.users, action.payload]}
+			return
+		case &quot;adduser-2&quot;:
+			// NOT OK: modifying draft *and* returning a new state
+			draft.userCount += 1
+			return {users: [...draft.users, action.payload]}
+		case &quot;adduser-3&quot;:
+			// OK: returning a new state. But, unnecessary complex and expensive
+			return {
+				userCount: draft.userCount + 1,
+				users: [...draft.users, action.payload]
+			}
+		case &quot;adduser-4&quot;:
+			// OK: the immer way
+			draft.userCount += 1
+			draft.users.push(action.payload)
+			return
+	}
+})
+</code></pre>
+<p>
+	<em
+		>Note: It is not possible to return <code>undefined</code> this way, as it
+		is indistinguishable from <em>not</em> updating the draft! Read on...</em
+	>
+</p>
+<h2>Producing <code>undefined</code> using <code>nothing</code></h2>
+<p>
+	So, in general, one can replace the current state by just
+	<code>return</code>ing a new value from the producer, rather than modifying
+	the draft. There is a subtle edge case however: if you try to write a producer
+	that wants to replace the current state with <code>undefined</code>:
+</p>
+<pre><code class="language-javascript">produce({}, draft =&gt; {
+	// don't do anything
+})
+</code></pre>
+<p>Versus:</p>
+<pre><code class="language-javascript">produce({}, draft =&gt; {
+	// Try to return undefined from the producer
+	return undefined
+})
+</code></pre>
+<p>
+	The problem is that in JavaScript a function that doesn't return anything also
+	returns <code>undefined</code>! So immer cannot differentiate between those
+	different cases. So, by default, Immer will assume that any producer that
+	returns <code>undefined</code> just tried to modify the draft.
+</p>
+<p>
+	However, to make it clear to Immer that you intentionally want to produce the
+	value <code>undefined</code>, you can return the built-in token
+	<code>nothing</code>:
+</p>
+<pre><code class="language-javascript">import produce, {nothing} from &quot;immer&quot;
+
+const state = {
+	hello: &quot;world&quot;
+}
+
+produce(state, draft =&gt; {})
+produce(state, draft =&gt; undefined)
+// Both return the original state: { hello: &quot;world&quot;}
+
+produce(state, draft =&gt; nothing)
+// Produces a new state, 'undefined'
+</code></pre>
+<p>
+	N.B. Note that this problem is specific for the <code>undefined</code> value,
+	any other value, including <code>null</code>, doesn't suffer from this issue.
+</p>
+<h2>Inline shortcuts using <code>void</code></h2>
+<p>
+	Draft mutations in Immer usually warrant a code block, since a return denotes
+	an overwrite. Sometimes that can stretch code a little more than you might be
+	comfortable with.
+</p>
+<p>
+	In such cases, you can use javascripts
+	<a
+		href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void"
+		><code>void</code></a
+	>
+	operator, which evaluates expressions and returns <code>undefined</code>.
+</p>
+<pre><code class="language-javascript">// Single mutation
+produce(draft =&gt; void (draft.user.age += 1))
+
+// Multiple mutations
+produce(draft =&gt; void ((draft.user.age += 1), (draft.user.height = 186)))
+</code></pre>
+<p>
+	Code style is highly personal, but for code bases that are to be understood by
+	many, we recommend to stick to the classic
+	<code>draft =&gt; { draft.user.age += 1}</code> to avoid cognitive overhead.
+</p>
+<h2>Extracting the original object from a proxied instance</h2>
+<p>
+	Immer exposes a named export <code>original</code> that will get the original
+	object from the proxied instance inside <code>produce</code> (or return
+	<code>undefined</code> for unproxied values). A good example of when this can
+	be useful is when searching for nodes in a tree-like state using strict
+	equality.
+</p>
+<pre><code class="language-js">import {original} from &quot;immer&quot;
+
+const baseState = {users: [{name: &quot;Richie&quot;}]}
+const nextState = produce(baseState, draftState =&gt; {
+	original(draftState.users) // is === baseState.users
+})
+</code></pre>
+<p>
+	Just want to know if a value is a proxied instance? Use the
+	<code>isDraft</code> function!
+</p>
+<pre><code class="language-js">import {isDraft} from &quot;immer&quot;
+
+const baseState = {users: [{name: &quot;Bobby&quot;}]}
+const nextState = produce(baseState, draft =&gt; {
+	isDraft(draft) // =&gt; true
+	isDraft(draft.users) // =&gt; true
+	isDraft(draft.users[0]) // =&gt; true
+})
+isDraft(nextState) // =&gt; false
+</code></pre>
+<h2>Auto freezing</h2>
+<p>
+	Immer automatically freezes any state trees that are modified using
+	<code>produce</code>. This protects against accidental modifications of the
+	state tree outside of a producer. This comes with a performance impact, so it
+	is recommended to disable this option in production. It is by default enabled.
+	By default, it is turned on during local development and turned off in
+	production. Use <code>setAutoFreeze(true / false)</code> to explicitly turn
+	this feature on or off.
+</p>
+<p>
+	<em
+		>⚠️ If auto freezing is enabled, recipes are not entirely side-effect free:
+		Any plain object or array that ends up in the produced result, will be
+		frozen, even when these objects were not frozen before the start of the
+		producer! ⚠️</em
+	>
+</p>
+<h2>Immer on older JavaScript environments?</h2>
+<p>
+	By default <code>produce</code> tries to use proxies for optimal performance.
+	However, on older JavaScript engines <code>Proxy</code> is not available. For
+	example, when running Microsoft Internet Explorer or React Native (&lt; v0.59)
+	on Android. In such cases, Immer will fallback to an ES5 compatible
+	implementation which works identical, but is a bit slower.
+</p>
+<h2>Importing immer</h2>
+<p>
+	<code>produce</code> is exposed as the default export, but optionally it can
+	be used as name import as well, as this benefits some older project setups. So
+	the following imports are all correct, where the first is recommended:
+</p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+import {produce} from &quot;immer&quot;
+
+const {produce} = require(&quot;immer&quot;)
+const produce = require(&quot;immer&quot;).produce
+const produce = require(&quot;immer&quot;).default
+
+import unleashTheMagic from &quot;immer&quot;
+import {produce as unleashTheMagic} from &quot;immer&quot;
+</code></pre>
+<h2>Supported object types</h2>
+<p>Plain objects and arrays are always drafted by Immer.</p>
+<p>
+	Every other object must use the <code>immerable</code> symbol to mark itself
+	as compatible with Immer. When one of these objects is mutated within a
+	producer, its prototype is preserved between copies.
+</p>
+<pre><code class="language-js">import {immerable} from &quot;immer&quot;
+
+class Foo {
+	[immerable] = true // Option 1
+
+	constructor() {
+		this[immerable] = true // Option 2
+	}
+}
+
+Foo[immerable] = true // Option 3
+</code></pre>
+<p>
+	For arrays, only numeric properties and the <code>length</code> property can
+	be mutated. Custom properties are not preserved on arrays.
+</p>
+<p>
+	When working with <code>Date</code> objects, you should always create a new
+	<code>Date</code> instance instead of mutating an existing
+	<code>Date</code> object.
+</p>
+<p>
+	Built-in classes like <code>Map</code> and <code>Set</code> are not supported.
+	As a workaround, you should clone them before mutating them in a producer:
+</p>
+<pre><code class="language-js">const state = {
+	set: new Set(),
+	map: new Map()
+}
+const nextState = produce(state, draft =&gt; {
+	// Don't use any Set methods, as that mutates the instance!
+	draft.set.add(&quot;foo&quot;) // ❌
+
+	// 1. Instead, clone the set (just once)
+	const newSet = new Set(draft.set) // ✅
+
+	// 2. Mutate the clone (just in this producer)
+	newSet.add(&quot;foo&quot;)
+
+	// 3. Update the draft with the new set
+	draft.set = newSet
+
+	// Similarly, don't use any Map methods.
+	draft.map.set(&quot;foo&quot;, &quot;bar&quot;) // ❌
+
+	// 1. Instead, clone the map (just once)
+	const newMap = new Map(draft.map) // ✅
+
+	// 2. Mutate it
+	newMap.set(&quot;foo&quot;, &quot;bar&quot;)
+
+	// 3. Update the draft
+	draft.map = newMap
+})
+</code></pre>
+<h2>TypeScript or Flow</h2>
+<p>
+	The Immer package ships with type definitions inside the package, which should
+	be picked up by TypeScript and Flow out of the box and without further
+	configuration.
+</p>
+<p>
+	The TypeScript typings automatically remove <code>readonly</code> modifiers
+	from your draft types and return a value that matches your original type. See
+	this practical example:
+</p>
+<pre><code class="language-ts">import produce from &quot;immer&quot;
+
+interface State {
+	readonly x: number
+}
+
+// `x` cannot be modified here
+const state: State = {
+	x: 0
+}
+
+const newState = produce(state, draft =&gt; {
+	// `x` can be modified here
+	draft.x++
+})
+
+// `newState.x` cannot be modified here
+</code></pre>
+<p>
+	This ensures that the only place you can modify your state is in your produce
+	callbacks. It even works recursively and with <code>ReadonlyArray</code>s!
+</p>
+<p>
+	For curried reducers, the type is inferred from the first argument of recipe
+	function, so make sure to type it. The <code>Draft</code> utility type can be
+	used if the state argument type is immutable:
+</p>
+<pre><code class="language-ts">import produce, {Draft} from &quot;immer&quot;
+
+interface State {
+	readonly x: number
+}
+
+// `x` cannot be modified here
+const state: State = {
+	x: 0
+}
+
+const increment = produce((draft: Draft&lt;State&gt;, inc: number) =&gt; {
+	// `x` can be modified here
+	draft.x += inc
+})
+
+const newState = increment(state, 2)
+// `newState.x` cannot be modified here
+</code></pre>
+<p><strong>Note:</strong> Immer v1.9+ supports TypeScript v3.1+ only.</p>
+<p><strong>Note:</strong> Immer v3.0+ supports TypeScript v3.4+ only.</p>
+<h1>Pitfalls</h1>
+<ol>
+	<li>
+		Don't redefine draft like, <code>draft = myCoolNewState</code>. Instead,
+		either modify the <code>draft</code> or return a new state. See
+		<a href="#returning-data-from-producers">Returning data from producers</a>.
+	</li>
+	<li>
+		Immer assumes your state to be a unidirectional tree. That is, no object
+		should appear twice in the tree, and there should be no circular references.
+	</li>
+	<li>
+		Since Immer uses proxies, reading huge amounts of data from state comes with
+		an overhead (especially in the ES5 implementation). If this ever becomes an
+		issue (measure before you optimize!), do the current state analysis before
+		entering the producer function or read from the
+		<code>currentState</code> rather than the <code>draftState</code>. Also,
+		realize that immer is opt-in everywhere, so it is perfectly fine to manually
+		write super performance critical reducers, and use immer for all the normal
+		ones. Also note that <code>original</code> can be used to get the original
+		state of an object, which is cheaper to read.
+	</li>
+	<li>
+		Always try to pull <code>produce</code> 'up', for example
+		<code>for (let x of y) produce(base, d =&gt; d.push(x))</code> is
+		exponentially slower than
+		<code>produce(base, d =&gt; { for (let x of y) d.push(x)})</code>
+	</li>
+	<li>
+		It is possible to return values from producers, except, it is not possible
+		to return <code>undefined</code> that way, as it is indistinguishable from
+		not updating the draft at all! If you want to replace the draft with
+		<code>undefined</code>, just return <code>nothing</code> from the producer.
+	</li>
+</ol>
+<h2>Cool things built with immer</h2>
+<ul>
+	<li>
+		<a href="https://github.com/aweary/react-copy-write">react-copy-write</a>
+		<em>Immutable state with a mutable API</em>
+	</li>
+	<li>
+		<a href="https://github.com/markerikson/redux-starter-kit"
+			>redux-starter-kit</a
+		>
+		<em>A simple set of tools to make using Redux easier</em>
+	</li>
+	<li>
+		<a href="https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8"
+			>immer based handleActions</a
+		>
+		<em>Boilerplate free actions for Redux</em>
+	</li>
+	<li>
+		<a href="https://github.com/anish000kumar/redux-box">redux-box</a>
+		<em
+			>Modular and easy-to-grasp redux based state management, with least
+			boilerplate</em
+		>
+	</li>
+	<li>
+		<a href="https://github.com/jeffreyyoung/quick-redux">quick-redux</a>
+		<em>tools to make redux development quicker and easier</em>
+	</li>
+	<li>
+		<a href="https://github.com/jamiebuilds/bey">bey</a>
+		<em>Simple immutable state for React using Immer</em>
+	</li>
+	<li>
+		<a href="https://github.com/drcmda/immer-wieder#readme">immer-wieder</a>
+		<em
+			>State management lib that combines React 16 Context and immer for Redux
+			semantics</em
+		>
+	</li>
+	<li>
+		<a href="https://github.com/neurosnap/robodux">robodux</a>
+		<em>flexible way to reduce redux boilerplate</em>
+	</li>
+	<li>
+		<a href="https://github.com/epeli/immer-reducer">immer-reducer</a>
+		<em
+			>Type-safe and terse React (useReducer()) and Redux reducers with
+			Typescript</em
+		>
+	</li>
+	<li>
+		<a href="https://github.com/knpwrs/redux-ts-utils">redux-ts-utils</a>
+		<em
+			>Everything you need to create type-safe applications with Redux with a
+			strong emphasis on simplicity</em
+		>
+	</li>
+	<li>
+		<a href="https://github.com/suchipi/react-state-tree">react-state-tree</a>
+		<em
+			>Drop-in replacement for useState that persists your state into a
+			redux-like state tree</em
+		>
+	</li>
+	<li>
+		<a href="https://github.com/salvoravida/redux-immer">redux-immer</a>
+		<em
+			>is used to create an equivalent function of Redux combineReducers that
+			works with <code>immer</code> state. Like <code>redux-immutable</code> but
+			for <code>immer</code></em
+		>
+	</li>
+	<li>
+		... and <a href="https://www.npmjs.com/browse/depended/immer">many more</a>
+	</li>
+</ul>
+<h2>How does Immer work?</h2>
+<p>
+	Read the (second part of the)
+	<a
+		href="https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3"
+		>introduction blog</a
+	>.
+</p>
+<h2>Example patterns.</h2>
+<p><em>For those who have to go back to thinking in object updates :-)</em></p>
+<pre><code class="language-javascript">import produce from &quot;immer&quot;
+
+// object mutations
+const todosObj = {
+	id1: {done: false, body: &quot;Take out the trash&quot;},
+	id2: {done: false, body: &quot;Check Email&quot;}
+}
+
+// add
+const addedTodosObj = produce(todosObj, draft =&gt; {
+	draft[&quot;id3&quot;] = {done: false, body: &quot;Buy bananas&quot;}
+})
+
+// delete
+const deletedTodosObj = produce(todosObj, draft =&gt; {
+	delete draft[&quot;id1&quot;]
+})
+
+// update
+const updatedTodosObj = produce(todosObj, draft =&gt; {
+	draft[&quot;id1&quot;].done = true
+})
+
+// array mutations
+const todosArray = [
+	{id: &quot;id1&quot;, done: false, body: &quot;Take out the trash&quot;},
+	{id: &quot;id2&quot;, done: false, body: &quot;Check Email&quot;}
+]
+
+// add
+const addedTodosArray = produce(todosArray, draft =&gt; {
+	draft.push({id: &quot;id3&quot;, done: false, body: &quot;Buy bananas&quot;})
+})
+
+// delete
+const deletedTodosArray = produce(todosArray, draft =&gt; {
+	draft.splice(draft.findIndex(todo =&gt; todo.id === &quot;id1&quot;), 1)
+	// or (slower):
+	// return draft.filter(todo =&gt; todo.id !== &quot;id1&quot;)
+})
+
+// update
+const updatedTodosArray = produce(todosArray, draft =&gt; {
+	draft[draft.findIndex(todo =&gt; todo.id === &quot;id1&quot;)].done = true
+})
+</code></pre>
+<h2>Performance</h2>
+<p>
+	Here is a <a href="__performance_tests__/todo.js">simple benchmark</a> on the
+	performance of Immer. This test takes 50,000 todo items and updates 5,000 of
+	them. <em>Freeze</em> indicates that the state tree has been frozen after
+	producing it. This is a <em>development</em> best practice, as it prevents
+	developers from accidentally modifying the state tree.
+</p>
+<p>
+	These tests were executed on Node 9.3.0. Use <code>yarn test:perf</code> to
+	reproduce them locally.
+</p>
+<p><img src="images/performance.png" alt="performance.png" /></p>
+<p>Most important observation:</p>
+<ul>
+	<li>
+		Immer with proxies is roughly speaking twice to three times slower as a
+		handwritten reducer (the above test case is worst case, see
+		<code>yarn test:perf</code> for more tests). This is in practice negligible.
+	</li>
+	<li>
+		Immer is roughly as fast as ImmutableJS. However, the
+		<em>immutableJS + toJS</em> makes clear the cost that often needs to be paid
+		later; converting the immutableJS objects back to plain objects, to be able
+		to pass them to components, over the network etc... (And there is also the
+		upfront cost of converting data received from e.g. the server to immutable
+		JS)
+	</li>
+	<li>Generating patches doesn't significantly slow down immer</li>
+	<li>
+		The ES5 fallback implementation is roughly twice as slow as the proxy
+		implementation, in some cases worse.
+	</li>
+</ul>
+<h2>Migration</h2>
+<p><strong>Immer 2.* -&gt; 3.0</strong></p>
+<p>
+	In your producers, make sure you're not treating <code>this</code> as the
+	draft. (see here: https://github.com/immerjs/immer/issues/308)
+</p>
+<p>Upgrade to <code>typescript@^3.4</code> if you're a TypeScript user.</p>
+<p><strong>Immer 1.* -&gt; 2.0</strong></p>
+<p>
+	Make sure you don't return any promises as state, because
+	<code>produce</code> will actually invoke the promise and wait until it
+	settles.
+</p>
+<p><strong>Immer 2.1 -&gt; 2.2</strong></p>
+<p>
+	When using TypeScript, for curried reducers that are typed in the form
+	<code>produce&lt;Type&gt;((arg) =&gt; { })</code>, rewrite this to
+	<code>produce((arg: Type) =&gt; { })</code> or
+	<code>produce((arg: Draft&lt;Type&gt;) =&gt; { })</code> for correct
+	inference.
+</p>
+<h2>FAQ</h2>
+<p><em>(for those who skimmed the above instead of actually reading)</em></p>
+<p>
+	<strong
+		>Q: Does Immer use structural sharing? So that my selectors can be memoized
+		and such?</strong
+	>
+</p>
+<p>A: Yes</p>
+<p><strong>Q: Does Immer support deep updates?</strong></p>
+<p>A: Yes</p>
+<p>
+	<strong
+		>Q: I can't rely on Proxies being present on my target environments. Can I
+		use Immer?</strong
+	>
+</p>
+<p>A: Yes</p>
+<p><strong>Q: Can I typecheck my data structures when using Immer?</strong></p>
+<p>A: Yes</p>
+<p>
+	<strong
+		>Q: Can I store <code>Date</code> objects, functions etc in my state tree
+		when using Immer?</strong
+	>
+</p>
+<p>A: Yes</p>
+<p><strong>Q: Is it fast?</strong></p>
+<p>A: Yes</p>
+<p><strong>Q: Idea! Can Immer freeze the state for me?</strong></p>
+<p>A: Yes</p>
+<h2>Credits</h2>
+<p>
+	Special thanks to @Mendix, which supports its employees to experiment
+	completely freely two full days a month, which formed the kick-start for this
+	project.
+</p>
+<h2>Donations</h2>
+<p>
+	A significant part of my OSS work is unpaid. So
+	<a href="https://mobx.js.org/donate.html">donations</a> are greatly
+	appreciated :)
+</p>

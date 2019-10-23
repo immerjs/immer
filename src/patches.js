@@ -1,4 +1,4 @@
-import {get, each, isMap, isSet, has} from "./common"
+import {get, each, isMap, isSet, has, clone} from "./common"
 
 export function generatePatches(state, basePath, patches, inversePatches) {
 	const generatePatchesFn = Array.isArray(state.base)
@@ -50,7 +50,6 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 		}
 	}
 
-	const useRemove = end != base.length
 	const replaceCount = patches.length
 
 	// Process added indices.
@@ -61,20 +60,9 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 			path,
 			value: copy[i]
 		}
-		if (useRemove) {
-			inversePatches.push({
-				op: "remove",
-				path
-			})
-		}
-	}
-
-	// One "replace" patch reverses all non-splicing "add" patches.
-	if (!useRemove) {
 		inversePatches.push({
-			op: "replace",
-			path: basePath.concat(["length"]),
-			value: base.length
+			op: "remove",
+			path
 		})
 	}
 }
@@ -138,22 +126,23 @@ function generateSetPatches(state, basePath, patches, inversePatches) {
 	}
 }
 
-export function applyPatches(draft, patches) {
-	for (let i = 0; i < patches.length; i++) {
-		const patch = patches[i]
-		const {path} = patch
-		if (path.length === 0 && patch.op === "replace") {
-			draft = patch.value
-		} else {
-			let base = draft
-			for (let i = 0; i < path.length - 1; i++) {
-				base = get(base, path[i])
-				if (!base || typeof base !== "object")
-                    throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
-			}
-			const key = path[path.length - 1]
+export const applyPatches = (draft, patches) => {
+	for (const patch of patches) {
+		const {path, op} = patch
+		const value = clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 
-			const replace = (key, value) => {
+		if (!path.length) throw new Error("Illegal state")
+
+		let base = draft
+		for (let i = 0; i < path.length - 1; i++) {
+			base = get(base, path[i])
+			if (!base || typeof base !== "object")
+				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
+		}
+
+		const key = path[path.length - 1]
+		switch (op) {
+			case "replace":
 				if (isMap(base)) {
 					base.set(key, value)
 					return
@@ -162,8 +151,12 @@ export function applyPatches(draft, patches) {
 					throw new Error('Sets cannot have "replace" patches.')
 				}
 				base[key] = value
-			}
-			const add = (key, value) =>
+				// if value is an object, then it's assigned by reference
+				// in the following add or remove ops, the value field inside the patch will also be modifyed
+				// so we use value from the cloned patch
+				base[key] = value
+				break
+			case "add":
 				Array.isArray(base)
 					? base.splice(key, 0, value)
 					: isMap(base)
@@ -171,7 +164,8 @@ export function applyPatches(draft, patches) {
 					: isSet(base)
 					? base.add(value)
 					: (base[key] = value)
-			const remove = (key, value) =>
+				break
+			case "remove":
 				Array.isArray(base)
 					? base.splice(key, 1)
 					: isMap(base)
@@ -179,21 +173,11 @@ export function applyPatches(draft, patches) {
 					: isSet(base)
 					? base.delete(value)
 					: delete base[key]
-
-			switch (patch.op) {
-				case "replace":
-					replace(key, patch.value)
-					break
-				case "add":
-					add(key, patch.value)
-					break
-				case "remove":
-					remove(key, patch.value)
-					break
-				default:
-					throw new Error("Unsupported patch operation: " + patch.op)
-			}
+				break
+			default:
+				throw new Error("Unsupported patch operation: " + op)
 		}
 	}
+
 	return draft
 }

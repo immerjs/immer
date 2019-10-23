@@ -13,9 +13,9 @@ function createHookTests(useProxies) {
 		;({produce, onAssign, onDelete, onCopy} = new Immer({
 			autoFreeze: true,
 			useProxies,
-			onAssign: jest.fn().mockName("onAssign"),
-			onDelete: jest.fn().mockName("onDelete"),
-			onCopy: jest.fn().mockName("onCopy")
+			onAssign: defuseProxies(jest.fn().mockName("onAssign")),
+			onDelete: defuseProxies(jest.fn().mockName("onDelete")),
+			onCopy: defuseProxies(jest.fn().mockName("onCopy"))
 		}))
 	})
 
@@ -337,6 +337,15 @@ function expectCalls(hook) {
 			return call.slice(1)
 		})
 	).toMatchSnapshot()
+}
+
+// For defusing draft proxies.
+function defuseProxies(fn) {
+	return Object.assign((...args) => {
+		expect(args[0].finalized).toBeTruthy()
+		args[0].draft = args[0].drafts = null
+		fn(...args)
+	}, fn)
 }
 
 expect.extend({

@@ -1,5 +1,9 @@
 "use strict"
-import produce, {applyPatches, immerable} from "../src/index"
+import produce, {
+	applyPatches,
+	immerable,
+	produceWithPatches
+} from "../src/index"
 
 describe("readme example", () => {
 	it("works", () => {
@@ -152,5 +156,35 @@ describe("readme example", () => {
 		expect(diner).not.toBe(lunch)
 		expect(lunch).toBeInstanceOf(Clock)
 		expect(diner.toString()).toBe("18:30")
+	})
+
+	test("produceWithPatches", () => {
+		const result = produceWithPatches(
+			{
+				age: 33
+			},
+			draft => {
+				draft.age++
+			}
+		)
+		expect(result).toEqual([
+			{
+				age: 34
+			},
+			[
+				{
+					op: "replace",
+					path: ["age"],
+					value: 34
+				}
+			],
+			[
+				{
+					op: "replace",
+					path: ["age"],
+					value: 33
+				}
+			]
+		])
 	})
 })

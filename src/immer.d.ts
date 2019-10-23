@@ -1,41 +1,41 @@
 type Tail<T extends any[]> = ((...t: T) => any) extends ((
-    _: any,
-    ...tail: infer TT
+	_: any,
+	...tail: infer TT
 ) => any)
-    ? TT
-    : []
+	? TT
+	: []
 
 /** Object types that should never be mapped */
 type AtomicObject =
-    | Function
-    | Map<any, any>
-    | WeakMap<any, any>
-    | Set<any>
-    | WeakSet<any>
-    | Promise<any>
-    | Date
-    | RegExp
-    | Boolean
-    | Number
-    | String
+	| Function
+	| Map<any, any>
+	| WeakMap<any, any>
+	| Set<any>
+	| WeakSet<any>
+	| Promise<any>
+	| Date
+	| RegExp
+	| Boolean
+	| Number
+	| String
 
 export type Draft<T> = T extends AtomicObject
-    ? T
-    : T extends object
-    ? {-readonly [K in keyof T]: Draft<T[K]>}
-    : T
+	? T
+	: T extends object
+	? {-readonly [K in keyof T]: Draft<T[K]>}
+	: T
 
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends AtomicObject
-    ? T
-    : T extends object
-    ? {readonly [K in keyof T]: Immutable<T[K]>}
-    : T
+	? T
+	: T extends object
+	? {readonly [K in keyof T]: Immutable<T[K]>}
+	: T
 
 export interface Patch {
-    op: "replace" | "remove" | "add"
-    path: (string | number)[]
-    value?: any
+	op: "replace" | "remove" | "add"
+	path: (string | number)[]
+	value?: any
 }
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
@@ -45,10 +45,10 @@ type FromNothing<T> = T extends Nothing ? undefined : T
 
 /** The inferred return type of `produce` */
 export type Produced<Base, Return> = Return extends void
-    ? Base
-    : Return extends Promise<infer Result>
-    ? Promise<Result extends void ? Base : FromNothing<Result>>
-    : FromNothing<Return>
+	? Base
+	: Return extends Promise<infer Result>
+	? Promise<Result extends void ? Base : FromNothing<Result>>
+	: FromNothing<Return>
 
 /**
  * The `produce` function takes a value and a "recipe function" (whose
@@ -70,49 +70,92 @@ export type Produced<Base, Return> = Return extends void
  * @returns {any} a new state, or the initial state if nothing was modified
  */
 export interface IProduce {
-    /** Curried producer */
-    <
-        Recipe extends (...args: any[]) => any,
-        Params extends any[] = Parameters<Recipe>,
-        T = Params[0]
-    >(
-        recipe: Recipe
-    ): <Base extends Immutable<T>>(
-        base: Base,
-        ...rest: Tail<Params>
-    ) => Produced<Base, ReturnType<Recipe>>
-    //   ^ by making the returned type generic, the actual type of the passed in object is preferred
-    //     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
-    //     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+	/** Curried producer */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe
+	): <Base extends Immutable<T>>(
+		base: Base,
+		...rest: Tail<Params>
+	) => Produced<Base, ReturnType<Recipe>>
+	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
+	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
 
-    /** Curried producer with initial state */
-    <
-        Recipe extends (...args: any[]) => any,
-        Params extends any[] = Parameters<Recipe>,
-        T = Params[0]
-    >(
-        recipe: Recipe,
-        initialState: Immutable<T>
-    ): <Base extends Immutable<T>>(
-        base?: Base,
-        ...rest: Tail<Params>
-    ) => Produced<Base, ReturnType<Recipe>>
+	/** Curried producer with initial state */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe,
+		initialState: Immutable<T>
+	): <Base extends Immutable<T>>(
+		base?: Base,
+		...rest: Tail<Params>
+	) => Produced<Base, ReturnType<Recipe>>
 
-    /** Normal producer */
-    <Base, D = Draft<Base>, Return = void>(
-        base: Base,
-        recipe: (draft: D) => Return,
-        listener?: PatchListener
-    ): Produced<Base, Return>
+	/** Normal producer */
+	<Base, D = Draft<Base>, Return = void>(
+		base: Base,
+		recipe: (draft: D) => Return,
+		listener?: PatchListener
+	): Produced<Base, Return>
 }
 
 export const produce: IProduce
 export default produce
 
+/**
+ * Like `produce`, but instead of just returning the new state,
+ * a tuple is returned with [nextState, patches, inversePatches]
+ *
+ * Like produce, this function supports currying
+ */
+export interface IProduceWithPatches {
+	/** Curried producer */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe
+	): <Base extends Immutable<T>>(
+		base: Base,
+		...rest: Tail<Params>
+	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
+	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
+	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
+	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+
+	/** Curried producer with initial state */
+	<
+		Recipe extends (...args: any[]) => any,
+		Params extends any[] = Parameters<Recipe>,
+		T = Params[0]
+	>(
+		recipe: Recipe,
+		initialState: Immutable<T>
+	): <Base extends Immutable<T>>(
+		base?: Base,
+		...rest: Tail<Params>
+	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
+
+	/** Normal producer */
+	<Base, D = Draft<Base>, Return = void>(
+		base: Base,
+		recipe: (draft: D) => Return
+	): [Produced<Base, Return>, Patch[], Patch[]]
+}
+export const produceWithPatches: IProduceWithPatches
+
 /** Use a class type for `nothing` so its type is unique */
 declare class Nothing {
-    // This lets us do `Exclude<T, Nothing>`
-    private _: any
+	// This lets us do `Exclude<T, Nothing>`
+	private _: any
 }
 
 /**
@@ -178,71 +221,71 @@ export function isDraft(value: any): boolean
 export function isDraftable(value: any): boolean
 
 export class Immer {
-    constructor(config: {
-        useProxies?: boolean
-        autoFreeze?: boolean
-        onAssign?: (
-            state: ImmerState,
-            prop: string | number,
-            value: unknown
-        ) => void
-        onDelete?: (state: ImmerState, prop: string | number) => void
-        onCopy?: (state: ImmerState) => void
-    })
-    /**
-     * The `produce` function takes a value and a "recipe function" (whose
-     * return value often depends on the base state). The recipe function is
-     * free to mutate its first argument however it wants. All mutations are
-     * only ever applied to a __copy__ of the base state.
-     *
-     * Pass only a function to create a "curried producer" which relieves you
-     * from passing the recipe function every time.
-     *
-     * Only plain objects and arrays are made mutable. All other objects are
-     * considered uncopyable.
-     *
-     * Note: This function is __bound__ to its `Immer` instance.
-     *
-     * @param {any} base - the initial state
-     * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
-     * @param {Function} patchListener - optional function that will be called with all the patches produced here
-     * @returns {any} a new state, or the initial state if nothing was modified
-     */
-    produce: IProduce
-    /**
-     * When true, `produce` will freeze the copies it creates.
-     */
-    readonly autoFreeze: boolean
-    /**
-     * When true, drafts are ES2015 proxies.
-     */
-    readonly useProxies: boolean
-    /**
-     * Pass true to automatically freeze all copies created by Immer.
-     *
-     * By default, auto-freezing is disabled in production.
-     */
-    setAutoFreeze(autoFreeze: boolean): void
-    /**
-     * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
-     * always faster than using ES5 proxies.
-     *
-     * By default, feature detection is used, so calling this is rarely necessary.
-     */
-    setUseProxies(useProxies: boolean): void
+	constructor(config: {
+		useProxies?: boolean
+		autoFreeze?: boolean
+		onAssign?: (
+			state: ImmerState,
+			prop: string | number,
+			value: unknown
+		) => void
+		onDelete?: (state: ImmerState, prop: string | number) => void
+		onCopy?: (state: ImmerState) => void
+	})
+	/**
+	 * The `produce` function takes a value and a "recipe function" (whose
+	 * return value often depends on the base state). The recipe function is
+	 * free to mutate its first argument however it wants. All mutations are
+	 * only ever applied to a __copy__ of the base state.
+	 *
+	 * Pass only a function to create a "curried producer" which relieves you
+	 * from passing the recipe function every time.
+	 *
+	 * Only plain objects and arrays are made mutable. All other objects are
+	 * considered uncopyable.
+	 *
+	 * Note: This function is __bound__ to its `Immer` instance.
+	 *
+	 * @param {any} base - the initial state
+	 * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
+	 * @returns {any} a new state, or the initial state if nothing was modified
+	 */
+	produce: IProduce
+	/**
+	 * When true, `produce` will freeze the copies it creates.
+	 */
+	readonly autoFreeze: boolean
+	/**
+	 * When true, drafts are ES2015 proxies.
+	 */
+	readonly useProxies: boolean
+	/**
+	 * Pass true to automatically freeze all copies created by Immer.
+	 *
+	 * By default, auto-freezing is disabled in production.
+	 */
+	setAutoFreeze(autoFreeze: boolean): void
+	/**
+	 * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+	 * always faster than using ES5 proxies.
+	 *
+	 * By default, feature detection is used, so calling this is rarely necessary.
+	 */
+	setUseProxies(useProxies: boolean): void
 }
 
 export interface ImmerState<T = any> {
-    parent?: ImmerState
-    base: T
-    copy: T
-    assigned: {[prop: string]: boolean; [index: number]: boolean}
+	parent?: ImmerState
+	base: T
+	copy: T
+	assigned: {[prop: string]: boolean; [index: number]: boolean}
 }
 
 // Backward compatibility with --target es5
 declare global {
-    interface Set<T> {}
-    interface Map<K, V> {}
-    interface WeakSet<T> {}
-    interface WeakMap<K extends object, V> {}
+	interface Set<T> {}
+	interface Map<K, V> {}
+	interface WeakSet<T> {}
+	interface WeakMap<K extends object, V> {}
 }

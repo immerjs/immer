@@ -4,24 +4,35 @@ export const NOTHING =
 		: {["immer-nothing"]: true}
 
 export const DRAFTABLE =
-	typeof Symbol !== "undefined"
+	typeof Symbol !== "undefined" && Symbol.for
 		? Symbol.for("immer-draftable")
 		: "__$immer_draftable"
 
 export const DRAFT_STATE =
-	typeof Symbol !== "undefined" ? Symbol.for("immer-state") : "__$immer_state"
+	typeof Symbol !== "undefined" && Symbol.for
+		? Symbol.for("immer-state")
+		: "__$immer_state"
 
 export function isDraft(value) {
 	return !!value && !!value[DRAFT_STATE]
 }
 
 export function isDraftable(value) {
+	if (!value) return false
+	return (
+		isPlainObject(value) ||
+		!!value[DRAFTABLE] ||
+		!!value.constructor[DRAFTABLE] ||
+		isMap(value) ||
+		isSet(value)
+	)
+}
+
+export function isPlainObject(value) {
 	if (!value || typeof value !== "object") return false
 	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
-	if (!proto || proto === Object.prototype) return true
-	if (isMap(value) || isSet(value)) return true
-	return !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
+	return !proto || proto === Object.prototype
 }
 
 export function original(value) {
@@ -205,4 +216,19 @@ export function makeIterateSetValues(createProxy) {
 
 function latest(state) {
 	return state.copy || state.base
+}
+
+export function clone(obj) {
+	if (!isDraftable(obj)) return obj
+	if (Array.isArray(obj)) return obj.map(clone)
+	const cloned = Object.create(Object.getPrototypeOf(obj))
+	for (const key in obj) cloned[key] = clone(obj[key])
+	return cloned
+}
+
+export function deepFreeze(obj) {
+	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
+	Object.freeze(obj)
+	if (Array.isArray(obj)) obj.forEach(deepFreeze)
+	else for (const key in obj) deepFreeze(obj[key])
 }

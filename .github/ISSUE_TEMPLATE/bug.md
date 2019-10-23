@@ -1,6 +1,6 @@
 ---
 name: 🐛 Bug report
-labels: "bug"
+labels:
 about: Create a report to help us improve
 ---
 
@@ -22,6 +22,6 @@ Please provide either a [CodeSandbox demo](https://codesandbox.io/s/82zqr6n3kj) 
 
 ## Environment
 
--   **Immer version:**
--   [ ] Occurs with `setUseProxies(true)`
--   [ ] Occurs with `setUseProxies(false)` (ES5 only)
+- **Immer version:**
+- [ ] Occurs with `setUseProxies(true)`
+- [ ] Occurs with `setUseProxies(false)` (ES5 only)

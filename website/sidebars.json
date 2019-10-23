@@ -1,0 +1,7 @@
+{
+  "Immer": {
+    "Basics": ["introduction", "installation", "produce", "curried-produce", "example-reducer", "example-setstate"],
+    "Advanced Features": ["api", "typescript", "return", "patches", "freezing", "original", "async", "complex-objects"],
+    "Resources": ["performance", "resources", "faq", "pitfalls", "built-with", "support"]
+  }
+}
