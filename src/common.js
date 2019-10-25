@@ -142,13 +142,15 @@ export function is(x, y) {
 	}
 }
 
-const hasMap = typeof Map !== "undefined"
+export const hasSymbol = typeof Symbol !== "undefined"
+
+export const hasMap = typeof Map !== "undefined"
 
 export function isMap(target) {
 	return hasMap && target instanceof Map
 }
 
-const hasSet = typeof Set !== "undefined"
+export const hasSet = typeof Set !== "undefined"
 
 export function isSet(target) {
 	return hasSet && target instanceof Set

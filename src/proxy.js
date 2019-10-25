@@ -8,6 +8,7 @@ import {
 	isDraft,
 	isMap,
 	isSet,
+	hasSymbol,
 	shallowCopy,
 	makeIterable,
 	DRAFT_STATE,
@@ -258,7 +259,7 @@ const mapTraps = makeTrapsForGetters({
 	keys: state => () => latest(state).keys(),
 	values: iterateMapValues,
 	entries: iterateMapValues,
-	[Symbol.iterator]: iterateMapValues
+	[hasSymbol && Symbol.iterator]: iterateMapValues
 })
 
 const iterateSetValues = makeIterateSetValues(createProxy)
@@ -296,7 +297,7 @@ const setTraps = makeTrapsForGetters({
 	keys: iterateSetValues,
 	values: iterateSetValues,
 	entries: iterateSetValues,
-	[Symbol.iterator]: iterateSetValues
+	[hasSymbol && Symbol.iterator]: iterateSetValues
 })
 
 /**

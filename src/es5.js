@@ -8,6 +8,7 @@ import {
 	isEnumerable,
 	isMap,
 	isSet,
+	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
 	iterateMapValues,
@@ -160,7 +161,7 @@ function proxyProperty(draft, prop, enumerable) {
 function proxyMap(target) {
 	Object.defineProperties(target, mapTraps)
 
-	if (typeof Symbol !== undefined) {
+	if (hasSymbol) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
@@ -227,7 +228,7 @@ const mapTraps = finalizeTraps({
 function proxySet(target) {
 	Object.defineProperties(target, setTraps)
 
-	if (typeof Symbol !== undefined) {
+	if (hasSymbol) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,

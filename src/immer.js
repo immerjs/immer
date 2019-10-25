@@ -78,7 +78,7 @@ export class Immer {
 				if (hasError) scope.revoke()
 				else scope.leave()
 			}
-			if (result instanceof Promise) {
+			if (typeof Promise !== "undefined" && result instanceof Promise) {
 				return result.then(
 					result => {
 						scope.usePatches(patchListener)
