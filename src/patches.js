@@ -129,7 +129,6 @@ function generateSetPatches(state, basePath, patches, inversePatches) {
 export const applyPatches = (draft, patches) => {
 	for (const patch of patches) {
 		const {path, op} = patch
-		const value = clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 
 		if (!path.length) throw new Error("Illegal state")
 
@@ -140,21 +139,21 @@ export const applyPatches = (draft, patches) => {
 				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
 		}
 
+		const value = isSet(base) ? patch.value : clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
+
 		const key = path[path.length - 1]
 		switch (op) {
 			case "replace":
 				if (isMap(base)) {
 					base.set(key, value)
-					return
-				}
-				if (isSet(base)) {
+				} else if (isSet(base)) {
 					throw new Error('Sets cannot have "replace" patches.')
+				} else {
+					// if value is an object, then it's assigned by reference
+					// in the following add or remove ops, the value field inside the patch will also be modifyed
+					// so we use value from the cloned patch
+					base[key] = value
 				}
-				base[key] = value
-				// if value is an object, then it's assigned by reference
-				// in the following add or remove ops, the value field inside the patch will also be modifyed
-				// so we use value from the cloned patch
-				base[key] = value
 				break
 			case "add":
 				Array.isArray(base)
