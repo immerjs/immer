@@ -139,7 +139,7 @@ export const applyPatches = (draft, patches) => {
 				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
 		}
 
-		const value = isSet(base) ? patch.value : clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
+		const value = clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 
 		const key = path[path.length - 1]
 		switch (op) {
@@ -156,6 +156,10 @@ export const applyPatches = (draft, patches) => {
 				}
 				break
 			case "add":
+				if (isSet(base)) {
+					base.delete(patch.value)
+				}
+
 				Array.isArray(base)
 					? base.splice(key, 0, value)
 					: isMap(base)
@@ -170,7 +174,7 @@ export const applyPatches = (draft, patches) => {
 					: isMap(base)
 					? base.delete(key)
 					: isSet(base)
-					? base.delete(value)
+					? base.delete(patch.value)
 					: delete base[key]
 				break
 			default:
