@@ -259,7 +259,7 @@ const mapTraps = makeTrapsForGetters({
 	keys: state => () => latest(state).keys(),
 	values: iterateMapValues,
 	entries: iterateMapValues,
-	[hasSymbol && Symbol.iterator]: iterateMapValues
+	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateMapValues
 })
 
 const iterateSetValues = makeIterateSetValues(createProxy)
@@ -297,7 +297,7 @@ const setTraps = makeTrapsForGetters({
 	keys: iterateSetValues,
 	values: iterateSetValues,
 	entries: iterateSetValues,
-	[hasSymbol && Symbol.iterator]: iterateSetValues
+	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateSetValues
 })
 
 /**
