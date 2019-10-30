@@ -27,7 +27,7 @@ Here is a [simple benchmark](https://github.com/immerjs/immer/blob/master/__perf
 
 Something that isn't reflected in the numbers above, but in reality, Immer is sometimes significantly _faster_ than a hand written reducer. The reason for that is that Immer will detect "no-op" state changes, and return the original state if nothing actually changed, which can avoid a lot of re-renderings for example. Cases are known where simply applying immer solved critical performance issues.
 
-These tests were executed on Node 10.15.1. Use `yarn test:perf` to reproduce them locally.
+These tests were executed on Node 10.16.3. Use `yarn test:perf` to reproduce them locally.
 
 ![performance.png](/immer/img/performance.png)
 

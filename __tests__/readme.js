@@ -93,16 +93,8 @@ describe("readme example", () => {
 		}
 
 		const nextState = produce(state, draft => {
-			draft.title = draft.title.toUpperCase() // let immer do its job
-			// don't use the operations onSet, as that mutates the instance!
-			// draft.tokenSet.add("c1342")
-
-			// instead: clone the set (once!)
-			const newSet = new Set(draft.tokenSet)
-			// mutate it once
-			newSet.add("c1342")
-			// update the draft with the new set
-			draft.tokenSet = newSet
+			draft.title = draft.title.toUpperCase()
+			draft.tokenSet.add("c1342")
 		})
 
 		expect(state).toEqual({title: "hello", tokenSet: new Set()})
@@ -112,27 +104,20 @@ describe("readme example", () => {
 		})
 	})
 
-	it("can deep udpate map", () => {
+	it("can deep update map", () => {
 		const state = {
-			users: new Map([["michel", {name: "miche"}]])
+			users: new Map([["michel", {name: "miche", age: 27}]])
 		}
 
 		const nextState = produce(state, draft => {
-			const newUsers = new Map(draft.users)
-			// mutate the new map and set a _new_ user object
-			// but leverage produce again to deeply update its contents
-			newUsers.set(
-				"michel",
-				produce(draft.users.get("michel"), draft => {
-					draft.name = "michel"
-				})
-			)
-			draft.users = newUsers
+			draft.users.get("michel").name = "michel"
 		})
 
-		expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
+		expect(state).toEqual({
+			users: new Map([["michel", {name: "miche", age: 27}]])
+		})
 		expect(nextState).toEqual({
-			users: new Map([["michel", {name: "michel"}]])
+			users: new Map([["michel", {name: "michel", age: 27}]])
 		})
 	})
 

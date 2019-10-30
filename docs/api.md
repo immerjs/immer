@@ -20,6 +20,7 @@ title: API overview
 | `original` | Given a draft object (doesn't have to be a tree root), returns the the original object at the same path in the original state tree, if present | [Original](original.md) |
 | `Patch` | Exposed TypeScript type, describes the shape of an (inverse) patch object | [Patches](patches.md) |
 | `produce` | The core API of Immer, also exposed as the `default` export | [Produce](produce.md) |
+| `produceWithPatches` | Works the same as `produce`, but instead of just returning the produced object, it returns a tuple, consisting of `[result, patches, inversePatches]`. | [Patches](patches.md) |
 | `setAutoFreeze` | Enables / disables automatic freezing of the trees produces. By default enabled in development builds | [Freezing](freezing.md) |
 | `setUseProxies` | Can be used to disable or force the use of `Proxy` objects. Useful when filing bug reports. |  |
 

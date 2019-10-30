@@ -20,7 +20,11 @@ export function isDraft(value) {
 export function isDraftable(value) {
 	if (!value) return false
 	return (
-		isPlainObject(value) || !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE]
+		isPlainObject(value) ||
+		!!value[DRAFTABLE] ||
+		!!value.constructor[DRAFTABLE] ||
+		isMap(value) ||
+		isSet(value)
 	)
 }
 
@@ -38,16 +42,33 @@ export function original(value) {
 	// otherwise return undefined
 }
 
+// We use Maps as `drafts` for Sets, not Objects
+// See proxy.js
+export function assignSet(target, override) {
+	override.forEach(value => {
+		// When we add new drafts we have to remove their originals if present
+		const prev = original(value)
+		if (prev) target.delete(prev)
+		target.add(value)
+	})
+	return target
+}
+
+// We use Maps as `drafts` for Maps, not Objects
+// See proxy.js
+export function assignMap(target, override) {
+	override.forEach((value, key) => target.set(key, value))
+	return target
+}
+
 export const assign =
 	Object.assign ||
-	function assign(target, value) {
-		for (let key in value) {
-			if (has(value, key)) {
-				target[key] = value[key]
-			}
-		}
+	((target, ...overrides) => {
+		overrides.forEach(override =>
+			Object.keys(override).forEach(key => (target[key] = override[key]))
+		)
 		return target
-	}
+	})
 
 export const ownKeys =
 	typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -61,6 +82,8 @@ export const ownKeys =
 
 export function shallowCopy(base, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
+	if (isMap(base)) return new Map(base)
+	if (isSet(base)) return new Set(base)
 	const clone = Object.create(Object.getPrototypeOf(base))
 	ownKeys(base).forEach(key => {
 		if (key === DRAFT_STATE) {
@@ -87,11 +110,11 @@ export function shallowCopy(base, invokeGetters = false) {
 	return clone
 }
 
-export function each(value, cb) {
-	if (Array.isArray(value)) {
-		for (let i = 0; i < value.length; i++) cb(i, value[i], value)
+export function each(obj, iter) {
+	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
+		obj.forEach((entry, index) => iter(index, entry, obj))
 	} else {
-		ownKeys(value).forEach(key => cb(key, value[key], value))
+		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
 	}
 }
 
@@ -101,7 +124,13 @@ export function isEnumerable(base, prop) {
 }
 
 export function has(thing, prop) {
-	return Object.prototype.hasOwnProperty.call(thing, prop)
+	return isMap(thing)
+		? thing.has(prop)
+		: Object.prototype.hasOwnProperty.call(thing, prop)
+}
+
+export function get(thing, prop) {
+	return isMap(thing) ? thing.get(prop) : thing[prop]
 }
 
 export function is(x, y) {
@@ -113,17 +142,105 @@ export function is(x, y) {
 	}
 }
 
+export const hasSymbol = typeof Symbol !== "undefined"
+
+export const hasMap = typeof Map !== "undefined"
+
+export function isMap(target) {
+	return hasMap && target instanceof Map
+}
+
+export const hasSet = typeof Set !== "undefined"
+
+export function isSet(target) {
+	return hasSet && target instanceof Set
+}
+
+export function makeIterable(next) {
+	let self
+	return (self = {
+		[Symbol.iterator]: () => self,
+		next
+	})
+}
+
+/** Map.prototype.values _-or-_ Map.prototype.entries */
+export function iterateMapValues(state, prop, receiver) {
+	const isEntries = prop !== "values"
+	return () => {
+		const iterator = latest(state)[Symbol.iterator]()
+		return makeIterable(() => {
+			const result = iterator.next()
+			if (!result.done) {
+				const [key] = result.value
+				const value = receiver.get(key)
+				result.value = isEntries ? [key, value] : value
+			}
+			return result
+		})
+	}
+}
+
+export function makeIterateSetValues(createProxy) {
+	function iterateSetValues(state, prop) {
+		const isEntries = prop === "entries"
+		return () => {
+			const iterator = latest(state)[Symbol.iterator]()
+			return makeIterable(() => {
+				const result = iterator.next()
+				if (!result.done) {
+					const value = wrapSetValue(state, result.value)
+					result.value = isEntries ? [value, value] : value
+				}
+				return result
+			})
+		}
+	}
+
+	function wrapSetValue(state, value) {
+		const key = original(value) || value
+		let draft = state.drafts.get(key)
+		if (!draft) {
+			if (state.finalized || !isDraftable(value) || state.finalizing) {
+				return value
+			}
+			draft = createProxy(value, state)
+			state.drafts.set(key, draft)
+			if (state.modified) {
+				state.copy.add(draft)
+			}
+		}
+		return draft
+	}
+
+	return iterateSetValues
+}
+
+function latest(state) {
+	return state.copy || state.base
+}
+
 export function clone(obj) {
 	if (!isDraftable(obj)) return obj
 	if (Array.isArray(obj)) return obj.map(clone)
+	if (isMap(obj)) return new Map(obj)
+	if (isSet(obj)) return new Set(obj)
 	const cloned = Object.create(Object.getPrototypeOf(obj))
 	for (const key in obj) cloned[key] = clone(obj[key])
 	return cloned
 }
 
-export function deepFreeze(obj) {
+export function freeze(obj, deep = false) {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
+	if (isSet(obj)) {
+		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections
+	} else if (isMap(obj)) {
+		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections
+	}
 	Object.freeze(obj)
-	if (Array.isArray(obj)) obj.forEach(deepFreeze)
-	else for (const key in obj) deepFreeze(obj[key])
+	if (deep) each(obj, (_, value) => freeze(value, true))
+}
+
+function dontMutateFrozenCollections() {
+	throw new Error("This object has been frozen and should not be mutated")
 }

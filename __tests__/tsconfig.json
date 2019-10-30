@@ -1,7 +1,7 @@
 {
-	"include": ["*", "../dist"],
-	"compilerOptions": {
-		"lib": ["es2015"],
-		"strict": true
-	}
+  "include": ["*", "../dist"],
+  "compilerOptions": {
+    "lib": ["es2015"],
+    "strict": true
+  }
 }
