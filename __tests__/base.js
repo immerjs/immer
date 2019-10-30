@@ -20,7 +20,7 @@ runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
-	const {produce} = createPatchedImmer({
+	const {produce, produceWithPatches} = createPatchedImmer({
 		useProxies,
 		autoFreeze
 	})
@@ -31,10 +31,11 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = (...args) =>
-			typeof args[1] === "function" && args.length < 3
+		immer.produce = function(...args) {
+			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)
+		}
 
 		return immer
 	}
@@ -1569,6 +1570,65 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		it("returns false for array drafts returned by the producer", () => {
 			const array = produce([], state => state)
 			expect(isDraft(array)).toBeFalsy()
+		})
+	})
+
+	describe(`complex nesting map / set / object`, () => {
+		const a = {a: 1}
+		const b = {b: 2}
+		const c = {c: 3}
+		const set1 = new Set([a, b])
+		const set2 = new Set([c])
+		const map = new Map([["set1", set1], ["set2", set2]])
+		const base = {map}
+
+		function first(set) {
+			return Array.from(set.values())[0]
+		}
+
+		function second(set) {
+			return Array.from(set.values())[1]
+		}
+
+		test(`modify deep object`, () => {
+			const [res, patches] = produceWithPatches(base, draft => {
+				const v = first(draft.map.get("set1"))
+				expect(original(v)).toBe(a)
+				expect(v).toEqual(a)
+				expect(v).not.toBe(a)
+				v.a++
+			})
+			expect(res).toMatchSnapshot()
+			expect(patches).toMatchSnapshot()
+			expect(a.a).toBe(1)
+			expect(base.map.get("set1")).toBe(set1)
+			expect(first(base.map.get("set1"))).toBe(a)
+			expect(res).not.toBe(base)
+			expect(res.map).not.toBe(base.map)
+			expect(res.map.get("set1")).not.toBe(base.map.get("set1"))
+			expect(second(base.map.get("set1"))).toBe(b)
+			expect(base.map.get("set2")).toBe(set2)
+			expect(first(res.map.get("set1"))).toEqual({a: 2})
+		})
+
+		test(`modify deep object - keep value`, () => {
+			const [res, patches] = produceWithPatches(base, draft => {
+				const v = first(draft.map.get("set1"))
+				expect(original(v)).toBe(a)
+				expect(v).toEqual(a)
+				expect(v).not.toBe(a)
+				v.a = 1 // same value
+			})
+			expect(a.a).toBe(1)
+			expect(base.map.get("set1")).toBe(set1)
+			expect(first(base.map.get("set1"))).toBe(a)
+			expect(res).toBe(base)
+			expect(res.map).toBe(base.map)
+			expect(res.map.get("set1")).toBe(base.map.get("set1"))
+			expect(first(res.map.get("set1"))).toBe(a)
+			expect(second(base.map.get("set1"))).toBe(b)
+			expect(base.map.get("set2")).toBe(set2)
+			expect(patches.length).toBe(0)
 		})
 	})
 }

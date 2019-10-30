@@ -40,6 +40,7 @@ export class Immer {
 		assign(this, configDefaults, config)
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
+		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
 	produce(base, recipe, patchListener) {
 		// curried invocation
