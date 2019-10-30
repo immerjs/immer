@@ -21,7 +21,7 @@ jobs:
   include:
     - stage: deploy
       if: branch == master && !fork
-      node_js: "8.12.0" # pre-installed version
+      node_js: "8.16.0" # pre-installed version
       script:
         - yarn build
         - yarn global add semantic-release@^15
