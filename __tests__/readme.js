@@ -188,3 +188,35 @@ describe("readme example", () => {
 		])
 	})
 })
+
+test("Producers can update Maps", () => {
+	const usersById_v1 = new Map()
+
+	const usersById_v2 = produce(usersById_v1, draft => {
+		draft.set("michel", {name: "Michel Weststrate", country: "NL"})
+	})
+
+	const usersById_v3 = produce(usersById_v2, draft => {
+		draft.get("michel").country = "UK"
+	})
+
+	expect(usersById_v2).not.toBe(usersById_v1)
+	expect(usersById_v3).not.toBe(usersById_v2)
+	expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
+	expect(usersById_v2).toMatchInlineSnapshot(`
+		Map {
+		  "michel" => Object {
+		    "country": "NL",
+		    "name": "Michel Weststrate",
+		  },
+		}
+	`)
+	expect(usersById_v3).toMatchInlineSnapshot(`
+		Map {
+		  "michel" => Object {
+		    "country": "UK",
+		    "name": "Michel Weststrate",
+		  },
+		}
+	`)
+})
