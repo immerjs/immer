@@ -304,7 +304,7 @@ function proxyAttr(fn) {
 function proxyMethod(trap, key) {
 	return {
 		get() {
-			return (...args) => {
+			return function(...args) {
 				const state = this[DRAFT_STATE]
 				assertUnrevoked(state)
 				return trap(state, key, state.draft)(...args)
