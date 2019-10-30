@@ -416,3 +416,34 @@ it("works with generic array", () => {
 	expect(queueAfter).toEqual([1, 2, 3, 4])
 	expect(queueBefore).toEqual([1, 2, 3])
 })
+
+it("works with Map and Set", () => {
+	const m = new Map([["a", {x: 1}]])
+	const s = new Set([{x: 2}])
+
+	const res1 = produce(m, draft => {
+		assert(draft, _ as Map<string, {x: number}>)
+	})
+	assert(res1, _ as Map<string, {x: number}>)
+
+	const res2 = produce(s, draft => {
+		assert(draft, _ as Set<{x: number}>)
+	})
+	assert(res2, _ as Set<{x: number}>)
+})
+
+it("works with readonly Map and Set", () => {
+	type S = {readonly x: number}
+	const m = new Map<string, S>([["a", {x: 1}]])
+	const s = new Set<S>([{x: 2}])
+
+	const res1 = produce(m, (draft: Draft<Map<string, S>>) => {
+		assert(draft, _ as Map<string, {readonly x: number}>) // TODO: drop readonly in TS 3.7
+	})
+	assert(res1, _ as Map<string, {readonly x: number}>)
+
+	const res2 = produce(s, (draft: Draft<Set<S>>) => {
+		assert(draft, _ as Set<{readonly x: number}>) // TODO: drop readonly in TS 3.7
+	})
+	assert(res2, _ as Set<{readonly x: number}>)
+})
