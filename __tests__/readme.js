@@ -193,15 +193,19 @@ test("Producers can update Maps", () => {
 	const usersById_v1 = new Map()
 
 	const usersById_v2 = produce(usersById_v1, draft => {
+		// Modifying a map results in a new map
 		draft.set("michel", {name: "Michel Weststrate", country: "NL"})
 	})
 
 	const usersById_v3 = produce(usersById_v2, draft => {
+		// Making a change deep inside a map, results in a new map as well!
 		draft.get("michel").country = "UK"
 	})
 
+	// We got a new map each time!
 	expect(usersById_v2).not.toBe(usersById_v1)
 	expect(usersById_v3).not.toBe(usersById_v2)
+	// With different content obviously
 	expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
 	expect(usersById_v2).toMatchInlineSnapshot(`
 		Map {
@@ -219,4 +223,10 @@ test("Producers can update Maps", () => {
 		  },
 		}
 	`)
+	// The old one was never modified
+	expect(usersById_v1.size).toBe(0)
+	// And trying to change a Map outside a producers is going to: NO!
+	expect(() => usersById_v3.clear()).toThrowErrorMatchingInlineSnapshot(
+		`"This object has been frozen and should not be mutated"`
+	)
 })
