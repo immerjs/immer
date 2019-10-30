@@ -54,7 +54,7 @@ Head to the [next section](produce) to further dive into `produce`.
 
 ## Benefits
 
-- Immutability with normal JavaScript objects and arrays. No new APIs to learn!
+- Immutability with normal JavaScript objects, arrays, Sets and Maps. No new APIs to learn!
 - Strongly typed, no string based paths selectors etc.
 - Structural sharing out of the box
 - Object freezing out of the box

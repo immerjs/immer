@@ -149,6 +149,9 @@ function runTests(name, useProxies) {
 			expect(() => res.delete("b")).toThrow(
 				"This object has been frozen and should not be mutated"
 			)
+
+			// In draft, still editable
+			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
 		})
 
 		it("will freeze sets", () => {
@@ -165,6 +168,9 @@ function runTests(name, useProxies) {
 			expect(() => base.clear()).toThrow(
 				"This object has been frozen and should not be mutated"
 			)
+
+			// In draft, still editable
+			expect(produce(res, d => void d.add(2))).not.toBe(res)
 		})
 	})
 }
