@@ -15,7 +15,7 @@ import {
 	shallowCopy,
 	DRAFT_STATE,
 	NOTHING,
-	deepFreeze
+	freeze
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -250,7 +250,7 @@ export class Immer {
 			// At this point, all descendants of `state.copy` have been finalized,
 			// so we can be sure that `scope.canAutoFreeze` is accurate.
 			if (this.autoFreeze && scope.canAutoFreeze) {
-				Object.freeze(state.copy)
+				freeze(state.copy, false)
 			}
 
 			if (path && scope.patches) {
@@ -324,8 +324,7 @@ export class Immer {
 	}
 	maybeFreeze(value, deep = false) {
 		if (this.autoFreeze && !isDraft(value)) {
-			if (deep) deepFreeze(value)
-			else Object.freeze(value)
+			freeze(value, deep)
 		}
 	}
 }

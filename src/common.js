@@ -230,9 +230,17 @@ export function clone(obj) {
 	return cloned
 }
 
-export function deepFreeze(obj) {
+export function freeze(obj, deep = false) {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
+	if (isSet(obj)) {
+		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections
+	} else if (isMap(obj)) {
+		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections
+	}
 	Object.freeze(obj)
-	if (Array.isArray(obj)) obj.forEach(deepFreeze)
-	else for (const key in obj) deepFreeze(obj[key])
+	if (deep) each(obj, (_, value) => freeze(value, true))
+}
+
+function dontMutateFrozenCollections() {
+	throw new Error("This object has been frozen and should not be mutated")
 }

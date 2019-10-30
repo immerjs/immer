@@ -133,5 +133,38 @@ function runTests(name, useProxies) {
 			})
 			expect(n).toEqual({c: true, a: [3]})
 		})
+
+		it("will freeze maps", () => {
+			const base = new Map()
+			debugger
+			const res = produce(base, draft => {
+				draft.set("a", 1)
+			})
+			expect(() => res.set("b", 2)).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+			expect(() => res.clear()).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+			expect(() => res.delete("b")).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+		})
+
+		it("will freeze sets", () => {
+			const base = new Set()
+			const res = produce(base, draft => {
+				base.add(1)
+			})
+			expect(() => base.add(2)).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+			expect(() => base.delete(1)).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+			expect(() => base.clear()).toThrow(
+				"This object has been frozen and should not be mutated"
+			)
+		})
 	})
 }
