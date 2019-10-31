@@ -1573,6 +1573,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 	})
 
+
 	describe(`complex nesting map / set / object`, () => {
 		const a = {a: 1}
 		const b = {b: 2}
@@ -1631,6 +1632,49 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(patches.length).toBe(0)
 		})
 	})
+
+	describe('class with getters and methods', () => {
+		class State {
+			constructor() {
+				this[immerable] = true
+				this.word1 = "bar"
+				this.word2 = "foo"
+				this.foo = 0
+				this._bar = {baz: 1}
+			}
+			get chars() {
+				return this.word1.split("")
+			}
+			get bar() {
+				return this._bar
+			}
+			setWord2() {
+				let mix = [...this.chars].slice(0, 3)
+				mix[2] = "z"
+				this.word2 = mix.join("")
+			}
+			syncFoo() {
+				return produce(this, state => {
+					state.foo = state.bar.baz
+				})
+			}
+		}
+
+		const state = new State()
+
+		it("should work without creating a proxy for a getter property", () => {
+			expect(state.chars).toEqual(['b', 'a', 'r'])
+			const newState1 = produce(state, d => d.setWord2())
+			expect(newState1.word2).toEqual('baz')
+
+			expect(state.bar).toEqual({ baz: 1 })
+			const newState2 = state.syncFoo()
+			expect(newState2.foo).toEqual(1)
+			expect(newState2.bar).toEqual({baz: 1})
+		})
+		
+	});
+
 }
 
 function testObjectTypes(produce) {
