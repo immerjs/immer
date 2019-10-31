@@ -6,6 +6,15 @@ sidebar_label: Async produce / createDraft
 
 <div id="codefund"><!-- fallback content --></div>
 
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 11: Creating _async_ producers (and why you shouldn’t)</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-write-asynchronous-producers-in-immer-and-why-you-shouldn-t/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-write-asynchronous-producers-in-immer-and-why-you-shouldn-t">Hosted on egghead.io</a>
+</details>
+
 It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
 
 ```javascript

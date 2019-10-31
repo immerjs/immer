@@ -5,6 +5,24 @@ title: Patches
 
 <div id="codefund"><!-- fallback content --></div>
 
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 14: Capture patches using _produceWithPatches_</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches">Hosted on egghead.io</a>
+</details>
+
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 16: Apply Patches using _applyPatches_</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients">Hosted on egghead.io</a>
+</details>
+
 During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer. This is a very powerful tool if you want to fork your state temporarily and replay the changes to the original.
 
 Patches are useful in few scenarios:
@@ -87,6 +105,24 @@ The generated patches are similar (but not the same) to the [RFC-6902 JSON patch
 ```
 
 ### `produceWithPatches`
+
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 19: Using inverse patches to build undo functionality</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality">Hosted on egghead.io</a>
+</details>
+
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 20: Use patches to build redo functionality</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality">Hosted on egghead.io</a>
+</details>
 
 Instead of setting up a patch listener, an easier way to obtain the patches is to use `produceWithPatches`, which has the same signature as `produce`, except that it doesn't return just the next state, but a tuple consisting of `[nextState, patches, inversePatches]`. Like `produce`, `produceWithPatches` supports currying as well.
 

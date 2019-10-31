@@ -8,9 +8,7 @@ type Tail<T extends any[]> = ((...t: T) => any) extends ((
 /** Object types that should never be mapped */
 type AtomicObject =
 	| Function
-	| Map<any, any>
 	| WeakMap<any, any>
-	| Set<any>
 	| WeakSet<any>
 	| Promise<any>
 	| Date
@@ -21,16 +19,36 @@ type AtomicObject =
 
 export type Draft<T> = T extends AtomicObject
 	? T
+	: T extends Map<infer K, infer V>
+	? DraftMap<K, V>
+	: T extends Set<infer V>
+	? DraftSet<V>
 	: T extends object
 	? {-readonly [K in keyof T]: Draft<T[K]>}
 	: T
 
+// Inline these in ts 3.7
+interface DraftMap<K, V> extends Map<Draft<K>, Draft<V>> {}
+
+// Inline these in ts 3.7
+interface DraftSet<V> extends Set<Draft<V>> {}
+
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends AtomicObject
 	? T
+	: T extends Map<infer K, infer V>
+	? // Ideally, but wait for TS 3.7:    ? Omit<ImmutableMap<K, V>, "set" | "delete" | "clear">
+	  ImmutableMap<K, V>
+	: T extends Set<infer V>
+	? // Ideally, but wait for TS 3.7:    ? Omit<ImmutableSet<V>, "add" | "delete" | "clear">
+	  ImmutableSet<V>
 	: T extends object
 	? {readonly [K in keyof T]: Immutable<T[K]>}
 	: T
+
+interface ImmutableMap<K, V> extends Map<Immutable<K>, Immutable<V>> {}
+
+interface ImmutableSet<V> extends Set<Immutable<V>> {}
 
 export interface Patch {
 	op: "replace" | "remove" | "add"

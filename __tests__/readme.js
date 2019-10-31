@@ -93,16 +93,8 @@ describe("readme example", () => {
 		}
 
 		const nextState = produce(state, draft => {
-			draft.title = draft.title.toUpperCase() // let immer do it's job
-			// don't use the operations onSet, as that mutates the instance!
-			// draft.tokenSet.add("c1342")
-
-			// instead: clone the set (once!)
-			const newSet = new Set(draft.tokenSet)
-			// mutate it once
-			newSet.add("c1342")
-			// update the draft with the new set
-			draft.tokenSet = newSet
+			draft.title = draft.title.toUpperCase()
+			draft.tokenSet.add("c1342")
 		})
 
 		expect(state).toEqual({title: "hello", tokenSet: new Set()})
@@ -112,27 +104,20 @@ describe("readme example", () => {
 		})
 	})
 
-	it("can deep udpate map", () => {
+	it("can deep update map", () => {
 		const state = {
-			users: new Map([["michel", {name: "miche"}]])
+			users: new Map([["michel", {name: "miche", age: 27}]])
 		}
 
 		const nextState = produce(state, draft => {
-			const newUsers = new Map(draft.users)
-			// mutate the new map and set a _new_ user object
-			// but leverage produce again to deeply update it's contents
-			newUsers.set(
-				"michel",
-				produce(draft.users.get("michel"), draft => {
-					draft.name = "michel"
-				})
-			)
-			draft.users = newUsers
+			draft.users.get("michel").name = "michel"
 		})
 
-		expect(state).toEqual({users: new Map([["michel", {name: "miche"}]])})
+		expect(state).toEqual({
+			users: new Map([["michel", {name: "miche", age: 27}]])
+		})
 		expect(nextState).toEqual({
-			users: new Map([["michel", {name: "michel"}]])
+			users: new Map([["michel", {name: "michel", age: 27}]])
 		})
 	})
 
@@ -202,4 +187,46 @@ describe("readme example", () => {
 			]
 		])
 	})
+})
+
+test("Producers can update Maps", () => {
+	const usersById_v1 = new Map()
+
+	const usersById_v2 = produce(usersById_v1, draft => {
+		// Modifying a map results in a new map
+		draft.set("michel", {name: "Michel Weststrate", country: "NL"})
+	})
+
+	const usersById_v3 = produce(usersById_v2, draft => {
+		// Making a change deep inside a map, results in a new map as well!
+		draft.get("michel").country = "UK"
+	})
+
+	// We got a new map each time!
+	expect(usersById_v2).not.toBe(usersById_v1)
+	expect(usersById_v3).not.toBe(usersById_v2)
+	// With different content obviously
+	expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
+	expect(usersById_v2).toMatchInlineSnapshot(`
+		Map {
+		  "michel" => Object {
+		    "country": "NL",
+		    "name": "Michel Weststrate",
+		  },
+		}
+	`)
+	expect(usersById_v3).toMatchInlineSnapshot(`
+		Map {
+		  "michel" => Object {
+		    "country": "UK",
+		    "name": "Michel Weststrate",
+		  },
+		}
+	`)
+	// The old one was never modified
+	expect(usersById_v1.size).toBe(0)
+	// And trying to change a Map outside a producers is going to: NO!
+	expect(() => usersById_v3.clear()).toThrowErrorMatchingInlineSnapshot(
+		`"This object has been frozen and should not be mutated"`
+	)
 })

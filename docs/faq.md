@@ -20,13 +20,17 @@ A: Yes
 
 ## Q: I can't rely on Proxies being present on my target environments. Can I use Immer?
 
-A: Yes
+A: Yes [details](http://localhost:3000/immer/docs/installation#immer-on-older-javascript-environments)
 
 ## Q: Can I typecheck my data structures when using Immer?
 
 A: Yes
 
 ## Q: Can I store `Date` objects, functions etc in my state tree when using Immer?
+
+A: Yes
+
+## Q: Can I use Maps and Sets?
 
 A: Yes
 

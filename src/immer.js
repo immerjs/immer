@@ -7,12 +7,15 @@ import {
 	has,
 	is,
 	isDraft,
+	isSet,
+	get,
+	isMap,
 	isDraftable,
 	isEnumerable,
 	shallowCopy,
 	DRAFT_STATE,
 	NOTHING,
-	deepFreeze
+	freeze
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -37,6 +40,7 @@ export class Immer {
 		assign(this, configDefaults, config)
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
+		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
 	produce(base, recipe, patchListener) {
 		// curried invocation
@@ -75,7 +79,7 @@ export class Immer {
 				if (hasError) scope.revoke()
 				else scope.leave()
 			}
-			if (result instanceof Promise) {
+			if (typeof Promise !== "undefined" && result instanceof Promise) {
 				return result.then(
 					result => {
 						scope.usePatches(patchListener)
@@ -223,14 +227,16 @@ export class Immer {
 			state.finalized = true
 			this.finalizeTree(state.draft, path, scope)
 
-			if (this.onDelete) {
+			// We cannot really delete anything inside of a Set. We can only replace the whole Set.
+			if (this.onDelete && !isSet(state.base)) {
 				// The `assigned` object is unreliable with ES5 drafts.
 				if (this.useProxies) {
 					const {assigned} = state
-					for (const prop in assigned) {
-						if (!assigned[prop]) this.onDelete(state, prop)
-					}
+					each(assigned, (prop, exists) => {
+						if (!exists) this.onDelete(state, prop)
+					})
 				} else {
+					// TODO: Figure it out for Maps and Sets if we need to support ES5
 					const {base, copy} = state
 					each(base, prop => {
 						if (!has(copy, prop)) this.onDelete(state, prop)
@@ -244,7 +250,7 @@ export class Immer {
 			// At this point, all descendants of `state.copy` have been finalized,
 			// so we can be sure that `scope.canAutoFreeze` is accurate.
 			if (this.autoFreeze && scope.canAutoFreeze) {
-				Object.freeze(state.copy)
+				freeze(state.copy, false)
 			}
 
 			if (path && scope.patches) {
@@ -275,33 +281,31 @@ export class Immer {
 
 			// In the `finalizeTree` method, only the `root` object may be a draft.
 			const isDraftProp = !!state && parent === root
+			const isSetMember = isSet(parent)
 
 			if (isDraft(value)) {
 				const path =
-					isDraftProp && needPatches && !state.assigned[prop]
+					isDraftProp &&
+					needPatches &&
+					!isSetMember && // Set objects are atomic since they have no keys.
+					!has(state.assigned, prop) // Skip deep patches for assigned keys.
 						? rootPath.concat(prop)
 						: null
 
 				// Drafts owned by `scope` are finalized here.
 				value = this.finalize(value, path, scope)
+				replace(parent, prop, value)
 
 				// Drafts from another scope must prevent auto-freezing.
 				if (isDraft(value)) {
 					scope.canAutoFreeze = false
 				}
 
-				// Preserve non-enumerable properties.
-				if (Array.isArray(parent) || isEnumerable(parent, prop)) {
-					parent[prop] = value
-				} else {
-					Object.defineProperty(parent, prop, {value})
-				}
-
 				// Unchanged drafts are never passed to the `onAssign` hook.
-				if (isDraftProp && value === state.base[prop]) return
+				if (isDraftProp && value === get(state.base, prop)) return
 			}
 			// Unchanged draft properties are ignored.
-			else if (isDraftProp && is(value, state.base[prop])) {
+			else if (isDraftProp && is(value, get(state.base, prop))) {
 				return
 			}
 			// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
@@ -310,7 +314,7 @@ export class Immer {
 				this.maybeFreeze(value)
 			}
 
-			if (isDraftProp && this.onAssign) {
+			if (isDraftProp && this.onAssign && !isSetMember) {
 				this.onAssign(state, prop, value)
 			}
 		}
@@ -320,8 +324,26 @@ export class Immer {
 	}
 	maybeFreeze(value, deep = false) {
 		if (this.autoFreeze && !isDraft(value)) {
-			if (deep) deepFreeze(value)
-			else Object.freeze(value)
+			freeze(value, deep)
 		}
+	}
+}
+
+function replace(parent, prop, value) {
+	if (isMap(parent)) {
+		parent.set(prop, value)
+	} else if (isSet(parent)) {
+		// In this case, the `prop` is actually a draft.
+		parent.delete(prop)
+		parent.add(value)
+	} else if (Array.isArray(parent) || isEnumerable(parent, prop)) {
+		// Preserve non-enumerable properties.
+		parent[prop] = value
+	} else {
+		Object.defineProperty(parent, prop, {
+			value,
+			writable: true,
+			configurable: true
+		})
 	}
 }
