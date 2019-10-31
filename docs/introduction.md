@@ -12,8 +12,9 @@ sidebar_label: Introduction
 
 Winner of the "Breakthrough of the year" [React open source award](https://osawards.com/react/) and "Most impactful contribution" [JavaScript open source award](https://osawards.com/javascript/) in 2019.
 
-- Egghead lesson covering all of immer (7m): [Simplify creating immutable data trees with Immer](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
 - Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
+- Short Egghead.io lesson covering the Immer essentials: [Simplify creating immutable data trees with Immer (7m)](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
+- Free in-depth Egghead.io course: [Immutable JavaScript Data Structures with Immer (58m)](https://egghead.io/courses/immutable-javascript-data-structures-with-immer)
 
 ---
 
@@ -53,7 +54,7 @@ Head to the [next section](produce) to further dive into `produce`.
 
 ## Benefits
 
-- Immutability with normal JavaScript objects and arrays. No new APIs to learn!
+- Immutability with normal JavaScript objects, arrays, Sets and Maps. No new APIs to learn!
 - Strongly typed, no string based paths selectors etc.
 - Structural sharing out of the box
 - Object freezing out of the box

@@ -5,6 +5,15 @@ title: Returning new data from producers
 
 <div id="codefund"><!-- fallback content --></div>
 
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 9: Returning completely new state</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer">Hosted on egghead.io</a>
+</details>
+
 It is not needed to return anything from a producer, as Immer will return the (finalized) version of the `draft` anyway. However, it is allowed to just `return draft`.
 
 It is also allowed to return arbitrarily other data from the producer function. But _only_ if you didn't modify the draft. This can be useful to produce an entirely new state. Some examples:
@@ -87,6 +96,15 @@ produce(state, draft => nothing)
 N.B. Note that this problem is specific for the `undefined` value, any other value, including `null`, doesn't suffer from this issue.
 
 ## Inline shortcuts using `void`
+
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 10: Avoid accidental returns by using _void_</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword">Hosted on egghead.io</a>
+</details>
 
 Draft mutations in Immer usually warrant a code block, since a return denotes an overwrite. Sometimes that can stretch code a little more than you might be comfortable with.
 

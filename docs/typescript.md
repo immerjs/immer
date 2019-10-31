@@ -6,6 +6,15 @@ sidebar_label: TypeScript / Flow
 
 <div id="codefund"><!-- fallback content --></div>
 
+<details>
+    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 12: Immer + TypeScript</summary>
+    <br>
+    <div style="padding:5px;">
+        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-type-immutable-immer-data-with-typescript/embed" ></iframe>
+    </div>
+    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-type-immutable-immer-data-with-typescript">Hosted on egghead.io</a>
+</details>
+
 The Immer package ships with type definitions inside the package, which should be picked up by TypeScript and Flow out of the box and without further configuration.
 
 The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
