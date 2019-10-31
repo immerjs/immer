@@ -1,6 +1,6 @@
 ---
 id: complex-objects
-title: Working with classes
+title: Working with Map, Set and classes
 ---
 
 <div id="codefund"><!-- fallback content --></div>
