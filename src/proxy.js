@@ -107,6 +107,10 @@ const objectTraps = {
 			// Store drafts on the copy (when one exists).
 			drafts = state.copy
 		}
+		
+		if (!Object.keys(state.base).includes(prop)) {
+			return value
+		}
 
 		return (drafts[prop] = createProxy(value, state))
 	},
