@@ -112,6 +112,10 @@ const objectTraps = {
 			return value
 		}
 
+		if (!Object.keys(state.base).includes(prop)) {
+			return value
+		}
+
 		return (drafts[prop] = createProxy(value, state))
 	},
 	has(state, prop) {
@@ -322,6 +326,7 @@ function peek(draft, prop) {
 	)
 	return desc && desc.value
 }
+
 
 function markChanged(state) {
 	if (!state.modified) {
