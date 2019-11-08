@@ -20,7 +20,7 @@ A: Yes
 
 ## Q: I can't rely on Proxies being present on my target environments. Can I use Immer?
 
-A: Yes [details](http://localhost:3000/immer/docs/installation#immer-on-older-javascript-environments)
+A: Yes [details](https://immerjs.github.io/immer/docs/installation#immer-on-older-javascript-environments)
 
 ## Q: Can I typecheck my data structures when using Immer?
 
