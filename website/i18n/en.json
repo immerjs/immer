@@ -16,7 +16,7 @@
         "title": "Built with Immer"
       },
       "complex-objects": {
-        "title": "Working with classes"
+        "title": "Working with Map, Set and classes"
       },
       "curried-produce": {
         "title": "Curried producers"
