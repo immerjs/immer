@@ -1,4 +1,4 @@
-<img src="images/immer-logo.png" height="200px" align="right"/>
+<img src="images/immer-logo.svg" height="200px" align="right"/>
 
 # Immer
 
