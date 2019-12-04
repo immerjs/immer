@@ -64,6 +64,8 @@ const newState = increment(state, 2)
 // `newState.x` cannot be modified here
 ```
 
+_Note: Since TypeScript support for recursive types is limited, and there is no co- contravariance, it might the easiest to not type your state as `readonly` (Immer will still protect against accidental mutations)_
+
 **Note:** Immer v1.9+ supports TypeScript v3.1+ only.
 
 **Note:** Immer v3.0+ supports TypeScript v3.4+ only.
