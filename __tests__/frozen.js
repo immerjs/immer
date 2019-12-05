@@ -8,8 +8,10 @@ runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("auto freeze - " + name, () => {
-		setUseProxies(useProxies)
-		setAutoFreeze(true)
+		beforeAll(() => {
+			setUseProxies(useProxies)
+			setAutoFreeze(true)
+		})
 
 		it("never freezes the base state", () => {
 			const base = {arr: [1], obj: {a: 1}}
@@ -136,7 +138,7 @@ function runTests(name, useProxies) {
 
 		it("will freeze maps", () => {
 			const base = new Map()
-			debugger
+
 			const res = produce(base, draft => {
 				draft.set("a", 1)
 			})
