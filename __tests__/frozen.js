@@ -174,5 +174,28 @@ function runTests(name, useProxies) {
 			// In draft, still editable
 			expect(produce(res, d => void d.add(2))).not.toBe(res)
 		})
+
+		it("Map#get() of frozen object will became draftable", () => {
+			const base = {
+				map: new Map([
+					["a", new Map([["a", true], ["b", true], ["c", true]])],
+					["b", new Map([["a", true]])],
+					["c", new Map([["a", true]])]
+				])
+			}
+
+			// This will freeze maps
+			const frozen = produce(base, draft => {})
+
+			// https://github.com/immerjs/immer/issues/472
+			produce(frozen, draft => {
+				// if (useProxies) debugger
+				;["b", "c"].forEach(other => {
+					const m = draft.map.get(other)
+
+					m.delete("a")
+				})
+			})
+		})
 	})
 }
