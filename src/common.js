@@ -64,9 +64,10 @@ export function assignMap(target, override) {
 export const assign =
 	Object.assign ||
 	((target, ...overrides) => {
-		overrides.forEach(override =>
-			Object.keys(override).forEach(key => (target[key] = override[key]))
-		)
+		overrides.forEach(override => {
+			if (typeof override === "object" && override !== null)
+				Object.keys(override).forEach(key => (target[key] = override[key]))
+		})
 		return target
 	})
 
