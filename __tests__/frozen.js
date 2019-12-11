@@ -8,8 +8,10 @@ runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("auto freeze - " + name, () => {
-		setUseProxies(useProxies)
-		setAutoFreeze(true)
+		beforeAll(() => {
+			setUseProxies(useProxies)
+			setAutoFreeze(true)
+		})
 
 		it("never freezes the base state", () => {
 			const base = {arr: [1], obj: {a: 1}}
@@ -136,7 +138,7 @@ function runTests(name, useProxies) {
 
 		it("will freeze maps", () => {
 			const base = new Map()
-			debugger
+
 			const res = produce(base, draft => {
 				draft.set("a", 1)
 			})
@@ -171,6 +173,29 @@ function runTests(name, useProxies) {
 
 			// In draft, still editable
 			expect(produce(res, d => void d.add(2))).not.toBe(res)
+		})
+
+		it("Map#get() of frozen object will became draftable", () => {
+			const base = {
+				map: new Map([
+					["a", new Map([["a", true], ["b", true], ["c", true]])],
+					["b", new Map([["a", true]])],
+					["c", new Map([["a", true]])]
+				])
+			}
+
+			// This will freeze maps
+			const frozen = produce(base, draft => {})
+
+			// https://github.com/immerjs/immer/issues/472
+			produce(frozen, draft => {
+				// if (useProxies) debugger
+				;["b", "c"].forEach(other => {
+					const m = draft.map.get(other)
+
+					m.delete("a")
+				})
+			})
 		})
 	})
 }
