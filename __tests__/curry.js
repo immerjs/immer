@@ -6,7 +6,9 @@ runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("curry - " + name, () => {
-		setUseProxies(useProxies)
+		beforeAll(() => {
+			setUseProxies(useProxies)
+		})
 
 		it("should check arguments", () => {
 			expect(() => produce()).toThrowErrorMatchingSnapshot()
