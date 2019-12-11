@@ -6,7 +6,7 @@ sidebar_label: Introduction
 
 <div id="codefund"><!-- fallback content --></div>
 
-<img src="/immer/img/immer-logo.png" height="200px" align="right"/>
+<img src="/immer/img/immer-logo.svg" height="200px" align="right"/>
 
 # Immer
 
