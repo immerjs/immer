@@ -12,7 +12,9 @@ runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("manual - " + name, () => {
-		setUseProxies(useProxies)
+		beforeAll(() => {
+			setUseProxies(useProxies)
+		})
 
 		it("should check arguments", () => {
 			expect(() => createDraft(3)).toThrowErrorMatchingSnapshot()
