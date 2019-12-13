@@ -50,6 +50,11 @@ describe("Object.assign", () => {
 		expect(dest.a).toBeUndefined()
 		expect(dest.b).toBe(1)
 	})
+
+	it("can handle null", () => {
+		const res = assign({a: 1, b: 2}, null, {a: 2, c: 2})
+		expect(res).toEqual({a: 2, b: 2, c: 2})
+	})
 })
 
 describe("Reflect.ownKeys", () => {

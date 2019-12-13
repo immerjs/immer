@@ -1236,6 +1236,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(result[0].a).toEqual(2)
 		})
 
+		autoFreeze &&
+			test("issue #469, state not frozen", () => {
+				const project = produce(
+					{
+						id: 1,
+						tracks: [{id: 1}]
+					},
+					() => {}
+				)
+
+				expect(() => {
+					project.id = 2 // Does not throw error
+				}).toThrowError("Cannot assign to read only property 'id'")
+
+				expect(() => {
+					Object.assign(project, {id: 2}) // Uncaught TypeError: Cannot assign to read only property 'id' of object '#<Object>'
+				}).toThrowError("Cannot assign to read only property 'id'")
+			})
+
 		describe("recipe functions", () => {
 			it("can return a new object", () => {
 				const base = {x: 3}

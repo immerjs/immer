@@ -38,6 +38,10 @@
   ],
   "author": "Michel Weststrate",
   "license": "MIT",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/immer"
+  },
   "bugs": {
     "url": "https://github.com/immerjs/immer/issues"
   },

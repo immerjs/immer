@@ -14,7 +14,6 @@ const siteConfig = {
 	url: "https://immerjs.github.io", // Your website URL
 	baseUrl: "/immer/", // Base URL for your project */
 	editUrl: "https://github.com/immerjs/immer/edit/master/docs/",
-	noIndex: true,
 	// For github.io type URLs, you would set the url and baseUrl like:
 	//   url: 'https://facebook.github.io',
 	//   baseUrl: '/test-site/',
