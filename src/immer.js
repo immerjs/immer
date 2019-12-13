@@ -115,6 +115,11 @@ export class Immer {
 			patches = p
 			inversePatches = ip
 		})
+		if (typeof Promise !== "undefined" && nextState instanceof Promise) {
+			return nextState.then(
+				nextState => [nextState, patches, inversePatches]
+			)
+		}
 		return [nextState, patches, inversePatches]
 	}
 	createDraft(base) {
