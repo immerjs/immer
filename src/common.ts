@@ -1,25 +1,38 @@
-import {Objectish, ObjectishNoSet, State} from "./types"
+import {Objectish, ObjectishNoSet, ImmerState} from "./types"
 
+/**
+ * The sentinel value returned by producers to replace the draft with undefined.
+ */
 export const NOTHING =
 	typeof Symbol !== "undefined"
 		? Symbol("immer-nothing")
 		: {["immer-nothing"]: true}
 
-export const DRAFTABLE =
+/**
+ * To let Immer treat your class instances as plain immutable objects
+ * (albeit with a custom prototype), you must define either an instance property
+ * or a static property on each of your custom classes.
+ *
+ * Otherwise, your class instance will never be drafted, which means it won't be
+ * safe to mutate in a produce callback.
+ */
+export const DRAFTABLE: unique symbol =
 	typeof Symbol !== "undefined" && Symbol.for
 		? Symbol.for("immer-draftable")
-		: "__$immer_draftable"
+		: ("__$immer_draftable" as any)
 
-export const DRAFT_STATE =
+export const DRAFT_STATE: unique symbol =
 	typeof Symbol !== "undefined" && Symbol.for
 		? Symbol.for("immer-state")
-		: "__$immer_state"
+		: ("__$immer_state" as any)
 
-export function isDraft(value): boolean {
+/** Returns true if the given value is an Immer draft */
+export function isDraft(value: any): boolean {
 	return !!value && !!value[DRAFT_STATE]
 }
 
-export function isDraftable(value): boolean {
+/** Returns true if the given value can be drafted by Immer */
+export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
 		isPlainObject(value) ||
@@ -37,6 +50,7 @@ export function isPlainObject(value): boolean {
 	return !proto || proto === Object.prototype
 }
 
+/** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | undefined {
 	if (value && value[DRAFT_STATE]) {
 		return value[DRAFT_STATE].base
@@ -228,7 +242,7 @@ export function makeIterateSetValues(createProxy) {
 	return iterateSetValues
 }
 
-function latest<T = any>(state: State<T>): T {
+function latest<T = any>(state: ImmerState<T>): T {
 	return state.copy || state.base
 }
 

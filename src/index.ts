@@ -1,5 +1,7 @@
 import {Immer} from "./immer"
 
+export {Draft, Immutable, Patch, PatchListener} from "./types"
+
 const immer = new Immer()
 
 /**

@@ -18,6 +18,7 @@ import {
 	freeze
 } from "./common"
 import {ImmerScope} from "./scope"
+import {ImmerState, IProduce, IProduceWithPatches} from "./types"
 
 function verifyMinified() {}
 
@@ -35,13 +36,51 @@ const configDefaults = {
 	onCopy: null
 }
 
-export class Immer {
-	constructor(config) {
+interface ProducersFns {
+	produce: IProduce
+	produceWithPatches: IProduceWithPatches
+}
+
+export class Immer implements ProducersFns {
+	useProxies: boolean = false
+	autoFreeze: boolean = false
+
+	constructor(config?: {
+		useProxies?: boolean
+		autoFreeze?: boolean
+		onAssign?: (
+			state: ImmerState,
+			prop: string | number,
+			value: unknown
+		) => void
+		onDelete?: (state: ImmerState, prop: string | number) => void
+		onCopy?: (state: ImmerState) => void
+	}) {
 		assign(this, configDefaults, config)
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
+
+	/**
+	 * The `produce` function takes a value and a "recipe function" (whose
+	 * return value often depends on the base state). The recipe function is
+	 * free to mutate its first argument however it wants. All mutations are
+	 * only ever applied to a __copy__ of the base state.
+	 *
+	 * Pass only a function to create a "curried producer" which relieves you
+	 * from passing the recipe function every time.
+	 *
+	 * Only plain objects and arrays are made mutable. All other objects are
+	 * considered uncopyable.
+	 *
+	 * Note: This function is __bound__ to its `Immer` instance.
+	 *
+	 * @param {any} base - the initial state
+	 * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
+	 * @returns {any} a new state, or the initial state if nothing was modified
+	 */
 	produce(base, recipe, patchListener) {
 		// curried invocation
 		if (typeof base === "function" && typeof recipe !== "function") {
@@ -101,6 +140,7 @@ export class Immer {
 			return result
 		}
 	}
+
 	produceWithPatches(arg1, arg2, arg3) {
 		if (typeof arg1 === "function") {
 			const self = this
@@ -117,6 +157,7 @@ export class Immer {
 		})
 		return [nextState, patches, inversePatches]
 	}
+
 	createDraft(base) {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
@@ -127,6 +168,7 @@ export class Immer {
 		scope.leave()
 		return proxy
 	}
+
 	finishDraft(draft, patchListener) {
 		const state = draft && draft[DRAFT_STATE]
 		if (!state || !state.isManual) {
@@ -139,9 +181,22 @@ export class Immer {
 		scope.usePatches(patchListener)
 		return this.processResult(undefined, scope)
 	}
+
+	/**
+	 * Pass true to automatically freeze all copies created by Immer.
+	 *
+	 * By default, auto-freezing is disabled in production.
+	 */
 	setAutoFreeze(value) {
 		this.autoFreeze = value
 	}
+
+	/**
+	 * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+	 * always faster than using ES5 proxies.
+	 *
+	 * By default, feature detection is used, so calling this is rarely necessary.
+	 */
 	setUseProxies(value) {
 		this.useProxies = value
 		assign(this, value ? modernProxy : legacyProxy)
