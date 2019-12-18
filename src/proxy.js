@@ -360,8 +360,7 @@ function makeReflectTraps(names) {
 }
 
 function makeTrapsForGetters(getters) {
-	return {
-		...reflectTraps,
+	return assign({}, reflectTraps, {
 		get(state, prop, receiver) {
 			return getters.hasOwnProperty(prop)
 				? getters[prop](state, prop, receiver)
@@ -370,5 +369,5 @@ function makeTrapsForGetters(getters) {
 		setPrototypeOf(state) {
 			throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
 		}
-	}
+	})
 }
