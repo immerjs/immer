@@ -182,7 +182,7 @@ export function isSet(target): target is Set<any> {
 	return hasSet && target instanceof Set
 }
 
-export function makeIterable(next: Objectish) {
+export function makeIterable(next: () => {done: boolean; value: any}) {
 	let self
 	return (self = {
 		[Symbol.iterator]: () => self,
@@ -208,7 +208,7 @@ export function iterateMapValues(state, prop, receiver) {
 }
 
 export function makeIterateSetValues(createProxy) {
-	function iterateSetValues(state, prop) {
+	function iterateSetValues(state, prop?) {
 		const isEntries = prop === "entries"
 		return () => {
 			const iterator = latest(state)[Symbol.iterator]()

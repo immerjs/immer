@@ -22,6 +22,7 @@ interface ES5Draft {
 	[DRAFT_STATE]: ES5State
 }
 
+// TODO: merge with ImmerState?
 interface ES5State<T = any> {
 	scope: ImmerScope
 	modified: boolean
@@ -58,7 +59,7 @@ export function willFinalize(
 	}
 }
 
-export function createProxy(base: any, parent: ES5State) {
+export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
@@ -74,7 +75,7 @@ export function createProxy(base: any, parent: ES5State) {
 
 	// See "proxy.js" for property documentation.
 	const scope = parent ? parent.scope : ImmerScope.current!
-	const state: ES5State = {
+	const state: ES5State<T> = {
 		scope,
 		modified: false,
 		finalizing: false, // es5 only
@@ -189,7 +190,7 @@ function proxyMap(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateMapValues)
+			proxyMethod(iterateMapValues, Symbol.iterator)
 		)
 	}
 }
@@ -256,7 +257,7 @@ function proxySet(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateSetValues)
+			proxyMethod(iterateSetValues, Symbol.iterator)
 		)
 	}
 }
@@ -328,7 +329,7 @@ function proxyAttr(fn) {
 function proxyMethod(trap, key) {
 	return {
 		get() {
-			return function(...args) {
+			return function(this: ES5Draft, ...args) {
 				const state = this[DRAFT_STATE]
 				assertUnrevoked(state)
 				return trap(state, key, state.draft)(...args)
