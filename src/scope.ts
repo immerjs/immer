@@ -8,7 +8,7 @@ export class ImmerScope {
 	patches?: Patch[]
 	inversePatches?: Patch[]
 	canAutoFreeze: boolean
-	drafts?: any[]
+	drafts: any[]
 	parent?: ImmerScope
 	patchListener?: PatchListener
 
@@ -21,7 +21,7 @@ export class ImmerScope {
 		this.canAutoFreeze = true
 
 		// To avoid prototype lookups:
-		this.patches = undefined
+		this.patches = null as any // TODO:
 	}
 
 	usePatches(patchListener: PatchListener) {
@@ -34,8 +34,9 @@ export class ImmerScope {
 
 	revoke() {
 		this.leave()
-		this.drafts!.forEach(revoke)
-		this.drafts = undefined // Make draft-related methods throw.
+		this.drafts.forEach(revoke)
+		// @ts-ignore
+		this.drafts = null // TODO: // Make draft-related methods throw.
 	}
 
 	leave() {
@@ -45,7 +46,9 @@ export class ImmerScope {
 	}
 
 	static enter() {
-		return (ImmerScope.current = new ImmerScope(ImmerScope.current))
+		const scope = new ImmerScope(ImmerScope.current)
+		ImmerScope.current = scope
+		return scope
 	}
 }
 

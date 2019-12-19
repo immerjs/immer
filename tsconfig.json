@@ -3,6 +3,6 @@
   "compilerOptions": {
     "lib": ["es2015"],
     "strict": true,
-    "noImplicitAny": false
+    "noImplicitAny": false // TODO: true
   }
 }

@@ -190,7 +190,8 @@ function proxyMap(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateMapValues, Symbol.iterator)
+			// @ts-ignore
+			proxyMethod(iterateMapValues) //TODO: , Symbol.iterator)
 		)
 	}
 }
@@ -257,7 +258,8 @@ function proxySet(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateSetValues, Symbol.iterator)
+			// @ts-ignore
+			proxyMethod(iterateSetValues) //TODO: , Symbol.iterator)
 		)
 	}
 }

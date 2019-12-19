@@ -1,3 +1,5 @@
+import {Nothing} from "./common"
+
 export type Objectish = any[] | Map<any, any> | Set<any> | {}
 
 export type ObjectishNoSet = any[] | Map<any, any> | {}
@@ -173,12 +175,6 @@ export interface IProduceWithPatches {
 		base: Base,
 		recipe: (draft: D) => Return
 	): [Produced<Base, Return>, Patch[], Patch[]]
-}
-
-/** Use a class type for `nothing` so its type is unique */
-declare class Nothing {
-	// This lets us do `Exclude<T, Nothing>`
-	private _: any
 }
 
 // Backward compatibility with --target es5

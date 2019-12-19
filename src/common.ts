@@ -1,12 +1,19 @@
 import {Objectish, ObjectishNoSet, ImmerState} from "./types"
 
+/** Use a class type for `nothing` so its type is unique */
+export class Nothing {
+	// This lets us do `Exclude<T, Nothing>`
+	// TODO: do this better, use unique symbol instead
+	private _: any
+}
+
 /**
  * The sentinel value returned by producers to replace the draft with undefined.
  */
-export const NOTHING =
+export const NOTHING: Nothing =
 	typeof Symbol !== "undefined"
 		? Symbol("immer-nothing")
-		: {["immer-nothing"]: true}
+		: ({["immer-nothing"]: true} as any)
 
 /**
  * To let Immer treat your class instances as plain immutable objects
@@ -257,7 +264,10 @@ export function clone(obj) {
 	return cloned
 }
 
-export function freeze<T extends Objectish>(obj: T, deep?: boolean): void {
+export function freeze<T extends Objectish>(
+	obj: T,
+	deep: boolean = false
+): void {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
 	if (isSet(obj)) {
 		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any

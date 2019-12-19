@@ -23,25 +23,27 @@ import {ImmerScope} from "./scope"
 // Do nothing before being finalized.
 export function willFinalize() {}
 
-interface ES6Draft {
+interface ES6Draft {}
 
-}
-
-interface ES6State<T= any> {
-	scope: ImmerScope,
-	modified: boolean,
-	finalized: boolean,
-	assigned: {
-		[property: string]: boolean;
-	} | Map<string, boolean> // TODO: always use a Map?
-	parent: ES6State,
-	base: T,
+interface ES6State<T = any> {
+	scope: ImmerScope
+	modified: boolean
+	finalized: boolean
+	assigned:
+		| {
+				[property: string]: boolean
+		  }
+		| Map<string, boolean> // TODO: always use a Map?
+	parent: ES6State
+	base: T
 	draft: ES6Draft | null
-	drafts: {
-		[property: string]: ES6Draft
-	} | Map<string, ES6Draft> // TODO: always use a Map?
+	drafts:
+		| {
+				[property: string]: ES6Draft
+		  }
+		| Map<string, ES6Draft> // TODO: always use a Map?
 	copy: T | null
-	revoke : null | (() => void)
+	revoke: null | (() => void)
 }
 
 /**
@@ -49,7 +51,10 @@ interface ES6State<T= any> {
  *
  * The second argument is the parent draft-state (used internally).
  */
-export function createProxy<T extends object>(base: T, parent: ES6State): ES6Draft {
+export function createProxy<T extends object>(
+	base: T,
+	parent: ES6State
+): ES6Draft {
 	const scope = parent ? parent.scope : ImmerScope.current!
 	const state: ES6State<T> = {
 		// Track which produce call this is associated with.
@@ -81,7 +86,7 @@ export function createProxy<T extends object>(base: T, parent: ES6State): ES6Dra
 	// So the trick is to use 'state' as the actual 'target'! (and make sure we intercept everything)
 	// Note that in the case of an array, we put the state in an array to have better Reflect defaults ootb
 	let target: T = state as any
-	let traps: ProxyHandler<object|Array<any>> = objectTraps
+	let traps: ProxyHandler<object | Array<any>> = objectTraps
 	if (Array.isArray(base)) {
 		target = [state] as any
 		traps = arrayTraps
@@ -207,13 +212,13 @@ arrayTraps.deleteProperty = function(state, prop) {
 	if (isNaN(parseInt(prop as any))) {
 		throw new Error("Immer only supports deleting array indices") // prettier-ignore
 	}
-	return objectTraps.deleteProperty!.call(undefined, state[0], prop)
+	return objectTraps.deleteProperty!.call(this, state[0], prop)
 }
 arrayTraps.set = function(state, prop, value) {
 	if (prop !== "length" && isNaN(parseInt(prop as any))) {
 		throw new Error("Immer only supports setting array indices and the 'length' property") // prettier-ignore
 	}
-	return objectTraps.set!.call(undefined, state[0], prop, value, state[0])
+	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
 // Used by Map and Set drafts
@@ -391,15 +396,26 @@ function markChanged(state) {
 }
 
 /** Create traps that all use the `Reflect` API on the `latest(state)` */
-function makeReflectTraps<T extends object>(names: (keyof typeof Reflect)[]): ProxyHandler<T> {
-	return names.reduce((traps, name) => {
-		// @ts-ignore
-		traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
-		return traps
-	}, {} as any)
+function makeReflectTraps<T extends object>(
+	names: (keyof typeof Reflect)[]
+): ProxyHandler<T> {
+	return names.reduce(
+		(traps, name) => {
+			// @ts-ignore
+			traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
+			return traps
+		},
+		{} as any
+	)
 }
 
-function makeTrapsForGetters<T extends object>(getters: {[K in keyof T]: (state: ES6State<T>) => /* Skip first arg of: ProxyHandler<T>[K] */ any }): ProxyHandler<T> {
+function makeTrapsForGetters<T extends object>(
+	getters: {
+		[K in keyof T]: (
+			state: ES6State<T>
+		) => /* Skip first arg of: ProxyHandler<T>[K] */ any
+	}
+): ProxyHandler<T> {
 	return assign({}, reflectTraps, {
 		get(state, prop, receiver) {
 			return getters.hasOwnProperty(prop)
