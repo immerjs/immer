@@ -112,7 +112,7 @@ function generateSetPatches(
 	let {base, copy} = state
 
 	let i = 0
-	for (const value of base) {
+	base.forEach(value => {
 		if (!copy.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({
@@ -127,9 +127,9 @@ function generateSetPatches(
 			})
 		}
 		i++
-	}
+	})
 	i = 0
-	for (const value of copy) {
+	copy.forEach(value => {
 		if (!base.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({
@@ -144,11 +144,11 @@ function generateSetPatches(
 			})
 		}
 		i++
-	}
+	})
 }
 
 export function applyPatches<T>(draft: T, patches: Patch[]): T {
-	for (const patch of patches) {
+	patches.forEach(patch => {
 		const {path, op} = patch
 
 		if (!path.length) throw new Error("Illegal state")
@@ -201,7 +201,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 			default:
 				throw new Error("Unsupported patch operation: " + op)
 		}
-	}
+	})
 
 	return draft
 }

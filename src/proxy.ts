@@ -264,9 +264,10 @@ const mapTraps = makeTrapsForGetters<Map<any, any>>({
 	clear: state => () => {
 		markChanged(state)
 		state.assigned = new Map()
-		for (const key of latest(state).keys()) {
+		each(latest(state).keys(), (_, key) => {
+			// @ts-ignore
 			state.assigned.set(key, false)
-		}
+		})
 		return state.copy!.clear()
 	},
 	// @ts-ignore
