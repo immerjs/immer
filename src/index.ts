@@ -1,4 +1,7 @@
 import {Immer} from "./immer"
+import {IProduce, IProduceWithPatches} from "./types"
+
+export {Draft, Immutable, Patch, PatchListener} from "./types"
 
 const immer = new Immer()
 
@@ -21,14 +24,16 @@ const immer = new Immer()
  * @param {Function} patchListener - optional function that will be called with all the patches produced here
  * @returns {any} a new state, or the initial state if nothing was modified
  */
-export const produce = immer.produce
+export const produce: IProduce = immer.produce
 export default produce
 
 /**
  * Like `produce`, but `produceWithPatches` always returns a tuple
  * [nextState, patches, inversePatches] (instead of just the next state)
  */
-export const produceWithPatches = immer.produceWithPatches.bind(immer)
+export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.bind(
+	immer
+)
 
 /**
  * Pass true to automatically freeze all copies created by Immer.

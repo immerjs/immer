@@ -6,7 +6,7 @@ import produce, {
 	nothing,
 	Draft,
 	Immutable
-} from "../dist/immer.js"
+} from "../src/"
 
 interface State {
 	readonly num: number
@@ -225,7 +225,7 @@ it("works with return type of: number", () => {
 })
 
 it("works with return type of: number | undefined", () => {
-	let base = _ as {a: number}
+	let base = {a: 0} as {a: number}
 	let result = produce(base, draft => {
 		return draft.a < 0 ? 0 : undefined
 	})
@@ -233,7 +233,7 @@ it("works with return type of: number | undefined", () => {
 })
 
 it("can return an object type that is identical to the base type", () => {
-	let base = _ as {a: number}
+	let base = {a: 0} as {a: number}
 	let result = produce(base, draft => {
 		return draft.a < 0 ? {a: 0} : undefined
 	})
@@ -242,7 +242,7 @@ it("can return an object type that is identical to the base type", () => {
 })
 
 it("can return an object type that is _not_ assignable to the base type", () => {
-	let base = _ as {a: number}
+	let base = {a: 0} as {a: number}
 	let result = produce(base, draft => {
 		return draft.a < 0 ? {a: true} : undefined
 	})
@@ -257,7 +257,7 @@ it("does not enforce immutability at the type level", () => {
 })
 
 it("can produce an undefined value", () => {
-	let base = _ as {readonly a: number}
+	let base = {a: 0} as {readonly a: number}
 
 	// Return only nothing.
 	let result = produce(base, _ => nothing)
@@ -280,7 +280,7 @@ it("can return the draft itself", () => {
 
 it("can return a promise", () => {
 	type Base = {readonly a: number}
-	let base = _ as Base
+	let base = {a: 0} as Base
 
 	// Return a promise only.
 	let res1 = produce(base, draft => {
@@ -296,7 +296,7 @@ it("can return a promise", () => {
 })
 
 it("works with `void` hack", () => {
-	let base = _ as {readonly a: number}
+	let base = {a: 0} as {readonly a: number}
 	let copy = produce(base, s => void s.a++)
 	assert(copy, base)
 })
@@ -310,8 +310,8 @@ it("works with generic parameters", () => {
 			draft.concat([elem])
 		})
 	}
-	let val: {readonly a: ReadonlyArray<number>} = 0 as any
-	let arr: ReadonlyArray<typeof val> = 0 as any
+	let val: {readonly a: ReadonlyArray<number>} = {a: []} as any
+	let arr: ReadonlyArray<typeof val> = [] as any
 	insert(arr, 0, val)
 })
 

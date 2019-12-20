@@ -16,14 +16,39 @@ import {
 	makeIterateSetValues
 } from "./common"
 import {ImmerScope} from "./scope"
+import {ImmerState} from "./types"
 
-export function willFinalize(scope, result, isReplaced) {
-	scope.drafts.forEach(draft => {
+interface ES5Draft {
+	[DRAFT_STATE]: ES5State
+}
+
+// TODO: merge with ImmerState?
+interface ES5State<T = any> {
+	scope: ImmerScope
+	modified: boolean
+	finalizing: boolean
+	finalized: boolean
+	assigned: Map<any, any> | {[key: string]: any}
+	parent: ES5State
+	base: T
+	draft: T & ES5Draft
+	drafts: Map<any, any> | null
+	copy: T | null
+	revoke()
+	revoked: boolean
+}
+
+export function willFinalize(
+	scope: ImmerScope,
+	result: any,
+	isReplaced: boolean
+) {
+	scope.drafts!.forEach(draft => {
 		draft[DRAFT_STATE].finalizing = true
 	})
 	if (!isReplaced) {
 		if (scope.patches) {
-			markChangesRecursively(scope.drafts[0])
+			markChangesRecursively(scope.drafts![0])
 		}
 		// This is faster when we don't care about which attributes changed.
 		markChangesSweep(scope.drafts)
@@ -34,7 +59,7 @@ export function willFinalize(scope, result, isReplaced) {
 	}
 }
 
-export function createProxy(base, parent) {
+export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
@@ -49,8 +74,8 @@ export function createProxy(base, parent) {
 	}
 
 	// See "proxy.js" for property documentation.
-	const scope = parent ? parent.scope : ImmerScope.current
-	const state = {
+	const scope = parent ? parent.scope : ImmerScope.current!
+	const state: ES5State<T> = {
 		scope,
 		modified: false,
 		finalizing: false, // es5 only
@@ -66,11 +91,11 @@ export function createProxy(base, parent) {
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
-	scope.drafts.push(draft)
+	scope.drafts!.push(draft)
 	return draft
 }
 
-function revoke() {
+function revoke(this: ES5State) {
 	this.revoked = true
 }
 
@@ -165,7 +190,8 @@ function proxyMap(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateMapValues)
+			// @ts-ignore
+			proxyMethod(iterateMapValues) //TODO: , Symbol.iterator)
 		)
 	}
 }
@@ -232,7 +258,8 @@ function proxySet(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
-			proxyMethod(iterateSetValues)
+			// @ts-ignore
+			proxyMethod(iterateSetValues) //TODO: , Symbol.iterator)
 		)
 	}
 }
@@ -304,7 +331,7 @@ function proxyAttr(fn) {
 function proxyMethod(trap, key) {
 	return {
 		get() {
-			return function(...args) {
+			return function(this: ES5Draft, ...args) {
 				const state = this[DRAFT_STATE]
 				assertUnrevoked(state)
 				return trap(state, key, state.draft)(...args)
