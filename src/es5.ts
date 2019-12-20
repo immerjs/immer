@@ -17,14 +17,39 @@ import {
 } from "./common"
 import {proxyMap, proxySet, hasMapChanges, hasSetChanges} from "./mapset"
 import {ImmerScope} from "./scope"
+import {ImmerState} from "./types"
 
-export function willFinalize(scope, result, isReplaced) {
-	scope.drafts.forEach(draft => {
+interface ES5Draft {
+	[DRAFT_STATE]: ES5State
+}
+
+// TODO: merge with ImmerState?
+interface ES5State<T = any> {
+	scope: ImmerScope
+	modified: boolean
+	finalizing: boolean
+	finalized: boolean
+	assigned: Map<any, any> | {[key: string]: any}
+	parent: ES5State
+	base: T
+	draft: T & ES5Draft
+	drafts: Map<any, any> | null
+	copy: T | null
+	revoke()
+	revoked: boolean
+}
+
+export function willFinalize(
+	scope: ImmerScope,
+	result: any,
+	isReplaced: boolean
+) {
+	scope.drafts!.forEach(draft => {
 		draft[DRAFT_STATE].finalizing = true
 	})
 	if (!isReplaced) {
 		if (scope.patches) {
-			markChangesRecursively(scope.drafts[0])
+			markChangesRecursively(scope.drafts![0])
 		}
 		// This is faster when we don't care about which attributes changed.
 		markChangesSweep(scope.drafts)
@@ -35,7 +60,7 @@ export function willFinalize(scope, result, isReplaced) {
 	}
 }
 
-export function createProxy(base, parent) {
+export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
@@ -50,8 +75,8 @@ export function createProxy(base, parent) {
 	}
 
 	// See "proxy.js" for property documentation.
-	const scope = parent ? parent.scope : ImmerScope.current
-	const state = {
+	const scope = parent ? parent.scope : ImmerScope.current!
+	const state: ES5State<T> = {
 		scope,
 		modified: false,
 		finalizing: false, // es5 only
@@ -67,11 +92,11 @@ export function createProxy(base, parent) {
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
-	scope.drafts.push(draft)
+	scope.drafts!.push(draft)
 	return draft
 }
 
-function revoke() {
+function revoke(this: ES5State) {
 	this.revoked = true
 }
 
@@ -162,8 +187,164 @@ function proxyProperty(draft, prop, enumerable) {
 	Object.defineProperty(draft, prop, desc)
 }
 
-// TODO: remove export
-export function assertUnrevoked(state) {
+function proxyMap(target) {
+	Object.defineProperties(target, mapTraps)
+
+	if (hasSymbol) {
+		Object.defineProperty(
+			target,
+			Symbol.iterator,
+			// @ts-ignore
+			proxyMethod(iterateMapValues) //TODO: , Symbol.iterator)
+		)
+	}
+}
+
+const mapTraps = finalizeTraps({
+	size: state => latest(state).size,
+	has: state => key => latest(state).has(key),
+	set: state => (key, value) => {
+		if (latest(state).get(key) !== value) {
+			prepareCopy(state)
+			markChanged(state)
+			state.assigned.set(key, true)
+			state.copy.set(key, value)
+		}
+		return state.draft
+	},
+	delete: state => key => {
+		prepareCopy(state)
+		markChanged(state)
+		state.assigned.set(key, false)
+		state.copy.delete(key)
+		return false
+	},
+	clear: state => () => {
+		if (!state.copy) {
+			prepareCopy(state)
+		}
+		markChanged(state)
+		state.assigned = new Map()
+		for (const key of latest(state).keys()) {
+			state.assigned.set(key, false)
+		}
+		return state.copy.clear()
+	},
+	forEach: (state, key, reciever) => cb => {
+		latest(state).forEach((value, key, map) => {
+			cb(reciever.get(key), key, map)
+		})
+	},
+	get: state => key => {
+		const value = latest(state).get(key)
+
+		if (state.finalizing || state.finalized || !isDraftable(value)) {
+			return value
+		}
+
+		if (value !== state.base.get(key)) {
+			return value
+		}
+		const draft = createProxy(value, state)
+		prepareCopy(state)
+		state.copy.set(key, draft)
+		return draft
+	},
+	keys: state => () => latest(state).keys(),
+	values: iterateMapValues,
+	entries: iterateMapValues
+})
+
+function proxySet(target) {
+	Object.defineProperties(target, setTraps)
+
+	if (hasSymbol) {
+		Object.defineProperty(
+			target,
+			Symbol.iterator,
+			// @ts-ignore
+			proxyMethod(iterateSetValues) //TODO: , Symbol.iterator)
+		)
+	}
+}
+
+const iterateSetValues = makeIterateSetValues(createProxy)
+
+const setTraps = finalizeTraps({
+	size: state => {
+		return latest(state).size
+	},
+	add: state => value => {
+		if (!latest(state).has(value)) {
+			markChanged(state)
+			if (!state.copy) {
+				prepareCopy(state)
+			}
+			state.copy.add(value)
+		}
+		return state.draft
+	},
+	delete: state => value => {
+		markChanged(state)
+		if (!state.copy) {
+			prepareCopy(state)
+		}
+		return state.copy.delete(value)
+	},
+	has: state => key => {
+		return latest(state).has(key)
+	},
+	clear: state => () => {
+		markChanged(state)
+		if (!state.copy) {
+			prepareCopy(state)
+		}
+		return state.copy.clear()
+	},
+	keys: iterateSetValues,
+	entries: iterateSetValues,
+	values: iterateSetValues,
+	forEach: state => (cb, thisArg) => {
+		const iterator = iterateSetValues(state)()
+		let result = iterator.next()
+		while (!result.done) {
+			cb.call(thisArg, result.value, result.value, state.draft)
+			result = iterator.next()
+		}
+	}
+})
+
+function finalizeTraps(traps) {
+	return Object.keys(traps).reduce(function(acc, key) {
+		const builder = key === "size" ? proxyAttr : proxyMethod
+		acc[key] = builder(traps[key], key)
+		return acc
+	}, {})
+}
+
+function proxyAttr(fn) {
+	return {
+		get() {
+			const state = this[DRAFT_STATE]
+			assertUnrevoked(state)
+			return fn(state)
+		}
+	}
+}
+
+function proxyMethod(trap, key) {
+	return {
+		get() {
+			return function(this: ES5Draft, ...args) {
+				const state = this[DRAFT_STATE]
+				assertUnrevoked(state)
+				return trap(state, key, state.draft)(...args)
+			}
+		}
+	}
+}
+
+function assertUnrevoked(state) {
 	if (state.revoked === true)
 		throw new Error(
 			"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +

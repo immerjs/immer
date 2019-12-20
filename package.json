@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "4.0.0-beta.0",
+  "version": "5.1.0-beta.2",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
   "umd:main": "dist/immer.umd.js",
@@ -9,16 +9,15 @@
   "module": "dist/immer.module.js",
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
-  "types": "./dist/immer.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "test:perf": "NODE_ENV=production yarn-or-npm build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
     "test:flow": "yarn-or-npm flow check __tests__/flow",
-    "test:dts": "tsc -p __tests__/tsconfig.json --noEmit",
     "watch": "jest --watch",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "build": "rimraf dist/ && yarn-or-npm bili && yarn-or-npm typed",
-    "typed": "cpx 'src/immer.{d.ts,js.flow}' dist -v",
+    "typed": "cpx 'src/immer.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
     "start": "cd website && yarn start"
   },
@@ -59,7 +58,7 @@
     "@types/jest": "^24.0.11",
     "babel-jest": "^24.4.0",
     "babel-preset-modern-browsers": "^13.1.0",
-    "bili": "^4.7.0",
+    "bili": "^4.8.1",
     "coveralls": "^3.0.0",
     "cpx": "^1.5.0",
     "cross-env": "^5.1.3",
@@ -75,18 +74,23 @@
     "pretty-quick": "^1.8.0",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
+    "rollup-plugin-typescript2": "^0.25.3",
     "seamless-immutable": "^7.1.3",
     "spec.ts": "^1.1.0",
-    "typescript": "3.6.4",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.3",
     "yarn-or-npm": "^2.0.4"
   },
   "jest": {
     "moduleFileExtensions": [
-      "js"
+      "js",
+      "ts"
     ],
     "testURL": "http://localhost",
     "transform": {
-      "\\.js$": "babel-jest"
-    }
+      "\\.js$": "babel-jest",
+      "\\.ts$": "ts-jest"
+    },
+    "preset": "ts-jest/presets/js-with-babel"
   }
 }

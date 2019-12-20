@@ -1,6 +1,12 @@
 import {get, each, isMap, isSet, has, clone} from "./common"
+import {Patch, ImmerState} from "./types"
 
-export function generatePatches(state, basePath, patches, inversePatches) {
+export function generatePatches(
+	state: ImmerState,
+	basePath: (string | number)[],
+	patches: Patch[],
+	inversePatches: Patch[]
+) {
 	const generatePatchesFn = Array.isArray(state.base)
 		? generateArrayPatches
 		: isSet(state.base)
@@ -10,7 +16,12 @@ export function generatePatches(state, basePath, patches, inversePatches) {
 	generatePatchesFn(state, basePath, patches, inversePatches)
 }
 
-function generateArrayPatches(state, basePath, patches, inversePatches) {
+function generateArrayPatches(
+	state: ImmerState,
+	basePath: (string | number)[],
+	patches: Patch[],
+	inversePatches: Patch[]
+) {
 	let {base, copy, assigned} = state
 
 	// Reduce complexity by ensuring `base` is never longer.
@@ -68,14 +79,19 @@ function generateArrayPatches(state, basePath, patches, inversePatches) {
 }
 
 // This is used for both Map objects and normal objects.
-function generatePatchesFromAssigned(state, basePath, patches, inversePatches) {
+function generatePatchesFromAssigned(
+	state: ImmerState,
+	basePath: (number | string)[],
+	patches: Patch[],
+	inversePatches: Patch[]
+) {
 	const {base, copy} = state
 	each(state.assigned, (key, assignedValue) => {
 		const origValue = get(base, key)
 		const value = get(copy, key)
 		const op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add"
 		if (origValue === value && op === "replace") return
-		const path = basePath.concat(key)
+		const path = basePath.concat(key as any)
 		patches.push(op === "remove" ? {op, path} : {op, path, value})
 		inversePatches.push(
 			op === "add"
@@ -87,11 +103,16 @@ function generatePatchesFromAssigned(state, basePath, patches, inversePatches) {
 	})
 }
 
-function generateSetPatches(state, basePath, patches, inversePatches) {
+function generateSetPatches(
+	state: ImmerState,
+	basePath: (number | string)[],
+	patches: Patch[],
+	inversePatches: Patch[]
+) {
 	let {base, copy} = state
 
 	let i = 0
-	for (const value of base) {
+	base.forEach(value => {
 		if (!copy.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({
@@ -106,9 +127,9 @@ function generateSetPatches(state, basePath, patches, inversePatches) {
 			})
 		}
 		i++
-	}
+	})
 	i = 0
-	for (const value of copy) {
+	copy.forEach(value => {
 		if (!base.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({
@@ -123,11 +144,11 @@ function generateSetPatches(state, basePath, patches, inversePatches) {
 			})
 		}
 		i++
-	}
+	})
 }
 
-export const applyPatches = (draft, patches) => {
-	for (const patch of patches) {
+export function applyPatches<T>(draft: T, patches: Patch[]): T {
+	patches.forEach(patch => {
 		const {path, op} = patch
 
 		if (!path.length) throw new Error("Illegal state")
@@ -161,7 +182,7 @@ export const applyPatches = (draft, patches) => {
 				}
 
 				Array.isArray(base)
-					? base.splice(key, 0, value)
+					? base.splice(key as any, 0, value)
 					: isMap(base)
 					? base.set(key, value)
 					: isSet(base)
@@ -170,7 +191,7 @@ export const applyPatches = (draft, patches) => {
 				break
 			case "remove":
 				Array.isArray(base)
-					? base.splice(key, 1)
+					? base.splice(key as any, 1)
 					: isMap(base)
 					? base.delete(key)
 					: isSet(base)
@@ -180,7 +201,7 @@ export const applyPatches = (draft, patches) => {
 			default:
 				throw new Error("Unsupported patch operation: " + op)
 		}
-	}
+	})
 
 	return draft
 }

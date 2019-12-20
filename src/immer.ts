@@ -18,6 +18,7 @@ import {
 	freeze
 } from "./common"
 import {ImmerScope} from "./scope"
+import {ImmerState, IProduce, IProduceWithPatches, Objectish, PatchListener, Draft, Patch} from "./types"
 
 function verifyMinified() {}
 
@@ -35,21 +36,68 @@ const configDefaults = {
 	onCopy: null
 }
 
-export class Immer {
-	constructor(config) {
+interface ProducersFns {
+	produce: IProduce
+	produceWithPatches: IProduceWithPatches
+}
+
+export class Immer implements ProducersFns {
+	useProxies: boolean = false
+	autoFreeze: boolean = false
+	onAssign?: (
+		state: ImmerState,
+		prop: string | number,
+		value: unknown
+	) => void
+	onDelete?: (state: ImmerState, prop: string | number) => void
+	onCopy?: (state: ImmerState) => void
+	createProxy!:<T>(value: T) => T;
+	willFinalize!: (scope: ImmerScope, thing: any, isReplaced: boolean) => void;
+
+	constructor(config?: {
+		useProxies?: boolean
+		autoFreeze?: boolean
+		onAssign?: (
+			state: ImmerState,
+			prop: string | number,
+			value: unknown
+		) => void
+		onDelete?: (state: ImmerState, prop: string | number) => void
+		onCopy?: (state: ImmerState) => void
+	}) {
 		assign(this, configDefaults, config)
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
-	produce(base, recipe, patchListener) {
+
+	/**
+	 * The `produce` function takes a value and a "recipe function" (whose
+	 * return value often depends on the base state). The recipe function is
+	 * free to mutate its first argument however it wants. All mutations are
+	 * only ever applied to a __copy__ of the base state.
+	 *
+	 * Pass only a function to create a "curried producer" which relieves you
+	 * from passing the recipe function every time.
+	 *
+	 * Only plain objects and arrays are made mutable. All other objects are
+	 * considered uncopyable.
+	 *
+	 * Note: This function is __bound__ to its `Immer` instance.
+	 *
+	 * @param {any} base - the initial state
+	 * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
+	 * @returns {any} a new state, or the initial state if nothing was modified
+	 */
+	produce(base, recipe?, patchListener?) {
 		// curried invocation
 		if (typeof base === "function" && typeof recipe !== "function") {
 			const defaultBase = recipe
 			recipe = base
 
 			const self = this
-			return function curriedProduce(base = defaultBase, ...args) {
+			return function curriedProduce(this: any, base = defaultBase, ...args) {
 				return self.produce(base, draft => recipe.call(this, draft, ...args)) // prettier-ignore
 			}
 		}
@@ -101,7 +149,8 @@ export class Immer {
 			return result
 		}
 	}
-	produceWithPatches(arg1, arg2, arg3) {
+
+	produceWithPatches(arg1, arg2?, arg3?): any {
 		if (typeof arg1 === "function") {
 			const self = this
 			return (state, ...args) =>
@@ -117,7 +166,8 @@ export class Immer {
 		})
 		return [nextState, patches, inversePatches]
 	}
-	createDraft(base) {
+
+	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
 		}
@@ -125,9 +175,10 @@ export class Immer {
 		const proxy = this.createProxy(base)
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
-		return proxy
+		return proxy as any
 	}
-	finishDraft(draft, patchListener) {
+
+	finishDraft<D extends Draft<any>>(draft: D, patchListener: PatchListener): D extends Draft<infer T> ? T : never {
 		const state = draft && draft[DRAFT_STATE]
 		if (!state || !state.isManual) {
 			throw new Error("First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
@@ -139,14 +190,28 @@ export class Immer {
 		scope.usePatches(patchListener)
 		return this.processResult(undefined, scope)
 	}
-	setAutoFreeze(value) {
+
+	/**
+	 * Pass true to automatically freeze all copies created by Immer.
+	 *
+	 * By default, auto-freezing is disabled in production.
+	 */
+	setAutoFreeze(value: boolean) {
 		this.autoFreeze = value
 	}
-	setUseProxies(value) {
+
+	/**
+	 * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
+	 * always faster than using ES5 proxies.
+	 *
+	 * By default, feature detection is used, so calling this is rarely necessary.
+	 */
+	setUseProxies(value: boolean) {
 		this.useProxies = value
 		assign(this, value ? modernProxy : legacyProxy)
 	}
-	applyPatches(base, patches) {
+
+	applyPatches(base: Objectish, patches: Patch[]) {
 		// If a patch replaces the entire state, take that replacement as base
 		// before applying patches
 		let i
@@ -167,9 +232,10 @@ export class Immer {
 			applyPatches(draft, patches.slice(i + 1))
 		)
 	}
+
 	/** @internal */
-	processResult(result, scope) {
-		const baseDraft = scope.drafts[0]
+	processResult(result: any, scope: ImmerScope) {
+		const baseDraft = scope.drafts![0]
 		const isReplaced = result !== undefined && result !== baseDraft
 		this.willFinalize(scope, result, isReplaced)
 		if (isReplaced) {
@@ -188,7 +254,7 @@ export class Immer {
 					path: [],
 					value: result
 				})
-				scope.inversePatches.push({
+				scope.inversePatches!.push({
 					op: "replace",
 					path: [],
 					value: baseDraft[DRAFT_STATE].base
@@ -200,16 +266,17 @@ export class Immer {
 		}
 		scope.revoke()
 		if (scope.patches) {
-			scope.patchListener(scope.patches, scope.inversePatches)
+			scope.patchListener!(scope.patches, scope.inversePatches!)
 		}
 		return result !== NOTHING ? result : undefined
 	}
+
 	/**
 	 * @internal
 	 * Finalize a draft, returning either the unmodified base state or a modified
 	 * copy of the base state.
 	 */
-	finalize(draft, path, scope) {
+	finalize(draft: any, path: string[] | null, scope: ImmerScope) {
 		const state = draft[DRAFT_STATE]
 		if (!state) {
 			if (Object.isFrozen(draft)) return draft
@@ -233,13 +300,13 @@ export class Immer {
 				if (this.useProxies) {
 					const {assigned} = state
 					each(assigned, (prop, exists) => {
-						if (!exists) this.onDelete(state, prop)
+						if (!exists) this.onDelete?.(state, prop as any)
 					})
 				} else {
 					// TODO: Figure it out for Maps and Sets if we need to support ES5
 					const {base, copy} = state
 					each(base, prop => {
-						if (!has(copy, prop)) this.onDelete(state, prop)
+						if (!has(copy, prop)) this.onDelete?.(state, prop as any)
 					})
 				}
 			}
@@ -254,16 +321,17 @@ export class Immer {
 			}
 
 			if (path && scope.patches) {
-				generatePatches(state, path, scope.patches, scope.inversePatches)
+				generatePatches(state, path, scope.patches, scope.inversePatches!)
 			}
 		}
 		return state.copy
 	}
+
 	/**
 	 * @internal
 	 * Finalize all drafts in the given state tree.
 	 */
-	finalizeTree(root, rootPath, scope) {
+	finalizeTree(root: any, rootPath: string[] | null, scope: ImmerScope) {
 		const state = root[DRAFT_STATE]
 		if (state) {
 			if (!this.useProxies) {
@@ -289,7 +357,7 @@ export class Immer {
 					needPatches &&
 					!isSetMember && // Set objects are atomic since they have no keys.
 					!has(state.assigned, prop) // Skip deep patches for assigned keys.
-						? rootPath.concat(prop)
+						? rootPath!.concat(prop)
 						: null
 
 				// Drafts owned by `scope` are finalized here.

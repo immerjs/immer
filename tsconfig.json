@@ -2,6 +2,9 @@
   "include": ["src"],
   "compilerOptions": {
     "lib": ["es2015"],
-    "strict": true
+    "strict": true,
+    "declaration": true,
+    "importHelpers": false,
+    "noImplicitAny": false // TODO: true,
   }
 }

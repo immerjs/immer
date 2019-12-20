@@ -1,8 +1,18 @@
 import {DRAFT_STATE} from "./common"
+import {ImmerState, Patch, PatchListener} from "./types"
 
 /** Each scope represents a `produce` call. */
 export class ImmerScope {
-	constructor(parent) {
+	static current?: ImmerScope
+
+	patches?: Patch[]
+	inversePatches?: Patch[]
+	canAutoFreeze: boolean
+	drafts: any[]
+	parent?: ImmerScope
+	patchListener?: PatchListener
+
+	constructor(parent?: ImmerScope) {
 		this.drafts = []
 		this.parent = parent
 
@@ -11,30 +21,35 @@ export class ImmerScope {
 		this.canAutoFreeze = true
 
 		// To avoid prototype lookups:
-		this.patches = null
+		this.patches = null as any // TODO:
 	}
-	usePatches(patchListener) {
+
+	usePatches(patchListener: PatchListener) {
 		if (patchListener) {
 			this.patches = []
 			this.inversePatches = []
 			this.patchListener = patchListener
 		}
 	}
+
 	revoke() {
 		this.leave()
 		this.drafts.forEach(revoke)
-		this.drafts = null // Make draft-related methods throw.
+		// @ts-ignore
+		this.drafts = null // TODO: // Make draft-related methods throw.
 	}
+
 	leave() {
 		if (this === ImmerScope.current) {
 			ImmerScope.current = this.parent
 		}
 	}
-}
 
-ImmerScope.current = null
-ImmerScope.enter = function() {
-	return (this.current = new ImmerScope(this.current))
+	static enter() {
+		const scope = new ImmerScope(ImmerScope.current)
+		ImmerScope.current = scope
+		return scope
+	}
 }
 
 function revoke(draft) {
