@@ -10,6 +10,7 @@ const config: Config = {
 		sourceMap: true,
 		sourceMapExcludeSources: true
 	},
+	bundleNodeModules: true,
 	babel: {
 		// Replace babel-preset-env with buble
 		minimal: true,

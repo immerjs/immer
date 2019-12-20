@@ -4,6 +4,7 @@
     "lib": ["es2015"],
     "strict": true,
     "declaration": true,
-    "noImplicitAny": false // TODO: true
+    "importHelpers": false,
+    "noImplicitAny": false // TODO: true,
   }
 }
