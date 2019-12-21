@@ -214,7 +214,7 @@ export function iterateMapValues(state, prop, receiver) {
 	}
 }
 
-export function makeIterateSetValues(createProxy) {
+export function makeIterateSetValues() {
 	function iterateSetValues(state, prop?) {
 		const isEntries = prop === "entries"
 		return () => {
@@ -237,7 +237,7 @@ export function makeIterateSetValues(createProxy) {
 			if (state.finalized || !isDraftable(value) || state.finalizing) {
 				return value
 			}
-			draft = createProxy(value, state)
+			draft = state.scope.immer.createProxy(value, state)
 			state.drafts.set(key, draft)
 			if (state.modified) {
 				state.copy.add(draft)
@@ -249,7 +249,7 @@ export function makeIterateSetValues(createProxy) {
 	return iterateSetValues
 }
 
-function latest<T = any>(state: ImmerState<T>): T {
+export function latest(state: any): any {
 	return state.copy || state.base
 }
 

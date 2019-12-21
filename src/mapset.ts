@@ -12,16 +12,17 @@ import {
 	DRAFT_STATE,
 	iterateMapValues,
 	makeIterable,
-	makeIterateSetValues
+	makeIterateSetValues,
+	latest
 } from "./common"
 
 // TODO: kill:
 import {
-	createProxy,
 	assertUnrevoked,
-	latest,
 	prepareCopy,
-	markChanged
+	markChanged, // Looks to be the correct implementation for maps as well
+	ES5Draft,
+	ES5State
 } from "./es5"
 
 export function proxyMap(target) {
@@ -31,11 +32,13 @@ export function proxyMap(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
+			// @ts-ignore TODO fix
 			proxyMethod(iterateMapValues)
 		)
 	}
 }
 
+// TODO: eliminate these, and put in a Map superclass
 const mapTraps = finalizeTraps({
 	size: state => latest(state).size,
 	has: state => key => latest(state).has(key),
@@ -66,6 +69,7 @@ const mapTraps = finalizeTraps({
 		}
 		return state.copy.clear()
 	},
+	// @ts-ignore TODO:
 	forEach: (state, key, reciever) => cb => {
 		latest(state).forEach((value, key, map) => {
 			cb(reciever.get(key), key, map)
@@ -81,13 +85,15 @@ const mapTraps = finalizeTraps({
 		if (value !== state.base.get(key)) {
 			return value
 		}
-		const draft = createProxy(value, state)
+		const draft = state.scope.immer.createProxy(value, state)
 		prepareCopy(state)
 		state.copy.set(key, draft)
 		return draft
 	},
 	keys: state => () => latest(state).keys(),
+	// @ts-ignore TODO:
 	values: iterateMapValues,
+	// @ts-ignore TODO:
 	entries: iterateMapValues
 })
 
@@ -98,12 +104,13 @@ export function proxySet(target) {
 		Object.defineProperty(
 			target,
 			Symbol.iterator,
+			// @ts-ignore TODO
 			proxyMethod(iterateSetValues)
 		)
 	}
 }
 
-const iterateSetValues = makeIterateSetValues(createProxy)
+const iterateSetValues = makeIterateSetValues()
 
 const setTraps = finalizeTraps({
 	size: state => {
@@ -149,7 +156,7 @@ const setTraps = finalizeTraps({
 	}
 })
 
-function finalizeTraps(traps) {
+function finalizeTraps(traps: {[prop: string]: (state: ES5State) => Function }) {
 	return Object.keys(traps).reduce(function(acc, key) {
 		const builder = key === "size" ? proxyAttr : proxyMethod
 		acc[key] = builder(traps[key], key)
@@ -170,7 +177,7 @@ function proxyAttr(fn) {
 function proxyMethod(trap, key) {
 	return {
 		get() {
-			return function(...args) {
+			return function(this: ES5Draft, ...args) {
 				const state = this[DRAFT_STATE]
 				assertUnrevoked(state)
 				return trap(state, key, state.draft)(...args)
@@ -186,6 +193,7 @@ export function hasMapChanges(state) {
 
 	// IE11 supports only forEach iteration
 	let hasChanges = false
+	// TODO: optimize: break on first difference
 	draft.forEach(function(value, key) {
 		if (!hasChanges) {
 			hasChanges = isDraftable(value) ? value.modified : value !== base.get(key)
@@ -201,6 +209,7 @@ export function hasSetChanges(state) {
 
 	// IE11 supports only forEach iteration
 	let hasChanges = false
+	// TODO: optimize: break on first diff
 	draft.forEach(function(value, key) {
 		if (!hasChanges) {
 			hasChanges = isDraftable(value) ? value.modified : !base.has(key)

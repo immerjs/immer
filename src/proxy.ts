@@ -16,7 +16,8 @@ import {
 	assignSet,
 	original,
 	iterateMapValues,
-	makeIterateSetValues
+	makeIterateSetValues,
+	latest
 } from "./common"
 import {ImmerScope} from "./scope"
 
@@ -310,7 +311,7 @@ const mapTraps = makeTrapsForGetters<Map<any, any>>({
 	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateMapValues
 })
 
-const iterateSetValues = makeIterateSetValues(createProxy)
+const iterateSetValues = makeIterateSetValues()
 /**
  * Set drafts
  */
@@ -356,10 +357,6 @@ const setTraps = makeTrapsForGetters<Set<any>>({
  * Helpers
  */
 
-// Retrieve the latest values of the draft.
-function latest(state) {
-	return state.copy || state.base
-}
 
 // Access a property without creating an Immer draft.
 function peek(draft, prop) {

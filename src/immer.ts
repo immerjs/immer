@@ -51,7 +51,7 @@ export class Immer implements ProducersFns {
 	) => void
 	onDelete?: (state: ImmerState, prop: string | number) => void
 	onCopy?: (state: ImmerState) => void
-	createProxy!:<T>(value: T) => T;
+	createProxy!:<T>(value: T, parent: any) => T;
 	willFinalize!: (scope: ImmerScope, thing: any, isReplaced: boolean) => void;
 
 	constructor(config?: {
@@ -116,8 +116,8 @@ export class Immer implements ProducersFns {
 
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
-			const scope = ImmerScope.enter()
-			const proxy = this.createProxy(base)
+			const scope = ImmerScope.enter(this)
+			const proxy = this.createProxy(base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -171,8 +171,8 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
 		}
-		const scope = ImmerScope.enter()
-		const proxy = this.createProxy(base)
+		const scope = ImmerScope.enter(this)
+		const proxy = this.createProxy(base, undefined)
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
 		return proxy as any

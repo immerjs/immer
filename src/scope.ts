@@ -1,5 +1,6 @@
 import {DRAFT_STATE} from "./common"
 import {ImmerState, Patch, PatchListener} from "./types"
+import { Immer } from "./immer"
 
 /** Each scope represents a `produce` call. */
 export class ImmerScope {
@@ -11,10 +12,12 @@ export class ImmerScope {
 	drafts: any[]
 	parent?: ImmerScope
 	patchListener?: PatchListener
+	immer: Immer
 
-	constructor(parent?: ImmerScope) {
+	constructor(parent: ImmerScope | undefined, immer: Immer) {
 		this.drafts = []
 		this.parent = parent
+		this.immer = immer
 
 		// Whenever the modified draft contains a draft from another scope, we
 		// need to prevent auto-freezing so the unowned draft can be finalized.
@@ -45,8 +48,8 @@ export class ImmerScope {
 		}
 	}
 
-	static enter() {
-		const scope = new ImmerScope(ImmerScope.current)
+	static enter(immer: Immer) {
+		const scope = new ImmerScope(ImmerScope.current, immer)
 		ImmerScope.current = scope
 		return scope
 	}
