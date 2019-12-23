@@ -5,6 +5,8 @@
     "strict": true,
     "declaration": true,
     "importHelpers": false,
+    "sourceMap": true,
+    "declarationMap": true,
     "noImplicitAny": false // TODO: true,
   }
 }
