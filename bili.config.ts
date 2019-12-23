@@ -8,7 +8,7 @@ const config: Config = {
 		format: ["cjs", "umd", "esm"],
 		moduleName: "immer",
 		sourceMap: true,
-		sourceMapExcludeSources: true
+		sourceMapExcludeSources: false
 	},
 	bundleNodeModules: true,
 	babel: {
