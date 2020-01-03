@@ -56,5 +56,41 @@ test("types are ok", () => {
 		assert(val, _ as {readonly a: {readonly b: string}})
 	}
 
+	// Map
+	{
+		let val = _ as Immutable<Map<string, string>>
+		assert(val, _ as ReadonlyMap<string, string>)
+	}
+
+	// Already immutable Map
+	{
+		let val = _ as Immutable<ReadonlyMap<string, string>>
+		assert(val, _ as ReadonlyMap<string, string>)
+	}
+
+	// object in Map
+	{
+		let val = _ as Immutable<Map<{a: string}, {b: string}>>
+		assert(val, _ as ReadonlyMap<{readonly a: string}, {readonly b: string}>)
+	}
+
+	// Set
+	{
+		let val = _ as Immutable<Set<string>>
+		assert(val, _ as ReadonlySet<string>)
+	}
+
+	// Already immutable Set
+	{
+		let val = _ as Immutable<ReadonlySet<string>>
+		assert(val, _ as ReadonlySet<string>)
+	}
+
+	// object in Set
+	{
+		let val = _ as Immutable<Set<{a: string}>>
+		assert(val, _ as ReadonlySet<{readonly a: string}>)
+	}
+
 	expect(true).toBe(true)
 })

@@ -187,6 +187,13 @@ test("draft.ts", () => {
 		assert(fromDraft(toDraft(weak)), weak)
 	}
 
+	// ReadonlyMap instance
+	{
+		let val: ReadonlyMap<any, any> = _
+		let draft: Map<any, any> = _
+		assert(toDraft(val), draft)
+	}
+
 	// Set instance
 	{
 		let val: Set<any> = _
@@ -197,6 +204,13 @@ test("draft.ts", () => {
 		let weak: WeakSet<any> = _
 		assert(toDraft(weak), weak)
 		assert(fromDraft(toDraft(weak)), weak)
+	}
+
+	// ReadonlySet instance
+	{
+		let val: ReadonlySet<any> = _
+		let draft: Set<any> = _
+		assert(toDraft(val), draft)
 	}
 
 	// Promise object
