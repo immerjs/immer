@@ -62,12 +62,17 @@ export function willFinalize(
 }
 
 export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
+	const scope = parent ? parent.scope : ImmerScope.current!
+	if (isMap(base)) {
+		const draft = proxyMap(base, parent) as any // TODO: typefix
+		scope.drafts.push(draft)
+		return draft
+	}
+
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
-	if (isMap(base)) {
-		proxyMap(draft)
-	} else if (isSet(base)) {
+	if (isSet(base)) {
 		proxySet(draft)
 	} else {
 		each(draft, prop => {
@@ -75,8 +80,6 @@ export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 		})
 	}
 
-	// See "proxy.js" for property documentation.
-	const scope = parent ? parent.scope : ImmerScope.current!
 	const state: ES5State<T> = {
 		scope,
 		modified: false,
@@ -101,6 +104,7 @@ function revoke(this: ES5State) {
 	this.revoked = true
 }
 
+// TODO: type these methods
 // Access a property without creating an Immer draft.
 function peek(draft, prop) {
 	const state = draft[DRAFT_STATE]
@@ -125,7 +129,7 @@ function get(state, prop) {
 	return value
 }
 
-function set(state, prop, value) {
+function set(state: ES5State, prop, value) {
 	assertUnrevoked(state)
 	state.assigned[prop] = true
 	if (!state.modified) {
@@ -136,7 +140,6 @@ function set(state, prop, value) {
 	state.copy[prop] = value
 }
 
-// TODO: kill export
 export function markChanged(state) {
 	if (!state.modified) {
 		state.modified = true
@@ -145,7 +148,7 @@ export function markChanged(state) {
 }
 
 // TODO: kill export
-export function prepareCopy(state) {
+function prepareCopy(state) {
 	if (!state.copy) state.copy = clonePotentialDraft(state.base)
 }
 

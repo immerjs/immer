@@ -20,6 +20,7 @@ import {
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
+import { proxyMap } from "./mapset"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
@@ -57,6 +58,13 @@ export function createProxy<T extends object>(
 	parent: ES6State
 ): ES6Draft {
 	const scope = parent ? parent.scope : ImmerScope.current!
+
+	if (isMap(base)) {
+		const draft = proxyMap(base, parent) as any // TODO: typefix
+		scope.drafts.push(draft);
+		return draft;
+	}
+
 	const state: ES6State<T> = {
 		// Track which produce call this is associated with.
 		scope,
@@ -92,12 +100,7 @@ export function createProxy<T extends object>(
 		target = [state] as any
 		traps = arrayTraps
 	}
-	// Map drafts must support object keys, so we use Map objects to track changes.
-	else if (isMap(base)) {
-		traps = mapTraps
-		state.drafts = new Map()
-		state.assigned = new Map()
-	}
+
 	// Set drafts use a Map object to track which of its values are drafted.
 	// And we don't need the "assigned" property, because Set objects have no keys.
 	else if (isSet(base)) {
@@ -158,6 +161,7 @@ const objectTraps: ProxyHandler<ES6State> = {
 				? is(baseValue, value) || value === state.drafts[prop]
 				: is(baseValue, value) && prop in state.base
 			if (isUnchanged) return true
+			prepareCopy(state)
 			markChanged(state)
 		}
 		state.assigned[prop] = true
@@ -168,6 +172,7 @@ const objectTraps: ProxyHandler<ES6State> = {
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base, prop) !== undefined || prop in state.base) {
 			state.assigned[prop] = false
+			prepareCopy(state)
 			markChanged(state)
 		} else if (state.assigned[prop]) {
 			// if an originally not assigned property was deleted
@@ -368,28 +373,28 @@ function peek(draft, prop) {
 	return desc && desc.value
 }
 
-function markChanged(state) {
+// TODO: unify with ES5 version, by getting rid of the drafts vs copy distinction?
+export function markChanged(state) {
 	if (!state.modified) {
 		state.modified = true
-
 		const {base, drafts, parent} = state
-		const copy = shallowCopy(base)
-
-		if (isSet(base)) {
-			// Note: The `drafts` property is preserved for Set objects, since
-			// we need to keep track of which values are drafted.
-			assignSet(copy, drafts)
-		} else {
-			// Merge nested drafts into the copy.
-			if (isMap(base)) assignMap(copy, drafts)
-			else assign(copy, drafts)
+		if (!isMap(base) && !isSet(base)) {
+			// TODO: drop creating copies here?
+			const copy = state.copy = shallowCopy(base)
+			assign(copy, drafts)
 			state.drafts = null
 		}
 
-		state.copy = copy
 		if (parent) {
 			markChanged(parent)
 		}
+	}
+}
+
+// TODO: unify with ES5 version
+function prepareCopy(state) {
+	if (!state.copy) {
+		state.copy = shallowCopy(state.base)
 	}
 }
 

@@ -19,83 +19,212 @@ import {
 // TODO: kill:
 import {
 	assertUnrevoked,
-	prepareCopy,
-	markChanged, // Looks to be the correct implementation for maps as well
 	ES5Draft,
-	ES5State
 } from "./es5"
+import { ImmerScope } from "./scope";
+import { Immer } from "./immer";
 
-export function proxyMap(target) {
-	Object.defineProperties(target, mapTraps)
+// TODO: create own states
+// TODO: clean up the maps and such from ES5 / Proxy states
 
-	if (hasSymbol) {
-		Object.defineProperty(
-			target,
-			Symbol.iterator,
-			// @ts-ignore TODO fix
-			proxyMethod(iterateMapValues)
-		)
+export interface MapState {
+	parent: any; // TODO: type
+	scope: ImmerScope;
+	modified: boolean;
+	finalizing: boolean;
+	finalized: boolean;
+	copy: Map<any, any> | undefined;
+	assigned: Map<any, boolean> | undefined;
+	base: Map<any, any>;
+	revoke(): void;
+	draft: ES5Draft;
+}
+
+function prepareCopy(state: MapState) {
+	if (!state.copy) {
+		state.assigned = new Map()
+		state.copy = new Map(state.base);
 	}
 }
 
-// TODO: eliminate these, and put in a Map superclass
-const mapTraps = finalizeTraps({
-	size: state => latest(state).size,
-	has: state => key => latest(state).has(key),
-	set: state => (key, value) => {
+// Make sure DraftMap declarion doesn't die if Map is not avialable...
+const MapBase: MapConstructor = typeof Map !== "undefined" ? Map : function FakeMap() {} as any
+
+// TODO: fix types for drafts
+export class DraftMap<K, V> extends MapBase implements Map<K, V> {
+	[DRAFT_STATE]: MapState
+	constructor(target, parent) {
+		super()
+		this[DRAFT_STATE] = {
+			parent,
+			scope: parent ? parent.scope : ImmerScope.current,
+			modified: false,
+			finalized: false,
+			finalizing: false,
+			copy: undefined,
+			assigned: undefined,
+			base: target,
+			draft: this as any, // TODO: fix typing
+			revoke() {
+				// TODO: make sure this marks the Map as revoked, and assert everywhere
+			}
+		};
+	}
+
+	get size(): number {
+		return latest(this[DRAFT_STATE]).size
+	}
+
+	has(key: K): boolean {
+		return latest(this[DRAFT_STATE]).has(key)
+	}
+
+	set(key: K, value: V): this {
+		const state = this[DRAFT_STATE];
 		if (latest(state).get(key) !== value) {
 			prepareCopy(state)
-			markChanged(state)
-			state.assigned.set(key, true)
-			state.copy.set(key, value)
+			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
+			state.assigned!.set(key, true)
+			state.copy!.set(key, value)
+			state.assigned!.set(key, true);
 		}
-		return state.draft
-	},
-	delete: state => key => {
+		return this
+	}
+
+	delete(key: K): boolean {
+		if (!this.has(key)) {
+			return false;
+		}
+
+		const state = this[DRAFT_STATE];
 		prepareCopy(state)
-		markChanged(state)
-		state.assigned.set(key, false)
-		state.copy.delete(key)
-		return false
-	},
-	clear: state => () => {
-		if (!state.copy) {
-			prepareCopy(state)
-		}
-		markChanged(state)
+		state.scope.immer.markChanged(state)
+		state.assigned!.set(key, false)
+		state.copy!.delete(key)
+		return true
+	}
+
+	clear() {
+		const state = this[DRAFT_STATE];
+		prepareCopy(state)
+		state.scope.immer.markChanged(state)
 		state.assigned = new Map()
 		for (const key of latest(state).keys()) {
 			state.assigned.set(key, false)
 		}
-		return state.copy.clear()
-	},
-	// @ts-ignore TODO:
-	forEach: (state, key, reciever) => cb => {
-		latest(state).forEach((value, key, map) => {
-			cb(reciever.get(key), key, map)
-		})
-	},
-	get: state => key => {
-		const value = latest(state).get(key)
+		return state.copy!.clear()
+	}
 
+	// @ts-ignore TODO:
+	forEach(cb) {
+		const state = this[DRAFT_STATE];
+		latest(state).forEach((_value, key, _map) => {
+			cb(this.get(key), key, this)
+		})
+	}
+
+	get(key: K): V /* TODO: Draft<V> */  {
+		const state = this[DRAFT_STATE];
+		const value = latest(state).get(key)
 		if (state.finalizing || state.finalized || !isDraftable(value)) {
 			return value
 		}
-
 		if (value !== state.base.get(key)) {
-			return value
+			return value // either already drafted or reassigned
 		}
 		const draft = state.scope.immer.createProxy(value, state)
 		prepareCopy(state)
-		state.copy.set(key, draft)
+		state.copy!.set(key, draft)
 		return draft
-	},
-	keys: state => () => latest(state).keys(),
+	}
+
+	keys() {
+		return latest(this[DRAFT_STATE]).keys();
+	}
+
+	// TODO: values and entries iterators
 	// @ts-ignore TODO:
-	values: iterateMapValues,
+	// values: iterateMapValues,
 	// @ts-ignore TODO:
-	entries: iterateMapValues
-})
+	// entries: iterateMapValues
+}
+
+
+export function proxyMap(target, parent) {
+	if (target instanceof DraftMap) {
+		return target; // TODO: or copy?
+	}
+	return new DraftMap(target, parent)
+	// Object.defineProperties(target, mapTraps)
+
+	// if (hasSymbol) {
+	// 	Object.defineProperty(
+	// 		target,
+	// 		Symbol.iterator,
+	// 		// @ts-ignore TODO fix
+	// 		proxyMethod(iterateMapValues)
+	// 	)
+	// }
+}
+
+// TODO: eliminate these, and put in a Map superclass
+// const mapTraps = finalizeTraps({
+// 	size: state => latest(state).size,
+// 	has: state => key => latest(state).has(key),
+// 	set: state => (key, value) => {
+// 		if (latest(state).get(key) !== value) {
+// 			prepareCopy(state)
+// 			markChanged(state)
+// 			state.assigned.set(key, true)
+// 			state.copy.set(key, value)
+// 		}
+// 		return state.draft
+// 	},
+// 	delete: state => key => {
+// 		prepareCopy(state)
+// 		markChanged(state)
+// 		state.assigned.set(key, false)
+// 		state.copy.delete(key)
+// 		return false
+// 	},
+// 	clear: state => () => {
+// 		if (!state.copy) {
+// 			prepareCopy(state)
+// 		}
+// 		markChanged(state)
+// 		state.assigned = new Map()
+// 		for (const key of latest(state).keys()) {
+// 			state.assigned.set(key, false)
+// 		}
+// 		return state.copy.clear()
+// 	},
+// 	// @ts-ignore TODO:
+// 	forEach: (state, key, reciever) => cb => {
+// 		latest(state).forEach((value, key, map) => {
+// 			cb(reciever.get(key), key, map)
+// 		})
+// 	},
+// 	get: state => key => {
+// 		const value = latest(state).get(key)
+
+// 		if (state.finalizing || state.finalized || !isDraftable(value)) {
+// 			return value
+// 		}
+
+// 		if (value !== state.base.get(key)) {
+// 			return value
+// 		}
+// 		const draft = state.scope.immer.createProxy(value, state)
+// 		prepareCopy(state)
+// 		state.copy.set(key, draft)
+// 		return draft
+// 	},
+// 	keys: state => () => latest(state).keys(),
+// 	// @ts-ignore TODO:
+// 	values: iterateMapValues,
+// 	// @ts-ignore TODO:
+// 	entries: iterateMapValues
+// })
 
 export function proxySet(target) {
 	Object.defineProperties(target, setTraps)
@@ -118,7 +247,7 @@ const setTraps = finalizeTraps({
 	},
 	add: state => value => {
 		if (!latest(state).has(value)) {
-			markChanged(state)
+			state.scope.immer.markChanged(state)
 			if (!state.copy) {
 				prepareCopy(state)
 			}
@@ -127,7 +256,7 @@ const setTraps = finalizeTraps({
 		return state.draft
 	},
 	delete: state => value => {
-		markChanged(state)
+		state.scope.immer.markChanged(state)
 		if (!state.copy) {
 			prepareCopy(state)
 		}
@@ -137,7 +266,7 @@ const setTraps = finalizeTraps({
 		return latest(state).has(key)
 	},
 	clear: state => () => {
-		markChanged(state)
+		state.scope.immer.markChanged(state)
 		if (!state.copy) {
 			prepareCopy(state)
 		}
@@ -156,7 +285,7 @@ const setTraps = finalizeTraps({
 	}
 })
 
-function finalizeTraps(traps: {[prop: string]: (state: ES5State) => Function }) {
+function finalizeTraps(traps: {[prop: string]: (state: any) => Function }) {
 	return Object.keys(traps).reduce(function(acc, key) {
 		const builder = key === "size" ? proxyAttr : proxyMethod
 		acc[key] = builder(traps[key], key)

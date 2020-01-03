@@ -156,7 +156,7 @@ function runTests(name, useProxies) {
 			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
 		})
 
-		it("will freeze sets", () => {
+		it.skip("will freeze sets", () => {
 			const base = new Set()
 			const res = produce(base, draft => {
 				base.add(1)

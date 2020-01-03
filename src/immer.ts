@@ -1,5 +1,7 @@
+// TODO: destructure these, as the * as import makes it unclear which methods get installed on the Immer class
 import * as legacyProxy from "./es5"
 import * as modernProxy from "./proxy"
+
 import {applyPatches, generatePatches} from "./patches"
 import {
 	assign,
@@ -15,7 +17,8 @@ import {
 	shallowCopy,
 	DRAFT_STATE,
 	NOTHING,
-	freeze
+	freeze,
+	latest
 } from "./common"
 import {ImmerScope} from "./scope"
 import {ImmerState, IProduce, IProduceWithPatches, Objectish, PatchListener, Draft, Patch} from "./types"
@@ -53,6 +56,7 @@ export class Immer implements ProducersFns {
 	onCopy?: (state: ImmerState) => void
 	createProxy!:<T>(value: T, parent: any) => T;
 	willFinalize!: (scope: ImmerScope, thing: any, isReplaced: boolean) => void;
+	markChanged!:(state: any) => void; // TODO: immerState?
 
 	constructor(config?: {
 		useProxies?: boolean
@@ -334,9 +338,14 @@ export class Immer implements ProducersFns {
 	finalizeTree(root: any, rootPath: string[] | null, scope: ImmerScope) {
 		const state = root[DRAFT_STATE]
 		if (state) {
-			if (!this.useProxies) {
+			// TODO: remove crap
+			// if (state.modified && !state.copy) {
+			// 	state.copy = shallowCopy(state.base, false)
+			// }
+			// else
+			 if (!this.useProxies && !isMap(root)) {
 				// Create the final copy, with added keys and without deleted keys.
-				state.copy = shallowCopy(state.draft, true)
+				state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
 			}
 			root = state.copy
 		}

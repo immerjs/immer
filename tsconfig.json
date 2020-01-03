@@ -2,6 +2,8 @@
   "include": ["src"],
   "compilerOptions": {
     "lib": ["es2015"],
+    // TODO: change to ES5 and make sure maps still work
+    "target": "ES6",
     "strict": true,
     "declaration": true,
     "importHelpers": false,

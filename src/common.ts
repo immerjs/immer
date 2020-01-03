@@ -146,8 +146,10 @@ export function each<T extends Objectish>(
 export function each(obj, iter) {
 	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
 		obj.forEach((entry, index) => iter(index, entry, obj))
-	} else {
+	} else if (obj && typeof obj === "object") {
 		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
+	} else {
+		throw new Error("Cannot iterate primitive " + obj)
 	}
 }
 
@@ -157,7 +159,9 @@ export function isEnumerable(base: {}, prop: PropertyKey): boolean {
 }
 
 export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
-	return isMap(thing)
+	return !thing
+		? false
+		: isMap(thing)
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }

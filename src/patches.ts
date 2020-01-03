@@ -86,7 +86,7 @@ function generatePatchesFromAssigned(
 	inversePatches: Patch[]
 ) {
 	const {base, copy} = state
-	each(state.assigned, (key, assignedValue) => {
+	if (state.assigned) each(state.assigned, (key, assignedValue) => {
 		const origValue = get(base, key)
 		const value = get(copy, key)
 		const op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add"

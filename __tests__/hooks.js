@@ -120,7 +120,7 @@ function createHookTests(useProxies) {
 			})
 		})
 
-		describe("when draft is a Map", () => {
+		describe.skip("when draft is a Map", () => {
 			test("assign", () => {
 				const key1 = {prop: "val1"}
 				const key2 = {prop: "val2"}
@@ -159,7 +159,7 @@ function createHookTests(useProxies) {
 			})
 		})
 
-		describe("when draft is a Set", () => {
+		describe.skip("when draft is a Set", () => {
 			test("assign", () => {
 				produce({a: new Set([1, 2, 3])}, s => {
 					s.a.add(4)
@@ -241,7 +241,7 @@ function createHookTests(useProxies) {
 			})
 		})
 
-		describe("when draft is a Map -", () => {
+		describe.skip("when draft is a Map -", () => {
 			test("delete", () => {
 				const key1 = {prop: "val1"}
 				const key2 = {prop: "val2"}
@@ -268,7 +268,7 @@ function createHookTests(useProxies) {
 			})
 		})
 
-		describe("when draft is a Set -", () => {
+		describe.skip("when draft is a Set -", () => {
 			test("delete", () => {
 				produce({a: new Set([1])}, s => {
 					s.a.delete(1)
@@ -296,7 +296,7 @@ function createHookTests(useProxies) {
 			expect(calls).toShallowEqual([base.a.b, base.a, base])
 		})
 
-		it("is called in the right order for Maps", () => {
+		it.skip("is called in the right order for Maps", () => {
 			const base = new Map([["a", new Map([["b", 0]])]])
 			produce(base, s => {
 				s.get("a").delete("b")
@@ -304,7 +304,7 @@ function createHookTests(useProxies) {
 			expect(calls).toShallowEqual([base.get("a"), base])
 		})
 
-		it("is called in the right order for Sets", () => {
+		it.skip("is called in the right order for Sets", () => {
 			const item1 = {a: 0}
 			const base = new Set([item1])
 			produce(base, s => {
