@@ -57,7 +57,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		test.skip("#466 - setNoPatches", () => {
+		test("#466 - setNoPatches", () => {
 			const obj = {
 				set: new Set()
 			}
@@ -72,7 +72,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			])
 		})
 
-		test.skip("#466 - mapChangeBug ", () => {
+		test("#466 - mapChangeBug ", () => {
 			const obj = {
 				map: new Map([
 					["a", new Map([["b", true], ["c", true], ["d", true]])],

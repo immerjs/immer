@@ -86,7 +86,7 @@ describe("readme example", () => {
 		})
 	})
 
-	it.skip("can update set", () => {
+	it("can update set", () => {
 		const state = {
 			title: "hello",
 			tokenSet: new Set()

@@ -10,9 +10,7 @@ import {
 	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	iterateMapValues,
 	makeIterable,
-	makeIterateSetValues,
 	latest
 } from "./common"
 
@@ -132,6 +130,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		if (value !== state.base.get(key)) {
 			return value // either already drafted or reassigned
 		}
+		// despite what it looks, this creates a draft only once, see above condition
 		const draft = state.scope.immer.createProxy(value, state)
 		prepareCopy(state)
 		state.copy!.set(key, draft)
@@ -142,23 +141,60 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return latest(this[DRAFT_STATE]).keys();
 	}
 
-	// TODO: make these normal functions
-	// TODO: values and entries iterators
-	// @ts-ignore TODO:
-	values = iterateMapValues
-	// @ts-ignore TODO:
-	entries = iterateMapValues
+	values() {
+		const iterator = this.keys()
+		return {
+			[Symbol.iterator]: () => this.values(), // TODO: don't use symbol directly
+			next: () => {
+				const r = iterator.next()
+				if (r.done) return r;
+				const value = this.get(r.value);
+				return {
+					done: false, value
+				}
+			}
+		} as any
+	}
+
+	entries() {
+		const iterator = this.keys()
+		return {
+			[Symbol.iterator]: () => this.entries(), // TODO: don't use symbol directly
+			next: () => {
+				const r = iterator.next()
+				if (r.done) return r;
+				const value = this.get(r.value);
+				return {
+					done: false, value: [r.value, value]
+				}
+			}
+		} as any
+	}
+
+	[Symbol.iterator]() { // TODO: don't use symbol directly
+		return this.entries()
+	}
 }
 
 
-if (hasSymbol) {
-	Object.defineProperty(
-		DraftMap.prototype,
-		Symbol.iterator,
-		// @ts-ignore TODO fix
-		proxyMethod(iterateMapValues)
-	)
+/** Map.prototype.values _-or-_ Map.prototype.entries */
+export function iterateMapValues(state, prop, receiver) {
+	const isEntries = prop !== "values"
+	return () => {
+		const iterator = latest(state)[Symbol.iterator]()
+		return makeIterable(() => {
+			const result = iterator.next()
+			if (!result.done) {
+				const [key] = result.value
+				const value = receiver.get(key)
+				result.value = isEntries ? [key, value] : value
+			}
+			return result
+		})
+	}
 }
+
+
 
 export function proxyMap(target, parent) {
 	if (target instanceof DraftMap) {

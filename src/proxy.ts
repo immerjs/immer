@@ -16,11 +16,11 @@ import {
 	assignSet,
 	original,
 	iterateMapValues,
-	makeIterateSetValues,
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
 import { proxyMap } from "./map"
+import { proxySet } from "./set"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
@@ -57,10 +57,22 @@ export function createProxy<T extends object>(
 	base: T,
 	parent: ES6State
 ): ES6Draft {
+	// TODO: dedupe
+	if (!base || typeof base !== "object" || !isDraftable(base)) {
+		// TODO: || isDraft ?
+		return base as any // TODO: fix
+	}
+
 	const scope = parent ? parent.scope : ImmerScope.current!
 
+	// TODO: dedupe this, it is the same for ES5
 	if (isMap(base)) {
 		const draft = proxyMap(base, parent) as any // TODO: typefix
+		scope.drafts.push(draft);
+		return draft;
+	}
+	if (isSet(base)) {
+		const draft = proxySet(base, parent) as any // TODO: typefix
 		scope.drafts.push(draft);
 		return draft;
 	}
@@ -99,13 +111,6 @@ export function createProxy<T extends object>(
 	if (Array.isArray(base)) {
 		target = [state] as any
 		traps = arrayTraps
-	}
-
-	// Set drafts use a Map object to track which of its values are drafted.
-	// And we don't need the "assigned" property, because Set objects have no keys.
-	else if (isSet(base)) {
-		traps = setTraps
-		state.drafts = new Map()
 	}
 
 	const {revoke, proxy} = Proxy.revocable(target, traps)
@@ -315,53 +320,6 @@ const mapTraps = makeTrapsForGetters<Map<any, any>>({
 	entries: iterateMapValues,
 	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateMapValues
 })
-
-const iterateSetValues = makeIterateSetValues()
-/**
- * Set drafts
- */
-
-const setTraps = makeTrapsForGetters<Set<any>>({
-	//@ts-ignore
-	[DRAFT_STATE]: state => state,
-	size: state => latest(state).size,
-	has: state => key => latest(state).has(key),
-	add: state => value => {
-		if (!latest(state).has(value)) {
-			markChanged(state)
-			//@ts-ignore
-			state.copy.add(value)
-		}
-		return state.draft
-	},
-	delete: state => value => {
-		markChanged(state)
-		//@ts-ignore
-		return state.copy.delete(value)
-	},
-	clear: state => () => {
-		markChanged(state)
-		//@ts-ignore
-		return state.copy.clear()
-	},
-	forEach: state => (cb, thisArg) => {
-		const iterator = iterateSetValues(state)()
-		let result = iterator.next()
-		while (!result.done) {
-			cb.call(thisArg, result.value, result.value, state.draft)
-			result = iterator.next()
-		}
-	},
-	keys: iterateSetValues,
-	values: iterateSetValues,
-	entries: iterateSetValues,
-	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateSetValues
-})
-
-/**
- * Helpers
- */
-
 
 // Access a property without creating an Immer draft.
 function peek(draft, prop) {

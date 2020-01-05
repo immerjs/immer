@@ -319,7 +319,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(nextState).toBe(base)
 			})
 
-			it.skip("supports iteration", () => {
+			it("supports iteration", () => {
 				const base = new Map([
 					["first", {id: 1, a: 1}],
 					["second", {id: 2, a: 1}]
@@ -341,7 +341,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(result.get("second").a).toEqual(2)
 			})
 
-			it.skip("supports 'entries'", () => {
+			it("supports 'entries'", () => {
 				const base = new Map([
 					["first", {id: 1, a: 1}],
 					["second", {id: 2, a: 1}]
@@ -363,7 +363,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(result.get("second").a).toEqual(2)
 			})
 
-			it.skip("supports 'values'", () => {
+			it("supports 'values'", () => {
 				const base = new Map([
 					["first", {id: 1, a: 1}],
 					["second", {id: 2, a: 1}]
@@ -545,7 +545,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		describe.skip("set drafts", () => {
+		describe("set drafts", () => {
 			it("supports iteration", () => {
 				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
 				const findById = (set, id) => {
@@ -677,13 +677,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			it("can use 'delete' to remove items", () => {
 				const nextState = produce(baseState, s => {
 					expect(s.aSet.has("Luke")).toBe(true)
-					s.aSet.delete("Luke")
+					expect(s.aSet.delete("Luke")).toBe(true)
+					expect(s.aSet.delete("Luke")).toBe(false)
 					expect(s.aSet.has("Luke")).toBe(false)
 				})
 				expect(nextState.aSet).not.toBe(baseState.aSet)
-				expect(nextState.aSet.size).toBe(baseState.aSet.size - 1)
 				expect(baseState.aSet.has("Luke")).toBe(true)
 				expect(nextState.aSet.has("Luke")).toBe(false)
+				expect(nextState.aSet.size).toBe(baseState.aSet.size - 1)
 			})
 
 			it("can use 'clear' to remove items", () => {
@@ -1600,7 +1601,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 	})
 
-	describe.skip(`complex nesting map / set / object`, () => {
+	describe(`complex nesting map / set / object`, () => {
 		const a = {a: 1}
 		const b = {b: 2}
 		const c = {c: 3}

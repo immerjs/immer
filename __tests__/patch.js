@@ -247,7 +247,7 @@ describe("delete 5", () => {
 	)
 })
 
-describe.skip("delete 6", () => {
+describe("delete 6", () => {
 	runPatchTest(
 		new Set(["x", 1]),
 		d => {
@@ -258,7 +258,7 @@ describe.skip("delete 6", () => {
 	)
 })
 
-describe.skip("delete 7", () => {
+describe("delete 7", () => {
 	runPatchTest(
 		{x: new Set(["y", 1])},
 		d => {
@@ -581,7 +581,7 @@ describe("arrays - splice (shrink)", () => {
 	)
 })
 
-describe.skip("sets - add - 1", () => {
+describe("sets - add - 1", () => {
 	runPatchTest(
 		new Set([1]),
 		d => {
@@ -592,7 +592,7 @@ describe.skip("sets - add - 1", () => {
 	)
 })
 
-describe.skip("sets - add, delete, add - 1", () => {
+describe("sets - add, delete, add - 1", () => {
 	runPatchTest(
 		new Set([1]),
 		d => {
@@ -605,7 +605,7 @@ describe.skip("sets - add, delete, add - 1", () => {
 	)
 })
 
-describe.skip("sets - add, delete, add - 2", () => {
+describe("sets - add, delete, add - 2", () => {
 	runPatchTest(
 		new Set([2, 1]),
 		d => {

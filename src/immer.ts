@@ -347,6 +347,7 @@ export class Immer implements ProducersFns {
 				// Create the final copy, with added keys and without deleted keys.
 				state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
 			}
+
 			root = state.copy
 		}
 
@@ -379,7 +380,7 @@ export class Immer implements ProducersFns {
 				}
 
 				// Unchanged drafts are never passed to the `onAssign` hook.
-				if (isDraftProp && value === get(state.base, prop)) return
+				if (isDraftProp && !isSetMember && value === get(state.base, prop)) return
 			}
 			// Unchanged draft properties are ignored.
 			else if (isDraftProp && is(value, get(state.base, prop))) {

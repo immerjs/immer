@@ -13,7 +13,6 @@ import {
 	DRAFT_STATE,
 	iterateMapValues,
 	makeIterable,
-	makeIterateSetValues,
 	latest
 } from "./common"
 import {proxyMap, hasMapChanges} from "./map"
@@ -64,6 +63,10 @@ export function willFinalize(
 }
 
 export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
+	if (!base || typeof base !== "object" || !isDraftable(base)) {
+		// TODO: || isDraft ?
+		return base as any // TODO: fix
+	}
 	const scope = parent ? parent.scope : ImmerScope.current!
 	if (isMap(base)) {
 		const draft = proxyMap(base, parent) as any // TODO: typefix

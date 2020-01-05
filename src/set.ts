@@ -10,10 +10,10 @@ import {
 	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	iterateMapValues,
 	makeIterable,
-	makeIterateSetValues,
-	latest
+	latest,
+	original,
+	makeIterable2
 } from "./common"
 
 // TODO: kill:
@@ -42,7 +42,11 @@ export interface SetState {
 
 function prepareCopy(state: SetState) {
 	if (!state.copy) {
-		state.copy = new Set(state.base);
+			// create drafts for all entries to preserve insertion order
+				state.copy = new Set()
+				state.base.forEach(value => {
+					state.copy!.add(state.scope.immer.createProxy(value, state))
+				})
 	}
 }
 
@@ -73,9 +77,15 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return latest(this[DRAFT_STATE]).size
 	}
 
+	has(value: V): boolean {
+		return latest(this[DRAFT_STATE]).has(value)
+	}
+
 	add(value: V): this {
 		const state = this[DRAFT_STATE];
-		if (latest(state).has(value) !== value) {
+		if (state.copy) {
+			state.copy.add(value)
+		} else if (!state.base.has(value)) {
 			prepareCopy(state)
 			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
 			state.copy!.add(value)
@@ -91,8 +101,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		const state = this[DRAFT_STATE];
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
-		state.copy!.delete(value)
-		return true
+		return state.copy!.delete(value)
 	}
 
 	clear() {
@@ -102,21 +111,30 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return state.copy!.clear()
 	}
 
-	keys() {
-		return latest(this[DRAFT_STATE]).keys();
+	values(): IterableIterator<V> {
+		const state = this[DRAFT_STATE]
+		prepareCopy(state)
+		return state.copy!.values()
 	}
 
-	// TODO: values and entries iterators
-	// @ts-ignore TODO:
-	entries = iterateSetValues
-	// values: iterateMapValues,
-	// @ts-ignore TODO:
-	values= iterateSetValues
-	// entries: iterateMapValues
+	entries(): IterableIterator<[V, V]> {
+		const state = this[DRAFT_STATE]
+		prepareCopy(state)
+		return state.copy!.entries()
+	}
+
+	keys(): IterableIterator<V> {
+		return this.values()
+	}
+
+	// TODO: factor out symbol
+	[Symbol.iterator]() {
+		return this.values()
+	}
 
 	forEach(cb, thisArg) {
 		const state = this[DRAFT_STATE]
-		const iterator = iterateSetValues(state)()
+		const iterator = this.values()
 		let result = iterator.next()
 		while (!result.done) {
 			cb.call(thisArg, result.value, result.value, state.draft)
@@ -133,29 +151,9 @@ export function proxySet(target, parent) {
 	return new DraftSet(target, parent)
 }
 
-if (hasSymbol) {
-	Object.defineProperty(
-		DraftSet.prototype,
-		Symbol.iterator,
-		// @ts-ignore TODO fix
-		proxyMethod(iterateMapValues)
-	)
-}
+// const iterateSetValues = makeIterateSetValues()
 
-const iterateSetValues = makeIterateSetValues()
 
-// TODO: kill?
-function proxyMethod(trap, key) {
-	return {
-		get() {
-			return function(this: ES5Draft, ...args) {
-				const state = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				return trap(state, key, state.draft)(...args)
-			}
-		}
-	}
-}
 
 export function hasSetChanges(state) {
 	const {base, draft} = state

@@ -194,6 +194,14 @@ export function isSet(target): target is Set<any> {
 	return hasSet && target instanceof Set
 }
 
+
+export function makeIterable2(baseIterator: Iterator<any>): IterableIterator<any> {
+	// TODO: correct?
+	// TODO: don't use symbol
+	baseIterator[Symbol.iterator] = () => baseIterator
+	return baseIterator as any
+}
+
 export function makeIterable(next: () => {done: boolean; value: any}) {
 	let self
 	return (self = {
@@ -202,61 +210,22 @@ export function makeIterable(next: () => {done: boolean; value: any}) {
 	})
 }
 
-/** Map.prototype.values _-or-_ Map.prototype.entries */
-export function iterateMapValues(state, prop, receiver) {
-	const isEntries = prop !== "values"
-	return () => {
-		const iterator = latest(state)[Symbol.iterator]()
-		return makeIterable(() => {
-			const result = iterator.next()
-			if (!result.done) {
-				const [key] = result.value
-				const value = receiver.get(key)
-				result.value = isEntries ? [key, value] : value
-			}
-			return result
-		})
-	}
-}
-
-export function makeIterateSetValues() {
-	function iterateSetValues(state, prop?) {
-		const isEntries = prop === "entries"
-		return () => {
-			const iterator = latest(state)[Symbol.iterator]()
-			return makeIterable(() => {
-				const result = iterator.next()
-				if (!result.done) {
-					const value = wrapSetValue(state, result.value)
-					result.value = isEntries ? [value, value] : value
-				}
-				return result
-			})
-		}
-	}
-
-	function wrapSetValue(state, value) {
-		const key = original(value) || value
-		let draft = state.drafts.get(key)
-		if (!draft) {
-			if (state.finalized || !isDraftable(value) || state.finalizing) {
-				return value
-			}
-			draft = state.scope.immer.createProxy(value, state)
-			state.drafts.set(key, draft)
-			if (state.modified) {
-				state.copy.add(draft)
-			}
-		}
-		return draft
-	}
-
-	return iterateSetValues
-}
-
 export function latest(state: any): any {
 	return state.copy || state.base
 }
+
+// export function iterateCollection(collection: Map<any, any> | Set<any>, transformer: (key, value) => any) {
+// 	// TODO: create own iterator symbols for fallback
+// 	const iterator = collection.entries()
+// 	return makeIterable(() => {
+// 		const result = iterator.next()
+// 		if (!result.done) {
+// 			const value = wrapSetValue(state, result.value)
+// 			result.value = isEntries ? [value, value] : value
+// 		}
+// 		return result
+// 	} as any)
+// }
 
 // TODO: duplicate of shallow clone
 export function clone<T extends Objectish>(obj: T): T

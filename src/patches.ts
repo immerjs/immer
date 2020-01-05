@@ -109,6 +109,7 @@ function generateSetPatches(
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
+	// TODO: if this doesn't use assigned, drop assigned from SetState stuff
 	let {base, copy} = state
 
 	let i = 0
