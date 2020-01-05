@@ -16,7 +16,9 @@ import {
 	makeIterateSetValues,
 	latest
 } from "./common"
-import {proxyMap, proxySet, hasMapChanges, hasSetChanges} from "./mapset"
+import {proxyMap, hasMapChanges} from "./map"
+import {proxySet, hasSetChanges} from "./set"
+
 import {ImmerScope} from "./scope"
 import {ImmerState} from "./types"
 
@@ -68,17 +70,18 @@ export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 		scope.drafts.push(draft)
 		return draft
 	}
+	if (isSet(base)) {
+		const draft = proxySet(base, parent) as any // TODO: typefix
+		scope.drafts.push(draft)
+		return draft
+	}
 
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
-	if (isSet(base)) {
-		proxySet(draft)
-	} else {
-		each(draft, prop => {
-			proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
-		})
-	}
+	each(draft, prop => {
+		proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
+	})
 
 	const state: ES5State<T> = {
 		scope,
@@ -216,24 +219,63 @@ function markChangesSweep(drafts) {
 	}
 }
 
+// TODO: refactor this to work per object-type
+// TODO: Set / Map shouldn't be ES specific
 function markChangesRecursively(object) {
 	if (!object || typeof object !== "object") return
 	const state = object[DRAFT_STATE]
 	if (!state) return
 	const {base, draft, assigned} = state
-	if (!Array.isArray(object)) {
+	if (isSet(object)) {
+		if (hasSetChanges(state)) {
+			markChanged(state)
+			object.forEach(v => {
+				markChangesRecursively(v)
+			})
+		}
+	} else if (isMap(object)) {
+		// if (hasMapChanges(object)) {
+		object.forEach((value, key) => {
+			if (assigned && base.get(key) === undefined && !has(base, key)) {
+				// TODO: this code seems invalid for Maps!
+				assigned.set(key, true)
+				markChanged(state)
+			} else if (!assigned || !assigned.get(key)) {
+				// TODO: === false?
+				// Only untouched properties trigger recursion.
+				markChangesRecursively(draft.get(key))
+			}
+		})
+		// Look for removed keys.
+		// TODO: is this code needed?
+		// TODO: use each?
+		if (assigned)
+			base.forEach((value, key) => {
+				// The `undefined` check is a fast path for pre-existing keys.
+				if (draft.get(key) === undefined && !has(draft, key)) {
+					assigned.set(key, false)
+					markChanged(state)
+				}
+			})
+		// }
+	} else if (!Array.isArray(object)) {
 		// Look for added keys.
+		// TODO: use each?
 		Object.keys(draft).forEach(key => {
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (base[key] === undefined && !has(base, key)) {
+				// TODO: this code seems invalid for Maps!
 				assigned[key] = true
 				markChanged(state)
 			} else if (!assigned[key]) {
+				// TODO: === false ?
 				// Only untouched properties trigger recursion.
 				markChangesRecursively(draft[key])
 			}
 		})
 		// Look for removed keys.
+		// TODO: is this code needed?
+		// TODO: use each?
 		Object.keys(base).forEach(key => {
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (draft[key] === undefined && !has(draft, key)) {

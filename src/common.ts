@@ -105,6 +105,7 @@ export const ownKeys: (target) => PropertyKey[] =
 				) as any)
 		: Object.getOwnPropertyNames
 
+// TODO: duplicate of clone? TODO: should be used by prepareCopy of map / set
 export function shallowCopy<T extends Objectish>(
 	base: T,
 	invokeGetters?: boolean
@@ -257,6 +258,7 @@ export function latest(state: any): any {
 	return state.copy || state.base
 }
 
+// TODO: duplicate of shallow clone
 export function clone<T extends Objectish>(obj: T): T
 export function clone(obj) {
 	if (!isDraftable(obj)) return obj

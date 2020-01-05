@@ -20,7 +20,7 @@ import {
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import { proxyMap } from "./mapset"
+import { proxyMap } from "./map"
 
 // Do nothing before being finalized.
 export function willFinalize() {}

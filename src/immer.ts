@@ -343,7 +343,7 @@ export class Immer implements ProducersFns {
 			// 	state.copy = shallowCopy(state.base, false)
 			// }
 			// else
-			 if (!this.useProxies && !isMap(root)) {
+			 if (!this.useProxies && !isMap(root) && !isSet(root)) {
 				// Create the final copy, with added keys and without deleted keys.
 				state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
 			}
