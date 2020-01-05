@@ -5,11 +5,11 @@ import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
 jest.setTimeout(1000)
 
 runBaseTest("proxy (no freeze)", true, false)
-runBaseTest("proxy (autofreeze)", true, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
-runBaseTest("es5 (no freeze)", false, false)
-runBaseTest("es5 (autofreeze)", false, true)
-runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+// runBaseTest("proxy (autofreeze)", true, true)
+// runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+// runBaseTest("es5 (no freeze)", false, false)
+// runBaseTest("es5 (autofreeze)", false, true)
+// runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
@@ -131,7 +131,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			])
 		})
 
-		test.skip("#466 - mapChangeBug2 ", () => {
+		test("#466 - mapChangeBug2 ", () => {
 			const obj = {
 				map: new Map([
 					["a", new Map([["b", true], ["c", true], ["d", true]])],
@@ -141,14 +141,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				])
 			}
 			const obj1 = produce(obj, draft => {})
-			const result = produceWithPatches(obj1, draft => {
+			const [result, p, ip] = produceWithPatches(obj1, draft => {
 				const aMap = draft.map.get("a")
 				aMap.forEach((_, other) => {
 					const otherMap = draft.map.get(other)
 					otherMap.delete("a")
 				})
 			})
-			expect(result).toEqual([
+			expect(result).toEqual(
 				{
 					map: new Map([
 						["a", new Map([["b", true], ["c", true], ["d", true]])],
@@ -156,21 +156,42 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 						["c", new Map([])],
 						["d", new Map([])]
 					])
-				},
+				}
+			)
+			expect(p).toEqual(
 				[
 					{
 						op: "remove",
 						path: ["map", "b", "a"]
+					},
+					{
+						op: "remove",
+						path: ["map", "c", "a"]
+					},
+					{
+						op: "remove",
+						path: ["map", "d", "a"]
 					}
-				],
+				])
+			expect(ip).toEqual(
 				[
 					{
 						op: "add",
 						path: ["map", "b", "a"],
 						value: true
+					},
+					{
+						op: "add",
+						path: ["map", "c", "a"],
+						value: true
+					},
+					{
+						op: "add",
+						path: ["map", "d", "a"],
+						value: true
 					}
 				]
-			])
+			)
 		})
 	})
 }

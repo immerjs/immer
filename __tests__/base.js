@@ -719,6 +719,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(base).toEqual(new Set([new Set(["Serenity"])]))
 				expect(result).toEqual(new Set([new Set(["Serenity", "Firefly"])]))
 			})
+
+			it("supports has / delete on elements from the original", () => {
+				const obj = {}
+				const set = new Set([obj])
+				const next = produce(set, d => {
+					expect(d.has(obj)).toBe(true)
+					d.add(3)
+					expect(d.has(obj)).toBe(true)
+					d.delete(obj)
+					expect(d.has(obj)).toBe(false)
+				})
+				expect(next).toEqual(new Set([3]))
+			})
 		})
 
 		it("supports `immerable` symbol on constructor", () => {

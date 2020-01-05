@@ -618,7 +618,7 @@ describe("sets - add, delete, add - 2", () => {
 	)
 })
 
-describe.skip("sets - mutate - 1", () => {
+describe.only("sets - mutate - 1", () => {
 	const findById = (set, id) => {
 		for (const item of set) {
 			if (item.id === id) return item
@@ -729,7 +729,7 @@ describe("same value replacement - 5", () => {
 	)
 })
 
-describe.skip("same value replacement - 6", () => {
+describe("same value replacement - 6", () => {
 	runPatchTest(
 		new Set(["x", 3]),
 		d => {

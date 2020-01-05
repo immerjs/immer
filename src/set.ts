@@ -36,6 +36,7 @@ export interface SetState {
 	copy: Set<any> | undefined;
 	// assigned: Map<any, boolean> | undefined;
 	base: Set<any>;
+	drafts: Map<any, any>; // maps the original value to the draft value in the new set
 	revoke(): void;
 	draft: ES5Draft;
 }
@@ -45,7 +46,9 @@ function prepareCopy(state: SetState) {
 			// create drafts for all entries to preserve insertion order
 				state.copy = new Set()
 				state.base.forEach(value => {
-					state.copy!.add(state.scope.immer.createProxy(value, state))
+					const draft = state.scope.immer.createProxy(value, state);
+					state.copy!.add(draft)
+					state.drafts.set(value, draft)
 				})
 	}
 }
@@ -67,6 +70,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			copy: undefined,
 			base: target,
 			draft: this as any, // TODO: fix typing
+			drafts: new Map(),
 			revoke() {
 				// TODO: make sure this marks the Map as revoked, and assert everywhere
 			}
@@ -78,7 +82,14 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 
 	has(value: V): boolean {
-		return latest(this[DRAFT_STATE]).has(value)
+		const state = this[DRAFT_STATE]
+		// bit of trickery here, to be able to recognize both the value, and the draft of its value
+		if (!state.copy) {
+			return state.base.has(value)
+		}
+		if (state.copy.has(value)) return true;
+		if (state.drafts.has(value) && state.copy.has(state.drafts.get(value))) return true;
+		return false;
 	}
 
 	add(value: V): this {
@@ -94,14 +105,14 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 
 	delete(value: V): boolean {
+		const state = this[DRAFT_STATE];
 		if (!this.has(value)) {
 			return false;
 		}
 
-		const state = this[DRAFT_STATE];
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
-		return state.copy!.delete(value)
+		return state.copy!.delete(value) || (state.drafts.has(value) ? state.copy!.delete(state.drafts.get(value)) : false)
 	}
 
 	clear() {

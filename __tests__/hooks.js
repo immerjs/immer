@@ -159,7 +159,7 @@ function createHookTests(useProxies) {
 			})
 		})
 
-		describe.skip("when draft is a Set", () => {
+		describe("when draft is a Set", () => {
 			test("assign", () => {
 				produce({a: new Set([1, 2, 3])}, s => {
 					s.a.add(4)
