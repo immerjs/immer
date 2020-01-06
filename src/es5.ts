@@ -11,7 +11,6 @@ import {
 	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	makeIterable,
 	latest
 } from "./common"
 import {proxyMap, hasMapChanges} from "./map"

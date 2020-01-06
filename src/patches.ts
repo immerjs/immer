@@ -1,4 +1,4 @@
-import {get, each, isMap, isSet, has, clone} from "./common"
+import {get, each, isMap, isSet, has} from "./common"
 import {Patch, ImmerState} from "./types"
 
 export function generatePatches(
@@ -86,21 +86,22 @@ function generatePatchesFromAssigned(
 	inversePatches: Patch[]
 ) {
 	const {base, copy} = state
-	if (state.assigned) each(state.assigned, (key, assignedValue) => {
-		const origValue = get(base, key)
-		const value = get(copy, key)
-		const op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add"
-		if (origValue === value && op === "replace") return
-		const path = basePath.concat(key as any)
-		patches.push(op === "remove" ? {op, path} : {op, path, value})
-		inversePatches.push(
-			op === "add"
-				? {op: "remove", path}
-				: op === "remove"
-				? {op: "add", path, value: origValue}
-				: {op: "replace", path, value: origValue}
-		)
-	})
+	if (state.assigned)
+		each(state.assigned, (key, assignedValue) => {
+			const origValue = get(base, key)
+			const value = get(copy, key)
+			const op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add"
+			if (origValue === value && op === "replace") return
+			const path = basePath.concat(key as any)
+			patches.push(op === "remove" ? {op, path} : {op, path, value})
+			inversePatches.push(
+				op === "add"
+					? {op: "remove", path}
+					: op === "remove"
+					? {op: "add", path, value: origValue}
+					: {op: "replace", path, value: origValue}
+			)
+		})
 }
 
 function generateSetPatches(
@@ -161,7 +162,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
 		}
 
-		const value = clone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
+		const value = deepClone(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 
 		const key = path[path.length - 1]
 		switch (op) {
@@ -205,4 +206,18 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 	})
 
 	return draft
+}
+
+// TODO: optimize: this is quite a performance hit, can we detect intelligently when it is needed?
+// E.g. auto-draft when new objects from outside are assigned and modified?
+// (See failing test when deepClone just returns obj)
+function deepClone(obj) {
+	if (!obj || typeof obj !== "object") return obj
+	if (Array.isArray(obj)) return obj.map(deepClone)
+	if (isMap(obj))
+		return new Map(Array.from(obj.entries()).map(([k, v]) => [k, deepClone(v)]))
+	if (isSet(obj)) return new Set(Array.from(obj.values()).map(deepClone))
+	const cloned = Object.create(Object.getPrototypeOf(obj))
+	for (const key in obj) cloned[key] = deepClone(obj[key])
+	return cloned
 }

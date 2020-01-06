@@ -1,52 +1,36 @@
-import {
-	each,
-	has,
-	is,
-	isDraft,
-	isDraftable,
-	isEnumerable,
-	isMap,
-	isSet,
-	hasSymbol,
-	shallowCopy,
-	DRAFT_STATE,
-	makeIterable,
-	latest
-} from "./common"
+import {isDraftable, DRAFT_STATE, latest} from "./common"
 
 // TODO: kill:
-import {
-	assertUnrevoked,
-	ES5Draft,
-} from "./es5"
-import { ImmerScope } from "./scope";
-import { Immer } from "./immer";
+import {assertUnrevoked, ES5Draft} from "./es5"
+import {ImmerScope} from "./scope"
+import {Immer} from "./immer"
 
 // TODO: create own states
 // TODO: clean up the maps and such from ES5 / Proxy states
 
 export interface MapState {
-	parent: any; // TODO: type
-	scope: ImmerScope;
-	modified: boolean;
-	finalizing: boolean;
-	finalized: boolean;
-	copy: Map<any, any> | undefined;
-	assigned: Map<any, boolean> | undefined;
-	base: Map<any, any>;
-	revoke(): void;
-	draft: ES5Draft;
+	parent: any // TODO: type
+	scope: ImmerScope
+	modified: boolean
+	finalizing: boolean
+	finalized: boolean
+	copy: Map<any, any> | undefined
+	assigned: Map<any, boolean> | undefined
+	base: Map<any, any>
+	revoke(): void
+	draft: ES5Draft
 }
 
 function prepareCopy(state: MapState) {
 	if (!state.copy) {
 		state.assigned = new Map()
-		state.copy = new Map(state.base);
+		state.copy = new Map(state.base)
 	}
 }
 
 // Make sure DraftMap declarion doesn't die if Map is not avialable...
-const MapBase: MapConstructor = typeof Map !== "undefined" ? Map : function FakeMap() {} as any
+const MapBase: MapConstructor =
+	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
 
 // TODO: fix types for drafts
 export class DraftMap<K, V> extends MapBase implements Map<K, V> {
@@ -66,7 +50,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			revoke() {
 				// TODO: make sure this marks the Map as revoked, and assert everywhere
 			}
-		};
+		}
 	}
 
 	get size(): number {
@@ -78,23 +62,23 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	}
 
 	set(key: K, value: V): this {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		if (latest(state).get(key) !== value) {
 			prepareCopy(state)
 			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
 			state.assigned!.set(key, true)
 			state.copy!.set(key, value)
-			state.assigned!.set(key, true);
+			state.assigned!.set(key, true)
 		}
 		return this
 	}
 
 	delete(key: K): boolean {
 		if (!this.has(key)) {
-			return false;
+			return false
 		}
 
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		state.assigned!.set(key, false)
@@ -103,7 +87,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	}
 
 	clear() {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		state.assigned = new Map()
@@ -115,14 +99,14 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 
 	// @ts-ignore TODO:
 	forEach(cb) {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		latest(state).forEach((_value, key, _map) => {
 			cb(this.get(key), key, this)
 		})
 	}
 
-	get(key: K): V /* TODO: Draft<V> */  {
-		const state = this[DRAFT_STATE];
+	get(key: K): V /* TODO: Draft<V> */ {
+		const state = this[DRAFT_STATE]
 		const value = latest(state).get(key)
 		if (state.finalizing || state.finalized || !isDraftable(value)) {
 			return value
@@ -138,7 +122,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	}
 
 	keys() {
-		return latest(this[DRAFT_STATE]).keys();
+		return latest(this[DRAFT_STATE]).keys()
 	}
 
 	values() {
@@ -147,10 +131,11 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			[Symbol.iterator]: () => this.values(), // TODO: don't use symbol directly
 			next: () => {
 				const r = iterator.next()
-				if (r.done) return r;
-				const value = this.get(r.value);
+				if (r.done) return r
+				const value = this.get(r.value)
 				return {
-					done: false, value
+					done: false,
+					value
 				}
 			}
 		} as any
@@ -162,63 +147,29 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			[Symbol.iterator]: () => this.entries(), // TODO: don't use symbol directly
 			next: () => {
 				const r = iterator.next()
-				if (r.done) return r;
-				const value = this.get(r.value);
+				if (r.done) return r
+				const value = this.get(r.value)
 				return {
-					done: false, value: [r.value, value]
+					done: false,
+					value: [r.value, value]
 				}
 			}
 		} as any
 	}
 
-	[Symbol.iterator]() { // TODO: don't use symbol directly
+	[Symbol.iterator]() {
+		// TODO: don't use symbol directly
 		return this.entries()
 	}
 }
 
-
-/** Map.prototype.values _-or-_ Map.prototype.entries */
-export function iterateMapValues(state, prop, receiver) {
-	const isEntries = prop !== "values"
-	return () => {
-		const iterator = latest(state)[Symbol.iterator]()
-		return makeIterable(() => {
-			const result = iterator.next()
-			if (!result.done) {
-				const [key] = result.value
-				const value = receiver.get(key)
-				result.value = isEntries ? [key, value] : value
-			}
-			return result
-		})
-	}
-}
-
-
-
 export function proxyMap(target, parent) {
 	if (target instanceof DraftMap) {
-		return target; // TODO: or copy?
+		return target // TODO: or copy?
 	}
 	return new DraftMap(target, parent)
-	// Object.defineProperties(target, mapTraps)
-
 }
 
-// TODO: kill?
-function proxyMethod(trap, key) {
-	return {
-		get() {
-			return function(this: ES5Draft, ...args) {
-				const state = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				return trap(state, key, state.draft)(...args)
-			}
-		}
-	}
-}
-
-// TODO: used?
 export function hasMapChanges(state) {
 	const {base, draft} = state
 

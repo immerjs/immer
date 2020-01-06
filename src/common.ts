@@ -1,4 +1,4 @@
-import {Objectish, ObjectishNoSet, ImmerState} from "./types"
+import {Objectish, ObjectishNoSet} from "./types"
 
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
@@ -105,41 +105,6 @@ export const ownKeys: (target) => PropertyKey[] =
 				) as any)
 		: Object.getOwnPropertyNames
 
-// TODO: duplicate of clone? TODO: should be used by prepareCopy of map / set
-export function shallowCopy<T extends Objectish>(
-	base: T,
-	invokeGetters?: boolean
-): T
-export function shallowCopy(base, invokeGetters = false) {
-	if (Array.isArray(base)) return base.slice()
-	if (isMap(base)) return new Map(base)
-	if (isSet(base)) return new Set(base)
-	const clone = Object.create(Object.getPrototypeOf(base))
-	ownKeys(base).forEach(key => {
-		if (key === DRAFT_STATE) {
-			return // Never copy over draft state.
-		}
-		const desc = Object.getOwnPropertyDescriptor(base, key)!
-		let {value} = desc
-		if (desc.get) {
-			if (!invokeGetters) {
-				throw new Error("Immer drafts cannot have computed properties")
-			}
-			value = desc.get.call(base)
-		}
-		if (desc.enumerable) {
-			clone[key] = value
-		} else {
-			Object.defineProperty(clone, key, {
-				value,
-				writable: true,
-				configurable: true
-			})
-		}
-	})
-	return clone
-}
-
 export function each<T extends Objectish>(
 	obj: T,
 	iter: (key: PropertyKey, value: any, source: T) => void
@@ -194,49 +159,42 @@ export function isSet(target): target is Set<any> {
 	return hasSet && target instanceof Set
 }
 
-
-export function makeIterable2(baseIterator: Iterator<any>): IterableIterator<any> {
-	// TODO: correct?
-	// TODO: don't use symbol
-	baseIterator[Symbol.iterator] = () => baseIterator
-	return baseIterator as any
-}
-
-export function makeIterable(next: () => {done: boolean; value: any}) {
-	let self
-	return (self = {
-		[Symbol.iterator]: () => self,
-		next
-	})
-}
-
 export function latest(state: any): any {
 	return state.copy || state.base
 }
 
-// export function iterateCollection(collection: Map<any, any> | Set<any>, transformer: (key, value) => any) {
-// 	// TODO: create own iterator symbols for fallback
-// 	const iterator = collection.entries()
-// 	return makeIterable(() => {
-// 		const result = iterator.next()
-// 		if (!result.done) {
-// 			const value = wrapSetValue(state, result.value)
-// 			result.value = isEntries ? [value, value] : value
-// 		}
-// 		return result
-// 	} as any)
-// }
-
-// TODO: duplicate of shallow clone
-export function clone<T extends Objectish>(obj: T): T
-export function clone(obj) {
-	if (!isDraftable(obj)) return obj
-	if (Array.isArray(obj)) return obj.map(clone)
-	if (isMap(obj)) return new Map(obj)
-	if (isSet(obj)) return new Set(obj)
-	const cloned = Object.create(Object.getPrototypeOf(obj))
-	for (const key in obj) cloned[key] = clone(obj[key])
-	return cloned
+export function shallowCopy<T extends Objectish>(
+	base: T,
+	invokeGetters?: boolean
+): T
+export function shallowCopy(base, invokeGetters = false) {
+	if (Array.isArray(base)) return base.slice()
+	if (isMap(base)) return new Map(base)
+	if (isSet(base)) return new Set(base)
+	const clone = Object.create(Object.getPrototypeOf(base))
+	ownKeys(base).forEach(key => {
+		if (key === DRAFT_STATE) {
+			return // Never copy over draft state.
+		}
+		const desc = Object.getOwnPropertyDescriptor(base, key)!
+		let {value} = desc
+		if (desc.get) {
+			if (!invokeGetters) {
+				throw new Error("Immer drafts cannot have computed properties")
+			}
+			value = desc.get.call(base)
+		}
+		if (desc.enumerable) {
+			clone[key] = value
+		} else {
+			Object.defineProperty(clone, key, {
+				value,
+				writable: true,
+				configurable: true
+			})
+		}
+	})
+	return clone
 }
 
 export function freeze<T extends Objectish>(

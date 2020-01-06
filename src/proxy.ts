@@ -10,7 +10,6 @@ import {
 	isSet,
 	hasSymbol,
 	shallowCopy,
-	makeIterable,
 	DRAFT_STATE,
 	assignMap,
 	assignSet,

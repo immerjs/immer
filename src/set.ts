@@ -1,60 +1,41 @@
-import {
-	each,
-	has,
-	is,
-	isDraft,
-	isDraftable,
-	isEnumerable,
-	isMap,
-	isSet,
-	hasSymbol,
-	shallowCopy,
-	DRAFT_STATE,
-	makeIterable,
-	latest,
-	original,
-	makeIterable2
-} from "./common"
+import {isDraftable, DRAFT_STATE, latest} from "./common"
 
 // TODO: kill:
-import {
-	assertUnrevoked,
-	ES5Draft,
-} from "./es5"
-import { ImmerScope } from "./scope";
-import { Immer } from "./immer";
+import {assertUnrevoked, ES5Draft} from "./es5"
+import {ImmerScope} from "./scope"
 
 // TODO: create own states
 // TODO: clean up the maps and such from ES5 / Proxy states
 
 export interface SetState {
-	parent: any; // TODO: type
-	scope: ImmerScope;
-	modified: boolean;
-	finalizing: boolean;
-	finalized: boolean;
-	copy: Set<any> | undefined;
+	parent: any // TODO: type
+	scope: ImmerScope
+	modified: boolean
+	finalizing: boolean
+	finalized: boolean
+	copy: Set<any> | undefined
 	// assigned: Map<any, boolean> | undefined;
-	base: Set<any>;
-	drafts: Map<any, any>; // maps the original value to the draft value in the new set
-	revoke(): void;
-	draft: ES5Draft;
+	base: Set<any>
+	drafts: Map<any, any> // maps the original value to the draft value in the new set
+	revoke(): void
+	draft: ES5Draft
 }
 
 function prepareCopy(state: SetState) {
 	if (!state.copy) {
-			// create drafts for all entries to preserve insertion order
-				state.copy = new Set()
-				state.base.forEach(value => {
-					const draft = state.scope.immer.createProxy(value, state);
-					state.copy!.add(draft)
-					state.drafts.set(value, draft)
-				})
+		// create drafts for all entries to preserve insertion order
+		state.copy = new Set()
+		state.base.forEach(value => {
+			const draft = state.scope.immer.createProxy(value, state)
+			state.copy!.add(draft)
+			state.drafts.set(value, draft)
+		})
 	}
 }
 
 // Make sure DraftSet declarion doesn't die if Map is not avialable...
-const SetBase: SetConstructor = typeof Set !== "undefined" ? Set : function FakeSet() {} as any
+const SetBase: SetConstructor =
+	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
 // TODO: fix types for drafts
 export class DraftSet<K, V> extends SetBase implements Set<V> {
@@ -74,7 +55,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			revoke() {
 				// TODO: make sure this marks the Map as revoked, and assert everywhere
 			}
-		};
+		}
 	}
 
 	get size(): number {
@@ -87,13 +68,14 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		if (!state.copy) {
 			return state.base.has(value)
 		}
-		if (state.copy.has(value)) return true;
-		if (state.drafts.has(value) && state.copy.has(state.drafts.get(value))) return true;
-		return false;
+		if (state.copy.has(value)) return true
+		if (state.drafts.has(value) && state.copy.has(state.drafts.get(value)))
+			return true
+		return false
 	}
 
 	add(value: V): this {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		if (state.copy) {
 			state.copy.add(value)
 		} else if (!state.base.has(value)) {
@@ -105,18 +87,23 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 
 	delete(value: V): boolean {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		if (!this.has(value)) {
-			return false;
+			return false
 		}
 
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
-		return state.copy!.delete(value) || (state.drafts.has(value) ? state.copy!.delete(state.drafts.get(value)) : false)
+		return (
+			state.copy!.delete(value) ||
+			(state.drafts.has(value)
+				? state.copy!.delete(state.drafts.get(value))
+				: false)
+		)
 	}
 
 	clear() {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		return state.copy!.clear()
@@ -154,17 +141,12 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 }
 
-
 export function proxySet(target, parent) {
 	if (target instanceof DraftSet) {
-		return target; // TODO: or copy?
+		return target // TODO: or copy?
 	}
 	return new DraftSet(target, parent)
 }
-
-// const iterateSetValues = makeIterateSetValues()
-
-
 
 export function hasSetChanges(state) {
 	const {base, draft} = state
