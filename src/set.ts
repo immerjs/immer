@@ -144,24 +144,5 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 }
 
 export function proxySet(target, parent) {
-	if (target instanceof DraftSet) {
-		return target // TODO: or copy?
-	}
 	return new DraftSet(target, parent)
-}
-
-export function hasSetChanges(state) {
-	const {base, draft} = state
-
-	if (base.size !== draft.size) return true
-
-	// IE11 supports only forEach iteration
-	let hasChanges = false
-	// TODO: optimize: break on first diff
-	draft.forEach(function(value, key) {
-		if (!hasChanges) {
-			hasChanges = isDraftable(value) ? value.modified : !base.has(key)
-		}
-	})
-	return hasChanges
 }

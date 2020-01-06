@@ -167,24 +167,5 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 }
 
 export function proxyMap(target, parent) {
-	if (target instanceof DraftMap) {
-		return target // TODO: or copy?
-	}
 	return new DraftMap(target, parent)
-}
-
-export function hasMapChanges(state) {
-	const {base, draft} = state
-
-	if (base.size !== draft.size) return true
-
-	// IE11 supports only forEach iteration
-	let hasChanges = false
-	// TODO: optimize: break on first difference
-	draft.forEach(function(value, key) {
-		if (!hasChanges) {
-			hasChanges = isDraftable(value) ? value.modified : value !== base.get(key)
-		}
-	})
-	return hasChanges
 }

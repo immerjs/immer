@@ -65,26 +65,6 @@ export function original<T>(value: T): T | undefined {
 	// otherwise return undefined
 }
 
-// We use Maps as `drafts` for Sets, not Objects
-// See proxy.js
-export function assignSet(target: Map<any, any>, override) {
-	override.forEach(value => {
-		// When we add new drafts we have to remove their originals if present
-		const prev = original(value)
-		if (prev) target.delete(prev)
-		// @ts-ignore TODO investigate
-		target.add(value)
-	})
-	return target
-}
-
-// We use Maps as `drafts` for Maps, not Objects
-// See proxy.js
-export function assignMap(target: Map<any, any>, override: Map<any, any>) {
-	override.forEach((value, key) => target.set(key, value))
-	return target
-}
-
 export const assign =
 	Object.assign ||
 	((target, ...overrides) => {
@@ -100,9 +80,9 @@ export const ownKeys: (target) => PropertyKey[] =
 		? Reflect.ownKeys
 		: typeof Object.getOwnPropertySymbols !== "undefined"
 		? obj =>
-				Object.getOwnPropertyNames(obj).concat(Object.getOwnPropertySymbols(
-					obj
-				) as any)
+				Object.getOwnPropertyNames(obj).concat(
+					Object.getOwnPropertySymbols(obj) as any
+				)
 		: Object.getOwnPropertyNames
 
 export function each<T extends Objectish>(
@@ -115,7 +95,7 @@ export function each(obj, iter) {
 	} else if (obj && typeof obj === "object") {
 		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
 	} else {
-		throw new Error("Cannot iterate primitive " + obj)
+		throw new Error("Nope")
 	}
 }
 
@@ -169,8 +149,6 @@ export function shallowCopy<T extends Objectish>(
 ): T
 export function shallowCopy(base, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
-	if (isMap(base)) return new Map(base)
-	if (isSet(base)) return new Set(base)
 	const clone = Object.create(Object.getPrototypeOf(base))
 	ownKeys(base).forEach(key => {
 		if (key === DRAFT_STATE) {

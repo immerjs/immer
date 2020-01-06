@@ -213,19 +213,6 @@ arrayTraps.set = function(state, prop, value) {
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
-// Used by Map and Set drafts
-const reflectTraps = makeReflectTraps([
-	"ownKeys",
-	"has",
-	"set",
-	"deleteProperty",
-	"defineProperty",
-	"getOwnPropertyDescriptor",
-	"preventExtensions",
-	"isExtensible",
-	"getPrototypeOf"
-])
-
 /**
  * Map drafts
  */
@@ -263,15 +250,4 @@ function prepareCopy(state) {
 	if (!state.copy) {
 		state.copy = shallowCopy(state.base)
 	}
-}
-
-/** Create traps that all use the `Reflect` API on the `latest(state)` */
-function makeReflectTraps<T extends object>(
-	names: (keyof typeof Reflect)[]
-): ProxyHandler<T> {
-	return names.reduce((traps, name) => {
-		// @ts-ignore
-		traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
-		return traps
-	}, {} as any)
 }

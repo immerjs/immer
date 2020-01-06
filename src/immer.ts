@@ -422,7 +422,7 @@ export class Immer implements ProducersFns {
 				}
 
 				// Unchanged drafts are never passed to the `onAssign` hook.
-				if (isDraftProp && !isSet && value === get(state.base, prop)) return
+				// if (isDraftProp && !isSet && value === get(state.base, prop)) return
 			}
 			// Unchanged draft properties are ignored.
 			else if (isDraftProp && is(value, get(state.base, prop))) {

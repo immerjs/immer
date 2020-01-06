@@ -13,11 +13,10 @@ import {
 	DRAFT_STATE,
 	latest
 } from "./common"
-import {proxyMap, hasMapChanges} from "./map"
-import {proxySet, hasSetChanges} from "./set"
 
 import {ImmerScope} from "./scope"
 import {ImmerState, Drafted, AnyObject, AnyMap} from "./types"
+import {markChanged} from "./proxy"
 
 // TODO: merge with ImmerState?
 interface ES5BaseState {
@@ -206,9 +205,10 @@ function markChangesSweep(drafts) {
 			if (Array.isArray(state.base)) {
 				if (hasArrayChanges(state)) markChangedES5(state)
 			} else if (isMap(state.base)) {
-				if (hasMapChanges(state)) markChangedES5(state)
+				// TODO: use switch
+				continue
 			} else if (isSet(state.base)) {
-				if (hasSetChanges(state)) markChangedES5(state)
+				continue
 			} else if (hasObjectChanges(state)) {
 				markChangedES5(state)
 			}
@@ -223,38 +223,9 @@ function markChangesRecursively(object) {
 	const state = object[DRAFT_STATE]
 	if (!state) return
 	const {base, draft, assigned} = state
-	if (isSet(object)) {
-		if (hasSetChanges(state)) {
-			markChangedES5(state)
-			object.forEach(v => {
-				markChangesRecursively(v)
-			})
-		}
-	} else if (isMap(object)) {
-		// if (hasMapChanges(object)) {
-		object.forEach((value, key) => {
-			if (assigned && base.get(key) === undefined && !has(base, key)) {
-				// TODO: this code seems invalid for Maps!
-				assigned.set(key, true)
-				markChangedES5(state)
-			} else if (!assigned || !assigned.get(key)) {
-				// TODO: === false?
-				// Only untouched properties trigger recursion.
-				markChangesRecursively(draft.get(key))
-			}
-		})
-		// Look for removed keys.
-		// TODO: is this code needed?
-		// TODO: use each?
-		if (assigned)
-			base.forEach((value, key) => {
-				// The `undefined` check is a fast path for pre-existing keys.
-				if (draft.get(key) === undefined && !has(draft, key)) {
-					assigned.set(key, false)
-					markChangedES5(state)
-				}
-			})
-		// }
+	if (isSet(object) || isMap(object)) {
+		// TODO: create switch here
+		return
 	} else if (!Array.isArray(object)) {
 		// Look for added keys.
 		// TODO: use each?
