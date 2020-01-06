@@ -19,31 +19,37 @@ import {
 import {ImmerScope} from "./scope"
 import {proxyMap} from "./map"
 import {proxySet} from "./set"
+import {AnyObject, Drafted, ImmerState, AnyArray} from "./types"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
 
-interface ES6Draft {}
-
-interface ES6State<T = any> {
+interface ProxyBaseState {
 	scope: ImmerScope
 	modified: boolean
 	finalized: boolean
-	assigned:
-		| {
-				[property: string]: boolean
-		  }
-		| Map<string, boolean> // TODO: always use a Map?
-	parent: ES6State
-	base: T
-	draft: ES6Draft | null
-	drafts:
-		| {
-				[property: string]: ES6Draft
-		  }
-		| Map<string, ES6Draft> // TODO: always use a Map?
-	copy: T | null
+	assigned: {
+		[property: string]: boolean
+	}
+	parent: ImmerState
+	drafts: {
+		[property: string]: Drafted<any, any>
+	}
 	revoke: null | (() => void)
+}
+
+export interface ProxyObjectState extends ProxyBaseState {
+	type: "proxy_object"
+	base: AnyObject
+	copy: AnyObject | null
+	draft: Drafted<AnyObject, ProxyObjectState>
+}
+
+export interface ProxyArrayState extends ProxyBaseState {
+	type: "proxy_array"
+	base: AnyArray
+	copy: AnyArray | null
+	draft: Drafted<AnyArray, ProxyArrayState>
 }
 
 /**
@@ -53,8 +59,9 @@ interface ES6State<T = any> {
  */
 export function createProxy<T extends object>(
 	base: T,
-	parent: ES6State
-): ES6Draft {
+	parent: ProxyObjectState | ProxyArrayState
+): Drafted<T, ProxyObjectState | ProxyArrayState> {
+	// TODO: extract create proxy and refine
 	// TODO: dedupe
 	if (!base || typeof base !== "object" || !isDraftable(base)) {
 		// TODO: || isDraft ?
@@ -75,7 +82,9 @@ export function createProxy<T extends object>(
 		return draft
 	}
 
-	const state: ES6State<T> = {
+	const isArray = Array.isArray(base)
+	const state: ProxyObjectState | ProxyArrayState = {
+		type: isArray ? "proxy_array" : ("proxy_object" as any),
 		// Track which produce call this is associated with.
 		scope,
 		// True for both shallow and deep changes.
@@ -89,7 +98,7 @@ export function createProxy<T extends object>(
 		// The base state.
 		base,
 		// The base proxy.
-		draft: null,
+		draft: null as any, // set below
 		// Any property proxies.
 		drafts: {},
 		// The base copy with any updated values.
@@ -113,24 +122,24 @@ export function createProxy<T extends object>(
 
 	const {revoke, proxy} = Proxy.revocable(target, traps)
 
-	state.draft = proxy
+	state.draft = proxy as any
 	state.revoke = revoke
 
 	scope.drafts!.push(proxy)
-	return proxy
+	return proxy as any
 }
 
 /**
  * Object drafts
  */
-const objectTraps: ProxyHandler<ES6State> = {
+const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 		let {drafts} = state
 
 		// Check for existing draft in unmodified state.
 		if (!state.modified && has(drafts, prop)) {
-			return drafts[prop]
+			return drafts[prop as any]
 		}
 
 		const value = latest(state)[prop]
@@ -143,10 +152,11 @@ const objectTraps: ProxyHandler<ES6State> = {
 			// Assigned values are never drafted. This catches any drafts we created, too.
 			if (value !== peek(state.base, prop)) return value
 			// Store drafts on the copy (when one exists).
+			// @ts-ignore TODO: this line seems of?
 			drafts = state.copy
 		}
 
-		return (drafts[prop] = createProxy(value, state))
+		return (drafts[prop as any] = createProxy(value, state))
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -154,7 +164,7 @@ const objectTraps: ProxyHandler<ES6State> = {
 	ownKeys(state) {
 		return Reflect.ownKeys(latest(state))
 	},
-	set(state, prop, value) {
+	set(state, prop: string /* strictly not, but helps TS */, value) {
 		if (!state.modified) {
 			const baseValue = peek(state.base, prop)
 			// Optimize based on value's truthiness. Truthy values are guaranteed to
@@ -168,10 +178,10 @@ const objectTraps: ProxyHandler<ES6State> = {
 			markChanged(state)
 		}
 		state.assigned[prop] = true
-		state.copy[prop] = value
+		state.copy![prop] = value
 		return true
 	},
-	deleteProperty(state, prop) {
+	deleteProperty(state, prop: string) {
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base, prop) !== undefined || prop in state.base) {
 			state.assigned[prop] = false
@@ -210,7 +220,7 @@ const objectTraps: ProxyHandler<ES6State> = {
  * Array drafts
  */
 
-const arrayTraps: ProxyHandler<[ES6State]> = {}
+const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 each(objectTraps, (key, fn) => {
 	arrayTraps[key] = function() {
 		arguments[0] = arguments[0][0]

@@ -1,5 +1,6 @@
 import {get, each, isMap, isSet, has} from "./common"
 import {Patch, ImmerState} from "./types"
+import {SetState} from "./set"
 
 export function generatePatches(
 	state: ImmerState,
@@ -7,17 +8,18 @@ export function generatePatches(
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
+	// TODO: use a proper switch here
 	const generatePatchesFn = Array.isArray(state.base)
 		? generateArrayPatches
 		: isSet(state.base)
 		? generateSetPatches
 		: generatePatchesFromAssigned
 
-	generatePatchesFn(state, basePath, patches, inversePatches)
+	generatePatchesFn(state as any, basePath, patches, inversePatches)
 }
 
 function generateArrayPatches(
-	state: ImmerState,
+	state: any, // TODO: type properly with ImmerState
 	basePath: (string | number)[],
 	patches: Patch[],
 	inversePatches: Patch[]
@@ -80,7 +82,7 @@ function generateArrayPatches(
 
 // This is used for both Map objects and normal objects.
 function generatePatchesFromAssigned(
-	state: ImmerState,
+	state: any, // TODO: type properly with ImmerState
 	basePath: (number | string)[],
 	patches: Patch[],
 	inversePatches: Patch[]
@@ -105,17 +107,16 @@ function generatePatchesFromAssigned(
 }
 
 function generateSetPatches(
-	state: ImmerState,
+	state: SetState,
 	basePath: (number | string)[],
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
-	// TODO: if this doesn't use assigned, drop assigned from SetState stuff
 	let {base, copy} = state
 
 	let i = 0
 	base.forEach(value => {
-		if (!copy.has(value)) {
+		if (!copy!.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({
 				op: "remove",
@@ -131,7 +132,7 @@ function generateSetPatches(
 		i++
 	})
 	i = 0
-	copy.forEach(value => {
+	copy!.forEach(value => {
 		if (!base.has(value)) {
 			const path = basePath.concat([i])
 			patches.push({

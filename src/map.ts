@@ -1,24 +1,26 @@
 import {isDraftable, DRAFT_STATE, latest} from "./common"
 
 // TODO: kill:
-import {assertUnrevoked, ES5Draft} from "./es5"
+import {assertUnrevoked} from "./es5"
 import {ImmerScope} from "./scope"
 import {Immer} from "./immer"
+import {AnyMap, Drafted} from "./types"
 
 // TODO: create own states
 // TODO: clean up the maps and such from ES5 / Proxy states
 
 export interface MapState {
+	type: "map"
 	parent: any // TODO: type
 	scope: ImmerScope
 	modified: boolean
 	finalizing: boolean
 	finalized: boolean
-	copy: Map<any, any> | undefined
+	copy: AnyMap | undefined
 	assigned: Map<any, boolean> | undefined
-	base: Map<any, any>
+	base: AnyMap
 	revoke(): void
-	draft: ES5Draft
+	draft: Drafted<AnyMap, MapState>
 }
 
 function prepareCopy(state: MapState) {
@@ -38,6 +40,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	constructor(target, parent) {
 		super()
 		this[DRAFT_STATE] = {
+			type: "map",
 			parent,
 			scope: parent ? parent.scope : ImmerScope.current,
 			modified: false,

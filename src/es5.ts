@@ -17,27 +17,36 @@ import {proxyMap, hasMapChanges} from "./map"
 import {proxySet, hasSetChanges} from "./set"
 
 import {ImmerScope} from "./scope"
-import {ImmerState} from "./types"
-
-export interface ES5Draft {
-	[DRAFT_STATE]: ES5State
-}
+import {ImmerState, Drafted, AnyObject, AnyMap} from "./types"
 
 // TODO: merge with ImmerState?
-export interface ES5State<T = any> {
+interface ES5BaseState {
 	scope: ImmerScope
 	modified: boolean
 	finalizing: boolean
 	finalized: boolean
-	assigned: Map<any, any> | {[key: string]: any}
-	parent: ES5State
-	base: T
-	draft: T & ES5Draft
-	drafts: Map<any, any> | null
-	copy: T | null
+	assigned: {[key: string]: any}
+	parent: ImmerState
+	drafts: AnyMap | null // TODO: don't use map?
 	revoke()
 	revoked: boolean
 }
+
+export interface ES5ObjectState extends ES5BaseState {
+	type: "es5_object"
+	draft: Drafted<AnyObject, ES5ObjectState>
+	base: AnyObject
+	copy: AnyObject | null
+}
+
+export interface ES5ArrayState extends ES5BaseState {
+	type: "es5_array"
+	draft: Drafted<AnyObject, ES5ArrayState>
+	base: AnyObject
+	copy: AnyObject | null
+}
+
+type ES5State = ES5ArrayState | ES5ObjectState
 
 export function willFinalize(
 	scope: ImmerScope,
@@ -60,7 +69,10 @@ export function willFinalize(
 	}
 }
 
-export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
+export function createProxy<T>(
+	base: T,
+	parent: ImmerState
+): Drafted<any, ES5ObjectState | ES5ArrayState> {
 	if (!base || typeof base !== "object" || !isDraftable(base)) {
 		// TODO: || isDraft ?
 		return base as any // TODO: fix
@@ -84,7 +96,8 @@ export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 		proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
 	})
 
-	const state: ES5State<T> = {
+	const state: ES5ObjectState | ES5ArrayState = {
+		type: isArray ? "es5_array" : ("es5_object" as any),
 		scope,
 		modified: false,
 		finalizing: false, // es5 only
@@ -104,7 +117,7 @@ export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 	return draft
 }
 
-function revoke(this: ES5State) {
+function revoke(this: ES5BaseState) {
 	this.revoked = true
 }
 
@@ -141,7 +154,7 @@ function set(state: ES5State, prop, value) {
 		markChanged(state)
 		prepareCopy(state)
 	}
-	state.copy[prop] = value
+	state.copy![prop] = value
 }
 
 export function markChanged(state) {

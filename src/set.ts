@@ -1,24 +1,25 @@
 import {isDraftable, DRAFT_STATE, latest} from "./common"
 
 // TODO: kill:
-import {assertUnrevoked, ES5Draft} from "./es5"
+import {assertUnrevoked} from "./es5"
 import {ImmerScope} from "./scope"
+import {AnySet, Drafted} from "./types"
 
 // TODO: create own states
 // TODO: clean up the maps and such from ES5 / Proxy states
 
 export interface SetState {
+	type: "set"
 	parent: any // TODO: type
 	scope: ImmerScope
 	modified: boolean
 	finalizing: boolean
 	finalized: boolean
-	copy: Set<any> | undefined
-	// assigned: Map<any, boolean> | undefined;
-	base: Set<any>
+	copy: AnySet | undefined
+	base: AnySet
 	drafts: Map<any, any> // maps the original value to the draft value in the new set
 	revoke(): void
-	draft: ES5Draft
+	draft: Drafted<AnySet, SetState>
 }
 
 function prepareCopy(state: SetState) {
@@ -43,6 +44,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	constructor(target, parent) {
 		super()
 		this[DRAFT_STATE] = {
+			type: "set",
 			parent,
 			scope: parent ? parent.scope : ImmerScope.current,
 			modified: false,

@@ -1,15 +1,44 @@
-import {Nothing} from "./common"
+import {Nothing, DRAFT_STATE} from "./common"
+import {SetState} from "./set"
+import {MapState} from "./map"
+import {ProxyObjectState, ProxyArrayState} from "./proxy"
+import {ES5ObjectState, ES5ArrayState} from "./es5"
 
 export type Objectish = any[] | Map<any, any> | Set<any> | {}
 
 export type ObjectishNoSet = any[] | Map<any, any> | {}
 
-export interface ImmerState<T = any> {
-	parent?: ImmerState
-	base: T
-	copy: T
-	assigned: {[prop: string]: boolean; [index: number]: boolean}
-}
+// export interface ImmerState<T = any> {
+// 	parent?: ImmerState
+// 	base: T
+// 	copy: T
+// 	assigned: {[prop: string]: boolean; [index: number]: boolean}
+// }
+
+export type AnyObject = {[key: string]: any}
+export type AnyArray = Array<any>
+export type AnySet = Set<any>
+export type AnyMap = Map<any, any>
+
+export type DraftType =
+	| "proxy_object"
+	| "proxy_array"
+	| "es5_object"
+	| "es5_array"
+	| "map"
+	| "set"
+
+export type ImmerState =
+	| ProxyObjectState
+	| ProxyArrayState
+	| ES5ObjectState
+	| ES5ArrayState
+	| MapState
+	| SetState
+
+export type Drafted<Base, T extends ImmerState> = {
+	[DRAFT_STATE]: T
+} & Base
 
 type Tail<T extends any[]> = ((...t: T) => any) extends ((
 	_: any,
