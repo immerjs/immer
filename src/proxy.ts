@@ -28,7 +28,7 @@ interface ProxyBaseState {
 	assigned: {
 		[property: string]: boolean
 	}
-	parent: ImmerState
+	parent?: ImmerState
 	drafts: {
 		[property: string]: Drafted<any, any>
 	}
@@ -56,34 +56,13 @@ export interface ProxyArrayState extends ProxyBaseState {
  */
 export function createProxy<T extends object>(
 	base: T,
-	parent: ProxyObjectState | ProxyArrayState
+	parent?: ImmerState
 ): Drafted<T, ProxyObjectState | ProxyArrayState> {
-	// TODO: extract create proxy and refine
-	// TODO: dedupe
-	if (!base || typeof base !== "object" || !isDraftable(base)) {
-		// TODO: || isDraft ?
-		return base as any // TODO: fix
-	}
-
-	const scope = parent ? parent.scope : ImmerScope.current!
-
-	// TODO: dedupe this, it is the same for ES5
-	if (isMap(base)) {
-		const draft = proxyMap(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-	if (isSet(base)) {
-		const draft = proxySet(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-
 	const isArray = Array.isArray(base)
 	const state: ProxyObjectState | ProxyArrayState = {
 		type: isArray ? "proxy_array" : ("proxy_object" as any),
 		// Track which produce call this is associated with.
-		scope,
+		scope: parent ? parent.scope : ImmerScope.current!,
 		// True for both shallow and deep changes.
 		modified: false,
 		// Used during finalization.
@@ -118,11 +97,8 @@ export function createProxy<T extends object>(
 	}
 
 	const {revoke, proxy} = Proxy.revocable(target, traps)
-
 	state.draft = proxy as any
 	state.revoke = revoke
-
-	scope.drafts!.push(proxy)
 	return proxy as any
 }
 
@@ -153,7 +129,7 @@ const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
 			drafts = state.copy
 		}
 
-		return (drafts[prop as any] = createProxy(value, state))
+		return (drafts[prop as any] = state.scope.immer.createProxy(value, state))
 	},
 	has(state, prop) {
 		return prop in latest(state)

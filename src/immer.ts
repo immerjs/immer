@@ -17,7 +17,9 @@ import {
 	DRAFT_STATE,
 	NOTHING,
 	freeze,
-	latest
+	latest,
+	isPlainObject,
+	DRAFTABLE
 } from "./common"
 import {ImmerScope} from "./scope"
 import {
@@ -27,8 +29,11 @@ import {
 	Objectish,
 	PatchListener,
 	Draft,
-	Patch
+	Patch,
+	Drafted
 } from "./types"
+import {proxyMap} from "./map"
+import {proxySet} from "./set"
 
 function verifyMinified() {}
 
@@ -277,9 +282,27 @@ export class Immer implements ProducersFns {
 		return result !== NOTHING ? result : undefined
 	}
 
-	createProxy<T>(value: any, parent: any) {
-		if (this.useProxies) return createProxy(value, parent)
-		else return createES5Proxy(value, parent)
+	createProxy<T>(value: any, parent?: ImmerState) {
+		if (!value || typeof value !== "object") return value
+
+		let draft: Drafted
+
+		if (
+			isPlainObject(value) ||
+			Array.isArray(value) ||
+			value[DRAFTABLE] ||
+			value?.constructor?.[DRAFTABLE]
+		) {
+			draft = this.useProxies
+				? createProxy(value, parent)
+				: createES5Proxy(value, parent)
+		} else if (isMap(value)) draft = proxyMap(value, parent)
+		else if (isSet(value)) draft = proxySet(value, parent)
+		else return value
+
+		const scope = parent ? parent.scope : ImmerScope.current!
+		scope.drafts.push(draft)
+		return draft
 	}
 
 	willFinalize(scope: ImmerScope, thing: any, isReplaced: boolean) {

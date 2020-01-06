@@ -26,7 +26,7 @@ interface ES5BaseState {
 	finalizing: boolean
 	finalized: boolean
 	assigned: {[key: string]: any}
-	parent: ImmerState
+	parent?: ImmerState
 	drafts: AnyMap | null // TODO: don't use map?
 	revoke()
 	revoked: boolean
@@ -71,24 +71,8 @@ export function willFinalizeES5(
 
 export function createES5Proxy<T>(
 	base: T,
-	parent: ImmerState
+	parent?: ImmerState
 ): Drafted<any, ES5ObjectState | ES5ArrayState> {
-	if (!base || typeof base !== "object" || !isDraftable(base)) {
-		// TODO: || isDraft ?
-		return base as any // TODO: fix
-	}
-	const scope = parent ? parent.scope : ImmerScope.current!
-	if (isMap(base)) {
-		const draft = proxyMap(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-	if (isSet(base)) {
-		const draft = proxySet(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
@@ -98,22 +82,21 @@ export function createES5Proxy<T>(
 
 	const state: ES5ObjectState | ES5ArrayState = {
 		type: isArray ? "es5_array" : ("es5_object" as any),
-		scope,
+		scope: parent ? parent.scope : ImmerScope.current!,
 		modified: false,
 		finalizing: false, // es5 only
 		finalized: false,
-		assigned: isMap(base) ? new Map() : {},
+		assigned: {},
 		parent,
 		base,
 		draft,
-		drafts: isSet(base) ? new Map() : null,
+		drafts: null,
 		copy: null,
 		revoke,
 		revoked: false // es5 only
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
-	scope.drafts!.push(draft)
 	return draft
 }
 
@@ -141,7 +124,7 @@ function get(state, prop) {
 	// Create a draft if the value is unmodified.
 	if (value === peek(state.base, prop) && isDraftable(value)) {
 		prepareCopy(state)
-		return (state.copy[prop] = createES5Proxy(value, state))
+		return (state.copy[prop] = state.scope.immer.createProxy(value, state))
 	}
 	return value
 }

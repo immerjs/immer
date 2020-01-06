@@ -36,14 +36,14 @@ export type ImmerState =
 	| MapState
 	| SetState
 
-export type Drafted<Base, T extends ImmerState> = {
+export type Drafted<Base = any, T extends ImmerState = ImmerState> = {
 	[DRAFT_STATE]: T
 } & Base
 
-type Tail<T extends any[]> = ((...t: T) => any) extends ((
+type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
 	...tail: infer TT
-) => any)
+) => any
 	? TT
 	: []
 
