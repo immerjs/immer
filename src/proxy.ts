@@ -21,9 +21,6 @@ import {proxyMap} from "./map"
 import {proxySet} from "./set"
 import {AnyObject, Drafted, ImmerState, AnyArray} from "./types"
 
-// Do nothing before being finalized.
-export function willFinalize() {}
-
 interface ProxyBaseState {
 	scope: ImmerScope
 	modified: boolean
@@ -296,12 +293,9 @@ function prepareCopy(state) {
 function makeReflectTraps<T extends object>(
 	names: (keyof typeof Reflect)[]
 ): ProxyHandler<T> {
-	return names.reduce(
-		(traps, name) => {
-			// @ts-ignore
-			traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
-			return traps
-		},
-		{} as any
-	)
+	return names.reduce((traps, name) => {
+		// @ts-ignore
+		traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
+		return traps
+	}, {} as any)
 }

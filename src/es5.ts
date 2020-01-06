@@ -48,7 +48,7 @@ export interface ES5ArrayState extends ES5BaseState {
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
-export function willFinalize(
+export function willFinalizeES5(
 	scope: ImmerScope,
 	result: any,
 	isReplaced: boolean
@@ -69,7 +69,7 @@ export function willFinalize(
 	}
 }
 
-export function createProxy<T>(
+export function createES5Proxy<T>(
 	base: T,
 	parent: ImmerState
 ): Drafted<any, ES5ObjectState | ES5ArrayState> {
@@ -141,7 +141,7 @@ function get(state, prop) {
 	// Create a draft if the value is unmodified.
 	if (value === peek(state.base, prop) && isDraftable(value)) {
 		prepareCopy(state)
-		return (state.copy[prop] = createProxy(value, state))
+		return (state.copy[prop] = createES5Proxy(value, state))
 	}
 	return value
 }
@@ -151,16 +151,16 @@ function set(state: ES5State, prop, value) {
 	state.assigned[prop] = true
 	if (!state.modified) {
 		if (is(value, peek(latest(state), prop))) return
-		markChanged(state)
+		markChangedES5(state)
 		prepareCopy(state)
 	}
 	state.copy![prop] = value
 }
 
-export function markChanged(state) {
+export function markChangedES5(state) {
 	if (!state.modified) {
 		state.modified = true
-		if (state.parent) markChanged(state.parent)
+		if (state.parent) markChangedES5(state.parent)
 	}
 }
 
@@ -221,13 +221,13 @@ function markChangesSweep(drafts) {
 		const state = drafts[i][DRAFT_STATE]
 		if (!state.modified) {
 			if (Array.isArray(state.base)) {
-				if (hasArrayChanges(state)) markChanged(state)
+				if (hasArrayChanges(state)) markChangedES5(state)
 			} else if (isMap(state.base)) {
-				if (hasMapChanges(state)) markChanged(state)
+				if (hasMapChanges(state)) markChangedES5(state)
 			} else if (isSet(state.base)) {
-				if (hasSetChanges(state)) markChanged(state)
+				if (hasSetChanges(state)) markChangedES5(state)
 			} else if (hasObjectChanges(state)) {
-				markChanged(state)
+				markChangedES5(state)
 			}
 		}
 	}
@@ -242,7 +242,7 @@ function markChangesRecursively(object) {
 	const {base, draft, assigned} = state
 	if (isSet(object)) {
 		if (hasSetChanges(state)) {
-			markChanged(state)
+			markChangedES5(state)
 			object.forEach(v => {
 				markChangesRecursively(v)
 			})
@@ -253,7 +253,7 @@ function markChangesRecursively(object) {
 			if (assigned && base.get(key) === undefined && !has(base, key)) {
 				// TODO: this code seems invalid for Maps!
 				assigned.set(key, true)
-				markChanged(state)
+				markChangedES5(state)
 			} else if (!assigned || !assigned.get(key)) {
 				// TODO: === false?
 				// Only untouched properties trigger recursion.
@@ -268,7 +268,7 @@ function markChangesRecursively(object) {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if (draft.get(key) === undefined && !has(draft, key)) {
 					assigned.set(key, false)
-					markChanged(state)
+					markChangedES5(state)
 				}
 			})
 		// }
@@ -280,7 +280,7 @@ function markChangesRecursively(object) {
 			if (base[key] === undefined && !has(base, key)) {
 				// TODO: this code seems invalid for Maps!
 				assigned[key] = true
-				markChanged(state)
+				markChangedES5(state)
 			} else if (!assigned[key]) {
 				// TODO: === false ?
 				// Only untouched properties trigger recursion.
@@ -294,11 +294,11 @@ function markChangesRecursively(object) {
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (draft[key] === undefined && !has(draft, key)) {
 				assigned[key] = false
-				markChanged(state)
+				markChangedES5(state)
 			}
 		})
 	} else if (hasArrayChanges(state)) {
-		markChanged(state)
+		markChangedES5(state)
 		assigned.length = true
 		if (draft.length < base.length) {
 			for (let i = draft.length; i < base.length; i++) assigned[i] = false

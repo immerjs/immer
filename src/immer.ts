@@ -1,6 +1,5 @@
-// TODO: destructure these, as the * as import makes it unclear which methods get installed on the Immer class
-import * as legacyProxy from "./es5"
-import * as modernProxy from "./proxy"
+import {createES5Proxy, willFinalizeES5, markChangedES5} from "./es5"
+import {createProxy, markChanged} from "./proxy"
 
 import {applyPatches, generatePatches} from "./patches"
 import {
@@ -21,7 +20,15 @@ import {
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import {ImmerState, IProduce, IProduceWithPatches, Objectish, PatchListener, Draft, Patch} from "./types"
+import {
+	ImmerState,
+	IProduce,
+	IProduceWithPatches,
+	Objectish,
+	PatchListener,
+	Draft,
+	Patch
+} from "./types"
 
 function verifyMinified() {}
 
@@ -47,16 +54,9 @@ interface ProducersFns {
 export class Immer implements ProducersFns {
 	useProxies: boolean = false
 	autoFreeze: boolean = false
-	onAssign?: (
-		state: ImmerState,
-		prop: string | number,
-		value: unknown
-	) => void
+	onAssign?: (state: ImmerState, prop: string | number, value: unknown) => void
 	onDelete?: (state: ImmerState, prop: string | number) => void
 	onCopy?: (state: ImmerState) => void
-	createProxy!:<T>(value: T, parent: any) => T;
-	willFinalize!: (scope: ImmerScope, thing: any, isReplaced: boolean) => void;
-	markChanged!:(state: any) => void; // TODO: immerState?
 
 	constructor(config?: {
 		useProxies?: boolean
@@ -182,7 +182,10 @@ export class Immer implements ProducersFns {
 		return proxy as any
 	}
 
-	finishDraft<D extends Draft<any>>(draft: D, patchListener: PatchListener): D extends Draft<infer T> ? T : never {
+	finishDraft<D extends Draft<any>>(
+		draft: D,
+		patchListener: PatchListener
+	): D extends Draft<infer T> ? T : never {
 		const state = draft && draft[DRAFT_STATE]
 		if (!state || !state.isManual) {
 			throw new Error("First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
@@ -212,7 +215,6 @@ export class Immer implements ProducersFns {
 	 */
 	setUseProxies(value: boolean) {
 		this.useProxies = value
-		assign(this, value ? modernProxy : legacyProxy)
 	}
 
 	applyPatches(base: Objectish, patches: Patch[]) {
@@ -273,6 +275,23 @@ export class Immer implements ProducersFns {
 			scope.patchListener!(scope.patches, scope.inversePatches!)
 		}
 		return result !== NOTHING ? result : undefined
+	}
+
+	createProxy<T>(value: any, parent: any) {
+		if (this.useProxies) return createProxy(value, parent)
+		else return createES5Proxy(value, parent)
+	}
+
+	willFinalize(scope: ImmerScope, thing: any, isReplaced: boolean) {
+		if (!this.useProxies) willFinalizeES5(scope, thing, isReplaced)
+	}
+
+	markChanged(state: any) {
+		if (this.useProxies) {
+			markChanged(state)
+		} else {
+			markChangedES5(state)
+		}
 	}
 
 	/**
@@ -343,7 +362,7 @@ export class Immer implements ProducersFns {
 			// 	state.copy = shallowCopy(state.base, false)
 			// }
 			// else
-			 if (!this.useProxies && !isMap(root) && !isSet(root)) {
+			if (!this.useProxies && !isMap(root) && !isSet(root)) {
 				// Create the final copy, with added keys and without deleted keys.
 				state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
 			}
