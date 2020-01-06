@@ -8,7 +8,6 @@ import {
 	isEnumerable,
 	isMap,
 	isSet,
-	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
 	latest
@@ -16,7 +15,6 @@ import {
 
 import {ImmerScope} from "./scope"
 import {ImmerState, Drafted, AnyObject, AnyMap} from "./types"
-import {markChanged} from "./proxy"
 
 // TODO: merge with ImmerState?
 interface ES5BaseState {

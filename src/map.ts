@@ -1,9 +1,6 @@
 import {isDraftable, DRAFT_STATE, latest} from "./common"
 
-// TODO: kill:
-import {assertUnrevoked} from "./es5"
 import {ImmerScope} from "./scope"
-import {Immer} from "./immer"
 import {AnyMap, Drafted} from "./types"
 
 // TODO: create own states
@@ -35,6 +32,7 @@ const MapBase: MapConstructor =
 	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
 
 // TODO: fix types for drafts
+// TODO: assert unrevoked
 export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	[DRAFT_STATE]: MapState
 	constructor(target, parent) {

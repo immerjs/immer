@@ -5,20 +5,13 @@ import {
 	has,
 	is,
 	isDraftable,
-	isDraft,
 	isMap,
 	isSet,
-	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	assignMap,
-	assignSet,
-	original,
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import {proxyMap} from "./map"
-import {proxySet} from "./set"
 import {AnyObject, Drafted, ImmerState, AnyArray} from "./types"
 
 interface ProxyBaseState {

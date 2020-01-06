@@ -17,7 +17,6 @@ import {
 	DRAFT_STATE,
 	NOTHING,
 	freeze,
-	latest,
 	isPlainObject,
 	DRAFTABLE
 } from "./common"

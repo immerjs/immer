@@ -1,7 +1,6 @@
-import {isDraftable, DRAFT_STATE, latest} from "./common"
+import {DRAFT_STATE, latest} from "./common"
 
 // TODO: kill:
-import {assertUnrevoked} from "./es5"
 import {ImmerScope} from "./scope"
 import {AnySet, Drafted} from "./types"
 
@@ -39,6 +38,7 @@ const SetBase: SetConstructor =
 	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
 // TODO: fix types for drafts
+// TODO: assert unrevoked
 export class DraftSet<K, V> extends SetBase implements Set<V> {
 	[DRAFT_STATE]: SetState
 	constructor(target, parent) {

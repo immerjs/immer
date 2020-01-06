@@ -8,13 +8,6 @@ export type Objectish = any[] | Map<any, any> | Set<any> | {}
 
 export type ObjectishNoSet = any[] | Map<any, any> | {}
 
-// export interface ImmerState<T = any> {
-// 	parent?: ImmerState
-// 	base: T
-// 	copy: T
-// 	assigned: {[prop: string]: boolean; [index: number]: boolean}
-// }
-
 export type AnyObject = {[key: string]: any}
 export type AnyArray = Array<any>
 export type AnySet = Set<any>
