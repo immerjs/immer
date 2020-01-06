@@ -618,7 +618,7 @@ describe("sets - add, delete, add - 2", () => {
 	)
 })
 
-describe.only("sets - mutate - 1", () => {
+describe("sets - mutate - 1", () => {
 	const findById = (set, id) => {
 		for (const item of set) {
 			if (item.id === id) return item

@@ -11,7 +11,6 @@ import {
 	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	iterateMapValues,
 	makeIterable,
 	latest
 } from "./common"

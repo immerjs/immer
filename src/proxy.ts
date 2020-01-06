@@ -15,12 +15,11 @@ import {
 	assignMap,
 	assignSet,
 	original,
-	iterateMapValues,
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import { proxyMap } from "./map"
-import { proxySet } from "./set"
+import {proxyMap} from "./map"
+import {proxySet} from "./set"
 
 // Do nothing before being finalized.
 export function willFinalize() {}
@@ -68,13 +67,13 @@ export function createProxy<T extends object>(
 	// TODO: dedupe this, it is the same for ES5
 	if (isMap(base)) {
 		const draft = proxyMap(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft);
-		return draft;
+		scope.drafts.push(draft)
+		return draft
 	}
 	if (isSet(base)) {
 		const draft = proxySet(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft);
-		return draft;
+		scope.drafts.push(draft)
+		return draft
 	}
 
 	const state: ES6State<T> = {
@@ -249,78 +248,6 @@ const reflectTraps = makeReflectTraps([
  * Map drafts
  */
 
-const mapTraps = makeTrapsForGetters<Map<any, any>>({
-	[DRAFT_STATE]: state => state,
-	size: state => latest(state).size,
-	has: state => key => latest(state).has(key),
-	set: state => (key, value) => {
-		const values = latest(state)
-		if (!values.has(key) || values.get(key) !== value) {
-			markChanged(state)
-			// @ts-ignore
-			state.assigned.set(key, true)
-			state.copy!.set(key, value)
-		}
-		return state.draft
-	},
-	delete: state => key => {
-		if (latest(state).has(key)) {
-			markChanged(state)
-			// @ts-ignore
-			state.assigned.set(key, false)
-			return state.copy!.delete(key)
-		}
-		return false
-	},
-	clear: state => () => {
-		markChanged(state)
-		state.assigned = new Map()
-		each(latest(state).keys(), (_, key) => {
-			// @ts-ignore
-			state.assigned.set(key, false)
-		})
-		return state.copy!.clear()
-	},
-	// @ts-ignore
-	forEach: (state, _, receiver) => (cb, thisArg) =>
-		latest(state).forEach((_, key, map) => {
-			const value = receiver.get(key)
-			cb.call(thisArg, value, key, map)
-		}),
-	get: state => key => {
-		const drafts = state.modified ? state.copy : state.drafts
-
-		// @ts-ignore TODO: ...or fix by using different ES6Draft types (but better just unify to maps)
-		if (drafts!.has(key)) {
-			// @ts-ignore
-			const value = drafts.get(key)
-
-			if (isDraft(value) || !isDraftable(value)) return value
-
-			const draft = createProxy(value, state)
-			// @ts-ignore
-			drafts.set(key, draft)
-			return draft
-		}
-
-		const value = latest(state).get(key)
-		if (state.finalized || !isDraftable(value)) {
-			return value
-		}
-
-		const draft = createProxy(value, state)
-		//@ts-ignore
-		drafts.set(key, draft)
-		return draft
-	},
-	keys: state => () => latest(state).keys(),
-	//@ts-ignore
-	values: iterateMapValues,
-	//@ts-ignore
-	entries: iterateMapValues,
-	[hasSymbol ? Symbol.iterator : "@@iterator"]: iterateMapValues
-})
-
 // Access a property without creating an Immer draft.
 function peek(draft, prop) {
 	const state = draft[DRAFT_STATE]
@@ -338,7 +265,7 @@ export function markChanged(state) {
 		const {base, drafts, parent} = state
 		if (!isMap(base) && !isSet(base)) {
 			// TODO: drop creating copies here?
-			const copy = state.copy = shallowCopy(base)
+			const copy = (state.copy = shallowCopy(base))
 			assign(copy, drafts)
 			state.drafts = null
 		}
@@ -368,23 +295,4 @@ function makeReflectTraps<T extends object>(
 		},
 		{} as any
 	)
-}
-
-function makeTrapsForGetters<T extends object>(
-	getters: {
-		[K in keyof T]: (
-			state: ES6State<T>
-		) => /* Skip first arg of: ProxyHandler<T>[K] */ any
-	}
-): ProxyHandler<T> {
-	return assign({}, reflectTraps, {
-		get(state, prop, receiver) {
-			return getters.hasOwnProperty(prop)
-				? getters[prop](state, prop, receiver)
-				: Reflect.get(state, prop, receiver)
-		},
-		setPrototypeOf(state) {
-			throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
-		}
-	})
 }
