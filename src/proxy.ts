@@ -1,6 +1,5 @@
 "use strict"
 import {
-	assign,
 	each,
 	has,
 	is,
@@ -228,7 +227,9 @@ export function markChanged(state) {
 		if (!isMap(base) && !isSet(base)) {
 			// TODO: drop creating copies here?
 			const copy = (state.copy = shallowCopy(base))
-			assign(copy, drafts)
+			each(drafts, (key, value) => {
+				copy[key] = value
+			})
 			state.drafts = null
 		}
 

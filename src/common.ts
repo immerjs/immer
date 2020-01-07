@@ -1,4 +1,4 @@
-import {Objectish, ObjectishNoSet} from "./types"
+import {Objectish, ObjectishNoSet, Drafted, AnyObject, AnyArray} from "./types"
 
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
@@ -50,7 +50,7 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
-export function isPlainObject(value): boolean {
+export function isPlainObject(value): value is AnyObject | AnyArray {
 	if (!value || typeof value !== "object") return false
 	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
@@ -58,22 +58,12 @@ export function isPlainObject(value): boolean {
 }
 
 /** Get the underlying object that is represented by the given draft */
-export function original<T>(value: T): T | undefined {
+export function original<T>(value: Drafted<T>): T | undefined {
 	if (value && value[DRAFT_STATE]) {
-		return value[DRAFT_STATE].base
+		return value[DRAFT_STATE].base as any
 	}
 	// otherwise return undefined
 }
-
-export const assign =
-	Object.assign ||
-	((target, ...overrides) => {
-		overrides.forEach(override => {
-			if (typeof override === "object" && override !== null)
-				Object.keys(override).forEach(key => (target[key] = override[key]))
-		})
-		return target
-	})
 
 export const ownKeys: (target) => PropertyKey[] =
 	typeof Reflect !== "undefined" && Reflect.ownKeys
@@ -99,7 +89,7 @@ export function each(obj, iter) {
 	}
 }
 
-export function isEnumerable(base: {}, prop: PropertyKey): boolean {
+export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 	const desc = Object.getOwnPropertyDescriptor(base, prop)
 	return desc && desc.enumerable ? true : false
 }

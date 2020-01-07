@@ -4,9 +4,9 @@ import {MapState} from "./map"
 import {ProxyObjectState, ProxyArrayState} from "./proxy"
 import {ES5ObjectState, ES5ArrayState} from "./es5"
 
-export type Objectish = any[] | Map<any, any> | Set<any> | {}
+export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 
-export type ObjectishNoSet = any[] | Map<any, any> | {}
+export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
 
 export type AnyObject = {[key: string]: any}
 export type AnyArray = Array<any>

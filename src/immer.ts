@@ -3,7 +3,6 @@ import {createProxy, markChanged} from "./proxy"
 
 import {applyPatches, generatePatches} from "./patches"
 import {
-	assign,
 	each,
 	has,
 	is,
@@ -73,7 +72,13 @@ export class Immer implements ProducersFns {
 		onDelete?: (state: ImmerState, prop: string | number) => void
 		onCopy?: (state: ImmerState) => void
 	}) {
-		assign(this, configDefaults, config)
+		each(configDefaults, (key, value) => {
+			this[key] = value
+		})
+		config &&
+			each(config, (key, value) => {
+				this[key] = value
+			})
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
