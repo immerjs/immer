@@ -2,14 +2,15 @@ import {DRAFT_STATE, latest, isDraftable, iteratorSymbol} from "./common"
 
 import {ImmerScope} from "./scope"
 import {AnySet, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
+import {assertUnrevoked} from "./es5"
 
 export interface SetState extends ImmerBaseState {
 	type: ProxyType.Set
-	finalizing: boolean
+	finalizing: boolean // TODO: kill?
 	copy: AnySet | undefined
 	base: AnySet
 	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
-	revoke(): void
+	revoked: boolean
 	draft: Drafted<AnySet, SetState>
 }
 
@@ -32,9 +33,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			base: target,
 			draft: this,
 			drafts: new Map(),
-			revoke() {
-				// TODO: make sure this marks the Map as revoked, and assert everywhere
-			},
+			revoked: false,
 			isManual: false
 		}
 	}
@@ -45,6 +44,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	has(value: V): boolean {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		// bit of trickery here, to be able to recognize both the value, and the draft of its value
 		if (!state.copy) {
 			return state.base.has(value)
@@ -57,6 +57,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	add(value: V): this {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		if (state.copy) {
 			state.copy.add(value)
 		} else if (!state.base.has(value)) {
@@ -68,11 +69,12 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 
 	delete(value: V): boolean {
-		const state = this[DRAFT_STATE]
 		if (!this.has(value)) {
 			return false
 		}
 
+		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		return (
@@ -85,6 +87,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	clear() {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		return state.copy!.clear()
@@ -92,12 +95,14 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	values(): IterableIterator<V> {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.values()
 	}
 
 	entries(): IterableIterator<[V, V]> {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.entries()
 	}

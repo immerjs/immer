@@ -22,12 +22,13 @@ import {
 	AnyArray,
 	ProxyType
 } from "./types"
+import {MapState} from "./map"
+import {SetState} from "./set"
 
 interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean
 	assigned: {[key: string]: any}
 	parent?: ImmerState
-	revoke(): void
 	revoked: boolean
 }
 
@@ -90,17 +91,12 @@ export function createES5Proxy<T>(
 		base,
 		draft,
 		copy: null,
-		revoke,
 		revoked: false,
 		isManual: false
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
 	return draft
-}
-
-function revoke(this: ES5BaseState) {
-	this.revoked = true
 }
 
 // Access a property without creating an Immer draft.
@@ -189,7 +185,7 @@ function proxyProperty(
 	Object.defineProperty(draft, prop, desc)
 }
 
-export function assertUnrevoked(state: ES5State) {
+export function assertUnrevoked(state: ES5State | MapState | SetState) {
 	if (state.revoked === true)
 		throw new Error(
 			"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +

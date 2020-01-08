@@ -1,5 +1,5 @@
 import {DRAFT_STATE} from "./common"
-import {Patch, PatchListener, Drafted} from "./types"
+import {Patch, PatchListener, Drafted, ProxyType} from "./types"
 import {Immer} from "./immer"
 
 /** Each scope represents a `produce` call. */
@@ -53,6 +53,11 @@ export class ImmerScope {
 }
 
 function revoke(draft: Drafted) {
-	// TODO: switch per type and remove from data structures
-	draft[DRAFT_STATE].revoke()
+	const state = draft[DRAFT_STATE]
+	if (
+		state.type === ProxyType.ProxyObject ||
+		state.type === ProxyType.ProxyArray
+	)
+		state.revoke()
+	else state.revoked = true
 }

@@ -2,6 +2,7 @@ import {isDraftable, DRAFT_STATE, latest, iteratorSymbol} from "./common"
 
 import {ImmerScope} from "./scope"
 import {AnyMap, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
+import {assertUnrevoked} from "./es5"
 
 export interface MapState extends ImmerBaseState {
 	type: ProxyType.Map
@@ -9,7 +10,7 @@ export interface MapState extends ImmerBaseState {
 	copy: AnyMap | undefined
 	assigned: Map<any, boolean> | undefined
 	base: AnyMap
-	revoke(): void
+	revoked: boolean
 	draft: Drafted<AnyMap, MapState>
 }
 
@@ -32,10 +33,8 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			assigned: undefined,
 			base: target,
 			draft: this,
-			revoke() {
-				// TODO: make sure this marks the Map as revoked, and assert everywhere
-			},
-			isManual: false
+			isManual: false,
+			revoked: false
 		}
 	}
 
@@ -49,6 +48,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 
 	set(key: K, value: V): this {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		if (latest(state).get(key) !== value) {
 			prepareCopy(state)
 			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
@@ -65,6 +65,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		}
 
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		state.assigned!.set(key, false)
@@ -74,6 +75,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 
 	clear() {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		state.assigned = new Map()
@@ -92,6 +94,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 
 	get(key: K): V {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		const value = latest(state).get(key)
 		if (state.finalizing || state.finalized || !isDraftable(value)) {
 			return value
