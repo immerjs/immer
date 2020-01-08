@@ -1,4 +1,13 @@
-import {Objectish, ObjectishNoSet, Drafted, AnyObject, AnyArray} from "./types"
+import {
+	Objectish,
+	ObjectishNoSet,
+	Drafted,
+	AnyObject,
+	AnyArray,
+	AnyMap,
+	AnySet,
+	ImmerState
+} from "./types"
 
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
@@ -77,7 +86,7 @@ export const ownKeys: (target) => PropertyKey[] =
 
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: PropertyKey, value: any, source: T) => void
+	iter: (key: string | number, value: any, source: T) => void
 )
 export function each(obj, iter) {
 	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
@@ -102,11 +111,11 @@ export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
-export function get(thing: ObjectishNoSet, prop: PropertyKey) {
+export function get(thing: ObjectishNoSet, prop: PropertyKey): any {
 	return isMap(thing) ? thing.get(prop) : thing[prop]
 }
 
-export function is(x, y): boolean {
+export function is(x: any, y: any): boolean {
 	// From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
 	if (x === y) {
 		return x !== 0 || 1 / x === 1 / y
@@ -119,21 +128,21 @@ export const hasSymbol = typeof Symbol !== "undefined"
 
 export const hasMap = typeof Map !== "undefined"
 
-export function isMap(target): target is Map<any, any> {
+export function isMap(target: any): target is AnyMap {
 	return hasMap && target instanceof Map
 }
 
 export const hasSet = typeof Set !== "undefined"
 
-export function isSet(target): target is Set<any> {
+export function isSet(target: any): target is AnySet {
 	return hasSet && target instanceof Set
 }
 
-export function latest(state: any): any {
+export function latest(state: ImmerState): any {
 	return state.copy || state.base
 }
 
-export function shallowCopy<T extends Objectish>(
+export function shallowCopy<T extends AnyObject | AnyArray>(
 	base: T,
 	invokeGetters?: boolean
 ): T

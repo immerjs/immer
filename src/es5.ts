@@ -144,7 +144,6 @@ export function markChangedES5(state) {
 	}
 }
 
-// TODO: kill export
 function prepareCopy(state) {
 	if (!state.copy) state.copy = clonePotentialDraft(state.base)
 }

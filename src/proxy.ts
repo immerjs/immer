@@ -239,7 +239,6 @@ export function markChanged(state) {
 	}
 }
 
-// TODO: unify with ES5 version
 function prepareCopy(state) {
 	if (!state.copy) {
 		state.copy = shallowCopy(state.base)

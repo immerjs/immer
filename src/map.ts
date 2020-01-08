@@ -32,7 +32,7 @@ const MapBase: MapConstructor =
 	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
 
 // TODO: fix types for drafts
-// TODO: assert unrevoked
+// TODO: assert unrevoked, use freeze for that
 export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	[DRAFT_STATE]: MapState
 	constructor(target, parent) {

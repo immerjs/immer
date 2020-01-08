@@ -31,7 +31,8 @@ import {
 	Drafted
 } from "./types"
 import {proxyMap} from "./map"
-import {proxySet} from "./set"
+import {proxySet, SetState} from "./set"
+import {processResult, maybeFreeze} from "./finalize"
 
 function verifyMinified() {}
 
@@ -144,7 +145,7 @@ export class Immer implements ProducersFns {
 				return result.then(
 					result => {
 						scope.usePatches(patchListener)
-						return this.processResult(result, scope)
+						return processResult(this, result, scope)
 					},
 					error => {
 						scope.revoke()
@@ -153,12 +154,12 @@ export class Immer implements ProducersFns {
 				)
 			}
 			scope.usePatches(patchListener)
-			return this.processResult(result, scope)
+			return processResult(this, result, scope)
 		} else {
 			result = recipe(base)
 			if (result === NOTHING) return undefined
 			if (result === undefined) result = base
-			this.maybeFreeze(result, true)
+			maybeFreeze(this, result, true)
 			return result
 		}
 	}
@@ -188,7 +189,7 @@ export class Immer implements ProducersFns {
 		const proxy = this.createProxy(base, undefined)
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
-		return proxy as any
+		return proxy
 	}
 
 	finishDraft<D extends Draft<any>>(
@@ -204,7 +205,7 @@ export class Immer implements ProducersFns {
 		}
 		const {scope} = state
 		scope.usePatches(patchListener)
-		return this.processResult(undefined, scope)
+		return processResult(this, undefined, scope)
 	}
 
 	/**
@@ -248,44 +249,6 @@ export class Immer implements ProducersFns {
 		)
 	}
 
-	/** @internal */
-	processResult(result: any, scope: ImmerScope) {
-		const baseDraft = scope.drafts![0]
-		const isReplaced = result !== undefined && result !== baseDraft
-		this.willFinalize(scope, result, isReplaced)
-		if (isReplaced) {
-			if (baseDraft[DRAFT_STATE].modified) {
-				scope.revoke()
-				throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
-			}
-			if (isDraftable(result)) {
-				// Finalize the result in case it contains (or is) a subset of the draft.
-				result = this.finalize(result, null, scope)
-				this.maybeFreeze(result)
-			}
-			if (scope.patches) {
-				scope.patches.push({
-					op: "replace",
-					path: [],
-					value: result
-				})
-				scope.inversePatches!.push({
-					op: "replace",
-					path: [],
-					value: baseDraft[DRAFT_STATE].base
-				})
-			}
-		} else {
-			// Finalize the base draft.
-			result = this.finalize(baseDraft, [], scope)
-		}
-		scope.revoke()
-		if (scope.patches) {
-			scope.patchListener!(scope.patches, scope.inversePatches!)
-		}
-		return result !== NOTHING ? result : undefined
-	}
-
 	createProxy<T>(value: any, parent?: ImmerState) {
 		if (!value || typeof value !== "object") return value
 
@@ -319,155 +282,5 @@ export class Immer implements ProducersFns {
 		} else {
 			markChangedES5(state)
 		}
-	}
-
-	/**
-	 * @internal
-	 * Finalize a draft, returning either the unmodified base state or a modified
-	 * copy of the base state.
-	 */
-	finalize(draft: any, path: string[] | null, scope: ImmerScope) {
-		const state = draft[DRAFT_STATE]
-		if (!state) {
-			if (Object.isFrozen(draft)) return draft
-			return this.finalizeTree(draft, null, scope)
-		}
-		// Never finalize drafts owned by another scope.
-		if (state.scope !== scope) {
-			return draft
-		}
-		if (!state.modified) {
-			this.maybeFreeze(state.base, true)
-			return state.base
-		}
-		if (!state.finalized) {
-			state.finalized = true
-			this.finalizeTree(state.draft, path, scope)
-
-			// We cannot really delete anything inside of a Set. We can only replace the whole Set.
-			if (this.onDelete && !isSet(state.base)) {
-				// The `assigned` object is unreliable with ES5 drafts.
-				if (this.useProxies) {
-					const {assigned} = state
-					each(assigned, (prop, exists) => {
-						if (!exists) this.onDelete?.(state, prop as any)
-					})
-				} else {
-					// TODO: Figure it out for Maps and Sets if we need to support ES5
-					const {base, copy} = state
-					each(base, prop => {
-						if (!has(copy, prop)) this.onDelete?.(state, prop as any)
-					})
-				}
-			}
-			if (this.onCopy) {
-				this.onCopy(state)
-			}
-
-			// At this point, all descendants of `state.copy` have been finalized,
-			// so we can be sure that `scope.canAutoFreeze` is accurate.
-			if (this.autoFreeze && scope.canAutoFreeze) {
-				freeze(state.copy, false)
-			}
-
-			if (path && scope.patches) {
-				generatePatches(state, path, scope.patches, scope.inversePatches!)
-			}
-		}
-		return state.copy
-	}
-
-	/**
-	 * @internal
-	 * Finalize all drafts in the given state tree.
-	 */
-	finalizeTree(root: any, rootPath: string[] | null, scope: ImmerScope) {
-		const state = root[DRAFT_STATE]
-		if (state) {
-			// TODO: remove crap
-			// if (state.modified && !state.copy) {
-			// 	state.copy = shallowCopy(state.base, false)
-			// }
-			// else
-			if (!this.useProxies && !isMap(root) && !isSet(root)) {
-				// Create the final copy, with added keys and without deleted keys.
-				state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
-			}
-
-			root = state.copy
-		}
-
-		const needPatches = !!rootPath && !!scope.patches
-		const finalizeProperty = (prop, value, parent) => {
-			if (value === parent) {
-				throw Error("Immer forbids circular references")
-			}
-
-			// In the `finalizeTree` method, only the `root` object may be a draft.
-			const isDraftProp = !!state && parent === root
-			const isSetMember = isSet(parent)
-
-			if (isDraft(value)) {
-				const path =
-					isDraftProp &&
-					needPatches &&
-					!isSetMember && // Set objects are atomic since they have no keys.
-					!has(state.assigned, prop) // Skip deep patches for assigned keys.
-						? rootPath!.concat(prop)
-						: null
-
-				// Drafts owned by `scope` are finalized here.
-				value = this.finalize(value, path, scope)
-				replace(parent, prop, value)
-
-				// Drafts from another scope must prevent auto-freezing.
-				if (isDraft(value)) {
-					scope.canAutoFreeze = false
-				}
-
-				// Unchanged drafts are never passed to the `onAssign` hook.
-				// if (isDraftProp && !isSet && value === get(state.base, prop)) return
-			}
-			// Unchanged draft properties are ignored.
-			else if (isDraftProp && is(value, get(state.base, prop))) {
-				return
-			}
-			// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-			else if (isDraftable(value) && !Object.isFrozen(value)) {
-				each(value, finalizeProperty)
-				this.maybeFreeze(value)
-			}
-
-			if (isDraftProp && this.onAssign && !isSetMember) {
-				this.onAssign(state, prop, value)
-			}
-		}
-
-		each(root, finalizeProperty)
-		return root
-	}
-	maybeFreeze(value, deep = false) {
-		if (this.autoFreeze && !isDraft(value)) {
-			freeze(value, deep)
-		}
-	}
-}
-
-function replace(parent, prop, value) {
-	if (isMap(parent)) {
-		parent.set(prop, value)
-	} else if (isSet(parent)) {
-		// In this case, the `prop` is actually a draft.
-		parent.delete(prop)
-		parent.add(value)
-	} else if (Array.isArray(parent) || isEnumerable(parent, prop)) {
-		// Preserve non-enumerable properties.
-		parent[prop] = value
-	} else {
-		Object.defineProperty(parent, prop, {
-			value,
-			writable: true,
-			configurable: true
-		})
 	}
 }

@@ -38,7 +38,7 @@ const SetBase: SetConstructor =
 	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
 // TODO: fix types for drafts
-// TODO: assert unrevoked
+// TODO: assert unrevoked, use freeze for that
 export class DraftSet<K, V> extends SetBase implements Set<V> {
 	[DRAFT_STATE]: SetState
 	constructor(target, parent) {
