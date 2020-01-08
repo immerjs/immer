@@ -1,5 +1,5 @@
-import {get, each, isMap, has, die, getArchtype, Archtype} from "./common"
-import {Patch, ImmerState} from "./types"
+import {get, each, isMap, has, die, getArchtype} from "./common"
+import {Patch, ImmerState, ProxyType, Archtype} from "./types"
 import {SetState} from "./set"
 import {ES5ArrayState, ES5ObjectState} from "./es5"
 import {ProxyArrayState, ProxyObjectState} from "./proxy"
@@ -14,20 +14,25 @@ export function generatePatches(
 	inversePatches: Patch[]
 ): void {
 	switch (state.type) {
-		case "proxy_object":
-		case "es5_object":
-		case "map":
+		case ProxyType.ProxyObject:
+		case ProxyType.ES5Object:
+		case ProxyType.Map:
 			return generatePatchesFromAssigned(
 				state,
 				basePath,
 				patches,
 				inversePatches
 			)
-		case "es5_array":
-		case "proxy_array":
+		case ProxyType.ES5Array:
+		case ProxyType.ProxyArray:
 			return generateArrayPatches(state, basePath, patches, inversePatches)
-		case "set":
-			return generateSetPatches(state, basePath, patches, inversePatches)
+		case ProxyType.Set:
+			return generateSetPatches(
+				(state as any) as SetState,
+				basePath,
+				patches,
+				inversePatches
+			)
 	}
 }
 

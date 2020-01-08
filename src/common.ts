@@ -5,7 +5,9 @@ import {
 	AnyArray,
 	AnyMap,
 	AnySet,
-	ImmerState
+	ImmerState,
+	ProxyType,
+	Archtype
 } from "./types"
 
 /** Use a class type for `nothing` so its type is unique */
@@ -106,27 +108,21 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 	return desc && desc.enumerable ? true : false
 }
 
-export enum Archtype {
-	Object,
-	Array,
-	Map,
-	Set
-}
-
-const toArchType = {
-	proxy_object: Archtype.Object,
-	es5_object: Archtype.Object,
-	proxy_array: Archtype.Array,
-	es5_array: Archtype.Array,
-	map: Archtype.Map,
-	set: Archtype.Set
-}
-
 export function getArchtype(thing: any): Archtype {
 	if (!thing) die()
 	if (thing[DRAFT_STATE]) {
-		// @ts-ignore
-		return toArchType[(thing as Drafted)[DRAFT_STATE].type]
+		switch ((thing as Drafted)[DRAFT_STATE].type) {
+			case ProxyType.ES5Object:
+			case ProxyType.ProxyObject:
+				return Archtype.Object
+			case ProxyType.ES5Array:
+			case ProxyType.ProxyArray:
+				return Archtype.Array
+			case ProxyType.Map:
+				return Archtype.Map
+			case ProxyType.Set:
+				return Archtype.Set
+		}
 	}
 	return Array.isArray(thing)
 		? Archtype.Array

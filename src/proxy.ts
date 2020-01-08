@@ -15,7 +15,8 @@ import {
 	ImmerState,
 	AnyArray,
 	Objectish,
-	ImmerBaseState
+	ImmerBaseState,
+	ProxyType
 } from "./types"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -30,14 +31,14 @@ interface ProxyBaseState extends ImmerBaseState {
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
-	type: "proxy_object"
+	type: ProxyType.ProxyObject
 	base: AnyObject
 	copy: AnyObject | null
 	draft: Drafted<AnyObject, ProxyObjectState>
 }
 
 export interface ProxyArrayState extends ProxyBaseState {
-	type: "proxy_array"
+	type: ProxyType.ProxyArray
 	base: AnyArray
 	copy: AnyArray | null
 	draft: Drafted<AnyArray, ProxyArrayState>
@@ -56,7 +57,7 @@ export function createProxy<T extends Objectish>(
 ): Drafted<T, ProxyState> {
 	const isArray = Array.isArray(base)
 	const state: ProxyState = {
-		type: isArray ? "proxy_array" : ("proxy_object" as any),
+		type: isArray ? ProxyType.ProxyArray : (ProxyType.ProxyObject as any),
 		// Track which produce call this is associated with.
 		scope: parent ? parent.scope : ImmerScope.current!,
 		// True for both shallow and deep changes.
@@ -173,7 +174,8 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
 		if (desc) {
 			desc.writable = true
-			desc.configurable = state.type !== "proxy_array" || prop !== "length"
+			desc.configurable =
+				state.type !== ProxyType.ProxyArray || prop !== "length"
 		}
 		return desc
 	},
@@ -230,7 +232,10 @@ function peek(draft: Drafted, prop: PropertyKey): any {
 export function markChanged(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
-		if (state.type === "proxy_object" || state.type === "proxy_array") {
+		if (
+			state.type === ProxyType.ProxyObject ||
+			state.type === ProxyType.ProxyArray
+		) {
 			const copy = (state.copy = shallowCopy(state.base))
 			each(state.drafts!, (key, value) => {
 				// @ts-ignore

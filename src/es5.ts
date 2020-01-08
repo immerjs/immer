@@ -19,7 +19,8 @@ import {
 	AnyObject,
 	Objectish,
 	ImmerBaseState,
-	AnyArray
+	AnyArray,
+	ProxyType
 } from "./types"
 
 interface ES5BaseState extends ImmerBaseState {
@@ -31,14 +32,14 @@ interface ES5BaseState extends ImmerBaseState {
 }
 
 export interface ES5ObjectState extends ES5BaseState {
-	type: "es5_object"
+	type: ProxyType.ES5Object
 	draft: Drafted<AnyObject, ES5ObjectState>
 	base: AnyObject
 	copy: AnyObject | null
 }
 
 export interface ES5ArrayState extends ES5BaseState {
-	type: "es5_array"
+	type: ProxyType.ES5Array
 	draft: Drafted<AnyObject, ES5ArrayState>
 	base: AnyArray
 	copy: AnyArray | null
@@ -79,7 +80,7 @@ export function createES5Proxy<T>(
 	})
 
 	const state: ES5ObjectState | ES5ArrayState = {
-		type: isArray ? "es5_array" : ("es5_object" as any),
+		type: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
 		scope: parent ? parent.scope : ImmerScope.current!,
 		modified: false,
 		finalizing: false,
@@ -206,10 +207,10 @@ function markChangesSweep(drafts: Drafted<any, ImmerState>[]) {
 		const state = drafts[i][DRAFT_STATE]
 		if (!state.modified) {
 			switch (state.type) {
-				case "es5_array":
+				case ProxyType.ES5Array:
 					if (hasArrayChanges(state)) markChangedES5(state)
 					break
-				case "es5_object":
+				case ProxyType.ES5Object:
 					if (hasObjectChanges(state)) markChangedES5(state)
 					break
 			}
@@ -222,7 +223,7 @@ function markChangesRecursively(object: any) {
 	const state = object[DRAFT_STATE]
 	if (!state) return
 	const {base, draft, assigned, type} = state
-	if (type === "es5_object") {
+	if (type === ProxyType.ES5Object) {
 		// Look for added keys.
 		// TODO: looks quite duplicate to hasObjectChanges
 		each(draft, key => {
@@ -244,7 +245,7 @@ function markChangesRecursively(object: any) {
 				markChangedES5(state)
 			}
 		})
-	} else if (type === "es5_array" && hasArrayChanges(state)) {
+	} else if (type === ProxyType.ES5Array && hasArrayChanges(state)) {
 		markChangedES5(state)
 		assigned.length = true
 		if (draft.length < base.length) {

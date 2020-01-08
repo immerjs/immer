@@ -1,5 +1,5 @@
 import {Immer} from "./immer"
-import {ImmerState, Drafted} from "./types"
+import {ImmerState, Drafted, ProxyType} from "./types"
 import {ImmerScope} from "./scope"
 import {
 	isSet,
@@ -117,7 +117,10 @@ function finalizeTree(
 ) {
 	const state = root[DRAFT_STATE]
 	if (state) {
-		if (state.type === "es5_object" || state.type === "es5_array") {
+		if (
+			state.type === ProxyType.ES5Object ||
+			state.type === ProxyType.ES5Array
+		) {
 			// Create the final copy, with added keys and without deleted keys.
 			state.copy = shallowCopy(state.draft, true)
 		}

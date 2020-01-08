@@ -12,14 +12,21 @@ export type AnyObject = {[key: string]: any}
 export type AnyArray = Array<any>
 export type AnySet = Set<any>
 export type AnyMap = Map<any, any>
+export enum Archtype {
+	Object,
+	Array,
+	Map,
+	Set
+}
 
-export type DraftType =
-	| "proxy_object"
-	| "proxy_array"
-	| "es5_object"
-	| "es5_array"
-	| "map"
-	| "set"
+export enum ProxyType {
+	ProxyObject,
+	ProxyArray,
+	ES5Object,
+	ES5Array,
+	Map,
+	Set
+}
 
 export interface ImmerBaseState {
 	parent?: ImmerState

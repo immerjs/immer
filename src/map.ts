@@ -1,10 +1,10 @@
 import {isDraftable, DRAFT_STATE, latest, iteratorSymbol} from "./common"
 
 import {ImmerScope} from "./scope"
-import {AnyMap, Drafted, ImmerState, ImmerBaseState} from "./types"
+import {AnyMap, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
 
 export interface MapState extends ImmerBaseState {
-	type: "map"
+	type: ProxyType.Map
 	finalizing: boolean
 	copy: AnyMap | undefined
 	assigned: Map<any, boolean> | undefined
@@ -22,7 +22,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	constructor(target: AnyMap, parent?: ImmerState) {
 		super()
 		this[DRAFT_STATE] = {
-			type: "map",
+			type: ProxyType.Map,
 			parent,
 			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,

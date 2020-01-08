@@ -1,10 +1,10 @@
 import {DRAFT_STATE, latest, isDraftable, iteratorSymbol} from "./common"
 
 import {ImmerScope} from "./scope"
-import {AnySet, Drafted, ImmerState, ImmerBaseState} from "./types"
+import {AnySet, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
 
 export interface SetState extends ImmerBaseState {
-	type: "set"
+	type: ProxyType.Set
 	finalizing: boolean
 	copy: AnySet | undefined
 	base: AnySet
@@ -22,7 +22,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	constructor(target: AnySet, parent?: ImmerState) {
 		super()
 		this[DRAFT_STATE] = {
-			type: "set",
+			type: ProxyType.Set,
 			parent,
 			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
