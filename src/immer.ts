@@ -1,23 +1,18 @@
 import {createES5Proxy, willFinalizeES5, markChangedES5} from "./es5"
 import {createProxy, markChanged} from "./proxy"
 
-import {applyPatches, generatePatches} from "./patches"
+import {applyPatches} from "./patches"
 import {
 	each,
-	has,
-	is,
 	isDraft,
 	isSet,
-	get,
 	isMap,
 	isDraftable,
-	isEnumerable,
-	shallowCopy,
 	DRAFT_STATE,
 	NOTHING,
-	freeze,
 	isPlainObject,
-	DRAFTABLE
+	DRAFTABLE,
+	die
 } from "./common"
 import {ImmerScope} from "./scope"
 import {
@@ -31,7 +26,7 @@ import {
 	Drafted
 } from "./types"
 import {proxyMap} from "./map"
-import {proxySet, SetState} from "./set"
+import {proxySet} from "./set"
 import {processResult, maybeFreeze} from "./finalize"
 
 function verifyMinified() {}
@@ -48,7 +43,7 @@ const configDefaults = {
 	onAssign: null,
 	onDelete: null,
 	onCopy: null
-}
+} as const
 
 interface ProducersFns {
 	produce: IProduce
@@ -74,12 +69,9 @@ export class Immer implements ProducersFns {
 		onCopy?: (state: ImmerState) => void
 	}) {
 		each(configDefaults, (key, value) => {
-			this[key] = value
+			// @ts-ignore
+			this[key] = config?.[key] ?? value
 		})
-		config &&
-			each(config, (key, value) => {
-				this[key] = value
-			})
 		this.setUseProxies(this.useProxies)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
@@ -104,15 +96,19 @@ export class Immer implements ProducersFns {
 	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
 	 * @returns {any} a new state, or the initial state if nothing was modified
 	 */
-	produce(base, recipe?, patchListener?) {
+	produce(base: any, recipe?: any, patchListener?: any) {
 		// curried invocation
 		if (typeof base === "function" && typeof recipe !== "function") {
 			const defaultBase = recipe
 			recipe = base
 
 			const self = this
-			return function curriedProduce(this: any, base = defaultBase, ...args) {
-				return self.produce(base, draft => recipe.call(this, draft, ...args)) // prettier-ignore
+			return function curriedProduce(
+				this: any,
+				base = defaultBase,
+				...args: any[]
+			) {
+				return self.produce(base, (draft: Drafted) => recipe.call(this, draft, ...args)) // prettier-ignore
 			}
 		}
 
@@ -164,29 +160,30 @@ export class Immer implements ProducersFns {
 		}
 	}
 
-	produceWithPatches(arg1, arg2?, arg3?): any {
+	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {
 		if (typeof arg1 === "function") {
 			const self = this
-			return (state, ...args) =>
-				this.produceWithPatches(state, draft => arg1(draft, ...args))
+			return (state: any, ...args: any[]) =>
+				this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
 		}
 		// non-curried form
 		if (arg3)
 			throw new Error("A patch listener cannot be passed to produceWithPatches")
-		let patches, inversePatches
-		const nextState = this.produce(arg1, arg2, (p, ip) => {
+		let patches: Patch[], inversePatches: Patch[]
+		const nextState = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
 			patches = p
 			inversePatches = ip
 		})
-		return [nextState, patches, inversePatches]
+		return [nextState, patches!, inversePatches!]
 	}
 
-	createDraft<T extends Objectish>(base: T): Draft<T> {
+	createDraft<T extends Objectish>(base: T): Drafted<T> {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
 		}
 		const scope = ImmerScope.enter(this)
 		const proxy = this.createProxy(base, undefined)
+		// @ts-ignore TODO: add to structures
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
 		return proxy
@@ -230,7 +227,7 @@ export class Immer implements ProducersFns {
 	applyPatches(base: Objectish, patches: Patch[]) {
 		// If a patch replaces the entire state, take that replacement as base
 		// before applying patches
-		let i
+		let i: number
 		for (i = patches.length - 1; i >= 0; i--) {
 			const patch = patches[i]
 			if (patch.path.length === 0 && patch.op === "replace") {
@@ -244,28 +241,25 @@ export class Immer implements ProducersFns {
 			return applyPatches(base, patches)
 		}
 		// Otherwise, produce a copy of the base state.
-		return this.produce(base, draft =>
+		return this.produce(base, (draft: Drafted) =>
 			applyPatches(draft, patches.slice(i + 1))
 		)
 	}
 
-	createProxy<T>(value: any, parent?: ImmerState) {
-		if (!value || typeof value !== "object") return value
-
+	createProxy<T extends Objectish>(
+		value: T,
+		parent?: ImmerState
+	): Drafted<T, ImmerState> {
 		let draft: Drafted
-
-		if (
-			isPlainObject(value) ||
-			Array.isArray(value) ||
-			value[DRAFTABLE] ||
-			value?.constructor?.[DRAFTABLE]
-		) {
+		// TODO: use switch + type discovery>
+		if (isMap(value)) draft = proxyMap(value, parent)
+		else if (isSet(value)) draft = proxySet(value, parent)
+		else {
+			// createProxy should be guarded by isDraftable, so we know we can safely draft
 			draft = this.useProxies
 				? createProxy(value, parent)
 				: createES5Proxy(value, parent)
-		} else if (isMap(value)) draft = proxyMap(value, parent)
-		else if (isSet(value)) draft = proxySet(value, parent)
-		else return value
+		}
 
 		const scope = parent ? parent.scope : ImmerScope.current!
 		scope.drafts.push(draft)
@@ -276,7 +270,7 @@ export class Immer implements ProducersFns {
 		if (!this.useProxies) willFinalizeES5(scope, thing, isReplaced)
 	}
 
-	markChanged(state: any) {
+	markChanged(state: ImmerState) {
 		if (this.useProxies) {
 			markChanged(state)
 		} else {

@@ -59,7 +59,7 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
-export function isPlainObject(value): value is AnyObject | AnyArray {
+export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
@@ -74,7 +74,7 @@ export function original<T>(value: Drafted<T>): T | undefined {
 	// otherwise return undefined
 }
 
-export const ownKeys: (target) => PropertyKey[] =
+export const ownKeys: (target: AnyObject) => PropertyKey[] =
 	typeof Reflect !== "undefined" && Reflect.ownKeys
 		? Reflect.ownKeys
 		: typeof Object.getOwnPropertySymbols !== "undefined"
@@ -87,14 +87,14 @@ export const ownKeys: (target) => PropertyKey[] =
 export function each<T extends Objectish>(
 	obj: T,
 	iter: (key: string | number, value: any, source: T) => void
-)
-export function each(obj, iter) {
+): void
+export function each(obj: any, iter: any) {
 	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
-		obj.forEach((entry, index) => iter(index, entry, obj))
+		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
 	} else if (obj && typeof obj === "object") {
 		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
 	} else {
-		throw new Error("Nope")
+		die()
 	}
 }
 
@@ -103,6 +103,8 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 	return desc && desc.enumerable ? true : false
 }
 
+// TODO: use draft meta data if present?
+// make refelction methods to determine types?
 export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
 	return !thing
 		? false
@@ -111,8 +113,38 @@ export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
-export function get(thing: ObjectishNoSet, prop: PropertyKey): any {
-	return isMap(thing) ? thing.get(prop) : thing[prop]
+// TODO: use draft meta data if present?
+export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
+	return isMap(thing) ? thing.get(prop) : thing[prop as any]
+}
+
+// TODO: measure fast vs slow path, use type switch instead
+export function set(parent: Drafted, prop: PropertyKey, value: any) {
+	// fast path switch on meta data
+	if (parent[DRAFT_STATE])
+		switch (parent[DRAFT_STATE].type) {
+			case "map":
+				parent.set(prop, value)
+				break
+			case "set":
+				parent.delete(prop)
+				parent.add(value)
+				break
+			default:
+				parent[prop] = value
+		}
+
+	// slow path
+	parent[prop] = value
+	if (isMap(parent)) {
+		parent.set(prop, value)
+	} else if (isSet(parent)) {
+		// In this case, the `prop` is actually a draft.
+		parent.delete(prop)
+		parent.add(value)
+	} else {
+		parent[prop] = value
+	}
 }
 
 export function is(x: any, y: any): boolean {
@@ -146,7 +178,7 @@ export function shallowCopy<T extends AnyObject | AnyArray>(
 	base: T,
 	invokeGetters?: boolean
 ): T
-export function shallowCopy(base, invokeGetters = false) {
+export function shallowCopy(base: any, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
 	const clone = Object.create(Object.getPrototypeOf(base))
 	ownKeys(base).forEach(key => {
@@ -190,4 +222,20 @@ export function freeze<T extends Objectish>(
 
 function dontMutateFrozenCollections() {
 	throw new Error("This object has been frozen and should not be mutated")
+}
+
+export function createHiddenProperty(
+	target: AnyObject,
+	prop: PropertyKey,
+	value: any
+) {
+	Object.defineProperty(target, prop, {
+		value: value,
+		enumerable: false,
+		writable: true
+	})
+}
+
+export function die(): never {
+	throw new Error("Illegal state, please file a bug")
 }

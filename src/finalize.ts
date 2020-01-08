@@ -12,13 +12,12 @@ import {
 	DRAFT_STATE,
 	NOTHING,
 	freeze,
-	shallowCopy
+	shallowCopy,
+	set
 } from "./common"
 import {isDraft, isDraftable} from "./index"
 import {SetState} from "./set"
-import {generatePatches} from "./patches"
-
-type PatchPath = Array<string | number> | null
+import {generatePatches, PatchPath} from "./patches"
 
 export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts![0]
@@ -31,7 +30,7 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
-			result = finalize(immer, result, null, scope)
+			result = finalize(immer, result, scope)
 			maybeFreeze(immer, result)
 		}
 		if (scope.patches) {
@@ -48,7 +47,7 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 		}
 	} else {
 		// Finalize the base draft.
-		result = finalize(immer, baseDraft, [], scope)
+		result = finalize(immer, baseDraft, scope, [])
 	}
 	scope.revoke()
 	if (scope.patches) {
@@ -60,13 +59,13 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 function finalize(
 	immer: Immer,
 	draft: Drafted,
-	path: PatchPath,
-	scope: ImmerScope
+	scope: ImmerScope,
+	path?: PatchPath
 ) {
 	const state = draft[DRAFT_STATE]
 	if (!state) {
 		if (Object.isFrozen(draft)) return draft
-		return finalizeTree(immer, draft, null, scope)
+		return finalizeTree(immer, draft, scope)
 	}
 	// Never finalize drafts owned by another scope.
 	if (state.scope !== scope) {
@@ -78,7 +77,7 @@ function finalize(
 	}
 	if (!state.finalized) {
 		state.finalized = true
-		finalizeTree(immer, state.draft, path, scope)
+		finalizeTree(immer, state.draft, scope, path)
 
 		// We cannot really delete anything inside of a Set. We can only replace the whole Set.
 		if (immer.onDelete && !isSet(state.base)) {
@@ -89,7 +88,6 @@ function finalize(
 					if (!exists) immer.onDelete?.(state, prop as any)
 				})
 			} else {
-				// TODO: Figure it out for Maps and Sets if we need to support ES5
 				const {base, copy} = state
 				each(base, prop => {
 					if (!has(copy, prop)) immer.onDelete?.(state, prop as any)
@@ -116,22 +114,18 @@ function finalize(
 function finalizeTree(
 	immer: Immer,
 	root: Drafted,
-	rootPath: PatchPath,
-	scope: ImmerScope
+	scope: ImmerScope,
+	rootPath?: PatchPath
 ) {
 	const state = root[DRAFT_STATE]
 	if (state) {
-		// TODO: kill isMap / isSet here
-		if (!immer.useProxies && !isMap(root) && !isSet(root)) {
+		if (state.type === "es5_object" || state.type === "es5_array") {
 			// Create the final copy, with added keys and without deleted keys.
-			state.copy = shallowCopy(state.draft, true) // TODO: optimization, can we get rid of this and just use state.copy?
+			state.copy = shallowCopy(state.draft, true)
 		}
-
 		root = state.copy
 	}
-
 	const needPatches = !!rootPath && !!scope.patches
-
 	each(root, (key, value) =>
 		finalizeProperty(
 			immer,
@@ -155,10 +149,10 @@ function finalizeProperty(
 	state: ImmerState,
 	prop: string | number,
 	value: any,
-	parent: ImmerState,
+	parent: Drafted,
 	needPatches: boolean,
 	scope: ImmerScope,
-	rootPath: PatchPath
+	rootPath?: PatchPath
 ) {
 	if (value === parent) {
 		throw Error("Immer forbids circular references")
@@ -175,11 +169,11 @@ function finalizeProperty(
 			!isSetMember && // Set objects are atomic since they have no keys.
 			!has((state as Exclude<ImmerState, SetState>).assigned!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
-				: null
+				: undefined
 
 		// Drafts owned by `scope` are finalized here.
-		value = finalize(immer, value, path, scope)
-		replace(parent, prop, value)
+		value = finalize(immer, value, scope, path)
+		set(parent, prop, value)
 
 		// Drafts from another scope must prevent auto-freezing.
 		if (isDraft(value)) {
@@ -213,26 +207,6 @@ function finalizeProperty(
 
 	if (isDraftProp && immer.onAssign && !isSetMember) {
 		immer.onAssign(state, prop, value)
-	}
-}
-
-function replace(parent: Drafted, prop: PropertyKey, value: any) {
-	// TODO: kill isMap clal here
-	if (isMap(parent)) {
-		parent.set(prop, value)
-	} else if (isSet(parent)) {
-		// In this case, the `prop` is actually a draft.
-		parent.delete(prop)
-		parent.add(value)
-	} else if (Array.isArray(parent) || isEnumerable(parent, prop)) {
-		// Preserve non-enumerable properties.
-		parent[prop] = value
-	} else {
-		Object.defineProperty(parent, prop, {
-			value,
-			writable: true,
-			configurable: true
-		})
 	}
 }
 

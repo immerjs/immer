@@ -7,7 +7,7 @@
     "strict": true,
     "declaration": true,
     "importHelpers": false,
-    "noImplicitAny": false, // TODO: true,
+    "noImplicitAny": true,
     "esModuleInterop": true
   }
 }

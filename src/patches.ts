@@ -1,10 +1,12 @@
-import {get, each, isMap, isSet, has} from "./common"
+import {get, each, isMap, isSet, has, die} from "./common"
 import {Patch, ImmerState} from "./types"
 import {SetState} from "./set"
 
+export type PatchPath = (string | number)[]
+
 export function generatePatches(
 	state: ImmerState,
-	basePath: (string | number)[],
+	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
@@ -20,7 +22,7 @@ export function generatePatches(
 
 function generateArrayPatches(
 	state: any, // TODO: type properly with ImmerState
-	basePath: (string | number)[],
+	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
@@ -83,7 +85,7 @@ function generateArrayPatches(
 // This is used for both Map objects and normal objects.
 function generatePatchesFromAssigned(
 	state: any, // TODO: type properly with ImmerState
-	basePath: (number | string)[],
+	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
@@ -107,7 +109,7 @@ function generatePatchesFromAssigned(
 
 function generateSetPatches(
 	state: SetState,
-	basePath: (number | string)[],
+	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
@@ -153,7 +155,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 	patches.forEach(patch => {
 		const {path, op} = patch
 
-		if (!path.length) throw new Error("Illegal state")
+		if (!path.length) die()
 
 		let base = draft
 		for (let i = 0; i < path.length - 1; i++) {
@@ -175,6 +177,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 					// if value is an object, then it's assigned by reference
 					// in the following add or remove ops, the value field inside the patch will also be modifyed
 					// so we use value from the cloned patch
+					// @ts-ignore
 					base[key] = value
 				}
 				break
@@ -189,7 +192,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 					? base.set(key, value)
 					: isSet(base)
 					? base.add(value)
-					: (base[key] = value)
+					: ((base as any)[key] = value)
 				break
 			case "remove":
 				Array.isArray(base)
@@ -198,7 +201,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 					? base.delete(key)
 					: isSet(base)
 					? base.delete(patch.value)
-					: delete base[key]
+					: delete (base as any)[key]
 				break
 			default:
 				throw new Error("Unsupported patch operation: " + op)
@@ -211,7 +214,8 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 // TODO: optimize: this is quite a performance hit, can we detect intelligently when it is needed?
 // E.g. auto-draft when new objects from outside are assigned and modified?
 // (See failing test when deepClone just returns obj)
-function deepClonePatchValue(obj) {
+function deepClonePatchValue<T>(obj: T): T
+function deepClonePatchValue(obj: any) {
 	if (!obj || typeof obj !== "object") return obj
 	if (Array.isArray(obj)) return obj.map(deepClonePatchValue)
 	if (isMap(obj))

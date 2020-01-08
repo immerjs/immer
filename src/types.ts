@@ -5,7 +5,6 @@ import {ProxyObjectState, ProxyArrayState} from "./proxy"
 import {ES5ObjectState, ES5ArrayState} from "./es5"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
-
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
 
 export type AnyObject = {[key: string]: any}
@@ -29,6 +28,7 @@ export type ImmerState =
 	| MapState
 	| SetState
 
+// The _internal_ type used for drafts (not to be confused with Draft, which is public facing)
 export type Drafted<Base = any, T extends ImmerState = ImmerState> = {
 	[DRAFT_STATE]: T
 } & Base

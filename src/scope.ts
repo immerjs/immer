@@ -1,5 +1,5 @@
 import {DRAFT_STATE} from "./common"
-import {Patch, PatchListener} from "./types"
+import {Patch, PatchListener, Drafted} from "./types"
 import {Immer} from "./immer"
 
 /** Each scope represents a `produce` call. */
@@ -55,6 +55,6 @@ export class ImmerScope {
 	}
 }
 
-function revoke(draft) {
+function revoke(draft: Drafted) {
 	draft[DRAFT_STATE].revoke()
 }

@@ -11,7 +11,7 @@ import {
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import {AnyObject, Drafted, ImmerState, AnyArray} from "./types"
+import {AnyObject, Drafted, ImmerState, AnyArray, Objectish} from "./types"
 
 interface ProxyBaseState {
 	scope: ImmerScope
@@ -41,17 +41,19 @@ export interface ProxyArrayState extends ProxyBaseState {
 	draft: Drafted<AnyArray, ProxyArrayState>
 }
 
+type ProxyState = ProxyObjectState | ProxyArrayState
+
 /**
  * Returns a new draft of the `base` object.
  *
  * The second argument is the parent draft-state (used internally).
  */
-export function createProxy<T extends object>(
+export function createProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
-): Drafted<T, ProxyObjectState | ProxyArrayState> {
+): Drafted<T, ProxyState> {
 	const isArray = Array.isArray(base)
-	const state: ProxyObjectState | ProxyArrayState = {
+	const state: ProxyState = {
 		type: isArray ? "proxy_array" : ("proxy_object" as any),
 		// Track which produce call this is associated with.
 		scope: parent ? parent.scope : ImmerScope.current!,
@@ -97,7 +99,7 @@ export function createProxy<T extends object>(
 /**
  * Object drafts
  */
-const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
+const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 		let {drafts} = state
@@ -143,6 +145,7 @@ const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
 			markChanged(state)
 		}
 		state.assigned[prop] = true
+		// @ts-ignore
 		state.copy![prop] = value
 		return true
 	},
@@ -156,6 +159,7 @@ const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
 			// if an originally not assigned property was deleted
 			delete state.assigned[prop]
 		}
+		// @ts-ignore
 		if (state.copy) delete state.copy[prop]
 		return true
 	},
@@ -187,6 +191,7 @@ const objectTraps: ProxyHandler<ProxyObjectState | ProxyArrayState> = {
 
 const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 each(objectTraps, (key, fn) => {
+	// @ts-ignore
 	arrayTraps[key] = function() {
 		arguments[0] = arguments[0][0]
 		return fn.apply(this, arguments)
@@ -210,7 +215,7 @@ arrayTraps.set = function(state, prop, value) {
  */
 
 // Access a property without creating an Immer draft.
-function peek(draft, prop) {
+function peek(draft: Drafted, prop: PropertyKey): any {
 	const state = draft[DRAFT_STATE]
 	const desc = Reflect.getOwnPropertyDescriptor(
 		state ? latest(state) : draft,
@@ -219,17 +224,20 @@ function peek(draft, prop) {
 	return desc && desc.value
 }
 
-// TODO: unify with ES5 version, by getting rid of the drafts vs copy distinction?
-export function markChanged(state) {
+export function markChanged(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
+		// @ts-ignore TODO
 		const {base, drafts, parent} = state
+		// TODO: get rid of isMap and isSet
 		if (!isMap(base) && !isSet(base)) {
 			// TODO: drop creating copies here?
 			const copy = (state.copy = shallowCopy(base))
 			each(drafts, (key, value) => {
+				// @ts-ignore
 				copy[key] = value
 			})
+			// @ts-ignore TODO
 			state.drafts = null
 		}
 
@@ -239,7 +247,7 @@ export function markChanged(state) {
 	}
 }
 
-function prepareCopy(state) {
+function prepareCopy(state: ProxyState) {
 	if (!state.copy) {
 		state.copy = shallowCopy(state.base)
 	}

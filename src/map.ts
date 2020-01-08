@@ -1,14 +1,11 @@
 import {isDraftable, DRAFT_STATE, latest} from "./common"
 
 import {ImmerScope} from "./scope"
-import {AnyMap, Drafted} from "./types"
-
-// TODO: create own states
-// TODO: clean up the maps and such from ES5 / Proxy states
+import {AnyMap, Drafted, ImmerState} from "./types"
 
 export interface MapState {
 	type: "map"
-	parent: any // TODO: type
+	parent?: ImmerState
 	scope: ImmerScope
 	modified: boolean
 	finalizing: boolean
@@ -20,13 +17,6 @@ export interface MapState {
 	draft: Drafted<AnyMap, MapState>
 }
 
-function prepareCopy(state: MapState) {
-	if (!state.copy) {
-		state.assigned = new Map()
-		state.copy = new Map(state.base)
-	}
-}
-
 // Make sure DraftMap declarion doesn't die if Map is not avialable...
 const MapBase: MapConstructor =
 	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
@@ -35,12 +25,12 @@ const MapBase: MapConstructor =
 // TODO: assert unrevoked, use freeze for that
 export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	[DRAFT_STATE]: MapState
-	constructor(target, parent) {
+	constructor(target: AnyMap, parent?: ImmerState) {
 		super()
 		this[DRAFT_STATE] = {
 			type: "map",
 			parent,
-			scope: parent ? parent.scope : ImmerScope.current,
+			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
 			finalized: false,
 			finalizing: false,
@@ -98,11 +88,10 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return state.copy!.clear()
 	}
 
-	// @ts-ignore TODO:
-	forEach(cb) {
+	forEach(cb: (value: V, key: K, self: this) => void, thisArg?: any) {
 		const state = this[DRAFT_STATE]
-		latest(state).forEach((_value, key, _map) => {
-			cb(this.get(key), key, this)
+		latest(state).forEach((_value: V, key: K, _map: this) => {
+			cb.call(thisArg, this.get(key), key, this)
 		})
 	}
 
@@ -164,6 +153,13 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	}
 }
 
-export function proxyMap(target, parent) {
+export function proxyMap(target: AnyMap, parent?: ImmerState) {
 	return new DraftMap(target, parent)
+}
+
+function prepareCopy(state: MapState) {
+	if (!state.copy) {
+		state.assigned = new Map()
+		state.copy = new Map(state.base)
+	}
 }

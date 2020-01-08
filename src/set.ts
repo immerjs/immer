@@ -1,36 +1,24 @@
-import {DRAFT_STATE, latest} from "./common"
+import {DRAFT_STATE, latest, isDraftable} from "./common"
 
 // TODO: kill:
 import {ImmerScope} from "./scope"
-import {AnySet, Drafted} from "./types"
+import {AnySet, Drafted, ImmerState} from "./types"
 
 // TODO: create own states
 // TODO: clean up the maps and such from ES5 / Proxy states
 
 export interface SetState {
 	type: "set"
-	parent: any // TODO: type
+	parent?: ImmerState
 	scope: ImmerScope
 	modified: boolean
 	finalizing: boolean
 	finalized: boolean
 	copy: AnySet | undefined
 	base: AnySet
-	drafts: Map<any, any> // maps the original value to the draft value in the new set
+	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
 	revoke(): void
 	draft: Drafted<AnySet, SetState>
-}
-
-function prepareCopy(state: SetState) {
-	if (!state.copy) {
-		// create drafts for all entries to preserve insertion order
-		state.copy = new Set()
-		state.base.forEach(value => {
-			const draft = state.scope.immer.createProxy(value, state)
-			state.copy!.add(draft)
-			state.drafts.set(value, draft)
-		})
-	}
 }
 
 // Make sure DraftSet declarion doesn't die if Map is not avialable...
@@ -41,12 +29,12 @@ const SetBase: SetConstructor =
 // TODO: assert unrevoked, use freeze for that
 export class DraftSet<K, V> extends SetBase implements Set<V> {
 	[DRAFT_STATE]: SetState
-	constructor(target, parent) {
+	constructor(target: AnySet, parent?: ImmerState) {
 		super()
 		this[DRAFT_STATE] = {
 			type: "set",
 			parent,
-			scope: parent ? parent.scope : ImmerScope.current,
+			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
 			finalized: false,
 			finalizing: false,
@@ -132,17 +120,33 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return this.values()
 	}
 
-	forEach(cb, thisArg) {
+	forEach(cb: (value: V, key: V, self: this) => void, thisArg?: any) {
 		const state = this[DRAFT_STATE]
 		const iterator = this.values()
 		let result = iterator.next()
 		while (!result.done) {
-			cb.call(thisArg, result.value, result.value, state.draft)
+			cb.call(thisArg, result.value, result.value, this)
 			result = iterator.next()
 		}
 	}
 }
 
-export function proxySet(target, parent) {
+export function proxySet(target: AnySet, parent?: ImmerState) {
 	return new DraftSet(target, parent)
+}
+
+function prepareCopy(state: SetState) {
+	if (!state.copy) {
+		// create drafts for all entries to preserve insertion order
+		state.copy = new Set()
+		state.base.forEach(value => {
+			if (isDraftable(value)) {
+				const draft = state.scope.immer.createProxy(value, state)
+				state.drafts.set(value, draft)
+				state.copy!.add(draft)
+			} else {
+				state.copy!.add(value)
+			}
+		})
+	}
 }
