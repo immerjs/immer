@@ -7,8 +7,6 @@ import {
 	is,
 	get,
 	each,
-	isMap,
-	isEnumerable,
 	DRAFT_STATE,
 	NOTHING,
 	freeze,

@@ -91,6 +91,13 @@
       "\\.js$": "babel-jest",
       "\\.ts$": "ts-jest"
     },
-    "preset": "ts-jest/presets/js-with-babel"
+    "preset": "ts-jest/presets/js-with-babel",
+    "globals": {
+      "ts-jest": {
+        "tsConfig": {
+          "noUnusedLocals": false
+        }
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-import {get, each, isMap, isSet, has, die} from "./common"
+import {get, each, isMap, has, die, getArchtype, Archtype} from "./common"
 import {Patch, ImmerState} from "./types"
 import {SetState} from "./set"
 import {ES5ArrayState, ES5ObjectState} from "./es5"
@@ -170,52 +170,53 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 
 		if (!path.length) die()
 
-		let base = draft
+		let base: any = draft
 		for (let i = 0; i < path.length - 1; i++) {
 			base = get(base, path[i])
 			if (!base || typeof base !== "object")
 				throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
 		}
 
+		const type = getArchtype(base)
 		const value = deepClonePatchValue(patch.value) // used to clone patch to ensure original patch is not modified, see #411
-
 		const key = path[path.length - 1]
 		switch (op) {
 			case "replace":
-				if (isMap(base)) {
-					base.set(key, value)
-				} else if (isSet(base)) {
-					throw new Error('Sets cannot have "replace" patches.')
-				} else {
-					// if value is an object, then it's assigned by reference
-					// in the following add or remove ops, the value field inside the patch will also be modifyed
-					// so we use value from the cloned patch
-					// @ts-ignore
-					base[key] = value
+				switch (type) {
+					case Archtype.Map:
+						return base.set(key, value)
+					case Archtype.Set:
+						throw new Error('Sets cannot have "replace" patches.')
+					default:
+						// if value is an object, then it's assigned by reference
+						// in the following add or remove ops, the value field inside the patch will also be modifyed
+						// so we use value from the cloned patch
+						// @ts-ignore
+						return (base[key] = value)
 				}
 				break
 			case "add":
-				if (isSet(base)) {
-					base.delete(patch.value)
+				switch (type) {
+					case Archtype.Array:
+						return base.splice(key as any, 0, value)
+					case Archtype.Map:
+						return base.set(key, value)
+					case Archtype.Set:
+						return base.add(value)
+					default:
+						return (base[key] = value)
 				}
-
-				Array.isArray(base)
-					? base.splice(key as any, 0, value)
-					: isMap(base)
-					? base.set(key, value)
-					: isSet(base)
-					? base.add(value)
-					: ((base as any)[key] = value)
-				break
 			case "remove":
-				Array.isArray(base)
-					? base.splice(key as any, 1)
-					: isMap(base)
-					? base.delete(key)
-					: isSet(base)
-					? base.delete(patch.value)
-					: delete (base as any)[key]
-				break
+				switch (type) {
+					case Archtype.Array:
+						return base.splice(key as any, 1)
+					case Archtype.Map:
+						return base.delete(key)
+					case Archtype.Set:
+						return base.delete(patch.value)
+					default:
+						return delete base[key]
+				}
 			default:
 				throw new Error("Unsupported patch operation: " + op)
 		}

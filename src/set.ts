@@ -111,7 +111,6 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 	}
 
 	forEach(cb: (value: V, key: V, self: this) => void, thisArg?: any) {
-		const state = this[DRAFT_STATE]
 		const iterator = this.values()
 		let result = iterator.next()
 		while (!result.done) {

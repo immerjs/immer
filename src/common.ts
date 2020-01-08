@@ -1,6 +1,5 @@
 import {
 	Objectish,
-	ObjectishNoSet,
 	Drafted,
 	AnyObject,
 	AnyArray,
@@ -13,6 +12,7 @@ import {
 export class Nothing {
 	// This lets us do `Exclude<T, Nothing>`
 	// TODO: do this better, use unique symbol instead
+	// @ts-ignore
 	private _: any
 }
 
@@ -57,6 +57,7 @@ export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
 		isPlainObject(value) ||
+		Array.isArray(value) ||
 		!!value[DRAFTABLE] ||
 		!!value.constructor[DRAFTABLE] ||
 		isMap(value) ||
@@ -66,7 +67,6 @@ export function isDraftable(value: any): boolean {
 
 export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
-	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
 	return !proto || proto === Object.prototype
 }
@@ -94,12 +94,10 @@ export function each<T extends Objectish>(
 	iter: (key: string | number, value: any, source: T) => void
 ): void
 export function each(obj: any, iter: any) {
-	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
-		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
-	} else if (obj && typeof obj === "object") {
+	if (getArchtype(obj) === Archtype.Object) {
 		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
 	} else {
-		die()
+		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
 	}
 }
 
@@ -108,47 +106,59 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 	return desc && desc.enumerable ? true : false
 }
 
-// TODO: use draft meta data if present?
-// make refelction methods to determine types?
-export function has(thing: any, prop: PropertyKey): boolean {
-	return !thing
-		? false
+export enum Archtype {
+	Object,
+	Array,
+	Map,
+	Set
+}
+
+const toArchType = {
+	proxy_object: Archtype.Object,
+	es5_object: Archtype.Object,
+	proxy_array: Archtype.Array,
+	es5_array: Archtype.Array,
+	map: Archtype.Map,
+	set: Archtype.Set
+}
+
+export function getArchtype(thing: any): Archtype {
+	if (!thing) die()
+	if (thing[DRAFT_STATE]) {
+		// @ts-ignore
+		return toArchType[(thing as Drafted)[DRAFT_STATE].type]
+	}
+	return Array.isArray(thing)
+		? Archtype.Array
 		: isMap(thing)
+		? Archtype.Map
+		: isSet(thing)
+		? Archtype.Set
+		: Archtype.Object
+}
+
+export function has(thing: any, prop: PropertyKey): boolean {
+	return getArchtype(thing) === Archtype.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
-// TODO: use draft meta data if present?
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
-	return isMap(thing) ? thing.get(prop) : thing[prop as any]
+	// @ts-ignore
+	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
 }
 
-// TODO: measure fast vs slow path, use type switch instead
-export function set(parent: Drafted, prop: PropertyKey, value: any) {
-	// fast path switch on meta data
-	if (parent[DRAFT_STATE])
-		switch (parent[DRAFT_STATE].type) {
-			case "map":
-				parent.set(prop, value)
-				break
-			case "set":
-				parent.delete(prop)
-				parent.add(value)
-				break
-			default:
-				parent[prop] = value
-		}
-
-	// slow path
-	parent[prop] = value
-	if (isMap(parent)) {
-		parent.set(prop, value)
-	} else if (isSet(parent)) {
-		// In this case, the `prop` is actually a draft.
-		parent.delete(prop)
-		parent.add(value)
-	} else {
-		parent[prop] = value
+export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
+	switch (getArchtype(thing)) {
+		case Archtype.Map:
+			thing.set(propOrOldValue, value)
+			break
+		case Archtype.Set:
+			thing.delete(propOrOldValue)
+			thing.add(value)
+			break
+		default:
+			thing[propOrOldValue] = value
 	}
 }
 
@@ -205,14 +215,12 @@ export function shallowCopy(base: any, invokeGetters = false) {
 	return clone
 }
 
-export function freeze<T extends Objectish>(
-	obj: T,
-	deep: boolean = false
-): void {
+export function freeze(obj: any, deep: boolean = false): void {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
-	if (isSet(obj)) {
+	const type = getArchtype(obj)
+	if (type === Archtype.Set) {
 		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
-	} else if (isMap(obj)) {
+	} else if (type === Archtype.Map) {
 		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)

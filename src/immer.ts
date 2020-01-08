@@ -9,10 +9,7 @@ import {
 	isMap,
 	isDraftable,
 	DRAFT_STATE,
-	NOTHING,
-	isPlainObject,
-	DRAFTABLE,
-	die
+	NOTHING
 } from "./common"
 import {ImmerScope} from "./scope"
 import {
@@ -162,7 +159,6 @@ export class Immer implements ProducersFns {
 
 	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {
 		if (typeof arg1 === "function") {
-			const self = this
 			return (state: any, ...args: any[]) =>
 				this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
 		}
@@ -249,16 +245,14 @@ export class Immer implements ProducersFns {
 		value: T,
 		parent?: ImmerState
 	): Drafted<T, ImmerState> {
-		let draft: Drafted
-		// TODO: use switch + type discovery>
-		if (isMap(value)) draft = proxyMap(value, parent)
-		else if (isSet(value)) draft = proxySet(value, parent)
-		else {
-			// createProxy should be guarded by isDraftable, so we know we can safely draft
-			draft = this.useProxies
-				? createProxy(value, parent)
-				: createES5Proxy(value, parent)
-		}
+		// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
+		const draft: Drafted = isMap(value)
+			? proxyMap(value, parent)
+			: isSet(value)
+			? proxySet(value, parent)
+			: this.useProxies
+			? createProxy(value, parent)
+			: createES5Proxy(value, parent)
 
 		const scope = parent ? parent.scope : ImmerScope.current!
 		scope.drafts.push(draft)

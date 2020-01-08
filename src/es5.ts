@@ -6,8 +6,6 @@ import {
 	isDraft,
 	isDraftable,
 	isEnumerable,
-	isMap,
-	isSet,
 	shallowCopy,
 	DRAFT_STATE,
 	latest,
@@ -19,7 +17,6 @@ import {
 	ImmerState,
 	Drafted,
 	AnyObject,
-	AnyMap,
 	Objectish,
 	ImmerBaseState,
 	AnyArray

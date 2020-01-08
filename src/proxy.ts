@@ -4,8 +4,6 @@ import {
 	has,
 	is,
 	isDraftable,
-	isMap,
-	isSet,
 	shallowCopy,
 	DRAFT_STATE,
 	latest
@@ -90,7 +88,7 @@ export function createProxy<T extends Objectish>(
 	// Note that in the case of an array, we put the state in an array to have better Reflect defaults ootb
 	let target: T = state as any
 	let traps: ProxyHandler<object | Array<any>> = objectTraps
-	if (Array.isArray(base)) {
+	if (isArray) {
 		target = [state] as any
 		traps = arrayTraps
 	}
@@ -175,7 +173,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
 		if (desc) {
 			desc.writable = true
-			desc.configurable = !Array.isArray(owner) || prop !== "length"
+			desc.configurable = state.type !== "proxy_array" || prop !== "length"
 		}
 		return desc
 	},
