@@ -126,88 +126,73 @@ function finalizeTree(
 		}
 		root = state.copy
 	}
-	const needPatches = !!rootPath && !!scope.patches
 	each(root, (key, value) =>
-		finalizeProperty(
-			immer,
-			root,
-			state,
-			key,
-			value,
-			root,
-			needPatches,
-			scope,
-			rootPath
-		)
+		finalizeProperty(immer, scope, root, state, root, key, value, rootPath)
 	)
 	return root
 }
 
 function finalizeProperty(
-	// TODO: can do with less args?
 	immer: Immer,
-	root: ImmerState,
-	state: ImmerState,
-	prop: string | number,
-	value: any,
-	parent: Drafted,
-	needPatches: boolean,
 	scope: ImmerScope,
+	root: Drafted,
+	rootState: ImmerState,
+	parentValue: Drafted,
+	prop: string | number,
+	childValue: any,
 	rootPath?: PatchPath
 ) {
-	if (value === parent) {
+	if (childValue === parentValue) {
 		throw Error("Immer forbids circular references")
 	}
 
 	// In the `finalizeTree` method, only the `root` object may be a draft.
-	const isDraftProp = !!state && parent === root
-	const isSetMember = isSet(parent)
+	const isDraftProp = !!rootState && parentValue === root
+	const isSetMember = isSet(parentValue)
 
-	if (isDraft(value)) {
+	if (isDraft(childValue)) {
 		const path =
+			rootPath &&
 			isDraftProp &&
-			needPatches &&
 			!isSetMember && // Set objects are atomic since they have no keys.
-			!has((state as Exclude<ImmerState, SetState>).assigned!, prop) // Skip deep patches for assigned keys.
+			!has((rootState as Exclude<ImmerState, SetState>).assigned!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined
 
 		// Drafts owned by `scope` are finalized here.
-		value = finalize(immer, value, scope, path)
-		set(parent, prop, value)
+		childValue = finalize(immer, childValue, scope, path)
+		set(parentValue, prop, childValue)
 
 		// Drafts from another scope must prevent auto-freezing.
-		if (isDraft(value)) {
+		if (isDraft(childValue)) {
 			scope.canAutoFreeze = false
 		}
-
-		// Unchanged drafts are never passed to the `onAssign` hook.
-		// if (isDraftProp && !isSet && value === get(state.base, prop)) return
 	}
 	// Unchanged draft properties are ignored.
-	else if (isDraftProp && is(value, get(state.base, prop))) {
+	else if (isDraftProp && is(childValue, get(rootState.base, prop))) {
 		return
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-	else if (isDraftable(value) && !Object.isFrozen(value)) {
-		each(value, (key, v) =>
+	// TODO: the recursion over here looks weird, shouldn't non-draft stuff have it's own recursion?
+	// especially the passing on of root and rootState doesn't make sense...
+	else if (isDraftable(childValue) && !Object.isFrozen(childValue)) {
+		each(childValue, (key, grandChild) =>
 			finalizeProperty(
 				immer,
-				root,
-				state,
-				key,
-				v,
-				value,
-				needPatches,
 				scope,
+				root,
+				rootState,
+				childValue,
+				key,
+				grandChild,
 				rootPath
 			)
 		)
-		maybeFreeze(immer, value)
+		maybeFreeze(immer, childValue)
 	}
 
 	if (isDraftProp && immer.onAssign && !isSetMember) {
-		immer.onAssign(state, prop, value)
+		immer.onAssign(rootState, prop, childValue)
 	}
 }
 

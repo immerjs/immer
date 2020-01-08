@@ -225,7 +225,10 @@ function markChangesRecursively(object: any) {
 	const {base, draft, assigned, type} = state
 	if (type === ProxyType.ES5Object) {
 		// Look for added keys.
-		// TODO: looks quite duplicate to hasObjectChanges
+		// TODO: looks quite duplicate to hasObjectChanges,
+		// probably there is a faster way to detect changes, as sweep + recurse seems to do some
+		// unnecessary work.
+		// also: probably we can store the information we detect here, to speed up tree finalization!
 		each(draft, key => {
 			if ((key as any) === DRAFT_STATE) return
 			// The `undefined` check is a fast path for pre-existing keys.
