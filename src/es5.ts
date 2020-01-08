@@ -15,13 +15,18 @@ import {
 } from "./common"
 
 import {ImmerScope} from "./scope"
-import {ImmerState, Drafted, AnyObject, AnyMap, Objectish} from "./types"
+import {
+	ImmerState,
+	Drafted,
+	AnyObject,
+	AnyMap,
+	Objectish,
+	ImmerBaseState,
+	AnyArray
+} from "./types"
 
-interface ES5BaseState {
-	scope: ImmerScope
-	modified: boolean
+interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean
-	finalized: boolean
 	assigned: {[key: string]: any}
 	parent?: ImmerState
 	revoke(): void
@@ -38,8 +43,8 @@ export interface ES5ObjectState extends ES5BaseState {
 export interface ES5ArrayState extends ES5BaseState {
 	type: "es5_array"
 	draft: Drafted<AnyObject, ES5ArrayState>
-	base: AnyObject
-	copy: AnyObject | null
+	base: AnyArray
+	copy: AnyArray | null
 }
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -80,7 +85,7 @@ export function createES5Proxy<T>(
 		type: isArray ? "es5_array" : ("es5_object" as any),
 		scope: parent ? parent.scope : ImmerScope.current!,
 		modified: false,
-		finalizing: false, // es5 only
+		finalizing: false,
 		finalized: false,
 		assigned: {},
 		parent,
@@ -88,7 +93,8 @@ export function createES5Proxy<T>(
 		draft,
 		copy: null,
 		revoke,
-		revoked: false // es5 only
+		revoked: false,
+		isManual: false
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
@@ -118,6 +124,7 @@ function get(state: ES5State, prop: string | number) {
 	// Create a draft if the value is unmodified.
 	if (value === peek(state.base, prop) && isDraftable(value)) {
 		prepareCopy(state)
+		// @ts-ignore
 		return (state.copy![prop] = state.scope.immer.createProxy(value, state))
 	}
 	return value
@@ -131,6 +138,7 @@ function set(state: ES5State, prop: string | number, value: any) {
 		markChangedES5(state)
 		prepareCopy(state)
 	}
+	// @ts-ignore
 	state.copy![prop] = value
 }
 

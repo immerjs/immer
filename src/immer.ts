@@ -183,7 +183,6 @@ export class Immer implements ProducersFns {
 		}
 		const scope = ImmerScope.enter(this)
 		const proxy = this.createProxy(base, undefined)
-		// @ts-ignore TODO: add to structures
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
 		return proxy

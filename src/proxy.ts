@@ -11,20 +11,24 @@ import {
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import {AnyObject, Drafted, ImmerState, AnyArray, Objectish} from "./types"
+import {
+	AnyObject,
+	Drafted,
+	ImmerState,
+	AnyArray,
+	Objectish,
+	ImmerBaseState
+} from "./types"
 
-interface ProxyBaseState {
-	scope: ImmerScope
-	modified: boolean
-	finalized: boolean
+interface ProxyBaseState extends ImmerBaseState {
 	assigned: {
 		[property: string]: boolean
 	}
 	parent?: ImmerState
-	drafts: {
+	drafts?: {
 		[property: string]: Drafted<any, any>
 	}
-	revoke: null | (() => void)
+	revoke(): void
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
@@ -74,7 +78,8 @@ export function createProxy<T extends Objectish>(
 		// The base copy with any updated values.
 		copy: null,
 		// Called by the `produce` function.
-		revoke: null
+		revoke: null as any,
+		isManual: false
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -106,7 +111,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 
 		// Check for existing draft in unmodified state.
 		if (!state.modified && has(drafts, prop)) {
-			return drafts[prop as any]
+			return drafts![prop as any]
 		}
 
 		const value = latest(state)[prop]
@@ -119,11 +124,11 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			// Assigned values are never drafted. This catches any drafts we created, too.
 			if (value !== peek(state.base, prop)) return value
 			// Store drafts on the copy (when one exists).
-			// @ts-ignore TODO: this line seems of?
+			// @ts-ignore
 			drafts = state.copy
 		}
 
-		return (drafts[prop as any] = state.scope.immer.createProxy(value, state))
+		return (drafts![prop as any] = state.scope.immer.createProxy(value, state))
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -138,7 +143,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			// never be undefined, so we can avoid the `in` operator. Lastly, truthy
 			// values may be drafts, but falsy values are never drafts.
 			const isUnchanged = value
-				? is(baseValue, value) || value === state.drafts[prop]
+				? is(baseValue, value) || value === state.drafts![prop]
 				: is(baseValue, value) && prop in state.base
 			if (isUnchanged) return true
 			prepareCopy(state)
@@ -227,22 +232,17 @@ function peek(draft: Drafted, prop: PropertyKey): any {
 export function markChanged(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
-		// @ts-ignore TODO
-		const {base, drafts, parent} = state
-		// TODO: get rid of isMap and isSet
-		if (!isMap(base) && !isSet(base)) {
-			// TODO: drop creating copies here?
-			const copy = (state.copy = shallowCopy(base))
-			each(drafts, (key, value) => {
+		if (state.type === "proxy_object" || state.type === "proxy_array") {
+			const copy = (state.copy = shallowCopy(state.base))
+			each(state.drafts!, (key, value) => {
 				// @ts-ignore
 				copy[key] = value
 			})
-			// @ts-ignore TODO
-			state.drafts = null
+			state.drafts = undefined
 		}
 
-		if (parent) {
-			markChanged(parent)
+		if (state.parent) {
+			markChanged(state.parent)
 		}
 	}
 }

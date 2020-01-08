@@ -3,6 +3,7 @@ import {SetState} from "./set"
 import {MapState} from "./map"
 import {ProxyObjectState, ProxyArrayState} from "./proxy"
 import {ES5ObjectState, ES5ArrayState} from "./es5"
+import {ImmerScope} from "./scope"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
@@ -19,6 +20,14 @@ export type DraftType =
 	| "es5_array"
 	| "map"
 	| "set"
+
+export interface ImmerBaseState {
+	parent?: ImmerState
+	scope: ImmerScope
+	modified: boolean
+	finalized: boolean
+	isManual: boolean
+}
 
 export type ImmerState =
 	| ProxyObjectState

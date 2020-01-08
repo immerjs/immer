@@ -1,19 +1,11 @@
-import {DRAFT_STATE, latest, isDraftable} from "./common"
+import {DRAFT_STATE, latest, isDraftable, iteratorSymbol} from "./common"
 
-// TODO: kill:
 import {ImmerScope} from "./scope"
-import {AnySet, Drafted, ImmerState} from "./types"
+import {AnySet, Drafted, ImmerState, ImmerBaseState} from "./types"
 
-// TODO: create own states
-// TODO: clean up the maps and such from ES5 / Proxy states
-
-export interface SetState {
+export interface SetState extends ImmerBaseState {
 	type: "set"
-	parent?: ImmerState
-	scope: ImmerScope
-	modified: boolean
 	finalizing: boolean
-	finalized: boolean
 	copy: AnySet | undefined
 	base: AnySet
 	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
@@ -25,8 +17,6 @@ export interface SetState {
 const SetBase: SetConstructor =
 	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
-// TODO: fix types for drafts
-// TODO: assert unrevoked, use freeze for that
 export class DraftSet<K, V> extends SetBase implements Set<V> {
 	[DRAFT_STATE]: SetState
 	constructor(target: AnySet, parent?: ImmerState) {
@@ -40,11 +30,12 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			finalizing: false,
 			copy: undefined,
 			base: target,
-			draft: this as any, // TODO: fix typing
+			draft: this,
 			drafts: new Map(),
 			revoke() {
 				// TODO: make sure this marks the Map as revoked, and assert everywhere
-			}
+			},
+			isManual: false
 		}
 	}
 
@@ -70,7 +61,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			state.copy.add(value)
 		} else if (!state.base.has(value)) {
 			prepareCopy(state)
-			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
+			state.scope.immer.markChanged(state)
 			state.copy!.add(value)
 		}
 		return this
@@ -115,8 +106,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return this.values()
 	}
 
-	// TODO: factor out symbol
-	[Symbol.iterator]() {
+	[iteratorSymbol]() {
 		return this.values()
 	}
 

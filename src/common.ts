@@ -16,13 +16,16 @@ export class Nothing {
 	private _: any
 }
 
+const hasSymbol = typeof Symbol !== "undefined"
+export const hasMap = typeof Map !== "undefined"
+export const hasSet = typeof Set !== "undefined"
+
 /**
  * The sentinel value returned by producers to replace the draft with undefined.
  */
-export const NOTHING: Nothing =
-	typeof Symbol !== "undefined"
-		? Symbol("immer-nothing")
-		: ({["immer-nothing"]: true} as any)
+export const NOTHING: Nothing = hasSymbol
+	? Symbol("immer-nothing")
+	: ({["immer-nothing"]: true} as any)
 
 /**
  * To let Immer treat your class instances as plain immutable objects
@@ -32,15 +35,17 @@ export const NOTHING: Nothing =
  * Otherwise, your class instance will never be drafted, which means it won't be
  * safe to mutate in a produce callback.
  */
-export const DRAFTABLE: unique symbol =
-	typeof Symbol !== "undefined" && Symbol.for
-		? Symbol.for("immer-draftable")
-		: ("__$immer_draftable" as any)
+export const DRAFTABLE: unique symbol = hasSymbol
+	? Symbol("immer-draftable")
+	: ("__$immer_draftable" as any)
 
-export const DRAFT_STATE: unique symbol =
-	typeof Symbol !== "undefined" && Symbol.for
-		? Symbol.for("immer-state")
-		: ("__$immer_state" as any)
+export const DRAFT_STATE: unique symbol = hasSymbol
+	? Symbol("immer-state")
+	: ("__$immer_state" as any)
+
+export const iteratorSymbol: typeof Symbol.iterator = hasSymbol
+	? Symbol.iterator
+	: ("@@iterator" as any)
 
 /** Returns true if the given value is an Immer draft */
 export function isDraft(value: any): boolean {
@@ -105,7 +110,7 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 
 // TODO: use draft meta data if present?
 // make refelction methods to determine types?
-export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
+export function has(thing: any, prop: PropertyKey): boolean {
 	return !thing
 		? false
 		: isMap(thing)
@@ -156,15 +161,9 @@ export function is(x: any, y: any): boolean {
 	}
 }
 
-export const hasSymbol = typeof Symbol !== "undefined"
-
-export const hasMap = typeof Map !== "undefined"
-
 export function isMap(target: any): target is AnyMap {
 	return hasMap && target instanceof Map
 }
-
-export const hasSet = typeof Set !== "undefined"
 
 export function isSet(target: any): target is AnySet {
 	return hasSet && target instanceof Set

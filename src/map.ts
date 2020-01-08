@@ -1,15 +1,11 @@
-import {isDraftable, DRAFT_STATE, latest} from "./common"
+import {isDraftable, DRAFT_STATE, latest, iteratorSymbol} from "./common"
 
 import {ImmerScope} from "./scope"
-import {AnyMap, Drafted, ImmerState} from "./types"
+import {AnyMap, Drafted, ImmerState, ImmerBaseState} from "./types"
 
-export interface MapState {
+export interface MapState extends ImmerBaseState {
 	type: "map"
-	parent?: ImmerState
-	scope: ImmerScope
-	modified: boolean
 	finalizing: boolean
-	finalized: boolean
 	copy: AnyMap | undefined
 	assigned: Map<any, boolean> | undefined
 	base: AnyMap
@@ -21,8 +17,6 @@ export interface MapState {
 const MapBase: MapConstructor =
 	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
 
-// TODO: fix types for drafts
-// TODO: assert unrevoked, use freeze for that
 export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 	[DRAFT_STATE]: MapState
 	constructor(target: AnyMap, parent?: ImmerState) {
@@ -37,10 +31,11 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			copy: undefined,
 			assigned: undefined,
 			base: target,
-			draft: this as any, // TODO: fix typing
+			draft: this,
 			revoke() {
 				// TODO: make sure this marks the Map as revoked, and assert everywhere
-			}
+			},
+			isManual: false
 		}
 	}
 
@@ -95,7 +90,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		})
 	}
 
-	get(key: K): V /* TODO: Draft<V> */ {
+	get(key: K): V {
 		const state = this[DRAFT_STATE]
 		const value = latest(state).get(key)
 		if (state.finalizing || state.finalized || !isDraftable(value)) {
@@ -111,14 +106,14 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return draft
 	}
 
-	keys() {
+	keys(): IterableIterator<K> {
 		return latest(this[DRAFT_STATE]).keys()
 	}
 
-	values() {
+	values(): IterableIterator<V> {
 		const iterator = this.keys()
 		return {
-			[Symbol.iterator]: () => this.values(), // TODO: don't use symbol directly
+			[iteratorSymbol]: () => this.values(),
 			next: () => {
 				const r = iterator.next()
 				if (r.done) return r
@@ -131,10 +126,10 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		} as any
 	}
 
-	entries() {
+	entries(): IterableIterator<[K, V]> {
 		const iterator = this.keys()
 		return {
-			[Symbol.iterator]: () => this.entries(), // TODO: don't use symbol directly
+			[iteratorSymbol]: () => this.entries(),
 			next: () => {
 				const r = iterator.next()
 				if (r.done) return r
@@ -147,8 +142,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		} as any
 	}
 
-	[Symbol.iterator]() {
-		// TODO: don't use symbol directly
+	[iteratorSymbol]() {
 		return this.entries()
 	}
 }

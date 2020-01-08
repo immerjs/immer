@@ -1,6 +1,9 @@
 import {get, each, isMap, isSet, has, die} from "./common"
 import {Patch, ImmerState} from "./types"
 import {SetState} from "./set"
+import {ES5ArrayState, ES5ObjectState} from "./es5"
+import {ProxyArrayState, ProxyObjectState} from "./proxy"
+import {MapState} from "./map"
 
 export type PatchPath = (string | number)[]
 
@@ -9,27 +12,37 @@ export function generatePatches(
 	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
-) {
-	// TODO: use a proper switch here
-	const generatePatchesFn = Array.isArray(state.base)
-		? generateArrayPatches
-		: isSet(state.base)
-		? generateSetPatches
-		: generatePatchesFromAssigned
-
-	generatePatchesFn(state as any, basePath, patches, inversePatches)
+): void {
+	switch (state.type) {
+		case "proxy_object":
+		case "es5_object":
+		case "map":
+			return generatePatchesFromAssigned(
+				state,
+				basePath,
+				patches,
+				inversePatches
+			)
+		case "es5_array":
+		case "proxy_array":
+			return generateArrayPatches(state, basePath, patches, inversePatches)
+		case "set":
+			return generateSetPatches(state, basePath, patches, inversePatches)
+	}
 }
 
 function generateArrayPatches(
-	state: any, // TODO: type properly with ImmerState
+	state: ES5ArrayState | ProxyArrayState,
 	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
-	let {base, copy, assigned} = state
+	let {base, assigned, copy} = state
+	if (!copy) die()
 
 	// Reduce complexity by ensuring `base` is never longer.
-	if (copy.length < base.length) {
+	if (copy!.length < base.length) {
+		// @ts-ignore
 		;[base, copy] = [copy, base]
 		;[patches, inversePatches] = [inversePatches, patches]
 	}
@@ -84,15 +97,15 @@ function generateArrayPatches(
 
 // This is used for both Map objects and normal objects.
 function generatePatchesFromAssigned(
-	state: any, // TODO: type properly with ImmerState
+	state: MapState | ES5ObjectState | ProxyObjectState,
 	basePath: PatchPath,
 	patches: Patch[],
 	inversePatches: Patch[]
 ) {
 	const {base, copy} = state
-	each(state.assigned, (key, assignedValue) => {
+	each(state.assigned!, (key, assignedValue) => {
 		const origValue = get(base, key)
-		const value = get(copy, key)
+		const value = get(copy!, key)
 		const op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add"
 		if (origValue === value && op === "replace") return
 		const path = basePath.concat(key as any)
