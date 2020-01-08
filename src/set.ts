@@ -6,7 +6,6 @@ import {assertUnrevoked} from "./es5"
 
 export interface SetState extends ImmerBaseState {
 	type: ProxyType.Set
-	finalizing: boolean // TODO: kill?
 	copy: AnySet | undefined
 	base: AnySet
 	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
@@ -28,7 +27,6 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
 			finalized: false,
-			finalizing: false,
 			copy: undefined,
 			base: target,
 			draft: this,

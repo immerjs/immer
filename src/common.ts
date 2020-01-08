@@ -13,9 +13,8 @@ import {
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
 	// This lets us do `Exclude<T, Nothing>`
-	// TODO: do this better, use unique symbol instead
 	// @ts-ignore
-	private _: any
+	private _!: unique symbol
 }
 
 const hasSymbol = typeof Symbol !== "undefined"

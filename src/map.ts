@@ -6,7 +6,6 @@ import {assertUnrevoked} from "./es5"
 
 export interface MapState extends ImmerBaseState {
 	type: ProxyType.Map
-	finalizing: boolean
 	copy: AnyMap | undefined
 	assigned: Map<any, boolean> | undefined
 	base: AnyMap
@@ -28,7 +27,6 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
 			finalized: false,
-			finalizing: false,
 			copy: undefined,
 			assigned: undefined,
 			base: target,
@@ -51,7 +49,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		assertUnrevoked(state)
 		if (latest(state).get(key) !== value) {
 			prepareCopy(state)
-			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
+			state.scope.immer.markChanged(state)
 			state.assigned!.set(key, true)
 			state.copy!.set(key, value)
 			state.assigned!.set(key, true)
@@ -96,7 +94,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		const value = latest(state).get(key)
-		if (state.finalizing || state.finalized || !isDraftable(value)) {
+		if (state.finalized || !isDraftable(value)) {
 			return value
 		}
 		if (value !== state.base.get(key)) {

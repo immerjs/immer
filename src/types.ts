@@ -214,12 +214,3 @@ export interface IProduceWithPatches {
 		recipe: (draft: D) => Return
 	): [Produced<Base, Return>, Patch[], Patch[]]
 }
-
-// Backward compatibility with --target es5
-// TODO: still needed?
-// declare global {
-// 	interface Set<T> {}
-// 	interface Map<K, V> {}
-// 	interface WeakSet<T> {}
-// 	interface WeakMap<K extends object, V> {}
-// }
