@@ -1405,6 +1405,24 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		autoFreeze &&
+			test.skip("issue #462 - frozen", () => {
+				var origin = {
+					a: {
+						value: "no"
+					},
+					b: {
+						value: "no"
+					}
+				}
+				var im = produce(origin, origin => {
+					origin.a.value = "im"
+				})
+				expect(() => (origin.b.value = "yes")).toThrow() // should throw!
+				// to prevent this...:
+				// expect(im.b.value).toBe('no');
+			})
+
+		autoFreeze &&
 			test("issue #469, state not frozen", () => {
 				const project = produce(
 					{
