@@ -9,6 +9,8 @@
     "importHelpers": false,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "sourceMap": true,
+    "declarationMap": true
   }
 }
