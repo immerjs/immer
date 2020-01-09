@@ -14,6 +14,7 @@ export interface MapState extends ImmerBaseState {
 }
 
 // Make sure DraftMap declarion doesn't die if Map is not avialable...
+/* istanbul ignore next */
 const MapBase: MapConstructor =
 	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
 
@@ -117,6 +118,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			[iteratorSymbol]: () => this.values(),
 			next: () => {
 				const r = iterator.next()
+				/* istanbul ignore next */
 				if (r.done) return r
 				const value = this.get(r.value)
 				return {
@@ -133,6 +135,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			[iteratorSymbol]: () => this.entries(),
 			next: () => {
 				const r = iterator.next()
+				/* istanbul ignore next */
 				if (r.done) return r
 				const value = this.get(r.value)
 				return {

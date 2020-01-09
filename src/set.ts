@@ -14,6 +14,7 @@ export interface SetState extends ImmerBaseState {
 }
 
 // Make sure DraftSet declarion doesn't die if Map is not avialable...
+/* istanbul ignore next */
 const SetBase: SetConstructor =
 	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
@@ -79,7 +80,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			state.copy!.delete(value) ||
 			(state.drafts.has(value)
 				? state.copy!.delete(state.drafts.get(value))
-				: false)
+				: /* istanbul ignore next */ false)
 		)
 	}
 

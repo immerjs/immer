@@ -43,10 +43,11 @@ function generateArrayPatches(
 	inversePatches: Patch[]
 ) {
 	let {base, assigned, copy} = state
+	/* istanbul ignore next */
 	if (!copy) die()
 
 	// Reduce complexity by ensuring `base` is never longer.
-	if (copy!.length < base.length) {
+	if (copy.length < base.length) {
 		// @ts-ignore
 		;[base, copy] = [copy, base]
 		;[patches, inversePatches] = [inversePatches, patches]
@@ -173,6 +174,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 	patches.forEach(patch => {
 		const {path, op} = patch
 
+		/* istanbul ignore next */
 		if (!path.length) die()
 
 		let base: any = draft
@@ -190,6 +192,7 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 				switch (type) {
 					case Archtype.Map:
 						return base.set(key, value)
+					/* istanbul ignore next */
 					case Archtype.Set:
 						throw new Error('Sets cannot have "replace" patches.')
 					default:
@@ -199,7 +202,6 @@ export function applyPatches<T>(draft: T, patches: Patch[]): T {
 						// @ts-ignore
 						return (base[key] = value)
 				}
-				break
 			case "add":
 				switch (type) {
 					case Archtype.Array:

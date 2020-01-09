@@ -9,7 +9,8 @@ import {
 	isMap,
 	isDraftable,
 	DRAFT_STATE,
-	NOTHING
+	NOTHING,
+	die
 } from "./common"
 import {ImmerScope} from "./scope"
 import {
@@ -26,6 +27,7 @@ import {proxyMap} from "./map"
 import {proxySet} from "./set"
 import {processResult, maybeFreeze} from "./finalize"
 
+/* istanbul ignore next */
 function verifyMinified() {}
 
 const configDefaults = {
@@ -36,7 +38,8 @@ const configDefaults = {
 	autoFreeze:
 		typeof process !== "undefined"
 			? process.env.NODE_ENV !== "production"
-			: verifyMinified.name === "verifyMinified",
+			: /* istanbul ignore next */
+			  verifyMinified.name === "verifyMinified",
 	onAssign: null,
 	onDelete: null,
 	onCopy: null
@@ -163,8 +166,8 @@ export class Immer implements ProducersFns {
 				this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
 		}
 		// non-curried form
-		if (arg3)
-			throw new Error("A patch listener cannot be passed to produceWithPatches")
+		/* istanbul ignore next */
+		if (arg3) die()
 		let patches: Patch[], inversePatches: Patch[]
 		const nextState = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
 			patches = p

@@ -88,7 +88,7 @@ export const ownKeys: (target: AnyObject) => PropertyKey[] =
 				Object.getOwnPropertyNames(obj).concat(
 					Object.getOwnPropertySymbols(obj) as any
 				)
-		: Object.getOwnPropertyNames
+		: /* istanbul ignore next */ Object.getOwnPropertyNames
 
 export function each<T extends Objectish>(
 	obj: T,
@@ -108,6 +108,7 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 }
 
 export function getArchtype(thing: any): Archtype {
+	/* istanbul ignore next */
 	if (!thing) die()
 	if (thing[DRAFT_STATE]) {
 		switch ((thing as Drafted)[DRAFT_STATE].type) {
@@ -210,7 +211,7 @@ export function shallowCopy(base: any, invokeGetters = false) {
 	return clone
 }
 
-export function freeze(obj: any, deep: boolean = false): void {
+export function freeze(obj: any, deep: boolean): void {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
 	const type = getArchtype(obj)
 	if (type === Archtype.Set) {
@@ -238,6 +239,7 @@ export function createHiddenProperty(
 	})
 }
 
+/* istanbul ignore next */
 export function die(): never {
 	throw new Error("Illegal state, please file a bug")
 }

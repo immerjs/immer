@@ -78,17 +78,17 @@ function finalize(
 		finalizeTree(immer, state.draft, scope, path)
 
 		// We cannot really delete anything inside of a Set. We can only replace the whole Set.
-		if (immer.onDelete && !isSet(state.base)) {
+		if (immer.onDelete && state.type !== ProxyType.Set) {
 			// The `assigned` object is unreliable with ES5 drafts.
 			if (immer.useProxies) {
 				const {assigned} = state
 				each(assigned, (prop, exists) => {
-					if (!exists) immer.onDelete?.(state, prop as any)
+					if (!exists) immer.onDelete!(state, prop as any)
 				})
 			} else {
 				const {base, copy} = state
 				each(base, prop => {
-					if (!has(copy, prop)) immer.onDelete?.(state, prop as any)
+					if (!has(copy, prop)) immer.onDelete!(state, prop as any)
 				})
 			}
 		}
