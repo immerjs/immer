@@ -186,9 +186,9 @@ export class Immer implements ProducersFns {
 
 	finishDraft<D extends Draft<any>>(
 		draft: D,
-		patchListener: PatchListener
+		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
-		const state = draft && draft[DRAFT_STATE]
+		const state: ImmerState = draft && draft[DRAFT_STATE]
 		if (!state || !state.isManual) {
 			throw new Error("First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
 		}

@@ -24,7 +24,7 @@ export class ImmerScope {
 		this.canAutoFreeze = true
 	}
 
-	usePatches(patchListener: PatchListener) {
+	usePatches(patchListener?: PatchListener) {
 		if (patchListener) {
 			this.patches = []
 			this.inversePatches = []
