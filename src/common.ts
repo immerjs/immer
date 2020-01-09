@@ -1,19 +1,32 @@
-import {Objectish, ObjectishNoSet, ImmerState} from "./types"
+import {
+	Objectish,
+	Drafted,
+	AnyObject,
+	AnyArray,
+	AnyMap,
+	AnySet,
+	ImmerState,
+	ProxyType,
+	Archtype
+} from "./types"
 
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
 	// This lets us do `Exclude<T, Nothing>`
-	// TODO: do this better, use unique symbol instead
-	private _: any
+	// @ts-ignore
+	private _!: unique symbol
 }
+
+const hasSymbol = typeof Symbol !== "undefined"
+export const hasMap = typeof Map !== "undefined"
+export const hasSet = typeof Set !== "undefined"
 
 /**
  * The sentinel value returned by producers to replace the draft with undefined.
  */
-export const NOTHING: Nothing =
-	typeof Symbol !== "undefined"
-		? Symbol("immer-nothing")
-		: ({["immer-nothing"]: true} as any)
+export const NOTHING: Nothing = hasSymbol
+	? Symbol("immer-nothing")
+	: ({["immer-nothing"]: true} as any)
 
 /**
  * To let Immer treat your class instances as plain immutable objects
@@ -23,15 +36,17 @@ export const NOTHING: Nothing =
  * Otherwise, your class instance will never be drafted, which means it won't be
  * safe to mutate in a produce callback.
  */
-export const DRAFTABLE: unique symbol =
-	typeof Symbol !== "undefined" && Symbol.for
-		? Symbol.for("immer-draftable")
-		: ("__$immer_draftable" as any)
+export const DRAFTABLE: unique symbol = hasSymbol
+	? Symbol("immer-draftable")
+	: ("__$immer_draftable" as any)
 
-export const DRAFT_STATE: unique symbol =
-	typeof Symbol !== "undefined" && Symbol.for
-		? Symbol.for("immer-state")
-		: ("__$immer_state" as any)
+export const DRAFT_STATE: unique symbol = hasSymbol
+	? Symbol("immer-state")
+	: ("__$immer_state" as any)
+
+export const iteratorSymbol: typeof Symbol.iterator = hasSymbol
+	? Symbol.iterator
+	: ("@@iterator" as any)
 
 /** Returns true if the given value is an Immer draft */
 export function isDraft(value: any): boolean {
@@ -43,6 +58,7 @@ export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
 		isPlainObject(value) ||
+		Array.isArray(value) ||
 		!!value[DRAFTABLE] ||
 		!!value.constructor[DRAFTABLE] ||
 		isMap(value) ||
@@ -50,70 +66,124 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
-export function isPlainObject(value): boolean {
+export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
-	if (Array.isArray(value)) return true
 	const proto = Object.getPrototypeOf(value)
 	return !proto || proto === Object.prototype
 }
 
 /** Get the underlying object that is represented by the given draft */
-export function original<T>(value: T): T | undefined {
+export function original<T>(value: Drafted<T>): T | undefined {
 	if (value && value[DRAFT_STATE]) {
-		return value[DRAFT_STATE].base
+		return value[DRAFT_STATE].base as any
 	}
 	// otherwise return undefined
 }
 
-// We use Maps as `drafts` for Sets, not Objects
-// See proxy.js
-export function assignSet(target: Map<any, any>, override) {
-	override.forEach(value => {
-		// When we add new drafts we have to remove their originals if present
-		const prev = original(value)
-		if (prev) target.delete(prev)
-		// @ts-ignore TODO investigate
-		target.add(value)
-	})
-	return target
-}
-
-// We use Maps as `drafts` for Maps, not Objects
-// See proxy.js
-export function assignMap(target: Map<any, any>, override: Map<any, any>) {
-	override.forEach((value, key) => target.set(key, value))
-	return target
-}
-
-export const assign =
-	Object.assign ||
-	((target, ...overrides) => {
-		overrides.forEach(override => {
-			if (typeof override === "object" && override !== null)
-				Object.keys(override).forEach(key => (target[key] = override[key]))
-		})
-		return target
-	})
-
-export const ownKeys: (target) => PropertyKey[] =
+export const ownKeys: (target: AnyObject) => PropertyKey[] =
 	typeof Reflect !== "undefined" && Reflect.ownKeys
 		? Reflect.ownKeys
 		: typeof Object.getOwnPropertySymbols !== "undefined"
 		? obj =>
-				Object.getOwnPropertyNames(obj).concat(Object.getOwnPropertySymbols(
-					obj
-				) as any)
+				Object.getOwnPropertyNames(obj).concat(
+					Object.getOwnPropertySymbols(obj) as any
+				)
 		: Object.getOwnPropertyNames
 
-// TODO: duplicate of clone? TODO: should be used by prepareCopy of map / set
-export function shallowCopy<T extends Objectish>(
+export function each<T extends Objectish>(
+	obj: T,
+	iter: (key: string | number, value: any, source: T) => void
+): void
+export function each(obj: any, iter: any) {
+	if (getArchtype(obj) === Archtype.Object) {
+		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
+	} else {
+		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
+	}
+}
+
+export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
+	const desc = Object.getOwnPropertyDescriptor(base, prop)
+	return desc && desc.enumerable ? true : false
+}
+
+export function getArchtype(thing: any): Archtype {
+	if (!thing) die()
+	if (thing[DRAFT_STATE]) {
+		switch ((thing as Drafted)[DRAFT_STATE].type) {
+			case ProxyType.ES5Object:
+			case ProxyType.ProxyObject:
+				return Archtype.Object
+			case ProxyType.ES5Array:
+			case ProxyType.ProxyArray:
+				return Archtype.Array
+			case ProxyType.Map:
+				return Archtype.Map
+			case ProxyType.Set:
+				return Archtype.Set
+		}
+	}
+	return Array.isArray(thing)
+		? Archtype.Array
+		: isMap(thing)
+		? Archtype.Map
+		: isSet(thing)
+		? Archtype.Set
+		: Archtype.Object
+}
+
+export function has(thing: any, prop: PropertyKey): boolean {
+	return getArchtype(thing) === Archtype.Map
+		? thing.has(prop)
+		: Object.prototype.hasOwnProperty.call(thing, prop)
+}
+
+export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
+	// @ts-ignore
+	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
+}
+
+export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
+	switch (getArchtype(thing)) {
+		case Archtype.Map:
+			thing.set(propOrOldValue, value)
+			break
+		case Archtype.Set:
+			thing.delete(propOrOldValue)
+			thing.add(value)
+			break
+		default:
+			thing[propOrOldValue] = value
+	}
+}
+
+export function is(x: any, y: any): boolean {
+	// From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
+	if (x === y) {
+		return x !== 0 || 1 / x === 1 / y
+	} else {
+		return x !== x && y !== y
+	}
+}
+
+export function isMap(target: any): target is AnyMap {
+	return hasMap && target instanceof Map
+}
+
+export function isSet(target: any): target is AnySet {
+	return hasSet && target instanceof Set
+}
+
+export function latest(state: ImmerState): any {
+	return state.copy || state.base
+}
+
+export function shallowCopy<T extends AnyObject | AnyArray>(
 	base: T,
 	invokeGetters?: boolean
 ): T
-export function shallowCopy(base, invokeGetters = false) {
+export function shallowCopy(base: any, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
-	if (isMap(base)) return new Map(base)
-	if (isSet(base)) return new Set(base)
 	const clone = Object.create(Object.getPrototypeOf(base))
 	ownKeys(base).forEach(key => {
 		if (key === DRAFT_STATE) {
@@ -140,113 +210,12 @@ export function shallowCopy(base, invokeGetters = false) {
 	return clone
 }
 
-export function each<T extends Objectish>(
-	obj: T,
-	iter: (key: PropertyKey, value: any, source: T) => void
-)
-export function each(obj, iter) {
-	if (Array.isArray(obj) || isMap(obj) || isSet(obj)) {
-		obj.forEach((entry, index) => iter(index, entry, obj))
-	} else if (obj && typeof obj === "object") {
-		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
-	} else {
-		throw new Error("Cannot iterate primitive " + obj)
-	}
-}
-
-export function isEnumerable(base: {}, prop: PropertyKey): boolean {
-	const desc = Object.getOwnPropertyDescriptor(base, prop)
-	return desc && desc.enumerable ? true : false
-}
-
-export function has(thing: ObjectishNoSet, prop: PropertyKey): boolean {
-	return !thing
-		? false
-		: isMap(thing)
-		? thing.has(prop)
-		: Object.prototype.hasOwnProperty.call(thing, prop)
-}
-
-export function get(thing: ObjectishNoSet, prop: PropertyKey) {
-	return isMap(thing) ? thing.get(prop) : thing[prop]
-}
-
-export function is(x, y): boolean {
-	// From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
-	if (x === y) {
-		return x !== 0 || 1 / x === 1 / y
-	} else {
-		return x !== x && y !== y
-	}
-}
-
-export const hasSymbol = typeof Symbol !== "undefined"
-
-export const hasMap = typeof Map !== "undefined"
-
-export function isMap(target): target is Map<any, any> {
-	return hasMap && target instanceof Map
-}
-
-export const hasSet = typeof Set !== "undefined"
-
-export function isSet(target): target is Set<any> {
-	return hasSet && target instanceof Set
-}
-
-
-export function makeIterable2(baseIterator: Iterator<any>): IterableIterator<any> {
-	// TODO: correct?
-	// TODO: don't use symbol
-	baseIterator[Symbol.iterator] = () => baseIterator
-	return baseIterator as any
-}
-
-export function makeIterable(next: () => {done: boolean; value: any}) {
-	let self
-	return (self = {
-		[Symbol.iterator]: () => self,
-		next
-	})
-}
-
-export function latest(state: any): any {
-	return state.copy || state.base
-}
-
-// export function iterateCollection(collection: Map<any, any> | Set<any>, transformer: (key, value) => any) {
-// 	// TODO: create own iterator symbols for fallback
-// 	const iterator = collection.entries()
-// 	return makeIterable(() => {
-// 		const result = iterator.next()
-// 		if (!result.done) {
-// 			const value = wrapSetValue(state, result.value)
-// 			result.value = isEntries ? [value, value] : value
-// 		}
-// 		return result
-// 	} as any)
-// }
-
-// TODO: duplicate of shallow clone
-export function clone<T extends Objectish>(obj: T): T
-export function clone(obj) {
-	if (!isDraftable(obj)) return obj
-	if (Array.isArray(obj)) return obj.map(clone)
-	if (isMap(obj)) return new Map(obj)
-	if (isSet(obj)) return new Set(obj)
-	const cloned = Object.create(Object.getPrototypeOf(obj))
-	for (const key in obj) cloned[key] = clone(obj[key])
-	return cloned
-}
-
-export function freeze<T extends Objectish>(
-	obj: T,
-	deep: boolean = false
-): void {
+export function freeze(obj: any, deep: boolean = false): void {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
-	if (isSet(obj)) {
+	const type = getArchtype(obj)
+	if (type === Archtype.Set) {
 		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
-	} else if (isMap(obj)) {
+	} else if (type === Archtype.Map) {
 		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
@@ -255,4 +224,20 @@ export function freeze<T extends Objectish>(
 
 function dontMutateFrozenCollections() {
 	throw new Error("This object has been frozen and should not be mutated")
+}
+
+export function createHiddenProperty(
+	target: AnyObject,
+	prop: PropertyKey,
+	value: any
+) {
+	Object.defineProperty(target, prop, {
+		value: value,
+		enumerable: false,
+		writable: true
+	})
+}
+
+export function die(): never {
+	throw new Error("Illegal state, please file a bug")
 }

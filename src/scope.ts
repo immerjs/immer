@@ -1,6 +1,6 @@
 import {DRAFT_STATE} from "./common"
-import {ImmerState, Patch, PatchListener} from "./types"
-import { Immer } from "./immer"
+import {Patch, PatchListener, Drafted, ProxyType} from "./types"
+import {Immer} from "./immer"
 
 /** Each scope represents a `produce` call. */
 export class ImmerScope {
@@ -22,9 +22,6 @@ export class ImmerScope {
 		// Whenever the modified draft contains a draft from another scope, we
 		// need to prevent auto-freezing so the unowned draft can be finalized.
 		this.canAutoFreeze = true
-
-		// To avoid prototype lookups:
-		this.patches = null as any // TODO:
 	}
 
 	usePatches(patchListener: PatchListener) {
@@ -39,7 +36,7 @@ export class ImmerScope {
 		this.leave()
 		this.drafts.forEach(revoke)
 		// @ts-ignore
-		this.drafts = null // TODO: // Make draft-related methods throw.
+		this.drafts = null
 	}
 
 	leave() {
@@ -55,6 +52,12 @@ export class ImmerScope {
 	}
 }
 
-function revoke(draft) {
-	draft[DRAFT_STATE].revoke()
+function revoke(draft: Drafted) {
+	const state = draft[DRAFT_STATE]
+	if (
+		state.type === ProxyType.ProxyObject ||
+		state.type === ProxyType.ProxyArray
+	)
+		state.revoke()
+	else state.revoked = true
 }

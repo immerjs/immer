@@ -188,7 +188,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("supports iteration", () => {
-				const base = [{id: 1, a: 1}, {id: 2, a: 1}]
+				const base = [
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				]
 				const findById = (collection, id) => {
 					for (const item of collection) {
 						if (item.id === id) return item
@@ -386,7 +389,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("supports 'keys", () => {
-				const base = new Map([["first", Symbol()], ["second", Symbol()]])
+				const base = new Map([
+					["first", Symbol()],
+					["second", Symbol()]
+				])
 				const result = produce(base, draft => {
 					expect([...draft.keys()]).toEqual(["first", "second"])
 					draft.set("third", Symbol())
@@ -543,11 +549,27 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				})
 				expect(next).toBe(base)
 			})
+
+			it("revokes map proxies", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aMap
+				})
+				expect(() => m.get("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+				expect(() => m.set("x", 3)).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+			})
 		})
 
 		describe("set drafts", () => {
 			it("supports iteration", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set) {
 						if (item.id === id) return item
@@ -561,12 +583,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'entries'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const [item1, item2] of set.entries()) {
 						expect(item1).toBe(item2)
@@ -581,12 +616,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'values'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set.values()) {
 						if (item.id === id) return item
@@ -600,12 +648,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'keys'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set.keys()) {
 						if (item.id === id) return item
@@ -619,12 +680,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports forEach with mutation after reads", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 2}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 2}
+				])
 				const result = produce(base, draft => {
 					let sum1 = 0
 					draft.forEach(({a}) => {
@@ -639,8 +713,18 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					expect(sum2).toBe(23)
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 2}]))
-				expect(result).toEqual(new Set([{id: 1, a: 11}, {id: 2, a: 12}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 2}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 11},
+						{id: 2, a: 12}
+					])
+				)
 			})
 
 			it("state stays the same if the same item is added", () => {
@@ -731,6 +815,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					expect(d.has(obj)).toBe(false)
 				})
 				expect(next).toEqual(new Set([3]))
+			})
+
+			it("revokes sets", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aSet
+				})
+				expect(() => m.has("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+				expect(() => m.add("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
 			})
 		})
 
@@ -1620,7 +1717,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		const c = {c: 3}
 		const set1 = new Set([a, b])
 		const set2 = new Set([c])
-		const map = new Map([["set1", set1], ["set2", set2]])
+		const map = new Map([
+			["set1", set1],
+			["set2", set2]
+		])
 		const base = {map}
 
 		function first(set) {

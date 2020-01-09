@@ -1,80 +1,39 @@
-import {
-	each,
-	has,
-	is,
-	isDraft,
-	isDraftable,
-	isEnumerable,
-	isMap,
-	isSet,
-	hasSymbol,
-	shallowCopy,
-	DRAFT_STATE,
-	makeIterable,
-	latest,
-	original,
-	makeIterable2
-} from "./common"
+import {DRAFT_STATE, latest, isDraftable, iteratorSymbol} from "./common"
 
-// TODO: kill:
-import {
-	assertUnrevoked,
-	ES5Draft,
-} from "./es5"
-import { ImmerScope } from "./scope";
-import { Immer } from "./immer";
+import {ImmerScope} from "./scope"
+import {AnySet, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
+import {assertUnrevoked} from "./es5"
 
-// TODO: create own states
-// TODO: clean up the maps and such from ES5 / Proxy states
-
-export interface SetState {
-	parent: any; // TODO: type
-	scope: ImmerScope;
-	modified: boolean;
-	finalizing: boolean;
-	finalized: boolean;
-	copy: Set<any> | undefined;
-	// assigned: Map<any, boolean> | undefined;
-	base: Set<any>;
-	drafts: Map<any, any>; // maps the original value to the draft value in the new set
-	revoke(): void;
-	draft: ES5Draft;
-}
-
-function prepareCopy(state: SetState) {
-	if (!state.copy) {
-			// create drafts for all entries to preserve insertion order
-				state.copy = new Set()
-				state.base.forEach(value => {
-					const draft = state.scope.immer.createProxy(value, state);
-					state.copy!.add(draft)
-					state.drafts.set(value, draft)
-				})
-	}
+export interface SetState extends ImmerBaseState {
+	type: ProxyType.Set
+	copy: AnySet | undefined
+	base: AnySet
+	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
+	revoked: boolean
+	draft: Drafted<AnySet, SetState>
 }
 
 // Make sure DraftSet declarion doesn't die if Map is not avialable...
-const SetBase: SetConstructor = typeof Set !== "undefined" ? Set : function FakeSet() {} as any
+const SetBase: SetConstructor =
+	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
 
-// TODO: fix types for drafts
 export class DraftSet<K, V> extends SetBase implements Set<V> {
 	[DRAFT_STATE]: SetState
-	constructor(target, parent) {
+	constructor(target: AnySet, parent?: ImmerState) {
 		super()
 		this[DRAFT_STATE] = {
+			type: ProxyType.Set,
 			parent,
-			scope: parent ? parent.scope : ImmerScope.current,
+			scope: parent ? parent.scope : ImmerScope.current!,
 			modified: false,
 			finalized: false,
-			finalizing: false,
 			copy: undefined,
 			base: target,
-			draft: this as any, // TODO: fix typing
+			draft: this,
 			drafts: new Map(),
-			revoke() {
-				// TODO: make sure this marks the Map as revoked, and assert everywhere
-			}
-		};
+			revoked: false,
+			isManual: false
+		}
 	}
 
 	get size(): number {
@@ -83,40 +42,50 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	has(value: V): boolean {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		// bit of trickery here, to be able to recognize both the value, and the draft of its value
 		if (!state.copy) {
 			return state.base.has(value)
 		}
-		if (state.copy.has(value)) return true;
-		if (state.drafts.has(value) && state.copy.has(state.drafts.get(value))) return true;
-		return false;
+		if (state.copy.has(value)) return true
+		if (state.drafts.has(value) && state.copy.has(state.drafts.get(value)))
+			return true
+		return false
 	}
 
 	add(value: V): this {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		if (state.copy) {
 			state.copy.add(value)
 		} else if (!state.base.has(value)) {
 			prepareCopy(state)
-			state.scope.immer.markChanged(state) // TODO: this needs to bubble up recursively correctly
+			state.scope.immer.markChanged(state)
 			state.copy!.add(value)
 		}
 		return this
 	}
 
 	delete(value: V): boolean {
-		const state = this[DRAFT_STATE];
 		if (!this.has(value)) {
-			return false;
+			return false
 		}
 
+		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
-		return state.copy!.delete(value) || (state.drafts.has(value) ? state.copy!.delete(state.drafts.get(value)) : false)
+		return (
+			state.copy!.delete(value) ||
+			(state.drafts.has(value)
+				? state.copy!.delete(state.drafts.get(value))
+				: false)
+		)
 	}
 
 	clear() {
-		const state = this[DRAFT_STATE];
+		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		return state.copy!.clear()
@@ -124,12 +93,14 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 
 	values(): IterableIterator<V> {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.values()
 	}
 
 	entries(): IterableIterator<[V, V]> {
 		const state = this[DRAFT_STATE]
+		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.entries()
 	}
@@ -138,46 +109,36 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return this.values()
 	}
 
-	// TODO: factor out symbol
-	[Symbol.iterator]() {
+	[iteratorSymbol]() {
 		return this.values()
 	}
 
-	forEach(cb, thisArg) {
-		const state = this[DRAFT_STATE]
+	forEach(cb: (value: V, key: V, self: this) => void, thisArg?: any) {
 		const iterator = this.values()
 		let result = iterator.next()
 		while (!result.done) {
-			cb.call(thisArg, result.value, result.value, state.draft)
+			cb.call(thisArg, result.value, result.value, this)
 			result = iterator.next()
 		}
 	}
 }
 
-
-export function proxySet(target, parent) {
-	if (target instanceof DraftSet) {
-		return target; // TODO: or copy?
-	}
+export function proxySet(target: AnySet, parent?: ImmerState) {
 	return new DraftSet(target, parent)
 }
 
-// const iterateSetValues = makeIterateSetValues()
-
-
-
-export function hasSetChanges(state) {
-	const {base, draft} = state
-
-	if (base.size !== draft.size) return true
-
-	// IE11 supports only forEach iteration
-	let hasChanges = false
-	// TODO: optimize: break on first diff
-	draft.forEach(function(value, key) {
-		if (!hasChanges) {
-			hasChanges = isDraftable(value) ? value.modified : !base.has(key)
-		}
-	})
-	return hasChanges
+function prepareCopy(state: SetState) {
+	if (!state.copy) {
+		// create drafts for all entries to preserve insertion order
+		state.copy = new Set()
+		state.base.forEach(value => {
+			if (isDraftable(value)) {
+				const draft = state.scope.immer.createProxy(value, state)
+				state.drafts.set(value, draft)
+				state.copy!.add(draft)
+			} else {
+				state.copy!.add(value)
+			}
+		})
+	}
 }

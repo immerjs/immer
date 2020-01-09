@@ -1,84 +1,65 @@
 "use strict"
 import {
-	assign,
 	each,
 	has,
 	is,
 	isDraftable,
-	isDraft,
-	isMap,
-	isSet,
-	hasSymbol,
 	shallowCopy,
-	makeIterable,
 	DRAFT_STATE,
-	assignMap,
-	assignSet,
-	original,
 	latest
 } from "./common"
 import {ImmerScope} from "./scope"
-import {proxyMap} from "./map"
-import {proxySet} from "./set"
+import {
+	AnyObject,
+	Drafted,
+	ImmerState,
+	AnyArray,
+	Objectish,
+	ImmerBaseState,
+	ProxyType
+} from "./types"
 
-// Do nothing before being finalized.
-export function willFinalize() {}
-
-interface ES6Draft {}
-
-interface ES6State<T = any> {
-	scope: ImmerScope
-	modified: boolean
-	finalized: boolean
-	assigned:
-		| {
-				[property: string]: boolean
-		  }
-		| Map<string, boolean> // TODO: always use a Map?
-	parent: ES6State
-	base: T
-	draft: ES6Draft | null
-	drafts:
-		| {
-				[property: string]: ES6Draft
-		  }
-		| Map<string, ES6Draft> // TODO: always use a Map?
-	copy: T | null
-	revoke: null | (() => void)
+interface ProxyBaseState extends ImmerBaseState {
+	assigned: {
+		[property: string]: boolean
+	}
+	parent?: ImmerState
+	drafts?: {
+		[property: string]: Drafted<any, any>
+	}
+	revoke(): void
 }
+
+export interface ProxyObjectState extends ProxyBaseState {
+	type: ProxyType.ProxyObject
+	base: AnyObject
+	copy: AnyObject | null
+	draft: Drafted<AnyObject, ProxyObjectState>
+}
+
+export interface ProxyArrayState extends ProxyBaseState {
+	type: ProxyType.ProxyArray
+	base: AnyArray
+	copy: AnyArray | null
+	draft: Drafted<AnyArray, ProxyArrayState>
+}
+
+type ProxyState = ProxyObjectState | ProxyArrayState
 
 /**
  * Returns a new draft of the `base` object.
  *
  * The second argument is the parent draft-state (used internally).
  */
-export function createProxy<T extends object>(
+export function createProxy<T extends Objectish>(
 	base: T,
-	parent: ES6State
-): ES6Draft {
-	// TODO: dedupe
-	if (!base || typeof base !== "object" || !isDraftable(base)) {
-		// TODO: || isDraft ?
-		return base as any // TODO: fix
-	}
-
-	const scope = parent ? parent.scope : ImmerScope.current!
-
-	// TODO: dedupe this, it is the same for ES5
-	if (isMap(base)) {
-		const draft = proxyMap(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-	if (isSet(base)) {
-		const draft = proxySet(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-
-	const state: ES6State<T> = {
+	parent?: ImmerState
+): Drafted<T, ProxyState> {
+	const isArray = Array.isArray(base)
+	const state: ProxyState = {
+		type: isArray ? ProxyType.ProxyArray : (ProxyType.ProxyObject as any),
 		// Track which produce call this is associated with.
-		scope,
+		scope: parent ? parent.scope : ImmerScope.current!,
 		// True for both shallow and deep changes.
 		modified: false,
 		// Used during finalization.
@@ -90,13 +71,14 @@ export function createProxy<T extends object>(
 		// The base state.
 		base,
 		// The base proxy.
-		draft: null,
+		draft: null as any, // set below
 		// Any property proxies.
 		drafts: {},
 		// The base copy with any updated values.
 		copy: null,
 		// Called by the `produce` function.
-		revoke: null
+		revoke: null as any,
+		isManual: false
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -107,31 +89,30 @@ export function createProxy<T extends object>(
 	// Note that in the case of an array, we put the state in an array to have better Reflect defaults ootb
 	let target: T = state as any
 	let traps: ProxyHandler<object | Array<any>> = objectTraps
-	if (Array.isArray(base)) {
+	if (isArray) {
 		target = [state] as any
 		traps = arrayTraps
 	}
 
+	// TODO: optimization: might be faster, cheaper if we created a non-revocable proxy
+	// and administrate revoking ourselves
 	const {revoke, proxy} = Proxy.revocable(target, traps)
-
-	state.draft = proxy
+	state.draft = proxy as any
 	state.revoke = revoke
-
-	scope.drafts!.push(proxy)
-	return proxy
+	return proxy as any
 }
 
 /**
  * Object drafts
  */
-const objectTraps: ProxyHandler<ES6State> = {
+const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 		let {drafts} = state
 
 		// Check for existing draft in unmodified state.
 		if (!state.modified && has(drafts, prop)) {
-			return drafts[prop]
+			return drafts![prop as any]
 		}
 
 		const value = latest(state)[prop]
@@ -144,10 +125,11 @@ const objectTraps: ProxyHandler<ES6State> = {
 			// Assigned values are never drafted. This catches any drafts we created, too.
 			if (value !== peek(state.base, prop)) return value
 			// Store drafts on the copy (when one exists).
+			// @ts-ignore
 			drafts = state.copy
 		}
 
-		return (drafts[prop] = createProxy(value, state))
+		return (drafts![prop as any] = state.scope.immer.createProxy(value, state))
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -155,24 +137,25 @@ const objectTraps: ProxyHandler<ES6State> = {
 	ownKeys(state) {
 		return Reflect.ownKeys(latest(state))
 	},
-	set(state, prop, value) {
+	set(state, prop: string /* strictly not, but helps TS */, value) {
 		if (!state.modified) {
 			const baseValue = peek(state.base, prop)
 			// Optimize based on value's truthiness. Truthy values are guaranteed to
 			// never be undefined, so we can avoid the `in` operator. Lastly, truthy
 			// values may be drafts, but falsy values are never drafts.
 			const isUnchanged = value
-				? is(baseValue, value) || value === state.drafts[prop]
+				? is(baseValue, value) || value === state.drafts![prop]
 				: is(baseValue, value) && prop in state.base
 			if (isUnchanged) return true
 			prepareCopy(state)
 			markChanged(state)
 		}
 		state.assigned[prop] = true
-		state.copy[prop] = value
+		// @ts-ignore
+		state.copy![prop] = value
 		return true
 	},
-	deleteProperty(state, prop) {
+	deleteProperty(state, prop: string) {
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base, prop) !== undefined || prop in state.base) {
 			state.assigned[prop] = false
@@ -182,6 +165,7 @@ const objectTraps: ProxyHandler<ES6State> = {
 			// if an originally not assigned property was deleted
 			delete state.assigned[prop]
 		}
+		// @ts-ignore
 		if (state.copy) delete state.copy[prop]
 		return true
 	},
@@ -192,7 +176,8 @@ const objectTraps: ProxyHandler<ES6State> = {
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
 		if (desc) {
 			desc.writable = true
-			desc.configurable = !Array.isArray(owner) || prop !== "length"
+			desc.configurable =
+				state.type !== ProxyType.ProxyArray || prop !== "length"
 		}
 		return desc
 	},
@@ -211,8 +196,9 @@ const objectTraps: ProxyHandler<ES6State> = {
  * Array drafts
  */
 
-const arrayTraps: ProxyHandler<[ES6State]> = {}
+const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 each(objectTraps, (key, fn) => {
+	// @ts-ignore
 	arrayTraps[key] = function() {
 		arguments[0] = arguments[0][0]
 		return fn.apply(this, arguments)
@@ -231,25 +217,12 @@ arrayTraps.set = function(state, prop, value) {
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
-// Used by Map and Set drafts
-const reflectTraps = makeReflectTraps([
-	"ownKeys",
-	"has",
-	"set",
-	"deleteProperty",
-	"defineProperty",
-	"getOwnPropertyDescriptor",
-	"preventExtensions",
-	"isExtensible",
-	"getPrototypeOf"
-])
-
 /**
  * Map drafts
  */
 
 // Access a property without creating an Immer draft.
-function peek(draft, prop) {
+function peek(draft: Drafted, prop: PropertyKey): any {
 	const state = draft[DRAFT_STATE]
 	const desc = Reflect.getOwnPropertyDescriptor(
 		state ? latest(state) : draft,
@@ -258,41 +231,29 @@ function peek(draft, prop) {
 	return desc && desc.value
 }
 
-// TODO: unify with ES5 version, by getting rid of the drafts vs copy distinction?
-export function markChanged(state) {
+export function markChanged(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
-		const {base, drafts, parent} = state
-		if (!isMap(base) && !isSet(base)) {
-			// TODO: drop creating copies here?
-			const copy = (state.copy = shallowCopy(base))
-			assign(copy, drafts)
-			state.drafts = null
+		if (
+			state.type === ProxyType.ProxyObject ||
+			state.type === ProxyType.ProxyArray
+		) {
+			const copy = (state.copy = shallowCopy(state.base))
+			each(state.drafts!, (key, value) => {
+				// @ts-ignore
+				copy[key] = value
+			})
+			state.drafts = undefined
 		}
 
-		if (parent) {
-			markChanged(parent)
+		if (state.parent) {
+			markChanged(state.parent)
 		}
 	}
 }
 
-// TODO: unify with ES5 version
-function prepareCopy(state) {
+function prepareCopy(state: ProxyState) {
 	if (!state.copy) {
 		state.copy = shallowCopy(state.base)
 	}
-}
-
-/** Create traps that all use the `Reflect` API on the `latest(state)` */
-function makeReflectTraps<T extends object>(
-	names: (keyof typeof Reflect)[]
-): ProxyHandler<T> {
-	return names.reduce(
-		(traps, name) => {
-			// @ts-ignore
-			traps[name] = (state, ...args) => Reflect[name](latest(state), ...args)
-			return traps
-		},
-		{} as any
-	)
 }

@@ -6,41 +6,49 @@ import {
 	isDraft,
 	isDraftable,
 	isEnumerable,
-	isMap,
-	isSet,
-	hasSymbol,
 	shallowCopy,
 	DRAFT_STATE,
-	makeIterable,
-	latest
+	latest,
+	createHiddenProperty
 } from "./common"
-import {proxyMap, hasMapChanges} from "./map"
-import {proxySet, hasSetChanges} from "./set"
 
 import {ImmerScope} from "./scope"
-import {ImmerState} from "./types"
+import {
+	ImmerState,
+	Drafted,
+	AnyObject,
+	Objectish,
+	ImmerBaseState,
+	AnyArray,
+	ProxyType
+} from "./types"
+import {MapState} from "./map"
+import {SetState} from "./set"
 
-export interface ES5Draft {
-	[DRAFT_STATE]: ES5State
-}
-
-// TODO: merge with ImmerState?
-export interface ES5State<T = any> {
-	scope: ImmerScope
-	modified: boolean
+interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean
-	finalized: boolean
-	assigned: Map<any, any> | {[key: string]: any}
-	parent: ES5State
-	base: T
-	draft: T & ES5Draft
-	drafts: Map<any, any> | null
-	copy: T | null
-	revoke()
+	assigned: {[key: string]: any}
+	parent?: ImmerState
 	revoked: boolean
 }
 
-export function willFinalize(
+export interface ES5ObjectState extends ES5BaseState {
+	type: ProxyType.ES5Object
+	draft: Drafted<AnyObject, ES5ObjectState>
+	base: AnyObject
+	copy: AnyObject | null
+}
+
+export interface ES5ArrayState extends ES5BaseState {
+	type: ProxyType.ES5Array
+	draft: Drafted<AnyObject, ES5ArrayState>
+	base: AnyArray
+	copy: AnyArray | null
+}
+
+type ES5State = ES5ArrayState | ES5ObjectState
+
+export function willFinalizeES5(
 	scope: ImmerScope,
 	result: any,
 	isReplaced: boolean
@@ -61,23 +69,10 @@ export function willFinalize(
 	}
 }
 
-export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
-	if (!base || typeof base !== "object" || !isDraftable(base)) {
-		// TODO: || isDraft ?
-		return base as any // TODO: fix
-	}
-	const scope = parent ? parent.scope : ImmerScope.current!
-	if (isMap(base)) {
-		const draft = proxyMap(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-	if (isSet(base)) {
-		const draft = proxySet(base, parent) as any // TODO: typefix
-		scope.drafts.push(draft)
-		return draft
-	}
-
+export function createES5Proxy<T>(
+	base: T,
+	parent?: ImmerState
+): Drafted<T, ES5ObjectState | ES5ArrayState> {
 	const isArray = Array.isArray(base)
 	const draft = clonePotentialDraft(base)
 
@@ -85,33 +80,27 @@ export function createProxy<T>(base: T, parent: ES5State): ES5Draft {
 		proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
 	})
 
-	const state: ES5State<T> = {
-		scope,
+	const state: ES5ObjectState | ES5ArrayState = {
+		type: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
+		scope: parent ? parent.scope : ImmerScope.current!,
 		modified: false,
-		finalizing: false, // es5 only
+		finalizing: false,
 		finalized: false,
-		assigned: isMap(base) ? new Map() : {},
+		assigned: {},
 		parent,
 		base,
 		draft,
-		drafts: isSet(base) ? new Map() : null,
 		copy: null,
-		revoke,
-		revoked: false // es5 only
+		revoked: false,
+		isManual: false
 	}
 
 	createHiddenProperty(draft, DRAFT_STATE, state)
-	scope.drafts!.push(draft)
 	return draft
 }
 
-function revoke(this: ES5State) {
-	this.revoked = true
-}
-
-// TODO: type these methods
 // Access a property without creating an Immer draft.
-function peek(draft, prop) {
+function peek(draft: Drafted, prop: PropertyKey) {
 	const state = draft[DRAFT_STATE]
 	if (state && !state.finalizing) {
 		state.finalizing = true
@@ -122,43 +111,44 @@ function peek(draft, prop) {
 	return draft[prop]
 }
 
-function get(state, prop) {
+function get(state: ES5State, prop: string | number) {
 	assertUnrevoked(state)
 	const value = peek(latest(state), prop)
 	if (state.finalizing) return value
 	// Create a draft if the value is unmodified.
 	if (value === peek(state.base, prop) && isDraftable(value)) {
 		prepareCopy(state)
-		return (state.copy[prop] = createProxy(value, state))
+		// @ts-ignore
+		return (state.copy![prop] = state.scope.immer.createProxy(value, state))
 	}
 	return value
 }
 
-function set(state: ES5State, prop, value) {
+function set(state: ES5State, prop: string | number, value: any) {
 	assertUnrevoked(state)
 	state.assigned[prop] = true
 	if (!state.modified) {
 		if (is(value, peek(latest(state), prop))) return
-		markChanged(state)
+		markChangedES5(state)
 		prepareCopy(state)
 	}
-	state.copy[prop] = value
+	// @ts-ignore
+	state.copy![prop] = value
 }
 
-export function markChanged(state) {
+export function markChangedES5(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
-		if (state.parent) markChanged(state.parent)
+		if (state.parent) markChangedES5(state.parent)
 	}
 }
 
-// TODO: kill export
-function prepareCopy(state) {
+function prepareCopy(state: ES5State) {
 	if (!state.copy) state.copy = clonePotentialDraft(state.base)
 }
 
-function clonePotentialDraft(base) {
-	const state = base && base[DRAFT_STATE]
+function clonePotentialDraft(base: Objectish) {
+	const state = base && (base as any)[DRAFT_STATE]
 	if (state) {
 		state.finalizing = true
 		const draft = shallowCopy(state.draft, true)
@@ -170,9 +160,13 @@ function clonePotentialDraft(base) {
 
 // property descriptors are recycled to make sure we don't create a get and set closure per property,
 // but share them all instead
-const descriptors = {}
+const descriptors: {[prop: string]: PropertyDescriptor} = {}
 
-function proxyProperty(draft, prop, enumerable) {
+function proxyProperty(
+	draft: Drafted<any, ES5State>,
+	prop: string | number,
+	enumerable: boolean
+) {
 	let desc = descriptors[prop]
 	if (desc) {
 		desc.enumerable = enumerable
@@ -180,10 +174,10 @@ function proxyProperty(draft, prop, enumerable) {
 		descriptors[prop] = desc = {
 			configurable: true,
 			enumerable,
-			get() {
+			get(this: any) {
 				return get(this[DRAFT_STATE], prop)
 			},
-			set(value) {
+			set(this: any, value) {
 				set(this[DRAFT_STATE], prop, value)
 			}
 		}
@@ -191,7 +185,7 @@ function proxyProperty(draft, prop, enumerable) {
 	Object.defineProperty(draft, prop, desc)
 }
 
-export function assertUnrevoked(state) {
+export function assertUnrevoked(state: ES5State | MapState | SetState) {
 	if (state.revoked === true)
 		throw new Error(
 			"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
@@ -200,7 +194,7 @@ export function assertUnrevoked(state) {
 }
 
 // This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
-function markChangesSweep(drafts) {
+function markChangesSweep(drafts: Drafted<any, ImmerState>[]) {
 	// The natural order of drafts in the `scope` array is based on when they
 	// were accessed. By processing drafts in reverse natural order, we have a
 	// better chance of processing leaf nodes first. When a leaf node is known to
@@ -208,85 +202,50 @@ function markChangesSweep(drafts) {
 	for (let i = drafts.length - 1; i >= 0; i--) {
 		const state = drafts[i][DRAFT_STATE]
 		if (!state.modified) {
-			if (Array.isArray(state.base)) {
-				if (hasArrayChanges(state)) markChanged(state)
-			} else if (isMap(state.base)) {
-				if (hasMapChanges(state)) markChanged(state)
-			} else if (isSet(state.base)) {
-				if (hasSetChanges(state)) markChanged(state)
-			} else if (hasObjectChanges(state)) {
-				markChanged(state)
+			switch (state.type) {
+				case ProxyType.ES5Array:
+					if (hasArrayChanges(state)) markChangedES5(state)
+					break
+				case ProxyType.ES5Object:
+					if (hasObjectChanges(state)) markChangedES5(state)
+					break
 			}
 		}
 	}
 }
 
-// TODO: refactor this to work per object-type
-// TODO: Set / Map shouldn't be ES specific
-function markChangesRecursively(object) {
+function markChangesRecursively(object: any) {
 	if (!object || typeof object !== "object") return
 	const state = object[DRAFT_STATE]
 	if (!state) return
-	const {base, draft, assigned} = state
-	if (isSet(object)) {
-		if (hasSetChanges(state)) {
-			markChanged(state)
-			object.forEach(v => {
-				markChangesRecursively(v)
-			})
-		}
-	} else if (isMap(object)) {
-		// if (hasMapChanges(object)) {
-		object.forEach((value, key) => {
-			if (assigned && base.get(key) === undefined && !has(base, key)) {
-				// TODO: this code seems invalid for Maps!
-				assigned.set(key, true)
-				markChanged(state)
-			} else if (!assigned || !assigned.get(key)) {
-				// TODO: === false?
-				// Only untouched properties trigger recursion.
-				markChangesRecursively(draft.get(key))
-			}
-		})
-		// Look for removed keys.
-		// TODO: is this code needed?
-		// TODO: use each?
-		if (assigned)
-			base.forEach((value, key) => {
-				// The `undefined` check is a fast path for pre-existing keys.
-				if (draft.get(key) === undefined && !has(draft, key)) {
-					assigned.set(key, false)
-					markChanged(state)
-				}
-			})
-		// }
-	} else if (!Array.isArray(object)) {
+	const {base, draft, assigned, type} = state
+	if (type === ProxyType.ES5Object) {
 		// Look for added keys.
-		// TODO: use each?
-		Object.keys(draft).forEach(key => {
+		// TODO: looks quite duplicate to hasObjectChanges,
+		// probably there is a faster way to detect changes, as sweep + recurse seems to do some
+		// unnecessary work.
+		// also: probably we can store the information we detect here, to speed up tree finalization!
+		each(draft, key => {
+			if ((key as any) === DRAFT_STATE) return
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (base[key] === undefined && !has(base, key)) {
-				// TODO: this code seems invalid for Maps!
 				assigned[key] = true
-				markChanged(state)
+				markChangedES5(state)
 			} else if (!assigned[key]) {
-				// TODO: === false ?
 				// Only untouched properties trigger recursion.
 				markChangesRecursively(draft[key])
 			}
 		})
 		// Look for removed keys.
-		// TODO: is this code needed?
-		// TODO: use each?
-		Object.keys(base).forEach(key => {
+		each(base, key => {
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (draft[key] === undefined && !has(draft, key)) {
 				assigned[key] = false
-				markChanged(state)
+				markChangedES5(state)
 			}
 		})
-	} else if (hasArrayChanges(state)) {
-		markChanged(state)
+	} else if (type === ProxyType.ES5Array && hasArrayChanges(state)) {
+		markChangedES5(state)
 		assigned.length = true
 		if (draft.length < base.length) {
 			for (let i = draft.length; i < base.length; i++) assigned[i] = false
@@ -300,7 +259,7 @@ function markChangesRecursively(object) {
 	}
 }
 
-function hasObjectChanges(state) {
+function hasObjectChanges(state: ES5ObjectState) {
 	const {base, draft} = state
 
 	// Search for added keys and changed keys. Start at the back, because
@@ -329,7 +288,7 @@ function hasObjectChanges(state) {
 	return keys.length !== Object.keys(base).length
 }
 
-function hasArrayChanges(state) {
+function hasArrayChanges(state: ES5ArrayState) {
 	const {draft} = state
 	if (draft.length !== state.base.length) return true
 	// See #116
@@ -344,12 +303,4 @@ function hasArrayChanges(state) {
 	if (descriptor && !descriptor.get) return true
 	// For all other cases, we don't have to compare, as they would have been picked up by the index setters
 	return false
-}
-
-function createHiddenProperty(target, prop, value) {
-	Object.defineProperty(target, prop, {
-		value: value,
-		enumerable: false,
-		writable: true
-	})
 }

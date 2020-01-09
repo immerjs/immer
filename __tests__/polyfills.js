@@ -30,33 +30,6 @@ describe("Symbol", () => {
 	})
 })
 
-describe("Object.assign", () => {
-	const {assign} = common
-
-	it("only copies enumerable keys", () => {
-		const src = {a: 1}
-		Object.defineProperty(src, "b", {value: 1})
-		const dest = {}
-		assign(dest, src)
-		expect(dest.a).toBe(1)
-		expect(dest.b).toBeUndefined()
-	})
-
-	it("only copies own properties", () => {
-		const src = Object.create({a: 1})
-		src.b = 1
-		const dest = {}
-		assign(dest, src)
-		expect(dest.a).toBeUndefined()
-		expect(dest.b).toBe(1)
-	})
-
-	it("can handle null", () => {
-		const res = assign({a: 1, b: 2}, null, {a: 2, c: 2})
-		expect(res).toEqual({a: 2, b: 2, c: 2})
-	})
-})
-
 describe("Reflect.ownKeys", () => {
 	const {ownKeys} = common
 
