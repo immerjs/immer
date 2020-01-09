@@ -188,7 +188,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("supports iteration", () => {
-				const base = [{id: 1, a: 1}, {id: 2, a: 1}]
+				const base = [
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				]
 				const findById = (collection, id) => {
 					for (const item of collection) {
 						if (item.id === id) return item
@@ -386,7 +389,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("supports 'keys", () => {
-				const base = new Map([["first", Symbol()], ["second", Symbol()]])
+				const base = new Map([
+					["first", Symbol()],
+					["second", Symbol()]
+				])
 				const result = produce(base, draft => {
 					expect([...draft.keys()]).toEqual(["first", "second"])
 					draft.set("third", Symbol())
@@ -490,7 +496,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			it("can use 'delete' to remove items", () => {
 				const nextState = produce(baseState, s => {
 					expect(s.aMap.has("jedi")).toBe(true)
-					s.aMap.delete("jedi")
+					expect(s.aMap.delete("jedi")).toBe(true)
 					expect(s.aMap.has("jedi")).toBe(false)
 				})
 				expect(nextState.aMap).not.toBe(baseState.aMap)
@@ -535,11 +541,55 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(base.get("first").get("second").prop).toBe("test")
 				expect(result.get("first").get("second").prop).toBe("test1")
 			})
+
+			it("treats void deletes as no-op", () => {
+				const base = new Map([["x", 1]])
+				const next = produce(base, d => {
+					expect(d.delete("y")).toBe(false)
+				})
+				expect(next).toBe(base)
+			})
+
+			it("revokes map proxies", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aMap
+				})
+				expect(() => m.get("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+				expect(() => m.set("x", 3)).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+			})
+
+			it("does not draft map keys", () => {
+				// anything else would be terribly confusing
+				const key = {a: 1}
+				const map = new Map([[key, 2]])
+				const next = produce(map, d => {
+					const dKey = Array.from(d.keys())[0]
+					expect(isDraft(dKey)).toBe(false)
+					expect(dKey).toBe(key)
+					dKey.a += 1
+					d.set(dKey, d.get(dKey) + 1)
+					d.set(key, d.get(key) + 1)
+					expect(d.get(key)).toBe(4)
+					expect(key.a).toBe(2)
+				})
+				const entries = Array.from(next.entries())
+				expect(entries).toEqual([[key, 4]])
+				expect(entries[0][0]).toBe(key)
+				expect(entries[0][0].a).toBe(2)
+			})
 		})
 
 		describe("set drafts", () => {
 			it("supports iteration", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set) {
 						if (item.id === id) return item
@@ -553,12 +603,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'entries'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const [item1, item2] of set.entries()) {
 						expect(item1).toBe(item2)
@@ -573,12 +636,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'values'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set.values()) {
 						if (item.id === id) return item
@@ -592,12 +668,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports 'keys'", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 1}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 1}
+				])
 				const findById = (set, id) => {
 					for (const item of set.keys()) {
 						if (item.id === id) return item
@@ -611,12 +700,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					obj2.a = 2
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 1}]))
-				expect(result).toEqual(new Set([{id: 1, a: 2}, {id: 2, a: 2}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 1}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 2},
+						{id: 2, a: 2}
+					])
+				)
 			})
 
 			it("supports forEach with mutation after reads", () => {
-				const base = new Set([{id: 1, a: 1}, {id: 2, a: 2}])
+				const base = new Set([
+					{id: 1, a: 1},
+					{id: 2, a: 2}
+				])
 				const result = produce(base, draft => {
 					let sum1 = 0
 					draft.forEach(({a}) => {
@@ -631,8 +733,18 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					expect(sum2).toBe(23)
 				})
 				expect(result).not.toBe(base)
-				expect(base).toEqual(new Set([{id: 1, a: 1}, {id: 2, a: 2}]))
-				expect(result).toEqual(new Set([{id: 1, a: 11}, {id: 2, a: 12}]))
+				expect(base).toEqual(
+					new Set([
+						{id: 1, a: 1},
+						{id: 2, a: 2}
+					])
+				)
+				expect(result).toEqual(
+					new Set([
+						{id: 1, a: 11},
+						{id: 2, a: 12}
+					])
+				)
 			})
 
 			it("state stays the same if the same item is added", () => {
@@ -669,13 +781,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			it("can use 'delete' to remove items", () => {
 				const nextState = produce(baseState, s => {
 					expect(s.aSet.has("Luke")).toBe(true)
-					s.aSet.delete("Luke")
+					expect(s.aSet.delete("Luke")).toBe(true)
+					expect(s.aSet.delete("Luke")).toBe(false)
 					expect(s.aSet.has("Luke")).toBe(false)
 				})
 				expect(nextState.aSet).not.toBe(baseState.aSet)
-				expect(nextState.aSet.size).toBe(baseState.aSet.size - 1)
 				expect(baseState.aSet.has("Luke")).toBe(true)
 				expect(nextState.aSet.has("Luke")).toBe(false)
+				expect(nextState.aSet.size).toBe(baseState.aSet.size - 1)
 			})
 
 			it("can use 'clear' to remove items", () => {
@@ -709,6 +822,32 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(result).not.toBe(base)
 				expect(base).toEqual(new Set([new Set(["Serenity"])]))
 				expect(result).toEqual(new Set([new Set(["Serenity", "Firefly"])]))
+			})
+
+			it("supports has / delete on elements from the original", () => {
+				const obj = {}
+				const set = new Set([obj])
+				const next = produce(set, d => {
+					expect(d.has(obj)).toBe(true)
+					d.add(3)
+					expect(d.has(obj)).toBe(true)
+					d.delete(obj)
+					expect(d.has(obj)).toBe(false)
+				})
+				expect(next).toEqual(new Set([3]))
+			})
+
+			it("revokes sets", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aSet
+				})
+				expect(() => m.has("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
+				expect(() => m.add("x")).toThrow(
+					"Cannot use a proxy that has been revoked"
+				)
 			})
 		})
 
@@ -1236,6 +1375,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(result[0].a).toEqual(2)
 		})
 
+		it("does not draft external data", () => {
+			const externalData = {x: 3}
+			const base = {}
+			const next = produce(base, draft => {
+				// potentially, we *could* draft external data automatically, but only if those statements are not switched...
+				draft.y = externalData
+				draft.y.x += 1
+				externalData.x += 1
+			})
+			expect(next).toEqual({y: {x: 5}})
+			expect(externalData.x).toBe(5)
+			expect(next.y).toBe(externalData)
+		})
+
 		autoFreeze &&
 			test("issue #469, state not frozen", () => {
 				const project = produce(
@@ -1598,7 +1751,10 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		const c = {c: 3}
 		const set1 = new Set([a, b])
 		const set2 = new Set([c])
-		const map = new Map([["set1", set1], ["set2", set2]])
+		const map = new Map([
+			["set1", set1],
+			["set2", set2]
+		])
 		const base = {map}
 
 		function first(set) {

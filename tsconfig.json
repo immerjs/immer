@@ -1,12 +1,17 @@
 {
-  "include": ["src"],
   "compilerOptions": {
     "lib": ["es2015"],
+    "target": "ES6",
     "strict": true,
     "declaration": true,
     "importHelpers": false,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
     "sourceMap": true,
     "declarationMap": true,
-    "noImplicitAny": false // TODO: true,
-  }
+    "noEmit": true,
+    "moduleResolution": "node"
+  },
+  "files": ["./src/index.ts"]
 }

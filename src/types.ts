@@ -1,20 +1,58 @@
-import {Nothing} from "./common"
+import {Nothing, DRAFT_STATE} from "./common"
+import {SetState} from "./set"
+import {MapState} from "./map"
+import {ProxyObjectState, ProxyArrayState} from "./proxy"
+import {ES5ObjectState, ES5ArrayState} from "./es5"
+import {ImmerScope} from "./scope"
 
-export type Objectish = any[] | Map<any, any> | Set<any> | {}
+export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
+export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
 
-export type ObjectishNoSet = any[] | Map<any, any> | {}
-
-export interface ImmerState<T = any> {
-	parent?: ImmerState
-	base: T
-	copy: T
-	assigned: {[prop: string]: boolean; [index: number]: boolean}
+export type AnyObject = {[key: string]: any}
+export type AnyArray = Array<any>
+export type AnySet = Set<any>
+export type AnyMap = Map<any, any>
+export enum Archtype {
+	Object,
+	Array,
+	Map,
+	Set
 }
 
-type Tail<T extends any[]> = ((...t: T) => any) extends ((
+export enum ProxyType {
+	ProxyObject,
+	ProxyArray,
+	ES5Object,
+	ES5Array,
+	Map,
+	Set
+}
+
+export interface ImmerBaseState {
+	parent?: ImmerState
+	scope: ImmerScope
+	modified: boolean
+	finalized: boolean
+	isManual: boolean
+}
+
+export type ImmerState =
+	| ProxyObjectState
+	| ProxyArrayState
+	| ES5ObjectState
+	| ES5ArrayState
+	| MapState
+	| SetState
+
+// The _internal_ type used for drafts (not to be confused with Draft, which is public facing)
+export type Drafted<Base = any, T extends ImmerState = ImmerState> = {
+	[DRAFT_STATE]: T
+} & Base
+
+type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
 	...tail: infer TT
-) => any)
+) => any
 	? TT
 	: []
 
@@ -176,12 +214,3 @@ export interface IProduceWithPatches {
 		recipe: (draft: D) => Return
 	): [Produced<Base, Return>, Patch[], Patch[]]
 }
-
-// Backward compatibility with --target es5
-// TODO: still needed?
-// declare global {
-// 	interface Set<T> {}
-// 	interface Map<K, V> {}
-// 	interface WeakSet<T> {}
-// 	interface WeakMap<K extends object, V> {}
-// }

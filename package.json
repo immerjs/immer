@@ -70,7 +70,7 @@
     "jest": "^24.7.1",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
-    "prettier": "1.17.0",
+    "prettier": "1.19.1",
     "pretty-quick": "^1.8.0",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
@@ -91,6 +91,13 @@
       "\\.js$": "babel-jest",
       "\\.ts$": "ts-jest"
     },
-    "preset": "ts-jest/presets/js-with-babel"
+    "preset": "ts-jest/presets/js-with-babel",
+    "globals": {
+      "ts-jest": {
+        "tsConfig": {
+          "noUnusedLocals": false
+        }
+      }
+    }
   }
 }

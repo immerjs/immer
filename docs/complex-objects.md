@@ -72,3 +72,5 @@ For arrays, only numeric properties and the `length` property can be mutated. Cu
 When working with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.
 
 Maps and Sets that are produced by Immer will be made artificially immutable. This means that they will throw an exception when trying mutative methods like `set`, `clear` etc. outside a producer.
+
+_Note: The **keys** of a map are never drafted! This is done to avoid confusing semantics and keep keys always referentially equal_
