@@ -562,6 +562,26 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					"Cannot use a proxy that has been revoked"
 				)
 			})
+
+			it("does not draft map keys", () => {
+				// anything else would be terribly confusing
+				const key = {a: 1}
+				const map = new Map([[key, 2]])
+				const next = produce(map, d => {
+					const dKey = Array.from(d.keys())[0]
+					expect(isDraft(dKey)).toBe(false)
+					expect(dKey).toBe(key)
+					dKey.a += 1
+					d.set(dKey, d.get(dKey) + 1)
+					d.set(key, d.get(key) + 1)
+					expect(d.get(key)).toBe(4)
+					expect(key.a).toBe(2)
+				})
+				const entries = Array.from(next.entries())
+				expect(entries).toEqual([[key, 4]])
+				expect(entries[0][0]).toBe(key)
+				expect(entries[0][0].a).toBe(2)
+			})
 		})
 
 		describe("set drafts", () => {
@@ -1353,6 +1373,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(base[0].a).toEqual(1)
 			expect(result[0].a).toEqual(2)
+		})
+
+		it("does not draft external data", () => {
+			const externalData = {x: 3}
+			const base = {}
+			const next = produce(base, draft => {
+				// potentially, we *could* draft external data automatically, but only if those statements are not switched...
+				draft.y = externalData
+				draft.y.x += 1
+				externalData.x += 1
+			})
+			expect(next).toEqual({y: {x: 5}})
+			expect(externalData.x).toBe(5)
+			expect(next.y).toBe(externalData)
 		})
 
 		autoFreeze &&
