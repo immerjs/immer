@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "src/",
     "lib": ["es2015"],
-    // TODO: change to ES5 and make sure maps still work
     "target": "ES6",
     "strict": true,
     "declaration": true,
@@ -12,9 +10,8 @@
     "noUnusedLocals": true,
     "sourceMap": true,
     "declarationMap": true,
-    "noEmit": true
+    "noEmit": true,
+    "moduleResolution": "node"
   },
-  "files": ["src/index.ts"],
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules/**/*.ts"]
+  "files": ["./src/index.ts"]
 }
