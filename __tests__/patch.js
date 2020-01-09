@@ -174,7 +174,10 @@ describe("simple assignment - 6", () => {
 			{op: "replace", path: ["x"], value: 2},
 			{op: "add", path: ["y"], value: 3}
 		],
-		[{op: "replace", path: ["x"], value: 1}, {op: "remove", path: ["y"]}]
+		[
+			{op: "replace", path: ["x"], value: 1},
+			{op: "remove", path: ["y"]}
+		]
 	)
 })
 
@@ -234,12 +237,20 @@ describe("delete 5", () => {
 	const key1 = {prop: "val1"}
 	const key2 = {prop: "val2"}
 	runPatchTest(
-		{x: new Map([[key1, 1], [key2, 2]])},
+		{
+			x: new Map([
+				[key1, 1],
+				[key2, 2]
+			])
+		},
 		d => {
 			d.x.delete(key1)
 			d.x.delete(key2)
 		},
-		[{op: "remove", path: ["x", key1]}, {op: "remove", path: ["x", key2]}],
+		[
+			{op: "remove", path: ["x", key1]},
+			{op: "remove", path: ["x", key2]}
+		],
 		[
 			{op: "add", path: ["x", key1], value: 1},
 			{op: "add", path: ["x", key2], value: 2}
@@ -277,7 +288,10 @@ describe("renaming properties", () => {
 				d.x = d.a
 				delete d.a
 			},
-			[{op: "add", path: ["x"], value: {b: 1}}, {op: "remove", path: ["a"]}]
+			[
+				{op: "add", path: ["x"], value: {b: 1}},
+				{op: "remove", path: ["a"]}
+			]
 		)
 	})
 
@@ -321,7 +335,15 @@ describe("renaming properties", () => {
 
 	describe("nested map (with changes)", () => {
 		runPatchTest(
-			new Map([["a", new Map([["b", 1], ["c", 1]])]]),
+			new Map([
+				[
+					"a",
+					new Map([
+						["b", 1],
+						["c", 1]
+					])
+				]
+			]),
 			d => {
 				let a = d.get("a")
 				a.set("b", 2) // change
@@ -333,12 +355,26 @@ describe("renaming properties", () => {
 				d.delete("a")
 			},
 			[
-				{op: "add", path: ["x"], value: new Map([["b", 2], ["y", 2]])},
+				{
+					op: "add",
+					path: ["x"],
+					value: new Map([
+						["b", 2],
+						["y", 2]
+					])
+				},
 				{op: "remove", path: ["a"]}
 			],
 			[
 				{op: "remove", path: ["x"]},
-				{op: "add", path: ["a"], value: new Map([["b", 1], ["c", 1]])}
+				{
+					op: "add",
+					path: ["a"],
+					value: new Map([
+						["b", 1],
+						["c", 1]
+					])
+				}
 			]
 		)
 	})
@@ -365,7 +401,20 @@ describe("renaming properties", () => {
 
 	describe("deeply nested map (with changes)", () => {
 		runPatchTest(
-			new Map([["a", new Map([["b", new Map([["c", 1], ["d", 1]])]])]]),
+			new Map([
+				[
+					"a",
+					new Map([
+						[
+							"b",
+							new Map([
+								["c", 1],
+								["d", 1]
+							])
+						]
+					])
+				]
+			]),
 			d => {
 				let b = d.get("a").get("b")
 				b.set("c", 2) // change
@@ -380,7 +429,10 @@ describe("renaming properties", () => {
 				{
 					op: "add",
 					path: ["a", "x"],
-					value: new Map([["c", 2], ["y", 2]])
+					value: new Map([
+						["c", 2],
+						["y", 2]
+					])
 				},
 				{op: "remove", path: ["a", "b"]}
 			],
@@ -389,7 +441,10 @@ describe("renaming properties", () => {
 				{
 					op: "add",
 					path: ["a", "b"],
-					value: new Map([["c", 1], ["d", 1]])
+					value: new Map([
+						["c", 1],
+						["d", 1]
+					])
 				}
 			]
 		)
@@ -468,7 +523,10 @@ describe("arrays - modify and shrink", () => {
 			d.x[0] = 4
 			d.x.length = 2
 		},
-		[{op: "replace", path: ["x", 0], value: 4}, {op: "remove", path: ["x", 2]}],
+		[
+			{op: "replace", path: ["x", 0], value: 4},
+			{op: "remove", path: ["x", 2]}
+		],
 		[
 			{op: "replace", path: ["x", 0], value: 1},
 			{op: "add", path: ["x", 2], value: 3}
@@ -510,7 +568,10 @@ describe("arrays - truncate", () => {
 		d => {
 			d.x.length -= 2
 		},
-		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}],
+		[
+			{op: "remove", path: ["x", 2]},
+			{op: "remove", path: ["x", 1]}
+		],
 		[
 			{op: "add", path: ["x", 1], value: 2},
 			{op: "add", path: ["x", 2], value: 3}
@@ -525,7 +586,10 @@ describe("arrays - pop twice", () => {
 			d.x.pop()
 			d.x.pop()
 		},
-		[{op: "remove", path: ["x", 2]}, {op: "remove", path: ["x", 1]}]
+		[
+			{op: "remove", path: ["x", 2]},
+			{op: "remove", path: ["x", 1]}
+		]
 	)
 })
 
@@ -539,7 +603,10 @@ describe("arrays - push multiple", () => {
 			{op: "add", path: ["x", 3], value: 4},
 			{op: "add", path: ["x", 4], value: 5}
 		],
-		[{op: "remove", path: ["x", 4]}, {op: "remove", path: ["x", 3]}]
+		[
+			{op: "remove", path: ["x", 4]},
+			{op: "remove", path: ["x", 3]}
+		]
 	)
 })
 
@@ -625,7 +692,10 @@ describe("sets - mutate - 1", () => {
 		}
 	}
 	runPatchTest(
-		new Set([{id: 1, val: "We"}, {id: 2, val: "will"}]),
+		new Set([
+			{id: 1, val: "We"},
+			{id: 2, val: "will"}
+		]),
 		d => {
 			const obj1 = findById(d, 1)
 			const obj2 = findById(d, 2)
@@ -860,4 +930,50 @@ test("replaying patches with interweaved replacements should work correctly", ()
 			return applyPatches(draft, patches)
 		})
 	).toEqual({x: -1})
+})
+
+test.skip("#468", () => {
+	const item = {id: 1}
+
+	const state = [item]
+
+	const [nextState, patches] = produceWithPatches(state, draft => {
+		draft[0].id = 2
+		draft[1] = item
+	})
+
+	expect(nextState).toMatchInlineSnapshot(`
+		Array [
+		  Object {
+		    "id": 2,
+		  },
+		  Object {
+		    "id": 1,
+		  },
+		]
+	`)
+	expect(patches).toMatchInlineSnapshot(`
+				Array [
+				  Object {
+				    "op": "replace",
+				    "path": Array [
+				      0,
+				      "id",
+				    ],
+				    "value": 2,
+				  },
+				  Object {
+				    "op": "add",
+				    "path": Array [
+				      0,
+				    ],
+				    "value": Object {
+				      "id": 2,
+				    },
+				  },
+				]
+		`)
+
+	const final = applyPatches(state, patches)
+	expect(final).toEqual(nextState)
 })
