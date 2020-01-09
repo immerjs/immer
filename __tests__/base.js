@@ -1389,6 +1389,21 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(next.y).toBe(externalData)
 		})
 
+		it("does not create new state unnecessary, #491", () => {
+			const a = {highlight: true}
+			const next1 = produce(a, draft => {
+				draft.highlight = false
+				draft.highlight = true
+			})
+			// See explanation in issue
+			expect(next1).not.toBe(a)
+
+			const next2 = produce(a, draft => {
+				draft.highlight = true
+			})
+			expect(next2).toBe(a)
+		})
+
 		autoFreeze &&
 			test("issue #469, state not frozen", () => {
 				const project = produce(
