@@ -1,6 +1,6 @@
 "use strict"
 import {Immer, nothing, original, isDraft, immerable} from "../src/index"
-import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
+import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -582,6 +582,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(entries[0][0]).toBe(key)
 				expect(entries[0][0].a).toBe(2)
 			})
+
+			it("does support instanceof Map", () => {
+				const map = new Map()
+				produce(map, d => {
+					expect(d instanceof Map).toBeTruthy()
+				})
+			})
 		})
 
 		describe("set drafts", () => {
@@ -848,6 +855,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(() => m.add("x")).toThrow(
 					"Cannot use a proxy that has been revoked"
 				)
+			})
+
+			it("does support instanceof Set", () => {
+				const set = new Set()
+				produce(set, d => {
+					expect(d instanceof Set).toBeTruthy()
+				})
 			})
 		})
 

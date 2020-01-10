@@ -7,23 +7,20 @@ import {
 	isDraftable,
 	isEnumerable,
 	shallowCopy,
-	DRAFT_STATE,
 	latest,
-	createHiddenProperty
-} from "./common"
-
-import {ImmerScope} from "./scope"
-import {
+	createHiddenProperty,
+	ImmerScope,
 	ImmerState,
 	Drafted,
 	AnyObject,
 	Objectish,
 	ImmerBaseState,
 	AnyArray,
-	ProxyType
-} from "./types"
-import {MapState} from "./map"
-import {SetState} from "./set"
+	ProxyType,
+	MapState,
+	SetState,
+	DRAFT_STATE
+} from "./internal"
 
 interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean

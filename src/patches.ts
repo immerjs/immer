@@ -1,9 +1,21 @@
-import {get, each, isMap, has, die, getArchtype} from "./common"
-import {Patch, ImmerState, ProxyType, Archtype} from "./types"
-import {SetState} from "./set"
-import {ES5ArrayState, ES5ObjectState} from "./es5"
-import {ProxyArrayState, ProxyObjectState} from "./proxy"
-import {MapState} from "./map"
+import {
+	get,
+	each,
+	has,
+	die,
+	getArchtype,
+	ImmerState,
+	Patch,
+	ProxyType,
+	SetState,
+	ES5ArrayState,
+	ProxyArrayState,
+	MapState,
+	ES5ObjectState,
+	ProxyObjectState,
+	Archtype,
+	isMap
+} from "./internal"
 
 export type PatchPath = (string | number)[]
 

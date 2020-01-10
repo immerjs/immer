@@ -1,5 +1,5 @@
 import {produce, produceWithPatches, setUseProxies} from "../src"
-import {DRAFT_STATE} from "../src/common"
+import {DRAFT_STATE} from "../src/internal"
 
 test("empty stub test", () => {
 	expect(true).toBe(true)
@@ -10,6 +10,7 @@ describe("map set - es5", () => {
 		setUseProxies(false)
 
 		const baseState = new Map([["x", 1]])
+		debugger
 		const nextState = produce(baseState, s => {
 			s.set("x", 2)
 		})

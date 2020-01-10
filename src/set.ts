@@ -1,8 +1,17 @@
-import {DRAFT_STATE, latest, isDraftable, iteratorSymbol} from "./common"
-
-import {ImmerScope} from "./scope"
-import {AnySet, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
-import {assertUnrevoked} from "./es5"
+import {
+	__extends,
+	ImmerBaseState,
+	ProxyType,
+	AnySet,
+	Drafted,
+	ImmerState,
+	DRAFT_STATE,
+	ImmerScope,
+	latest,
+	assertUnrevoked,
+	iteratorSymbol,
+	isDraftable
+} from "./internal"
 
 export interface SetState extends ImmerBaseState {
 	type: ProxyType.Set
@@ -13,15 +22,14 @@ export interface SetState extends ImmerBaseState {
 	draft: Drafted<AnySet, SetState>
 }
 
-// Make sure DraftSet declarion doesn't die if Map is not avialable...
-/* istanbul ignore next */
-const SetBase: SetConstructor =
-	typeof Set !== "undefined" ? Set : (function FakeSet() {} as any)
-
-export class DraftSet<K, V> extends SetBase implements Set<V> {
-	[DRAFT_STATE]: SetState
-	constructor(target: AnySet, parent?: ImmerState) {
-		super()
+const DraftSet = (function(_super) {
+	if (!_super) {
+		/* istanbul ignore next */
+		throw new Error("Set is not polyfilled")
+	}
+	__extends(DraftSet, _super)
+	// Create class manually, cause #502
+	function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
 		this[DRAFT_STATE] = {
 			type: ProxyType.Set,
 			parent,
@@ -35,13 +43,19 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			revoked: false,
 			isManual: false
 		}
+		return this
 	}
+	const p = DraftSet.prototype
 
-	get size(): number {
-		return latest(this[DRAFT_STATE]).size
-	}
+	Object.defineProperty(p, "size", {
+		get: function() {
+			return latest(this[DRAFT_STATE]).size
+		},
+		enumerable: true,
+		configurable: true
+	})
 
-	has(value: V): boolean {
+	p.has = function(value: any): boolean {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		// bit of trickery here, to be able to recognize both the value, and the draft of its value
@@ -54,7 +68,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return false
 	}
 
-	add(value: V): this {
+	p.add = function(value: any): any {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		if (state.copy) {
@@ -67,7 +81,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return this
 	}
 
-	delete(value: V): boolean {
+	p.delete = function(value: any): any {
 		if (!this.has(value)) {
 			return false
 		}
@@ -84,7 +98,7 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		)
 	}
 
-	clear() {
+	p.clear = function() {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		prepareCopy(state)
@@ -92,29 +106,29 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 		return state.copy!.clear()
 	}
 
-	values(): IterableIterator<V> {
+	p.values = function(): IterableIterator<any> {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.values()
 	}
 
-	entries(): IterableIterator<[V, V]> {
+	p.entries = function entries(): IterableIterator<[any, any]> {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		prepareCopy(state)
 		return state.copy!.entries()
 	}
 
-	keys(): IterableIterator<V> {
+	p.keys = function(): IterableIterator<any> {
 		return this.values()
 	}
 
-	[iteratorSymbol]() {
+	p[iteratorSymbol] = function() {
 		return this.values()
 	}
 
-	forEach(cb: (value: V, key: V, self: this) => void, thisArg?: any) {
+	p.forEach = function forEach(cb: any, thisArg?: any) {
 		const iterator = this.values()
 		let result = iterator.next()
 		while (!result.done) {
@@ -122,9 +136,15 @@ export class DraftSet<K, V> extends SetBase implements Set<V> {
 			result = iterator.next()
 		}
 	}
-}
 
-export function proxySet(target: AnySet, parent?: ImmerState) {
+	return DraftSet
+})(Set)
+
+export function proxySet<T extends AnySet>(
+	target: T,
+	parent?: ImmerState
+): T & {[DRAFT_STATE]: SetState} {
+	// @ts-ignore
 	return new DraftSet(target, parent)
 }
 

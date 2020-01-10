@@ -1,9 +1,14 @@
-import {Nothing, DRAFT_STATE} from "./common"
-import {SetState} from "./set"
-import {MapState} from "./map"
-import {ProxyObjectState, ProxyArrayState} from "./proxy"
-import {ES5ObjectState, ES5ArrayState} from "./es5"
-import {ImmerScope} from "./scope"
+import {
+	SetState,
+	ImmerScope,
+	ProxyObjectState,
+	ProxyArrayState,
+	ES5ObjectState,
+	ES5ArrayState,
+	MapState,
+	DRAFT_STATE,
+	Nothing
+} from "./internal"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap

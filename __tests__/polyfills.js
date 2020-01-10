@@ -7,7 +7,7 @@ Object.assign = undefined
 Reflect.ownKeys = undefined
 
 jest.resetModules()
-const common = require("../src/common")
+const common = require("../src/internal")
 
 // Reset the globals to avoid unintended effects.
 Symbol = SymbolConstructor

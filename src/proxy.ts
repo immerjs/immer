@@ -5,19 +5,17 @@ import {
 	is,
 	isDraftable,
 	shallowCopy,
-	DRAFT_STATE,
-	latest
-} from "./common"
-import {ImmerScope} from "./scope"
-import {
-	AnyObject,
-	Drafted,
+	latest,
+	ImmerBaseState,
 	ImmerState,
+	Drafted,
+	ProxyType,
+	AnyObject,
 	AnyArray,
 	Objectish,
-	ImmerBaseState,
-	ProxyType
-} from "./types"
+	ImmerScope,
+	DRAFT_STATE
+} from "./internal"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned: {
