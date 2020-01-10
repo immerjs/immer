@@ -1,10 +1,17 @@
-import {__extends} from "./extends"
-import {latest, isDraftable} from "./common"
-
-import {ImmerScope} from "./scope"
-import {AnySet, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
-import {assertUnrevoked} from "./es5"
-import {DRAFT_STATE, iteratorSymbol} from "./env"
+import {
+	__extends,
+	ImmerBaseState,
+	ProxyType,
+	AnySet,
+	Drafted,
+	ImmerState,
+	DRAFT_STATE,
+	ImmerScope,
+	latest,
+	assertUnrevoked,
+	iteratorSymbol,
+	isDraftable
+} from "./internal"
 
 export interface SetState extends ImmerBaseState {
 	type: ProxyType.Set

@@ -1,23 +1,32 @@
-import {createES5Proxy, willFinalizeES5, markChangedES5} from "./es5"
-import {createProxy, markChanged} from "./proxy"
-
-import {applyPatches} from "./patches"
-import {each, isDraft, isSet, isDraftable, die} from "./common"
-import {ImmerScope} from "./scope"
 import {
-	ImmerState,
-	IProduce,
+	createES5Proxy,
+	willFinalizeES5,
+	markChangedES5,
 	IProduceWithPatches,
-	Objectish,
-	PatchListener,
-	Draft,
+	IProduce,
+	ImmerState,
+	each,
+	Drafted,
+	isDraftable,
+	ImmerScope,
+	processResult,
+	NOTHING,
+	maybeFreeze,
+	die,
 	Patch,
-	Drafted
-} from "./types"
-import {proxyMap, isMap} from "./map"
-import {proxySet} from "./set"
-import {processResult, maybeFreeze} from "./finalize"
-import {NOTHING, DRAFT_STATE} from "./env"
+	Objectish,
+	DRAFT_STATE,
+	Draft,
+	PatchListener,
+	isDraft,
+	applyPatches,
+	isMap,
+	proxyMap,
+	isSet,
+	proxySet,
+	createProxy,
+	markChanged
+} from "./internal"
 
 /* istanbul ignore next */
 function verifyMinified() {}

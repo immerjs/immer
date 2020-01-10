@@ -1,16 +1,21 @@
 "use strict"
-import {each, has, is, isDraftable, shallowCopy, latest} from "./common"
-import {ImmerScope} from "./scope"
 import {
-	AnyObject,
-	Drafted,
+	each,
+	has,
+	is,
+	isDraftable,
+	shallowCopy,
+	latest,
+	ImmerBaseState,
 	ImmerState,
+	Drafted,
+	ProxyType,
+	AnyObject,
 	AnyArray,
 	Objectish,
-	ImmerBaseState,
-	ProxyType
-} from "./types"
-import {DRAFT_STATE} from "./env"
+	ImmerScope,
+	DRAFT_STATE
+} from "./internal"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned: {

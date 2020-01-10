@@ -1,5 +1,7 @@
-import {DRAFT_STATE, DRAFTABLE, hasSet} from "./env"
 import {
+	DRAFT_STATE,
+	DRAFTABLE,
+	hasSet,
 	Objectish,
 	Drafted,
 	AnyObject,
@@ -8,9 +10,9 @@ import {
 	AnySet,
 	ImmerState,
 	ProxyType,
-	Archtype
-} from "./types"
-import {isMap} from "./map"
+	Archtype,
+	hasMap
+} from "./internal"
 
 /** Returns true if the given value is an Immer draft */
 export function isDraft(value: any): boolean {
@@ -129,6 +131,10 @@ export function is(x: any, y: any): boolean {
 	} else {
 		return x !== x && y !== y
 	}
+}
+
+export function isMap(target: any): target is AnyMap {
+	return hasMap && target instanceof Map
 }
 
 export function isSet(target: any): target is AnySet {

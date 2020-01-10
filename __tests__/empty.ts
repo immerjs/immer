@@ -1,5 +1,5 @@
 import {produce, produceWithPatches, setUseProxies} from "../src"
-import {DRAFT_STATE} from "../src/common"
+import {DRAFT_STATE} from "../src/internal"
 
 test("empty stub test", () => {
 	expect(true).toBe(true)

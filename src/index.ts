@@ -1,7 +1,16 @@
-import {Immer} from "./immer"
-import {IProduce, IProduceWithPatches} from "./types"
+import {IProduce, IProduceWithPatches, Immer} from "./internal"
 
-export {Draft, Immutable, Patch, PatchListener} from "./types"
+export {
+	Draft,
+	Immutable,
+	Patch,
+	PatchListener,
+	original,
+	isDraft,
+	isDraftable,
+	NOTHING as nothing,
+	DRAFTABLE as immerable
+} from "./internal"
 
 const immer = new Immer()
 
@@ -72,13 +81,5 @@ export const createDraft = immer.createDraft.bind(immer)
  * changes that were made.
  */
 export const finishDraft = immer.finishDraft.bind(immer)
-
-export {
-	original,
-	isDraft,
-	isDraftable,
-	NOTHING as nothing,
-	DRAFTABLE as immerable
-} from "./common"
 
 export {Immer}

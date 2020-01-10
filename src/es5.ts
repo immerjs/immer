@@ -8,22 +8,19 @@ import {
 	isEnumerable,
 	shallowCopy,
 	latest,
-	createHiddenProperty
-} from "./common"
-
-import {ImmerScope} from "./scope"
-import {
+	createHiddenProperty,
+	ImmerScope,
 	ImmerState,
 	Drafted,
 	AnyObject,
 	Objectish,
 	ImmerBaseState,
 	AnyArray,
-	ProxyType
-} from "./types"
-import {MapState} from "./map"
-import {SetState} from "./set"
-import {DRAFT_STATE} from "./env"
+	ProxyType,
+	MapState,
+	SetState,
+	DRAFT_STATE
+} from "./internal"
 
 interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean

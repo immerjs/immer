@@ -1,6 +1,6 @@
 "use strict"
 import {Immer, nothing, original, isDraft, immerable} from "../src/index"
-import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
+import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"

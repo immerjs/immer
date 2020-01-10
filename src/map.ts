@@ -1,10 +1,17 @@
-import {__extends} from "./extends"
-import {isDraftable, latest} from "./common"
-
-import {ImmerScope} from "./scope"
-import {AnyMap, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
-import {assertUnrevoked} from "./es5"
-import {DRAFT_STATE, iteratorSymbol, hasMap} from "./env"
+import {
+	__extends,
+	ImmerBaseState,
+	ProxyType,
+	AnyMap,
+	Drafted,
+	ImmerState,
+	DRAFT_STATE,
+	ImmerScope,
+	latest,
+	assertUnrevoked,
+	isDraftable,
+	iteratorSymbol
+} from "./internal"
 
 export interface MapState extends ImmerBaseState {
 	type: ProxyType.Map
@@ -177,8 +184,4 @@ function prepareCopy(state: MapState) {
 		state.assigned = new Map()
 		state.copy = new Map(state.base)
 	}
-}
-
-export function isMap(target: any): target is AnyMap {
-	return hasMap && (target instanceof Map || target instanceof DraftMap) // TODO: fix
 }
