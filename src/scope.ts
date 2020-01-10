@@ -1,6 +1,6 @@
-import {DRAFT_STATE} from "./common"
 import {Patch, PatchListener, Drafted, ProxyType} from "./types"
 import {Immer} from "./immer"
+import {DRAFT_STATE} from "./env"
 
 /** Each scope represents a `produce` call. */
 export class ImmerScope {

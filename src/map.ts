@@ -1,8 +1,10 @@
-import {isDraftable, DRAFT_STATE, latest, iteratorSymbol} from "./common"
+import {__extends} from "./extends"
+import {isDraftable, latest} from "./common"
 
 import {ImmerScope} from "./scope"
 import {AnyMap, Drafted, ImmerState, ImmerBaseState, ProxyType} from "./types"
 import {assertUnrevoked} from "./es5"
+import {DRAFT_STATE, iteratorSymbol, hasMap} from "./env"
 
 export interface MapState extends ImmerBaseState {
 	type: ProxyType.Map
@@ -13,15 +15,14 @@ export interface MapState extends ImmerBaseState {
 	draft: Drafted<AnyMap, MapState>
 }
 
-// Make sure DraftMap declarion doesn't die if Map is not avialable...
-/* istanbul ignore next */
-const MapBase: MapConstructor =
-	typeof Map !== "undefined" ? Map : (function FakeMap() {} as any)
-
-export class DraftMap<K, V> extends MapBase implements Map<K, V> {
-	[DRAFT_STATE]: MapState
-	constructor(target: AnyMap, parent?: ImmerState) {
-		super()
+const DraftMap = (function(_super) {
+	if (!_super) {
+		/* istanbul ignore next */
+		throw new Error("Map is not polyfilled")
+	}
+	__extends(DraftMap, _super)
+	// Create class manually, cause #502
+	function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
 		this[DRAFT_STATE] = {
 			type: ProxyType.Map,
 			parent,
@@ -31,21 +32,28 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 			copy: undefined,
 			assigned: undefined,
 			base: target,
-			draft: this,
+			draft: this as any,
 			isManual: false,
 			revoked: false
 		}
+		return this
 	}
+	const p = DraftMap.prototype
 
-	get size(): number {
-		return latest(this[DRAFT_STATE]).size
-	}
+	// TODO: smaller build size if we create a util for Object.defineProperty
+	Object.defineProperty(p, "size", {
+		get: function() {
+			return latest(this[DRAFT_STATE]).size
+		},
+		enumerable: true,
+		configurable: true
+	})
 
-	has(key: K): boolean {
+	p.has = function(key: any): boolean {
 		return latest(this[DRAFT_STATE]).has(key)
 	}
 
-	set(key: K, value: V): this {
+	p.set = function(key: any, value: any) {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		if (latest(state).get(key) !== value) {
@@ -58,7 +66,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return this
 	}
 
-	delete(key: K): boolean {
+	p.delete = function(key: any): boolean {
 		if (!this.has(key)) {
 			return false
 		}
@@ -72,7 +80,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return true
 	}
 
-	clear() {
+	p.clear = function() {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		prepareCopy(state)
@@ -84,14 +92,17 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return state.copy!.clear()
 	}
 
-	forEach(cb: (value: V, key: K, self: this) => void, thisArg?: any) {
+	p.forEach = function(
+		cb: (value: any, key: any, self: any) => void,
+		thisArg?: any
+	) {
 		const state = this[DRAFT_STATE]
-		latest(state).forEach((_value: V, key: K, _map: this) => {
+		latest(state).forEach((_value: any, key: any, _map: any) => {
 			cb.call(thisArg, this.get(key), key, this)
 		})
 	}
 
-	get(key: K): V {
+	p.get = function(key: any): any {
 		const state = this[DRAFT_STATE]
 		assertUnrevoked(state)
 		const value = latest(state).get(key)
@@ -108,11 +119,11 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		return draft
 	}
 
-	keys(): IterableIterator<K> {
+	p.keys = function(): IterableIterator<any> {
 		return latest(this[DRAFT_STATE]).keys()
 	}
 
-	values(): IterableIterator<V> {
+	p.values = function(): IterableIterator<any> {
 		const iterator = this.keys()
 		return {
 			[iteratorSymbol]: () => this.values(),
@@ -129,7 +140,7 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		} as any
 	}
 
-	entries(): IterableIterator<[K, V]> {
+	p.entries = function(): IterableIterator<[any, any]> {
 		const iterator = this.keys()
 		return {
 			[iteratorSymbol]: () => this.entries(),
@@ -146,12 +157,18 @@ export class DraftMap<K, V> extends MapBase implements Map<K, V> {
 		} as any
 	}
 
-	[iteratorSymbol]() {
+	p[iteratorSymbol] = function() {
 		return this.entries()
 	}
-}
 
-export function proxyMap(target: AnyMap, parent?: ImmerState) {
+	return DraftMap
+})(Map)
+
+export function proxyMap<T extends AnyMap>(
+	target: T,
+	parent?: ImmerState
+): T & {[DRAFT_STATE]: MapState} {
+	// @ts-ignore
 	return new DraftMap(target, parent)
 }
 
@@ -160,4 +177,8 @@ function prepareCopy(state: MapState) {
 		state.assigned = new Map()
 		state.copy = new Map(state.base)
 	}
+}
+
+export function isMap(target: any): target is AnyMap {
+	return hasMap && (target instanceof Map || target instanceof DraftMap) // TODO: fix
 }

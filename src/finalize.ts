@@ -1,21 +1,11 @@
 import {Immer} from "./immer"
 import {ImmerState, Drafted, ProxyType} from "./types"
 import {ImmerScope} from "./scope"
-import {
-	isSet,
-	has,
-	is,
-	get,
-	each,
-	DRAFT_STATE,
-	NOTHING,
-	freeze,
-	shallowCopy,
-	set
-} from "./common"
+import {isSet, has, is, get, each, freeze, shallowCopy, set} from "./common"
 import {isDraft, isDraftable} from "./index"
 import {SetState} from "./set"
 import {generatePatches, PatchPath} from "./patches"
+import {DRAFT_STATE, NOTHING} from "./env"
 
 export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts![0]

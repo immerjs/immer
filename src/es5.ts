@@ -7,7 +7,6 @@ import {
 	isDraftable,
 	isEnumerable,
 	shallowCopy,
-	DRAFT_STATE,
 	latest,
 	createHiddenProperty
 } from "./common"
@@ -24,6 +23,7 @@ import {
 } from "./types"
 import {MapState} from "./map"
 import {SetState} from "./set"
+import {DRAFT_STATE} from "./env"
 
 interface ES5BaseState extends ImmerBaseState {
 	finalizing: boolean

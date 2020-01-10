@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["es2015"],
-    "target": "ES6",
+    "target": "ES5",
     "strict": true,
     "declaration": true,
     "importHelpers": false,
