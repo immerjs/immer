@@ -107,10 +107,10 @@ const objectTraps = {
 			// Store drafts on the copy (when one exists).
 			drafts = state.copy
 		}
-		
-		if (!Object.keys(state.base).includes(prop)) {
-			return value
-		}
+
+		//if (!Object.keys(state.base).includes(prop)) {
+		//return value
+		//}
 
 		return (drafts[prop] = createProxy(value, state))
 	},
@@ -336,6 +336,9 @@ function markChanged(state) {
 
 		const {base, drafts, parent} = state
 		const copy = shallowCopy(base)
+
+		//console.log(Object.getOwnPropertyDescriptors(copy))
+		//console.log(Object.getOwnPropertyDescriptors(drafts))
 
 		if (isSet(base)) {
 			// Note: The `drafts` property is preserved for Set objects, since
