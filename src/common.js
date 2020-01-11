@@ -86,15 +86,16 @@ export function shallowCopy(base, invokeGetters = false) {
 	if (isMap(base)) return new Map(base)
 	if (isSet(base)) return new Set(base)
 
-	const protoDesc = Object.getOwnPropertyDescriptors(
-		Object.getPrototypeOf(base)
-	)
+	const protoDesc = Object.getPrototypeOf(base)
+		? Object.getOwnPropertyDescriptors(Object.getPrototypeOf(base))
+		: {}
 	Object.keys(protoDesc).forEach(key => {
 		if (protoDesc[key].get && !protoDesc[key].set) {
 			protoDesc[key].set = function() {}
 		}
+		Object.defineProperty(Object.getPrototypeOf(base), key, protoDesc[key])
 	})
-	const clone = Object.create(protoDesc) //Object.getPrototypeOf(base))
+	const clone = Object.create(Object.getPrototypeOf(base))
 	ownKeys(base).forEach(key => {
 		if (key === DRAFT_STATE) {
 			return // Never copy over draft state.

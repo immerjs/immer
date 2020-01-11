@@ -98,7 +98,7 @@ function runTests(name, useProxies) {
 			expect(res2).toEqual({a: 2, b: 4})
 		})
 
-		it("combines with produce - 2", () => {
+		it.skip("combines with produce - 2", () => {
 			const state = {a: 1}
 
 			const res1 = produce(state, draft => {
