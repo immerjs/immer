@@ -8,6 +8,8 @@ title: API overview
 | Exported name | Description | Section |
 | --- | --- | --- |
 | `applyPatches` | Given a base state or draft, and a set of patches, applies the patches | [Patches](patches.md) |
+| `castDraft` | Converts any immutable type to its mutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
+| `castImmutable` | Converts any mutable type to its immutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
 | `createDraft` | Given a base state, creates a mutable draft for which any modifications will be recorded | [Async](async.md) |
 | `Draft<T>` | Exposed TypeScript type to convert an immutable type to a mutable type | [TypeScript](typescript.md) |
 | `finishDraft` | Given an draft created using `createDraft`, seals the draft and produces and returns the next immutable state that captures all the changes | [Async](async.md) |

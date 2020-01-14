@@ -66,6 +66,43 @@ const newState = increment(state, 2)
 
 _Note: Since TypeScript support for recursive types is limited, and there is no co- contravariance, it might the easiest to not type your state as `readonly` (Immer will still protect against accidental mutations)_
 
+## Cast utilities
+
+The types inside and outside a `produce` can be conceptually the same, but from a practical perspective different. For example, the `State` in the examples above should be considered immutable outside `produce`, but mutable inside `produce`.
+
+Sometimes this leads to practical conflicts. Take the following example:
+
+```typescript
+type Todo = {readonly done: boolean}
+
+type State = {
+	readonly finishedTodos: readonly Todo[]
+	readonly unfinishedTodos: readonly Todo[]
+}
+
+function markAllFinished(state: State) {
+	produce(state, draft => {
+		draft.finishedTodos = state.unfinishedTodos
+	})
+}
+```
+
+This will generate the error:
+
+```
+The type 'readonly Todo[]' is 'readonly' and cannot be assigned to the mutable type '{ done: boolean; }[]'
+```
+
+The reason for this error is that we assing our read only, immutable array to our draft, which expects a mutable type, with methods like `.push` etc etc. As far as TS is concerned, those are not exposed from our original `State`. To hint TypeScript that we want to upcast the collection here to a mutable array for draft purposes, we can use the utility `asDraft`:
+
+`draft.finishedTodos = castDraft(state.unfinishedTodos)` will make the error disappear.
+
+There is also the utility `castImmutable`, in case you ever need to achieve the opposite. Note that these utilities are for all practical purposes no-ops, they will just return their original value.
+
+## Compatibility
+
+**Note:** Immer v5.3+ supports TypeScript v3.7+ only.
+
 **Note:** Immer v1.9+ supports TypeScript v3.1+ only.
 
 **Note:** Immer v3.0+ supports TypeScript v3.4+ only.

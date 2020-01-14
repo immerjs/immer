@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import {Draft} from "../src/index"
+import produce, {Draft, Draft, castDraft} from "../src/index"
 
 // For checking if a type is assignable to its draft type (and vice versa)
 const toDraft: <T>(value: T) => Draft<T> = x => x as any
@@ -302,4 +302,19 @@ test("draft.ts", () => {
 	}
 
 	expect(true).toBe(true)
+})
+
+test("asDraft", () => {
+	type Todo = {readonly done: boolean}
+
+	type State = {
+		readonly finishedTodos: ReadonlyArray<Todo>
+		readonly unfinishedTodos: ReadonlyArray<Todo>
+	}
+
+	function markAllFinished(state: State) {
+		produce(state, draft => {
+			draft.finishedTodos = castDraft(state.unfinishedTodos)
+		})
+	}
 })
