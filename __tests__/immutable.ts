@@ -110,3 +110,8 @@ test("#381 produce immutable state", () => {
 		_ as {readonly todos: ReadonlyArray<{readonly done: boolean}>}
 	)
 })
+
+test("castImmutable preserves a value", () => {
+	const x = {}
+	expect(castImmutable(x)).toBe(x)
+})

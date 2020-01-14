@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 var extendStatics = function(d: any, b: any): any {
 	extendStatics =
 		Object.setPrototypeOf ||
