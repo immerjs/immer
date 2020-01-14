@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import produce, {Draft, Draft, castDraft} from "../src/index"
+import produce, {Draft, Draft, castDraft, original} from "../src/index"
 
 // For checking if a type is assignable to its draft type (and vice versa)
 const toDraft: <T>(value: T) => Draft<T> = x => x as any
@@ -317,4 +317,11 @@ test("asDraft", () => {
 			draft.finishedTodos = castDraft(state.unfinishedTodos)
 		})
 	}
+})
+
+test("#505 original", () => {
+	const baseState = {users: [{name: "Richie"}] as const}
+	const nextState = produce(baseState, draftState => {
+		original(draftState.users) === baseState.users
+	})
 })

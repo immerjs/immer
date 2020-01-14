@@ -39,7 +39,8 @@ export function isPlainObject(value: any): boolean {
 }
 
 /** Get the underlying object that is represented by the given draft */
-export function original<T>(value: Drafted<T>): T | undefined {
+export function original<T>(value: T): T | undefined
+export function original(value: Drafted<any>): any {
 	if (value && value[DRAFT_STATE]) {
 		return value[DRAFT_STATE].base as any
 	}
