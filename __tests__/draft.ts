@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import {Draft} from "../src/index"
+import produce, {Draft, castDraft, original} from "../src/index"
 
 // For checking if a type is assignable to its draft type (and vice versa)
 const toDraft: <T>(value: T) => Draft<T> = x => x as any
@@ -187,6 +187,13 @@ test("draft.ts", () => {
 		assert(fromDraft(toDraft(weak)), weak)
 	}
 
+	// ReadonlyMap instance
+	{
+		let val: ReadonlyMap<any, any> = _
+		let draft: Map<any, any> = _
+		assert(toDraft(val), draft)
+	}
+
 	// Set instance
 	{
 		let val: Set<any> = _
@@ -197,6 +204,13 @@ test("draft.ts", () => {
 		let weak: WeakSet<any> = _
 		assert(toDraft(weak), weak)
 		assert(fromDraft(toDraft(weak)), weak)
+	}
+
+	// ReadonlySet instance
+	{
+		let val: ReadonlySet<any> = _
+		let draft: Set<any> = _
+		assert(toDraft(val), draft)
 	}
 
 	// Promise object
@@ -288,4 +302,31 @@ test("draft.ts", () => {
 	}
 
 	expect(true).toBe(true)
+})
+
+test("asDraft", () => {
+	type Todo = {readonly done: boolean}
+
+	type State = {
+		readonly finishedTodos: ReadonlyArray<Todo>
+		readonly unfinishedTodos: ReadonlyArray<Todo>
+	}
+
+	function markAllFinished(state: State) {
+		produce(state, draft => {
+			draft.finishedTodos = castDraft(state.unfinishedTodos)
+		})
+	}
+})
+
+test("#505 original", () => {
+	const baseState = {users: [{name: "Richie"}] as const}
+	const nextState = produce(baseState, draftState => {
+		original(draftState.users) === baseState.users
+	})
+})
+
+test("asDraft preserves a value", () => {
+	const x = {}
+	expect(castDraft(x)).toBe(x)
 })

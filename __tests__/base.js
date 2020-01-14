@@ -589,6 +589,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					expect(d instanceof Map).toBeTruthy()
 				})
 			})
+
+			it("handles clear correctly", () => {
+				const map = new Map([
+					["a", 1],
+					["c", 3]
+				])
+				const next = produce(map, draft => {
+					draft.delete("a")
+					draft.set("b", 2)
+					draft.set("c", 4)
+					draft.clear()
+				})
+				expect(next).toEqual(new Map())
+			})
 		})
 
 		describe("set drafts", () => {

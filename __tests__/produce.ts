@@ -438,12 +438,28 @@ it("works with readonly Map and Set", () => {
 	const s = new Set<S>([{x: 2}])
 
 	const res1 = produce(m, (draft: Draft<Map<string, S>>) => {
-		assert(draft, _ as Map<string, {readonly x: number}>) // TODO: drop readonly in TS 3.7
+		assert(draft, _ as Map<string, {x: number}>)
 	})
 	assert(res1, _ as Map<string, {readonly x: number}>)
 
 	const res2 = produce(s, (draft: Draft<Set<S>>) => {
-		assert(draft, _ as Set<{readonly x: number}>) // TODO: drop readonly in TS 3.7
+		assert(draft, _ as Set<{x: number}>)
 	})
 	assert(res2, _ as Set<{readonly x: number}>)
+})
+
+it("works with ReadonlyMap and ReadonlySet", () => {
+	type S = {readonly x: number}
+	const m: ReadonlyMap<string, S> = new Map([["a", {x: 1}]])
+	const s: ReadonlySet<S> = new Set([{x: 2}])
+
+	const res1 = produce(m, (draft: Draft<Map<string, S>>) => {
+		assert(draft, _ as Map<string, {x: number}>)
+	})
+	assert(res1, _ as ReadonlyMap<string, {readonly x: number}>)
+
+	const res2 = produce(s, (draft: Draft<Set<S>>) => {
+		assert(draft, _ as Set<{x: number}>)
+	})
+	assert(res2, _ as ReadonlySet<{readonly x: number}>)
 })

@@ -93,9 +93,6 @@ const DraftMap = (function(_super) {
 		prepareCopy(state)
 		state.scope.immer.markChanged(state)
 		state.assigned = new Map()
-		for (const key of latest(state).keys()) {
-			state.assigned.set(key, false)
-		}
 		return state.copy!.clear()
 	}
 

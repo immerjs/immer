@@ -1,58 +1,4 @@
-import {
-	SetState,
-	ImmerScope,
-	ProxyObjectState,
-	ProxyArrayState,
-	ES5ObjectState,
-	ES5ArrayState,
-	MapState,
-	DRAFT_STATE,
-	Nothing
-} from "./internal"
-
-export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
-export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
-
-export type AnyObject = {[key: string]: any}
-export type AnyArray = Array<any>
-export type AnySet = Set<any>
-export type AnyMap = Map<any, any>
-export enum Archtype {
-	Object,
-	Array,
-	Map,
-	Set
-}
-
-export enum ProxyType {
-	ProxyObject,
-	ProxyArray,
-	ES5Object,
-	ES5Array,
-	Map,
-	Set
-}
-
-export interface ImmerBaseState {
-	parent?: ImmerState
-	scope: ImmerScope
-	modified: boolean
-	finalized: boolean
-	isManual: boolean
-}
-
-export type ImmerState =
-	| ProxyObjectState
-	| ProxyArrayState
-	| ES5ObjectState
-	| ES5ArrayState
-	| MapState
-	| SetState
-
-// The _internal_ type used for drafts (not to be confused with Draft, which is public facing)
-export type Drafted<Base = any, T extends ImmerState = ImmerState> = {
-	[DRAFT_STATE]: T
-} & Base
+import {Nothing} from "./internal"
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
@@ -64,8 +10,6 @@ type Tail<T extends any[]> = ((...t: T) => any) extends (
 /** Object types that should never be mapped */
 type AtomicObject =
 	| Function
-	| WeakMap<any, any>
-	| WeakSet<any>
 	| Promise<any>
 	| Date
 	| RegExp
@@ -73,36 +17,36 @@ type AtomicObject =
 	| Number
 	| String
 
+/**
+ * These should also never be mapped but must be tested after regular Map and
+ * Set
+ */
+type WeakReferences = WeakMap<any, any> | WeakSet<any>
+
 export type Draft<T> = T extends AtomicObject
 	? T
-	: T extends Map<infer K, infer V>
-	? DraftMap<K, V>
-	: T extends Set<infer V>
-	? DraftSet<V>
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
+	? Map<Draft<K>, Draft<V>>
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
+	? Set<Draft<V>>
+	: T extends WeakReferences
+	? T
 	: T extends object
 	? {-readonly [K in keyof T]: Draft<T[K]>}
 	: T
 
-// Inline these in ts 3.7
-interface DraftMap<K, V> extends Map<Draft<K>, Draft<V>> {}
-
-// Inline these in ts 3.7
-interface DraftSet<V> extends Set<Draft<V>> {}
-
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends AtomicObject
 	? T
-	: T extends Map<infer K, infer V> // Ideally, but wait for TS 3.7:    ? Omit<ImmutableMap<K, V>, "set" | "delete" | "clear">
-	? ImmutableMap<K, V>
-	: T extends Set<infer V> // Ideally, but wait for TS 3.7:    ? Omit<ImmutableSet<V>, "add" | "delete" | "clear">
-	? ImmutableSet<V>
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
+	? ReadonlyMap<Immutable<K>, Immutable<V>>
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
+	? ReadonlySet<Immutable<V>>
+	: T extends WeakReferences
+	? T
 	: T extends object
 	? {readonly [K in keyof T]: Immutable<T[K]>}
 	: T
-
-interface ImmutableMap<K, V> extends Map<Immutable<K>, Immutable<V>> {}
-
-interface ImmutableSet<V> extends Set<Immutable<V>> {}
 
 export interface Patch {
 	op: "replace" | "remove" | "add"

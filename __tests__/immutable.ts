@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import {Immutable} from "../src/index"
+import produce, {Immutable, castImmutable} from "../src/index"
 
 test("types are ok", () => {
 	// array in tuple
@@ -56,5 +56,62 @@ test("types are ok", () => {
 		assert(val, _ as {readonly a: {readonly b: string}})
 	}
 
+	// Map
+	{
+		let val = _ as Immutable<Map<string, string>>
+		assert(val, _ as ReadonlyMap<string, string>)
+	}
+
+	// Already immutable Map
+	{
+		let val = _ as Immutable<ReadonlyMap<string, string>>
+		assert(val, _ as ReadonlyMap<string, string>)
+	}
+
+	// object in Map
+	{
+		let val = _ as Immutable<Map<{a: string}, {b: string}>>
+		assert(val, _ as ReadonlyMap<{readonly a: string}, {readonly b: string}>)
+	}
+
+	// Set
+	{
+		let val = _ as Immutable<Set<string>>
+		assert(val, _ as ReadonlySet<string>)
+	}
+
+	// Already immutable Set
+	{
+		let val = _ as Immutable<ReadonlySet<string>>
+		assert(val, _ as ReadonlySet<string>)
+	}
+
+	// object in Set
+	{
+		let val = _ as Immutable<Set<{a: string}>>
+		assert(val, _ as ReadonlySet<{readonly a: string}>)
+	}
+
 	expect(true).toBe(true)
+})
+
+test("#381 produce immutable state", () => {
+	const someState = {
+		todos: [
+			{
+				done: false
+			}
+		]
+	}
+
+	const immutable = castImmutable(produce(someState, _draft => {}))
+	assert(
+		immutable,
+		_ as {readonly todos: ReadonlyArray<{readonly done: boolean}>}
+	)
+})
+
+test("castImmutable preserves a value", () => {
+	const x = {}
+	expect(castImmutable(x)).toBe(x)
 })
