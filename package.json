@@ -72,6 +72,7 @@
     "lodash.clonedeep": "^4.5.0",
     "prettier": "1.19.1",
     "pretty-quick": "^1.8.0",
+    "redux": "^4.0.5",
     "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2",
     "rollup-plugin-typescript2": "^0.25.3",
