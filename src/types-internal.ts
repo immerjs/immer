@@ -6,8 +6,7 @@ import {
 	ES5ObjectState,
 	ES5ArrayState,
 	MapState,
-	DRAFT_STATE,
-	Nothing
+	DRAFT_STATE
 } from "./internal"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
