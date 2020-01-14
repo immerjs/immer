@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import {Immutable} from "../src/index"
+import produce, {Immutable, castImmutable} from "../src/index"
 
 test("types are ok", () => {
 	// array in tuple
@@ -93,4 +93,20 @@ test("types are ok", () => {
 	}
 
 	expect(true).toBe(true)
+})
+
+test("#381 produce immutable state", () => {
+	const someState = {
+		todos: [
+			{
+				done: false
+			}
+		]
+	}
+
+	const immutable = castImmutable(produce(someState, _draft => {}))
+	assert(
+		immutable,
+		_ as {readonly todos: ReadonlyArray<{readonly done: boolean}>}
+	)
 })

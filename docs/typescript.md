@@ -99,6 +99,26 @@ The reason for this error is that we assing our read only, immutable array to ou
 
 There is also the utility `castImmutable`, in case you ever need to achieve the opposite. Note that these utilities are for all practical purposes no-ops, they will just return their original value.
 
+Tip: You can combine `castImmutable` with `produce` to type the return type of `produce` as something immutable, even when the original state was mutable:
+
+```typescript
+// a mutable data structure
+const baseState = {
+	todos: [{
+		done: false
+	}]
+}
+
+const nextState = castImmutable(produce(baseState, _draft => {}))
+
+// inferred type of nextState is now:
+{
+	readonly todos: ReadonlyArray<{
+		readonly done: boolean
+	}>
+})
+```
+
 ## Compatibility
 
 **Note:** Immer v5.3+ supports TypeScript v3.7+ only.
