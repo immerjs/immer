@@ -163,3 +163,6 @@ export interface IProduceWithPatches {
 		recipe: (draft: D) => Return
 	): [Produced<Base, Return>, Patch[], Patch[]]
 }
+
+// Cause #507 :/
+export function noop() {}
