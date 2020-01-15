@@ -11,9 +11,10 @@
   "react-native": "dist/immer.module.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "jest",
+    "test": "jest && yarn-or-npm test:build && yarn-or-npm test:flow",
     "test:perf": "NODE_ENV=production yarn-or-npm build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
     "test:flow": "yarn-or-npm flow check __tests__/flow",
+    "test:build": "yarn-or-npm build && yarn jest --config buid.jest.json",
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",

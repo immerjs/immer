@@ -124,10 +124,17 @@ function createHookTests(useProxies) {
 			test("assign", () => {
 				const key1 = {prop: "val1"}
 				const key2 = {prop: "val2"}
-				produce(new Map([["a", 0], [key1, 1], [key2, 2]]), s => {
-					s.set("a", 10)
-					s.set(key1, 11)
-				})
+				produce(
+					new Map([
+						["a", 0],
+						[key1, 1],
+						[key2, 2]
+					]),
+					s => {
+						s.set("a", 10)
+						s.set(key1, 11)
+					}
+				)
 				expectCalls(onAssign)
 			})
 			test("assign (no change)", () => {
@@ -146,7 +153,19 @@ function createHookTests(useProxies) {
 				const key1 = {prop: "val1"}
 				produce(
 					new Map([
-						["a", new Map([[key1, new Map([["b", 1], ["c", 1], ["d", 1]])]])]
+						[
+							"a",
+							new Map([
+								[
+									key1,
+									new Map([
+										["b", 1],
+										["c", 1],
+										["d", 1]
+									])
+								]
+							])
+						]
 					]),
 					s => {
 						const nested = s.get("a").get(key1)
@@ -184,7 +203,7 @@ function createHookTests(useProxies) {
 				produce({a: new Set(["a", new Set([val1, 1])])}, s => {
 					let nested
 					s.a.forEach(value => {
-						if (isSet(value)) {
+						if (value instanceof Set) {
 							nested = value
 						}
 					})
@@ -245,10 +264,17 @@ function createHookTests(useProxies) {
 			test("delete", () => {
 				const key1 = {prop: "val1"}
 				const key2 = {prop: "val2"}
-				produce(new Map([["a", 0], [key1, 1], [key2, 2]]), s => {
-					s.delete("a")
-					s.delete(key1)
-				})
+				produce(
+					new Map([
+						["a", 0],
+						[key1, 1],
+						[key2, 2]
+					]),
+					s => {
+						s.delete("a")
+						s.delete(key1)
+					}
+				)
 				expectCalls(onDelete)
 			})
 			test("delete (no change)", () => {

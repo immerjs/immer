@@ -78,7 +78,9 @@ describe("map set - proxy", () => {
 		const nextState = produce(baseState, s => {
 			// Map.prototype.set should return the Map itself
 			const res = s.aMap.set("force", true)
-			expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft)
+			// @ts-ignore
+			if (!global.USES_BUILD)
+				expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft)
 		})
 		expect(nextState).not.toBe(baseState)
 		expect(nextState.aMap).not.toBe(baseState.aMap)

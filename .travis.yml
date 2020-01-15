@@ -15,7 +15,6 @@ script:
   - yarn build || travis_terminate 1
   - if-node-version 10 || { yarn test && travis_terminate 0; }
   - yarn coveralls
-  - yarn test:flow
 jobs:
   include:
     - stage: deploy
