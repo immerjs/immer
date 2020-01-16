@@ -177,7 +177,7 @@ export class Immer implements ProducersFns {
 		return [nextState, patches!, inversePatches!]
 	}
 
-	createDraft<T extends Objectish>(base: T): Drafted<T> {
+	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
 		}
@@ -185,7 +185,7 @@ export class Immer implements ProducersFns {
 		const proxy = this.createProxy(base, undefined)
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
-		return proxy
+		return proxy as any
 	}
 
 	finishDraft<D extends Draft<any>>(

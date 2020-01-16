@@ -330,3 +330,8 @@ test("asDraft preserves a value", () => {
 	const x = {}
 	expect(castDraft(x)).toBe(x)
 })
+
+test("#512 createDraft creates a draft", () => {
+	const x = {y: 1}
+	assert(x, _ as Draft<{y: number}>)
+})
