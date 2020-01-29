@@ -9,7 +9,7 @@ title: Using produce
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 3: Simplifying deep updates with _produce_</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/javascript-simplify-deep-state-updates-using-immer-produce/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/javascript-simplify-deep-state-updates-using-immer-produce/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/javascript-simplify-deep-state-updates-using-immer-produce">Hosted on egghead.io</a>
 </details>

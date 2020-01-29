@@ -9,7 +9,7 @@ title: Immer performance
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 5: Leveraging Immer's structural sharing in React</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-profile-react-rendering-and-optimize-with-memo-to-leverage-structural-sharing/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-profile-react-rendering-and-optimize-with-memo-to-leverage-structural-sharing/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-profile-react-rendering-and-optimize-with-memo-to-leverage-structural-sharing">Hosted on egghead.io</a>
 </details>
@@ -18,7 +18,7 @@ title: Immer performance
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 7: Immer will try to re-cycle data if there was no semantic change</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer">Hosted on egghead.io</a>
 </details>

@@ -9,7 +9,7 @@ title: Example Reducer
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 13: Using Immer in a (React) reducer</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-update-immutable-state-with-react-usereducer-through-immer/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-update-immutable-state-with-react-usereducer-through-immer/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-update-immutable-state-with-react-usereducer-through-immer">Hosted on egghead.io</a>
 </details>

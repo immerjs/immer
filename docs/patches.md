@@ -9,7 +9,7 @@ title: Patches
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 14: Capture patches using _produceWithPatches_</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches">Hosted on egghead.io</a>
 </details>
@@ -18,7 +18,7 @@ title: Patches
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 16: Apply Patches using _applyPatches_</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients">Hosted on egghead.io</a>
 </details>
@@ -110,7 +110,7 @@ The generated patches are similar (but not the same) to the [RFC-6902 JSON patch
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 19: Using inverse patches to build undo functionality</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality">Hosted on egghead.io</a>
 </details>
@@ -119,7 +119,7 @@ The generated patches are similar (but not the same) to the [RFC-6902 JSON patch
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 20: Use patches to build redo functionality</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality">Hosted on egghead.io</a>
 </details>

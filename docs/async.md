@@ -10,7 +10,7 @@ sidebar_label: Async produce / createDraft
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 11: Creating _async_ producers (and why you shouldn’t)</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-write-asynchronous-producers-in-immer-and-why-you-shouldn-t/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-write-asynchronous-producers-in-immer-and-why-you-shouldn-t/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-write-asynchronous-producers-in-immer-and-why-you-shouldn-t">Hosted on egghead.io</a>
 </details>

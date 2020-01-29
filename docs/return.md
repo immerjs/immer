@@ -9,7 +9,7 @@ title: Returning new data from producers
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 9: Returning completely new state</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer">Hosted on egghead.io</a>
 </details>
@@ -101,7 +101,7 @@ N.B. Note that this problem is specific for the `undefined` value, any other val
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 10: Avoid accidental returns by using _void_</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword">Hosted on egghead.io</a>
 </details>
