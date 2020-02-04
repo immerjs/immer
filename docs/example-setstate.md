@@ -9,7 +9,7 @@ title: React setState example
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 8: Using Immer with _useState_. Or: _useImmer_</summary>
     <br>
     <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427  src="https://egghead.io/lessons/react-immutable-update-state-inside-react-components-with-useimmer/embed" ></iframe>
+        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-immutable-update-state-inside-react-components-with-useimmer/embed" ></iframe>
     </div>
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-immutable-update-state-inside-react-components-with-useimmer">Hosted on egghead.io</a>
 </details>
