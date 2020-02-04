@@ -241,15 +241,22 @@ function markChangesRecursively(object: any) {
 				markChangedES5(state)
 			}
 		})
-	} else if (type === ProxyType.ES5Array && hasArrayChanges(state)) {
-		markChangedES5(state)
-		assigned.length = true
+	} else if (type === ProxyType.ES5Array) {
+		if (hasArrayChanges(state)) {
+			markChangedES5(state)
+			assigned.length = true
+		}
+
 		if (draft.length < base.length) {
 			for (let i = draft.length; i < base.length; i++) assigned[i] = false
 		} else {
 			for (let i = base.length; i < draft.length; i++) assigned[i] = true
 		}
-		for (let i = 0; i < draft.length; i++) {
+
+		// Minimum count is enough, the other parts has been processed.
+		const min = Math.min(draft.length, base.length)
+
+		for (let i = 0; i < min; i++) {
 			// Only untouched indices trigger recursion.
 			if (assigned[i] === undefined) markChangesRecursively(draft[i])
 		}

@@ -648,6 +648,21 @@ describe("arrays - splice (shrink)", () => {
 	)
 })
 
+describe("arrays - delete", () => {
+	runPatchTest(
+		{
+			x: [
+				{a: 1, b: 2},
+				{c: 3, d: 4}
+			]
+		},
+		d => {
+			delete d.x[1].c
+		},
+		[{op: "remove", path: ["x", 1, "c"]}]
+	)
+})
+
 describe("sets - add - 1", () => {
 	runPatchTest(
 		new Set([1]),
