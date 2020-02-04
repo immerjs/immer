@@ -33,7 +33,7 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
 			result = finalize(immer, result, scope)
-			maybeFreeze(immer, result)
+			if (!scope.parent) maybeFreeze(immer, result)
 		}
 		if (scope.patches) {
 			scope.patches.push({
@@ -179,7 +179,7 @@ function finalizeProperty(
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 	// TODO: the recursion over here looks weird, shouldn't non-draft stuff have it's own recursion?
 	// especially the passing on of root and rootState doesn't make sense...
-	else if (isDraftable(childValue) && !Object.isFrozen(childValue)) {
+	else if (isDraftable(childValue)) {
 		each(childValue, (key, grandChild) =>
 			finalizeProperty(
 				immer,
@@ -192,7 +192,7 @@ function finalizeProperty(
 				rootPath
 			)
 		)
-		maybeFreeze(immer, childValue)
+		if (!scope.parent) maybeFreeze(immer, childValue)
 	}
 
 	if (isDraftProp && immer.onAssign && !isSetMember) {

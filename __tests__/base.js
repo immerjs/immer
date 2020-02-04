@@ -1773,6 +1773,100 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		}
 	})
 
+	it(`works with spread #524 - ${name}`, () => {
+		const state = {
+			level1: {
+				level2: {
+					level3: "data"
+				}
+			}
+		}
+
+		const nextState = produce(state, draft => {
+			return {...draft}
+		})
+		const nextState1 = produce(state, draft => {
+			const newLevel1 = produce(draft.level1, level1Draft => {
+				return {...level1Draft}
+			})
+			draft.level1 = newLevel1
+		})
+
+		const nextState2 = produce(state, draft => {
+			const newLevel1 = produce(draft.level1, level1Draft => {
+				return {...level1Draft}
+			})
+			return {
+				level1: newLevel1
+			}
+		})
+
+		const nextState3 = produce(state, draft => {
+			const newLevel1 = produce(draft.level1, level1Draft => {
+				return Object.assign({}, level1Draft)
+			})
+			return Object.assign(draft, {
+				level1: newLevel1
+			})
+		})
+
+		const expected = {level1: {level2: {level3: "data"}}}
+		expect(nextState1).toEqual(expected)
+		expect(nextState2).toEqual(expected)
+		expect(nextState3).toEqual(expected)
+	})
+
+	it(`Something with nested producers #522 ${name}`, () => {
+		function initialStateFactory() {
+			return {
+				substate: {
+					array: [
+						{id: "id1", value: 0},
+						{id: "id2", value: 0}
+					]
+				},
+				array: [
+					{id: "id1", value: 0},
+					{id: "id2", value: 0}
+				]
+			}
+		}
+
+		const globalProducer = produce(draft => {
+			draft.substate = subProducer(draft.substate)
+			draft.array = arrayProducer(draft.array)
+		}, initialStateFactory())
+
+		const subProducer = produce(draftSubState => {
+			draftSubState.array = arrayProducer(draftSubState.array)
+		})
+
+		const arrayProducer = produce(draftArray => {
+			draftArray[0].value += 5
+		})
+
+		{
+			const state = globalProducer(undefined)
+			expect(state.array[0].value).toBe(5)
+			expect(state.array.length).toBe(2)
+			expect(state.array[1]).toMatchObject({
+				id: "id2",
+				value: 0
+			})
+		}
+
+		{
+			const state = globalProducer(undefined)
+			expect(state.substate.array[0].value).toBe(5)
+			expect(state.substate.array.length).toBe(2)
+			expect(state.substate.array[1]).toMatchObject({
+				id: "id2",
+				value: 0
+			})
+			expect(state.substate.array).toMatchObject(state.array)
+		}
+	})
+
 	describe(`isDraft - ${name}`, () => {
 		it("returns true for object drafts", () => {
 			produce({}, state => {
