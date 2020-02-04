@@ -14,7 +14,8 @@ import {
 	ES5ObjectState,
 	ProxyObjectState,
 	Archtype,
-	isMap
+	isMap,
+	isSet
 } from "./internal"
 
 export type PatchPath = (string | number)[]
@@ -255,7 +256,7 @@ function deepClonePatchValue(obj: any) {
 		return new Map(
 			Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
 		)
-	// Not needed: if (isSet(obj)) return new Set(Array.from(obj.values()).map(deepClone))
+	if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
 	const cloned = Object.create(Object.getPrototypeOf(obj))
 	for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 	return cloned

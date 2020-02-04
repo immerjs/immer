@@ -977,3 +977,22 @@ test.skip("#468", () => {
 	const final = applyPatches(state, patches)
 	expect(final).toEqual(nextState)
 })
+
+test("#521", () => {
+	const state = new Map()
+
+	const [nextState, patches] = produceWithPatches(state, draft => {
+		draft.set("hello", new Set(["world"]))
+	})
+
+	let patchedState = applyPatches(state, patches)
+	expect(patchedState).toEqual(nextState)
+
+	const [nextStateV2, patchesV2] = produceWithPatches(nextState, draft => {
+		draft.get("hello").add("immer")
+	})
+
+	expect(applyPatches(nextState, patchesV2)).toEqual(
+		new Map([["hello", new Set(["world", "immer"])]])
+	)
+})
