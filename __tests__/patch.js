@@ -648,7 +648,7 @@ describe("arrays - splice (shrink)", () => {
 	)
 })
 
-describe.only("arrays - delete", () => {
+describe("arrays - delete", () => {
 	runPatchTest(
 		{
 			x: [
