@@ -1,7 +1,6 @@
 language: node_js
 node_js:
-  - "8"
-  - "10"
+  - "10.18.1"
   # - "node"
 env:
   - NODE_ENV=TEST
@@ -19,7 +18,6 @@ jobs:
   include:
     - stage: deploy
       if: branch == master && !fork
-      node_js: "10.18" # pre-installed version
       script:
         - NODE_ENV= yarn build
         - yarn semantic-release
