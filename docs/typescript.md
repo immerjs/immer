@@ -39,7 +39,7 @@ const newState = produce(state, draft => {
 // `newState.x` cannot be modified here
 ```
 
-This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`s!
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`!
 
 For curried reducers, the type is inferred from the first argument of recipe function, so make sure to type it. The `Draft` utility type can be used if the state argument type is immutable:
 
