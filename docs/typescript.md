@@ -93,7 +93,7 @@ This will generate the error:
 The type 'readonly Todo[]' is 'readonly' and cannot be assigned to the mutable type '{ done: boolean; }[]'
 ```
 
-The reason for this error is that we assign our read only, immutable array to our draft, which expects a mutable type, with methods like `.push` etc etc. As far as TS is concerned, those are not exposed from our original `State`. To hint TypeScript that we want to upcast the collection here to a mutable array for draft purposes, we can use the utility `asDraft`:
+The reason for this error is that we assign our read only, immutable array to our draft, which expects a mutable type, with methods like `.push` etc etc. As far as TS is concerned, those are not exposed from our original `State`. To hint TypeScript that we want to upcast the collection here to a mutable array for draft purposes, we can use the utility `castDraft`:
 
 `draft.finishedTodos = castDraft(state.unfinishedTodos)` will make the error disappear.
 
