@@ -304,7 +304,7 @@ test("draft.ts", () => {
 	expect(true).toBe(true)
 })
 
-test("asDraft", () => {
+test("castDraft", () => {
 	type Todo = {readonly done: boolean}
 
 	type State = {
@@ -326,7 +326,7 @@ test("#505 original", () => {
 	})
 })
 
-test("asDraft preserves a value", () => {
+test("castDraft preserves a value", () => {
 	const x = {}
 	expect(castDraft(x)).toBe(x)
 })
