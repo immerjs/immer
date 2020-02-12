@@ -6,10 +6,28 @@ import {
 	AnyObject,
 	ImmerBaseState,
 	AnyArray,
-	ProxyType,
 	AnyMap,
 	DRAFT_STATE,
-	AnySet
+	AnySet,
+	get,
+	each,
+	has,
+	die,
+	getArchtype,
+	ProxyType,
+	Archtype,
+	isSet,
+	isMap,
+	isDraft,
+	isDraftable,
+	isEnumerable,
+	shallowCopy,
+	latest,
+	createHiddenProperty,
+	assertUnrevoked,
+	is,
+	createProxy,
+	iteratorSymbol
 } from "./internal"
 
 /** Plugin utilities */
@@ -44,11 +62,42 @@ export function getPlugin<K extends keyof Plugins>(
 	return plugin
 }
 
-export function loadPlugin<K extends keyof Plugins>(
+function buildUtilities() {
+	return {
+		get,
+		each,
+		has,
+		die,
+		getArchtype,
+		ProxyType,
+		Archtype,
+		isSet,
+		isMap,
+		isDraft,
+		isDraftable,
+		isEnumerable,
+		shallowCopy,
+		latest,
+		createHiddenProperty,
+		ImmerScope,
+		DRAFT_STATE,
+		assertUnrevoked,
+		is,
+		iteratorSymbol,
+		createProxy
+	} as const
+}
+
+let utilities: ReturnType<typeof buildUtilities> | undefined = undefined
+
+export function __loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,
-	implementation: Plugins[K]
-) {
-	plugins[pluginKey] = implementation
+	getImplementation: (core: typeof utilities) => Plugins[K]
+): void {
+	if (!utilities) {
+		utilities = buildUtilities()
+	}
+	plugins[pluginKey] = getImplementation(utilities)
 }
 
 /** ES5 Plugin */

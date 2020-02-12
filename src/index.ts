@@ -15,7 +15,8 @@ export {
 	isDraft,
 	isDraftable,
 	NOTHING as nothing,
-	DRAFTABLE as immerable
+	DRAFTABLE as immerable,
+	__loadPlugin
 } from "./internal"
 
 const immer = new Immer()
