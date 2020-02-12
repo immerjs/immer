@@ -10,6 +10,7 @@
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "test": "jest && yarn-or-npm test:build && yarn-or-npm test:flow",
     "test:perf": "NODE_ENV=production yarn-or-npm build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
