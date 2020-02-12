@@ -13,5 +13,5 @@
     "noEmit": true,
     "moduleResolution": "node"
   },
-  "files": ["./src/index.ts"]
+  "files": ["./src/immer.ts", "./src/plugins/es5.ts", "./src/plugins/mapset.ts", "./src/plugins/patches.ts"]
 }

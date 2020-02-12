@@ -60,3 +60,4 @@ typings/
 .idea
 dist/
 website/build
+.rts2*

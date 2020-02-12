@@ -49,6 +49,8 @@ const plugins: {
 
 type Plugins = typeof plugins
 
+export type Utilities = ReturnType<typeof buildUtilities>
+
 export function getPlugin<K extends keyof Plugins>(
 	pluginKey: K
 ): Exclude<Plugins[K], undefined> {
@@ -88,11 +90,11 @@ function buildUtilities() {
 	} as const
 }
 
-let utilities: ReturnType<typeof buildUtilities> | undefined = undefined
+let utilities: Utilities | undefined = undefined
 
 export function __loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,
-	getImplementation: (core: typeof utilities) => Plugins[K]
+	getImplementation: (core: any /* TODO: Utilities */) => Plugins[K]
 ): void {
 	if (!utilities) {
 		utilities = buildUtilities()

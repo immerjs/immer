@@ -1,7 +1,14 @@
 // types only!
-import {ImmerState, AnyMap, AnySet, MapState, SetState} from "../../internal"
+import {
+	ImmerState,
+	AnyMap,
+	AnySet,
+	MapState,
+	SetState,
+	Utilities
+} from "../internal"
 
-import {__loadPlugin} from "../../../"
+import {__loadPlugin} from "../../"
 
 __loadPlugin(
 	"mapset",
@@ -15,7 +22,7 @@ __loadPlugin(
 		iteratorSymbol,
 		isDraftable,
 		createProxy
-	}) => {
+	}: Utilities) => {
 		/* istanbul ignore next */
 		var extendStatics = function(d: any, b: any): any {
 			extendStatics =
@@ -328,11 +335,7 @@ __loadPlugin(
 				state.copy = new Set()
 				state.base.forEach(value => {
 					if (isDraftable(value)) {
-						const draft = createProxy(
-							state.scope.immer as any,
-							value,
-							state as any
-						)
+						const draft = createProxy(state.scope.immer, value, state)
 						state.drafts.set(value, draft)
 						state.copy!.add(draft)
 					} else {

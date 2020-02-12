@@ -4,10 +4,11 @@ import {
 	Drafted,
 	Objectish,
 	ES5ArrayState,
-	ES5ObjectState
-} from "../../internal"
+	ES5ObjectState,
+	Utilities
+} from "../internal"
 
-import {__loadPlugin} from "../../../"
+import {__loadPlugin} from "immer"
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
@@ -31,13 +32,13 @@ __loadPlugin(
 		assertUnrevoked,
 		ImmerScope,
 		is
-	}) => {
+	}: Utilities) => {
 		function willFinalizeES5(
 			scope: ImmerScope,
 			result: any,
 			isReplaced: boolean
 		) {
-			scope.drafts!.forEach(draft => {
+			scope.drafts!.forEach((draft: any) => {
 				draft[DRAFT_STATE].finalizing = true
 			})
 			if (!isReplaced) {
@@ -66,7 +67,7 @@ __loadPlugin(
 
 			const state: ES5ObjectState | ES5ArrayState = {
 				type: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
-				scope: parent ? parent.scope : (ImmerScope as any).current!,
+				scope: parent ? parent.scope : ImmerScope.current!,
 				modified: false,
 				finalizing: false,
 				finalized: false,
@@ -97,7 +98,7 @@ __loadPlugin(
 
 		function get(state: ES5State, prop: string | number) {
 			assertUnrevoked(state)
-			const value = peek(latest(state as any), prop)
+			const value = peek(latest(state), prop)
 			if (state.finalizing) return value
 			// Create a draft if the value is unmodified.
 			if (value === peek(state.base, prop) && isDraftable(value)) {
@@ -112,7 +113,7 @@ __loadPlugin(
 			assertUnrevoked(state)
 			state.assigned[prop] = true
 			if (!state.modified) {
-				if (is(value, peek(latest(state as any), prop))) return
+				if (is(value, peek(latest(state), prop))) return
 				markChangedES5(state)
 				prepareCopy(state)
 			}

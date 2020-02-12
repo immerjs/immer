@@ -8,15 +8,26 @@ import {
 	MapState,
 	ES5ObjectState,
 	ProxyObjectState,
-	PatchPath
-} from "../../internal"
+	PatchPath,
+	Utilities
+} from "../internal"
 
-import {__loadPlugin} from "../../../"
+import {__loadPlugin} from "../../"
 
-// @ts-ignore didn't understand the error :-P
 __loadPlugin(
 	"patches",
-	({get, each, has, die, getArchtype, ProxyType, Archtype, isSet, isMap}) => {
+	({
+		DRAFT_STATE,
+		get,
+		each,
+		has,
+		die,
+		getArchtype,
+		ProxyType,
+		Archtype,
+		isSet,
+		isMap
+	}: Utilities) => {
 		function generatePatches(
 			state: ImmerState,
 			basePath: PatchPath,
