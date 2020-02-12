@@ -1,5 +1,5 @@
+import {__extends} from "./extends"
 import {
-	__extends,
 	ImmerBaseState,
 	ProxyType,
 	AnySet,
@@ -10,17 +10,9 @@ import {
 	latest,
 	assertUnrevoked,
 	iteratorSymbol,
-	isDraftable
-} from "./internal"
-
-export interface SetState extends ImmerBaseState {
-	type: ProxyType.Set
-	copy: AnySet | undefined
-	base: AnySet
-	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
-	revoked: boolean
-	draft: Drafted<AnySet, SetState>
-}
+	isDraftable,
+	SetState
+} from "../../internal"
 
 const DraftSet = (function(_super) {
 	if (!_super) {

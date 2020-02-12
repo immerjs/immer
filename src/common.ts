@@ -210,3 +210,11 @@ export function createHiddenProperty(
 export function die(): never {
 	throw new Error("Illegal state, please file a bug")
 }
+
+export function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
+	if (state.revoked === true)
+		throw new Error(
+			"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
+				JSON.stringify(latest(state))
+		)
+}

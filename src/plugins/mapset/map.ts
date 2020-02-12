@@ -1,26 +1,18 @@
+import {__extends} from "./extends"
+import {proxySet} from "./set"
 import {
-	__extends,
-	ImmerBaseState,
 	ProxyType,
 	AnyMap,
-	Drafted,
 	ImmerState,
 	DRAFT_STATE,
 	ImmerScope,
 	latest,
 	assertUnrevoked,
 	isDraftable,
-	iteratorSymbol
-} from "./internal"
-
-export interface MapState extends ImmerBaseState {
-	type: ProxyType.Map
-	copy: AnyMap | undefined
-	assigned: Map<any, boolean> | undefined
-	base: AnyMap
-	revoked: boolean
-	draft: Drafted<AnyMap, MapState>
-}
+	iteratorSymbol,
+	MapState
+} from "../../internal"
+import {loadPlugin} from "../../plugins"
 
 const DraftMap = (function(_super) {
 	if (!_super) {
@@ -182,3 +174,5 @@ function prepareCopy(state: MapState) {
 		state.copy = new Map(state.base)
 	}
 }
+
+loadPlugin("mapset", {proxyMap, proxySet})

@@ -12,36 +12,14 @@ import {
 	ImmerScope,
 	ImmerState,
 	Drafted,
-	AnyObject,
 	Objectish,
-	ImmerBaseState,
-	AnyArray,
 	ProxyType,
-	MapState,
-	SetState,
-	DRAFT_STATE
-} from "./internal"
-
-interface ES5BaseState extends ImmerBaseState {
-	finalizing: boolean
-	assigned: {[key: string]: any}
-	parent?: ImmerState
-	revoked: boolean
-}
-
-export interface ES5ObjectState extends ES5BaseState {
-	type: ProxyType.ES5Object
-	draft: Drafted<AnyObject, ES5ObjectState>
-	base: AnyObject
-	copy: AnyObject | null
-}
-
-export interface ES5ArrayState extends ES5BaseState {
-	type: ProxyType.ES5Array
-	draft: Drafted<AnyObject, ES5ArrayState>
-	base: AnyArray
-	copy: AnyArray | null
-}
+	DRAFT_STATE,
+	loadPlugin,
+	ES5ArrayState,
+	ES5ObjectState,
+	assertUnrevoked
+} from "../../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
@@ -182,14 +160,6 @@ function proxyProperty(
 	Object.defineProperty(draft, prop, desc)
 }
 
-export function assertUnrevoked(state: ES5State | MapState | SetState) {
-	if (state.revoked === true)
-		throw new Error(
-			"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
-				JSON.stringify(latest(state))
-		)
-}
-
 // This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
 function markChangesSweep(drafts: Drafted<any, ImmerState>[]) {
 	// The natural order of drafts in the `scope` array is based on when they
@@ -308,3 +278,9 @@ function hasArrayChanges(state: ES5ArrayState) {
 	// For all other cases, we don't have to compare, as they would have been picked up by the index setters
 	return false
 }
+
+loadPlugin("es5", {
+	createES5Proxy,
+	markChangedES5,
+	willFinalizeES5
+})

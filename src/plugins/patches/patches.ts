@@ -15,10 +15,10 @@ import {
 	ProxyObjectState,
 	Archtype,
 	isMap,
-	isSet
-} from "./internal"
-
-export type PatchPath = (string | number)[]
+	isSet,
+	PatchPath,
+	loadPlugin
+} from "../../internal"
 
 export function generatePatches(
 	state: ImmerState,
@@ -261,3 +261,5 @@ function deepClonePatchValue(obj: any) {
 	for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 	return cloned
 }
+
+loadPlugin("patches", {applyPatches, generatePatches})
