@@ -1,9 +1,7 @@
 import {__extends} from "./extends"
 import {
-	ImmerBaseState,
 	ProxyType,
 	AnySet,
-	Drafted,
 	ImmerState,
 	DRAFT_STATE,
 	ImmerScope,
@@ -11,7 +9,8 @@ import {
 	assertUnrevoked,
 	iteratorSymbol,
 	isDraftable,
-	SetState
+	SetState,
+	createProxy
 } from "../../internal"
 
 const DraftSet = (function(_super) {
@@ -146,7 +145,7 @@ function prepareCopy(state: SetState) {
 		state.copy = new Set()
 		state.base.forEach(value => {
 			if (isDraftable(value)) {
-				const draft = state.scope.immer.createProxy(value, state)
+				const draft = createProxy(state.scope.immer, value, state)
 				state.drafts.set(value, draft)
 				state.copy!.add(draft)
 			} else {

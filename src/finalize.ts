@@ -18,13 +18,14 @@ import {
 	SetState,
 	set,
 	is,
-	get
+	get,
+	willFinalize
 } from "./internal"
 
 export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts![0]
 	const isReplaced = result !== undefined && result !== baseDraft
-	immer.willFinalize(scope, result, isReplaced)
+	willFinalize(immer, scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified) {
 			scope.revoke()

@@ -14,7 +14,8 @@ import {
 	AnyArray,
 	Objectish,
 	ImmerScope,
-	DRAFT_STATE
+	DRAFT_STATE,
+	createProxy
 } from "./internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -49,7 +50,7 @@ type ProxyState = ProxyObjectState | ProxyArrayState
  *
  * The second argument is the parent draft-state (used internally).
  */
-export function createProxy<T extends Objectish>(
+export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
 ): Drafted<T, ProxyState> {
@@ -127,7 +128,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			drafts = state.copy
 		}
 
-		return (drafts![prop as any] = state.scope.immer.createProxy(value, state))
+		return (drafts![prop as any] = createProxy(state.scope.immer, value, state))
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -146,7 +147,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 				: is(baseValue, value) && prop in state.base
 			if (isUnchanged) return true
 			prepareCopy(state)
-			markChanged(state)
+			markChangedProxy(state)
 		}
 		state.assigned[prop] = true
 		// @ts-ignore
@@ -158,7 +159,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		if (peek(state.base, prop) !== undefined || prop in state.base) {
 			state.assigned[prop] = false
 			prepareCopy(state)
-			markChanged(state)
+			markChangedProxy(state)
 		} else if (state.assigned[prop]) {
 			// if an originally not assigned property was deleted
 			delete state.assigned[prop]
@@ -229,7 +230,7 @@ function peek(draft: Drafted, prop: PropertyKey): any {
 	return desc && desc.value
 }
 
-export function markChanged(state: ImmerState) {
+export function markChangedProxy(state: ImmerState) {
 	if (!state.modified) {
 		state.modified = true
 		if (
@@ -245,7 +246,7 @@ export function markChanged(state: ImmerState) {
 		}
 
 		if (state.parent) {
-			markChanged(state.parent)
+			markChangedProxy(state.parent)
 		}
 	}
 }

@@ -24,8 +24,8 @@ import {
 	proxyMap,
 	isSet,
 	proxySet,
-	createProxy,
-	markChanged
+	markChangedProxy,
+	createProxyProxy
 } from "./internal"
 
 /* istanbul ignore next */
@@ -128,7 +128,7 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = ImmerScope.enter(this)
-			const proxy = this.createProxy(base, undefined)
+			const proxy = createProxy(this, base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -182,7 +182,7 @@ export class Immer implements ProducersFns {
 			throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
 		}
 		const scope = ImmerScope.enter(this)
-		const proxy = this.createProxy(base, undefined)
+		const proxy = createProxy(this, base, undefined)
 		proxy[DRAFT_STATE].isManual = true
 		scope.leave()
 		return proxy as any
@@ -244,34 +244,40 @@ export class Immer implements ProducersFns {
 			applyPatches(draft, patches.slice(i + 1))
 		)
 	}
+}
 
-	createProxy<T extends Objectish>(
-		value: T,
-		parent?: ImmerState
-	): Drafted<T, ImmerState> {
-		// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
-		const draft: Drafted = isMap(value)
-			? proxyMap(value, parent)
-			: isSet(value)
-			? proxySet(value, parent)
-			: this.useProxies
-			? createProxy(value, parent)
-			: createES5Proxy(value, parent)
+export function createProxy<T extends Objectish>(
+	immer: Immer,
+	value: T,
+	parent?: ImmerState
+): Drafted<T, ImmerState> {
+	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
+	const draft: Drafted = isMap(value)
+		? proxyMap(value, parent)
+		: isSet(value)
+		? proxySet(value, parent)
+		: immer.useProxies
+		? createProxyProxy(value, parent)
+		: createES5Proxy(value, parent)
 
-		const scope = parent ? parent.scope : ImmerScope.current!
-		scope.drafts.push(draft)
-		return draft
-	}
+	const scope = parent ? parent.scope : ImmerScope.current!
+	scope.drafts.push(draft)
+	return draft
+}
 
-	willFinalize(scope: ImmerScope, thing: any, isReplaced: boolean) {
-		if (!this.useProxies) willFinalizeES5(scope, thing, isReplaced)
-	}
+export function willFinalize(
+	immer: Immer,
+	scope: ImmerScope,
+	thing: any,
+	isReplaced: boolean
+) {
+	if (!immer.useProxies) willFinalizeES5(scope, thing, isReplaced)
+}
 
-	markChanged(state: ImmerState) {
-		if (this.useProxies) {
-			markChanged(state)
-		} else {
-			markChangedES5(state)
-		}
+export function markChanged(immer: Immer, state: ImmerState) {
+	if (immer.useProxies) {
+		markChangedProxy(state)
+	} else {
+		markChangedES5(state)
 	}
 }
