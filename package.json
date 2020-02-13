@@ -1,43 +1,17 @@
 {
   "name": "immer",
-  "version": "5.3.2",
+  "version": "6.0.0-alpha.2",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/immer.js",
-  "module": "dist/immer.module.js",
-  "umd:main": "dist/immer.umd.js",
-  "unpkg": "dist/immer.umd.js",
-  "jsdelivr": "dist/immer.umd.js",
-  "jsnext:main": "dist/immer.module.js",
-  "react-native": "dist/immer.module.js",
+  "module": "dist/immer.esm.js",
+  "umd:main": "dist/immer.umd.production.min.js",
+  "unpkg": "dist/immer.umd.production.min.js",
+  "jsdelivr": "dist/immer.umd.production.min.js",
+  "jsnext:main": "dist/immer.esm.js",
+  "react-native": "dist/immer.esm.js",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
   "sideEffects": false,
-  "exports": {
-    ".": {
-      "browser": "./dist/immer.module.js",
-      "umd": "./dist/immer.umd.js",
-      "import": "./dist/immer.module.js",
-      "require": "./didst/immer.js"
-    },
-    "es5": {
-      "browser": "./dist/es5.module.js",
-      "umd": "./dist/es5.umd.js",
-      "import": "./dist/es5.module.js",
-      "require": "./didst/es5.js"
-    },
-    "mapset": {
-      "browser": "./dist/mapset.module.js",
-      "umd": "./dist/mapset.umd.js",
-      "import": "./dist/mapset.module.js",
-      "require": "./didst/mapset.js"
-    },
-    "patches": {
-      "browser": "./dist/patches.module.js",
-      "umd": "./dist/patches.umd.js",
-      "import": "./dist/patches.module.js",
-      "require": "./didst/patches.js"
-    }
-  },
   "scripts": {
     "test": "jest && yarn-or-npm test:build && yarn-or-npm test:flow",
     "test:perf": "NODE_ENV=production yarn-or-npm build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
@@ -46,9 +20,7 @@
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "build": "rimraf dist/ && yarn build:immer && yarn build:es5 && yarn build:patches && yarn build:mapset",
-    "build:immer": "microbundle build --raw",
-    "build:es5": "microbundle build --raw --entry src/plugins/es5.ts --output dist",
+    "build": "rimraf dist/ && tsdx build --name immer --format cjs,esm,umd",
     "typed": "cpx 'src/immer.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
     "start": "cd website && yarn start"
@@ -82,7 +54,6 @@
     "src"
   ],
   "devDependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
     "coveralls": "^3.0.0",
     "cpx": "^1.5.0",
     "cross-env": "^5.1.3",
@@ -90,10 +61,8 @@
     "flow-bin": "^0.68.0",
     "husky": "^1.2.0",
     "immutable": "^3.8.2",
-    "jest": "^25.1.0",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
-    "microbundle": "^0.12.0-next.8",
     "prettier": "1.19.1",
     "pretty-quick": "^1.8.0",
     "redux": "^4.0.5",
@@ -101,7 +70,7 @@
     "seamless-immutable": "^7.1.3",
     "semantic-release": "^17.0.2",
     "spec.ts": "^1.1.0",
-    "ts-jest": "^25.2.0",
+    "tsdx": "^0.12.3",
     "typescript": "^3.7.3"
   },
   "jest": {

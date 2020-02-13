@@ -15,8 +15,7 @@ export {
 	isDraft,
 	isDraftable,
 	NOTHING as nothing,
-	DRAFTABLE as immerable,
-	__loadPlugin
+	DRAFTABLE as immerable
 } from "./internal"
 
 const immer = new Immer()
@@ -109,3 +108,7 @@ export function castImmutable<T>(value: T): Immutable<T> {
 }
 
 export {Immer}
+
+export {enableES5} from "./plugins/es5"
+export {enablePatches} from "./plugins/patches"
+export {enableMapSet} from "./plugins/mapset"

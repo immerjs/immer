@@ -7,27 +7,8 @@ import {
 	ImmerBaseState,
 	AnyArray,
 	AnyMap,
-	DRAFT_STATE,
 	AnySet,
-	get,
-	each,
-	has,
-	die,
-	getArchtype,
-	ProxyType,
-	Archtype,
-	isSet,
-	isMap,
-	isDraft,
-	isDraftable,
-	isEnumerable,
-	shallowCopy,
-	latest,
-	createHiddenProperty,
-	assertUnrevoked,
-	is,
-	createProxy,
-	iteratorSymbol
+	ProxyType
 } from "./internal"
 
 /** Plugin utilities */
@@ -49,8 +30,6 @@ const plugins: {
 
 type Plugins = typeof plugins
 
-export type Utilities = ReturnType<typeof buildUtilities>
-
 export function getPlugin<K extends keyof Plugins>(
 	pluginKey: K
 ): Exclude<Plugins[K], undefined> {
@@ -64,42 +43,11 @@ export function getPlugin<K extends keyof Plugins>(
 	return plugin
 }
 
-function buildUtilities() {
-	return {
-		get,
-		each,
-		has,
-		die,
-		getArchtype,
-		ProxyType,
-		Archtype,
-		isSet,
-		isMap,
-		isDraft,
-		isDraftable,
-		isEnumerable,
-		shallowCopy,
-		latest,
-		createHiddenProperty,
-		ImmerScope,
-		DRAFT_STATE,
-		assertUnrevoked,
-		is,
-		iteratorSymbol,
-		createProxy
-	} as const
-}
-
-let utilities: Utilities | undefined = undefined
-
-export function __loadPlugin<K extends keyof Plugins>(
+export function loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,
-	getImplementation: (core: any /* TODO: Utilities */) => Plugins[K]
+	implementation: Plugins[K]
 ): void {
-	if (!utilities) {
-		utilities = buildUtilities()
-	}
-	plugins[pluginKey] = getImplementation(utilities)
+	plugins[pluginKey] = implementation
 }
 
 /** ES5 Plugin */
@@ -164,17 +112,11 @@ export interface SetState extends ImmerBaseState {
 	draft: Drafted<AnySet, SetState>
 }
 
-export function proxyMap<T extends AnyMap>(
-	target: T,
-	parent?: ImmerState
-): T & {[DRAFT_STATE]: MapState} {
+export function proxyMap<T extends AnyMap>(target: T, parent?: ImmerState): T {
 	return getPlugin("mapset").proxyMap(target, parent)
 }
 
-export function proxySet<T extends AnySet>(
-	target: T,
-	parent?: ImmerState
-): T & {[DRAFT_STATE]: SetState} {
+export function proxySet<T extends AnySet>(target: T, parent?: ImmerState): T {
 	return getPlugin("mapset").proxySet(target, parent)
 }
 
