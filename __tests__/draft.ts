@@ -1,5 +1,12 @@
 import {assert, _} from "spec.ts"
-import produce, {Draft, castDraft, original} from "../src/index"
+import produce, {
+	Draft,
+	castDraft,
+	original,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 // For checking if a type is assignable to its draft type (and vice versa)
 const toDraft: <T>(value: T) => Draft<T> = x => x as any

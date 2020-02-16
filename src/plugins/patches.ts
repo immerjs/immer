@@ -21,6 +21,7 @@ import {
 	loadPlugin
 } from "../internal"
 
+/*#__PURE__*/
 export function enablePatches() {
 	function generatePatches(
 		state: ImmerState,

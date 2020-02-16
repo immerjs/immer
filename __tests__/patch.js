@@ -2,8 +2,11 @@
 import produce, {
 	setUseProxies,
 	applyPatches,
-	produceWithPatches
-} from "../src/index"
+	produceWithPatches,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 jest.setTimeout(1000)
 

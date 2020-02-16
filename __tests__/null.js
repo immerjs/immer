@@ -1,5 +1,5 @@
 "use strict"
-import produce from "../src/index"
+import produce from "../src/immer"
 
 describe("null functionality", () => {
 	const baseState = null

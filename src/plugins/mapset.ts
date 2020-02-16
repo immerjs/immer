@@ -13,9 +13,11 @@ import {
 	iteratorSymbol,
 	isDraftable,
 	createProxy,
-	loadPlugin
+	loadPlugin,
+	markChanged
 } from "../internal"
 
+/*#__PURE__*/
 export function enableMapSet() {
 	/* istanbul ignore next */
 	var extendStatics = function(d: any, b: any): any {
@@ -85,7 +87,7 @@ export function enableMapSet() {
 			assertUnrevoked(state)
 			if (latest(state).get(key) !== value) {
 				prepareMapCopy(state)
-				state.scope.immer.markChanged(state)
+				markChanged(state.scope.immer, state)
 				state.assigned!.set(key, true)
 				state.copy!.set(key, value)
 				state.assigned!.set(key, true)
@@ -101,7 +103,7 @@ export function enableMapSet() {
 			const state = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			state.scope.immer.markChanged(state)
+			markChanged(state.scope.immer, state)
 			state.assigned!.set(key, false)
 			state.copy!.delete(key)
 			return true
@@ -111,7 +113,7 @@ export function enableMapSet() {
 			const state = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			state.scope.immer.markChanged(state)
+			markChanged(state.scope.immer, state)
 			state.assigned = new Map()
 			return state.copy!.clear()
 		}
@@ -137,7 +139,7 @@ export function enableMapSet() {
 				return value // either already drafted or reassigned
 			}
 			// despite what it looks, this creates a draft only once, see above condition
-			const draft = state.scope.immer.createProxy(value, state)
+			const draft = createProxy(state.scope.immer, value, state)
 			prepareMapCopy(state)
 			state.copy!.set(key, draft)
 			return draft
@@ -253,7 +255,7 @@ export function enableMapSet() {
 				state.copy.add(value)
 			} else if (!state.base.has(value)) {
 				prepareSetCopy(state)
-				state.scope.immer.markChanged(state)
+				markChanged(state.scope.immer, state)
 				state.copy!.add(value)
 			}
 			return this
@@ -267,7 +269,7 @@ export function enableMapSet() {
 			const state = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			state.scope.immer.markChanged(state)
+			markChanged(state.scope.immer, state)
 			return (
 				state.copy!.delete(value) ||
 				(state.drafts.has(value)
@@ -280,7 +282,7 @@ export function enableMapSet() {
 			const state = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			state.scope.immer.markChanged(state)
+			markChanged(state.scope.immer, state)
 			return state.copy!.clear()
 		}
 

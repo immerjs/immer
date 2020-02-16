@@ -1,11 +1,20 @@
 "use strict"
-import {Immer, nothing, original, isDraft, immerable} from "../src/index"
+import {
+	Immer,
+	nothing,
+	original,
+	isDraft,
+	immerable,
+	enableAllPlugins
+} from "../src/immer"
 import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
 
 jest.setTimeout(1000)
+
+enableAllPlugins()
 
 test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()

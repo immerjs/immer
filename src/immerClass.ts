@@ -28,6 +28,7 @@ import {
 	createProxyProxy
 } from "./internal"
 
+declare const __DEV__: boolean
 /* istanbul ignore next */
 function verifyMinified() {}
 
@@ -36,11 +37,9 @@ const configDefaults = {
 		typeof Proxy !== "undefined" &&
 		typeof Proxy.revocable !== "undefined" &&
 		typeof Reflect !== "undefined",
-	autoFreeze:
-		typeof process !== "undefined"
-			? process.env.NODE_ENV !== "production"
-			: /* istanbul ignore next */
-			  verifyMinified.name === "verifyMinified",
+	autoFreeze: __DEV__
+		? false /* istanbul ignore next */
+		: verifyMinified.name === "verifyMinified",
 	onAssign: null,
 	onDelete: null,
 	onCopy: null

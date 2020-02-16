@@ -5,7 +5,7 @@ module.exports = {
 			? {
 					...config,
 					// this makes sure sideEffects: true can clean up files
-					preserveModules: true,
+					// preserveModules: true,
 					output: {
 						dir: "dist"
 					}

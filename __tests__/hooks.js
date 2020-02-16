@@ -1,7 +1,9 @@
 "use strict"
-import {Immer, setUseProxies} from "../src/index"
+import {Immer, setUseProxies, enableAllPlugins} from "../src/immer"
 import matchers from "expect/build/matchers"
 import {isSet} from "../src/common"
+
+enableAllPlugins()
 
 describe("hooks (proxy) -", () => createHookTests(true))
 describe("hooks (es5) -", () => createHookTests(false))

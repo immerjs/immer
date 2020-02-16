@@ -4,8 +4,11 @@ import {
 	createDraft,
 	finishDraft,
 	produce,
-	isDraft
-} from "../src/index"
+	isDraft,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 runTests("proxy", true)
 runTests("es5", false)

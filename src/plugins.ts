@@ -36,7 +36,9 @@ export function getPlugin<K extends keyof Plugins>(
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
 		throw new Error(
-			`The plugin ${pluginKey} has not been loaded into Immer. Make sure the require from "immer/${pluginKey}" when initializing your application, just after requiring immer itself.`
+			`The plugin ${pluginKey} has not been loaded into Immer. Make sure to call "enable${pluginKey[0].toUpperCase()}${pluginKey.substr(
+				1
+			)}()" when initializing your application, just after requiring immer itself.`
 		)
 	}
 	// @ts-ignore

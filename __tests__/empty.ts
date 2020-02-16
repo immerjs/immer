@@ -1,5 +1,12 @@
-import {produce, produceWithPatches, setUseProxies} from "../src"
+import {
+	produce,
+	produceWithPatches,
+	setUseProxies,
+	enableAllPlugins
+} from "../src/immer"
 import {DRAFT_STATE} from "../src/internal"
+
+enableAllPlugins()
 
 test("empty stub test", () => {
 	expect(true).toBe(true)

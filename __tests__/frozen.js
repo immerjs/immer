@@ -1,5 +1,11 @@
 "use strict"
-import produce, {setUseProxies, setAutoFreeze} from "../src/index"
+import produce, {
+	setUseProxies,
+	setAutoFreeze,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 const {isFrozen} = Object
 
@@ -178,7 +184,14 @@ function runTests(name, useProxies) {
 		it("Map#get() of frozen object will became draftable", () => {
 			const base = {
 				map: new Map([
-					["a", new Map([["a", true], ["b", true], ["c", true]])],
+					[
+						"a",
+						new Map([
+							["a", true],
+							["b", true],
+							["c", true]
+						])
+					],
 					["b", new Map([["a", true]])],
 					["c", new Map([["a", true]])]
 				])

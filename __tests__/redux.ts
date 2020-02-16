@@ -6,7 +6,7 @@ import produce, {
 	nothing,
 	Draft,
 	Immutable
-} from "../src/"
+} from "../src/immer"
 import * as redux from "redux"
 
 interface State {

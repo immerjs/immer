@@ -112,3 +112,4 @@ export {Immer}
 export {enableES5} from "./plugins/es5"
 export {enablePatches} from "./plugins/patches"
 export {enableMapSet} from "./plugins/mapset"
+export {enableAllPlugins} from "./plugins/all"

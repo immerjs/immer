@@ -1,4 +1,3 @@
-// types only!
 import {
 	ImmerState,
 	Drafted,
@@ -18,11 +17,13 @@ import {
 	assertUnrevoked,
 	is,
 	loadPlugin,
-	ImmerScope
+	ImmerScope,
+	createProxy
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
+/*#__PURE__*/
 export function enableES5() {
 	function willFinalizeES5(
 		scope: ImmerScope,
@@ -95,7 +96,7 @@ export function enableES5() {
 		if (value === peek(state.base, prop) && isDraftable(value)) {
 			prepareCopy(state)
 			// @ts-ignore
-			return (state.copy![prop] = state.scope.immer.createProxy(value, state))
+			return (state.copy![prop] = createProxy(state.scope.immer, value, state))
 		}
 		return value
 	}
