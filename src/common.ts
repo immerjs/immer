@@ -15,11 +15,13 @@ import {
 } from "./internal"
 
 /** Returns true if the given value is an Immer draft */
+/*#__PURE__*/
 export function isDraft(value: any): boolean {
 	return !!value && !!value[DRAFT_STATE]
 }
 
 /** Returns true if the given value can be drafted by Immer */
+/*#__PURE__*/
 export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
@@ -32,6 +34,7 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
+/*#__PURE__*/
 export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	const proto = Object.getPrototypeOf(value)
@@ -39,6 +42,7 @@ export function isPlainObject(value: any): boolean {
 }
 
 /** Get the underlying object that is represented by the given draft */
+/*#__PURE__*/
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
 	if (value && value[DRAFT_STATE]) {
@@ -47,6 +51,7 @@ export function original(value: Drafted<any>): any {
 	// otherwise return undefined
 }
 
+/*#__PURE__*/
 export const ownKeys: (target: AnyObject) => PropertyKey[] =
 	typeof Reflect !== "undefined" && Reflect.ownKeys
 		? Reflect.ownKeys
@@ -69,11 +74,13 @@ export function each(obj: any, iter: any) {
 	}
 }
 
+/*#__PURE__*/
 export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 	const desc = Object.getOwnPropertyDescriptor(base, prop)
 	return desc && desc.enumerable ? true : false
 }
 
+/*#__PURE__*/
 export function getArchtype(thing: any): Archtype {
 	/* istanbul ignore next */
 	if (!thing) die()
@@ -100,17 +107,20 @@ export function getArchtype(thing: any): Archtype {
 		: Archtype.Object
 }
 
+/*#__PURE__*/
 export function has(thing: any, prop: PropertyKey): boolean {
 	return getArchtype(thing) === Archtype.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
+/*#__PURE__*/
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 	// @ts-ignore
 	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
 }
 
+/*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	switch (getArchtype(thing)) {
 		case Archtype.Map:
@@ -125,6 +135,7 @@ export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	}
 }
 
+/*#__PURE__*/
 export function is(x: any, y: any): boolean {
 	// From: https://github.com/facebook/fbjs/blob/c69904a511b900266935168223063dd8772dfc40/packages/fbjs/src/core/shallowEqual.js
 	if (x === y) {
@@ -134,18 +145,21 @@ export function is(x: any, y: any): boolean {
 	}
 }
 
+/*#__PURE__*/
 export function isMap(target: any): target is AnyMap {
 	return hasMap && target instanceof Map
 }
 
+/*#__PURE__*/
 export function isSet(target: any): target is AnySet {
 	return hasSet && target instanceof Set
 }
-
+/*#__PURE__*/
 export function latest(state: ImmerState): any {
 	return state.copy || state.base
 }
 
+/*#__PURE__*/
 export function shallowCopy<T extends AnyObject | AnyArray>(
 	base: T,
 	invokeGetters?: boolean

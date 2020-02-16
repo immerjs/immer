@@ -24,7 +24,7 @@
     "build:flow": "cpx 'src/immer.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
     "start": "cd website && yarn start",
-    "test:size": "yarn import-size --report . produce enableES5 enableMapSet enablePatches"
+    "test:size": "yarn build && yarn import-size --report . produce enableES5 enableMapSet enablePatches"
   },
   "husky": {
     "hooks": {
@@ -63,7 +63,7 @@
     "flow-bin": "^0.68.0",
     "husky": "^1.2.0",
     "immutable": "^3.8.2",
-    "import-size": "^1.0.1",
+    "import-size": "^1.0.2",
     "jest": "^25.1.0",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",

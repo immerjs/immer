@@ -17,7 +17,6 @@ import {
 	markChanged
 } from "../internal"
 
-/*#__PURE__*/
 export function enableMapSet() {
 	/* istanbul ignore next */
 	var extendStatics = function(d: any, b: any): any {

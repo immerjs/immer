@@ -23,7 +23,6 @@ import {
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
-/*#__PURE__*/
 export function enableES5() {
 	function willFinalizeES5(
 		scope: ImmerScope,

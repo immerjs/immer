@@ -5838,10 +5838,10 @@ import-local@^3.0.2:
     pkg-dir "^4.2.0"
     resolve-cwd "^3.0.0"
 
-import-size@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/import-size/-/import-size-1.0.1.tgz#b6de33fdbf82375ee17c5d9eddd74bf7d3f0b433"
-  integrity sha512-yWb3egI8xVKE2uqb1866P1lXW3AytSYrOzwfr1htqje/wvPFLCWuScmYO7gOmu6nsXU5Ucl6v2apuR0ycj/XUA==
+import-size@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/import-size/-/import-size-1.0.2.tgz#2b4cf40ae75dc6b01bc8d850f26b9449748a3ee0"
+  integrity sha512-bGZTiThFEK9PETbhyC7Wu1r8rCIQ2BB9mh4HBbu7luVnrHHfKqrGCIoEVvpnQNoWKlLFfFD21LuULlHtBg5psg==
   dependencies:
     commander "^4.1.1"
     import-cost "^1.9.0"
