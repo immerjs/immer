@@ -1,17 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`curry - es5 should check arguments 1`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - es5 should check arguments 1`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - es5 should check arguments 2`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - es5 should check arguments 2`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - es5 should check arguments 3`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - es5 should check arguments 3`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - es5 should check arguments 4`] = `"The third argument to \`produce\` must be a function or undefined"`;
+exports[`curry - es5 should check arguments 4`] = `"Invariant failed: The third argument to \`produce\` must be a function or undefined"`;
 
-exports[`curry - proxy should check arguments 1`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - proxy should check arguments 1`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - proxy should check arguments 2`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - proxy should check arguments 2`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - proxy should check arguments 3`] = `"The first or second argument to \`produce\` must be a function"`;
+exports[`curry - proxy should check arguments 3`] = `"Invariant failed: The first or second argument to \`produce\` must be a function"`;
 
-exports[`curry - proxy should check arguments 4`] = `"The third argument to \`produce\` must be a function or undefined"`;
+exports[`curry - proxy should check arguments 4`] = `"Invariant failed: The third argument to \`produce\` must be a function or undefined"`;

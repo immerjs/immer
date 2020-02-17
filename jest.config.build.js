@@ -1,6 +1,6 @@
 module.exports = {
 	moduleNameMapper: {
-		"src/.*": "<rootDir>"
+		"src/.*": "<rootDir>/dist/immer.esm.js"
 	},
 	testURL: "http://localhost",
 	globals: {

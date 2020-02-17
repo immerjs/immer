@@ -233,6 +233,6 @@ test("Producers can update Maps", () => {
 	expect(usersById_v1.size).toBe(0)
 	// And trying to change a Map outside a producers is going to: NO!
 	expect(() => usersById_v3.clear()).toThrowErrorMatchingInlineSnapshot(
-		`"This object has been frozen and should not be mutated"`
+		`"Invariant failed: This object has been frozen and should not be mutated"`
 	)
 })

@@ -1,68 +1,68 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`base functionality - es5 (autofreeze) async recipe function works with rejected promises 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
+exports[`base functionality - es5 (autofreeze) async recipe function works with rejected promises 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (autofreeze) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - es5 (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - es5 (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 2`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 2`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 3`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 3`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 4`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 4`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (autofreeze) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - es5 (autofreeze) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 2`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 2`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 3`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 3`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - es5 (no freeze) async recipe function works with rejected promises 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
+exports[`base functionality - es5 (no freeze) async recipe function works with rejected promises 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
 
-exports[`base functionality - es5 (no freeze) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (no freeze) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - es5 (no freeze) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - es5 (no freeze) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 1`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 1`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 2`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 2`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
 
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 3`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 3`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 4`] = `"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 4`] = `"Invariant failed: Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
 
-exports[`base functionality - es5 (no freeze) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - es5 (no freeze) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is added 1`] = `"Immer only supports setting array indices and the 'length' property"`;
+exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is added 1`] = `"Invariant failed: Immer only supports setting array indices and the 'length' property"`;
 
-exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is deleted 1`] = `"Immer only supports deleting array indices"`;
+exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is deleted 1`] = `"Invariant failed: Immer only supports deleting array indices"`;
 
 exports[`base functionality - proxy (autofreeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (autofreeze) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - proxy (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
 exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
@@ -80,23 +80,23 @@ exports[`base functionality - proxy (autofreeze) revokes the draft once produce 
 
 exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - proxy (autofreeze) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - proxy (autofreeze) throws when Object.defineProperty() is used on drafts 1`] = `"Object.defineProperty() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (autofreeze) throws when Object.defineProperty() is used on drafts 1`] = `"Invariant failed: Object.defineProperty() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (autofreeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Object.setPrototypeOf() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (autofreeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Invariant failed: Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (autofreeze) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (autofreeze) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) array drafts throws when a non-numeric property is added 1`] = `"Immer only supports setting array indices and the 'length' property"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) array drafts throws when a non-numeric property is added 1`] = `"Invariant failed: Immer only supports setting array indices and the 'length' property"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) array drafts throws when a non-numeric property is deleted 1`] = `"Immer only supports deleting array indices"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) array drafts throws when a non-numeric property is deleted 1`] = `"Invariant failed: Immer only supports deleting array indices"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
@@ -114,23 +114,23 @@ exports[`base functionality - proxy (autofreeze)(patch listener) revokes the dra
 
 exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"Object.defineProperty() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"Invariant failed: Object.defineProperty() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Object.setPrototypeOf() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Invariant failed: Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (no freeze) array drafts throws when a non-numeric property is added 1`] = `"Immer only supports setting array indices and the 'length' property"`;
+exports[`base functionality - proxy (no freeze) array drafts throws when a non-numeric property is added 1`] = `"Invariant failed: Immer only supports setting array indices and the 'length' property"`;
 
-exports[`base functionality - proxy (no freeze) array drafts throws when a non-numeric property is deleted 1`] = `"Immer only supports deleting array indices"`;
+exports[`base functionality - proxy (no freeze) array drafts throws when a non-numeric property is deleted 1`] = `"Invariant failed: Immer only supports deleting array indices"`;
 
 exports[`base functionality - proxy (no freeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (no freeze) recipe functions cannot return a modified child draft 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (no freeze) recipe functions cannot return a modified child draft 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
-exports[`base functionality - proxy (no freeze) recipe functions cannot return an object that references itself 1`] = `"Immer forbids circular references"`;
+exports[`base functionality - proxy (no freeze) recipe functions cannot return an object that references itself 1`] = `"Invariant failed: Immer forbids circular references"`;
 
 exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
@@ -148,13 +148,13 @@ exports[`base functionality - proxy (no freeze) revokes the draft once produce r
 
 exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (no freeze) throws on computed properties 1`] = `"Immer drafts cannot have computed properties"`;
+exports[`base functionality - proxy (no freeze) throws on computed properties 1`] = `"Invariant failed: Immer drafts cannot have computed properties"`;
 
-exports[`base functionality - proxy (no freeze) throws when Object.defineProperty() is used on drafts 1`] = `"Object.defineProperty() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (no freeze) throws when Object.defineProperty() is used on drafts 1`] = `"Invariant failed: Object.defineProperty() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (no freeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Object.setPrototypeOf() cannot be used on an Immer draft"`;
+exports[`base functionality - proxy (no freeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"Invariant failed: Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
-exports[`base functionality - proxy (no freeze) throws when the draft is modified and another object is returned 1`] = `"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+exports[`base functionality - proxy (no freeze) throws when the draft is modified and another object is returned 1`] = `"Invariant failed: An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`complex nesting map / set / object modify deep object 1`] = `
 Object {
