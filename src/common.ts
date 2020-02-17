@@ -167,6 +167,7 @@ export function shallowCopy<T extends AnyObject | AnyArray>(
 export function shallowCopy(base: any, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
 	const clone = Object.create(Object.getPrototypeOf(base))
+	// TODO: each?
 	ownKeys(base).forEach(key => {
 		if (key === DRAFT_STATE) {
 			return // Never copy over draft state.
@@ -206,6 +207,7 @@ function dontMutateFrozenCollections() {
 	invariant(false, "This object has been frozen and should not be mutated")
 }
 
+// TODO: used only once, inline
 export function createHiddenProperty(
 	target: AnyObject,
 	prop: PropertyKey,
@@ -213,7 +215,7 @@ export function createHiddenProperty(
 ) {
 	Object.defineProperty(target, prop, {
 		value: value,
-		enumerable: false,
+		// enumerable: false <- the default
 		writable: true
 	})
 }

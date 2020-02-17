@@ -155,7 +155,7 @@ export function enableES5() {
 			desc.enumerable = enumerable
 		} else {
 			descriptors[prop] = desc = {
-				configurable: true,
+				// configurable: true,
 				enumerable,
 				get(this: any) {
 					return get(this[DRAFT_STATE], prop)

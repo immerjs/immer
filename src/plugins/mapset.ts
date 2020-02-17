@@ -70,9 +70,9 @@ export function enableMapSet() {
 		Object.defineProperty(p, "size", {
 			get: function() {
 				return latest(this[DRAFT_STATE]).size
-			},
-			enumerable: true,
-			configurable: true
+			}
+			// enumerable: false,
+			// configurable: true
 		})
 
 		p.has = function(key: any): boolean {
@@ -225,9 +225,8 @@ export function enableMapSet() {
 		Object.defineProperty(p, "size", {
 			get: function() {
 				return latest(this[DRAFT_STATE]).size
-			},
-			enumerable: true,
-			configurable: true
+			}
+			// enumerable: true,
 		})
 
 		p.has = function(value: any): boolean {
