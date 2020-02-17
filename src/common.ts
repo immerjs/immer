@@ -84,7 +84,6 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 /*#__PURE__*/
 export function getArchtype(thing: any): Archtype {
 	/* istanbul ignore next */
-	if (!thing) die()
 	if (thing[DRAFT_STATE]) {
 		switch ((thing as Drafted)[DRAFT_STATE].type) {
 			case ProxyType.ES5Object:
@@ -217,11 +216,6 @@ export function createHiddenProperty(
 		enumerable: false,
 		writable: true
 	})
-}
-
-/* istanbul ignore next */
-export function die(): never {
-	invariant(false, "Illegal state, please file a bug")
 }
 
 export function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {

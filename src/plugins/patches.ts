@@ -12,7 +12,6 @@ import {
 	get,
 	each,
 	has,
-	die,
 	getArchtype,
 	ProxyType,
 	Archtype,
@@ -58,9 +57,8 @@ export function enablePatches() {
 		patches: Patch[],
 		inversePatches: Patch[]
 	) {
-		let {base_, assigned_, copy_} = state
-		/* istanbul ignore next */
-		if (!copy_) die()
+		const {base_, assigned_} = state
+		const copy_ = state.copy_!
 
 		// Reduce complexity by ensuring `base` is never longer.
 		if (copy_.length < base_.length) {
@@ -189,9 +187,6 @@ export function enablePatches() {
 	function applyPatches<T>(draft: T, patches: Patch[]): T {
 		patches.forEach(patch => {
 			const {path, op} = patch
-
-			/* istanbul ignore next */
-			if (!path.length) die()
 
 			let base: any = draft
 			for (let i = 0; i < path.length - 1; i++) {

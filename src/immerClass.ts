@@ -12,7 +12,6 @@ import {
 	processResult,
 	NOTHING,
 	maybeFreeze,
-	die,
 	Patch,
 	Objectish,
 	DRAFT_STATE,
@@ -167,7 +166,7 @@ export class Immer implements ProducersFns {
 		}
 		// non-curried form
 		/* istanbul ignore next */
-		if (arg3) die()
+		invariant(!arg3)
 		let patches: Patch[], inversePatches: Patch[]
 		const nextState = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
 			patches = p
