@@ -3,7 +3,7 @@ Things to optimize
 [x] extract errors
 [x] don't enable all features by default
 [ ] "undefined" "object" prototype undefined ?
-[ ] kill hooks
+[x] kill hooks
 [x] _ postfix all members
 [ ] clean up finalize
 [ ] remove die

@@ -83,28 +83,9 @@ function finalize(
 		state.finalized_ = true
 		finalizeTree(immer, state.draft_, scope, path)
 
-		// We cannot really delete anything inside of a Set. We can only replace the whole Set.
-		if (immer.onDelete && state.type_ !== ProxyType.Set) {
-			// The `assigned` object is unreliable with ES5 drafts.
-			if (immer.useProxies) {
-				const {assigned_} = state
-				each(assigned_ as any, (prop, exists) => {
-					if (!exists) immer.onDelete!(state, prop as any)
-				})
-			} else {
-				const {base_, copy_} = state
-				each(base_, prop => {
-					if (!has(copy_, prop)) immer.onDelete!(state, prop as any)
-				})
-			}
-		}
-		if (immer.onCopy) {
-			immer.onCopy(state)
-		}
-
 		// At this point, all descendants of `state.copy` have been finalized,
 		// so we can be sure that `scope.canAutoFreeze` is accurate.
-		if (immer.autoFreeze && scope.canAutoFreeze_) {
+		if (immer.autoFreeze_ && scope.canAutoFreeze_) {
 			freeze(state.copy_, false)
 		}
 
@@ -194,14 +175,10 @@ function finalizeProperty(
 		)
 		if (!scope.parent_) maybeFreeze(immer, childValue)
 	}
-
-	if (isDraftProp && immer.onAssign && !isSetMember) {
-		immer.onAssign(rootState, prop, childValue)
-	}
 }
 
 export function maybeFreeze(immer: Immer, value: any, deep = false) {
-	if (immer.autoFreeze && !isDraft(value)) {
+	if (immer.autoFreeze_ && !isDraft(value)) {
 		freeze(value, deep)
 	}
 }

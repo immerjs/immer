@@ -57,8 +57,8 @@ export function enablePatches() {
 		patches: Patch[],
 		inversePatches: Patch[]
 	) {
-		const {base_, assigned_} = state
-		const copy_ = state.copy_!
+		let {base_, assigned_} = state
+		let copy_ = state.copy_!
 
 		// Reduce complexity by ensuring `base` is never longer.
 		if (copy_.length < base_.length) {

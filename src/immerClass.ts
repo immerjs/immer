@@ -5,7 +5,6 @@ import {
 	IProduceWithPatches,
 	IProduce,
 	ImmerState,
-	each,
 	Drafted,
 	isDraftable,
 	ImmerScope,
@@ -32,47 +31,25 @@ declare const __DEV__: boolean
 /* istanbul ignore next */
 function verifyMinified() {}
 
-const configDefaults = {
-	useProxies:
-		typeof Proxy !== "undefined" &&
-		typeof Proxy.revocable !== "undefined" &&
-		typeof Reflect !== "undefined",
-	autoFreeze: __DEV__
-		? false /* istanbul ignore next */
-		: verifyMinified.name === "verifyMinified",
-	onAssign: null,
-	onDelete: null,
-	onCopy: null
-} as const
-
 interface ProducersFns {
 	produce: IProduce
 	produceWithPatches: IProduceWithPatches
 }
 
 export class Immer implements ProducersFns {
-	useProxies: boolean = false
-	autoFreeze: boolean = false
-	onAssign?: (state: ImmerState, prop: string | number, value: unknown) => void
-	onDelete?: (state: ImmerState, prop: string | number) => void
-	onCopy?: (state: ImmerState) => void
+	useProxies_: boolean =
+		typeof Proxy !== "undefined" &&
+		typeof Proxy.revocable !== "undefined" &&
+		typeof Reflect !== "undefined"
+	autoFreeze_: boolean = __DEV__
+		? false /* istanbul ignore next */
+		: verifyMinified.name === "verifyMinified"
 
-	constructor(config?: {
-		useProxies?: boolean
-		autoFreeze?: boolean
-		onAssign?: (
-			state: ImmerState,
-			prop: string | number,
-			value: unknown
-		) => void
-		onDelete?: (state: ImmerState, prop: string | number) => void
-		onCopy?: (state: ImmerState) => void
-	}) {
-		each(configDefaults, (key, value) => {
-			// @ts-ignore
-			this[key] = config?.[key] ?? value
-		})
-		this.setUseProxies(this.useProxies)
+	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
+		if (typeof config?.useProxies === "boolean")
+			this.setUseProxies(config!.useProxies)
+		if (typeof config?.autoFreeze === "boolean")
+			this.setAutoFreeze(config!.autoFreeze)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
@@ -202,7 +179,7 @@ export class Immer implements ProducersFns {
 	 * By default, auto-freezing is disabled in production.
 	 */
 	setAutoFreeze(value: boolean) {
-		this.autoFreeze = value
+		this.autoFreeze_ = value
 	}
 
 	/**
@@ -212,7 +189,7 @@ export class Immer implements ProducersFns {
 	 * By default, feature detection is used, so calling this is rarely necessary.
 	 */
 	setUseProxies(value: boolean) {
-		this.useProxies = value
+		this.useProxies_ = value
 	}
 
 	applyPatches(base: Objectish, patches: Patch[]) {
@@ -248,7 +225,7 @@ export function createProxy<T extends Objectish>(
 		? proxyMap(value, parent)
 		: isSet(value)
 		? proxySet(value, parent)
-		: immer.useProxies
+		: immer.useProxies_
 		? createProxyProxy(value, parent)
 		: createES5Proxy(value, parent)
 
@@ -263,11 +240,11 @@ export function willFinalize(
 	thing: any,
 	isReplaced: boolean
 ) {
-	if (!immer.useProxies) willFinalizeES5(scope, thing, isReplaced)
+	if (!immer.useProxies_) willFinalizeES5(scope, thing, isReplaced)
 }
 
 export function markChanged(immer: Immer, state: ImmerState) {
-	if (immer.useProxies) {
+	if (immer.useProxies_) {
 		markChangedProxy(state)
 	} else {
 		markChangedES5(state)
