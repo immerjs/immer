@@ -307,11 +307,13 @@ function createHookTests(useProxies) {
 	})
 
 	describe("onCopy()", () => {
+		if (global.USES_BUILD) return
+
 		let calls
 		beforeEach(() => {
 			calls = []
 			onCopy.mockImplementation(s => {
-				calls.push(s.base)
+				calls.push(s.base_)
 			})
 		})
 
@@ -347,7 +349,7 @@ function createHookTests(useProxies) {
 			const hook = getHook()
 			hook.mockImplementation(s => {
 				// Parent object must not be frozen.
-				expect(Object.isFrozen(s.base)).toBeFalsy()
+				if (!global.USES_BUILD) expect(Object.isFrozen(s.base_)).toBeFalsy()
 			})
 			produce({a: {b: {c: 0}}}, s => {
 				if (hook == onDelete) delete s.a.b.c
@@ -370,7 +372,7 @@ function expectCalls(hook) {
 // For defusing draft proxies.
 function defuseProxies(fn) {
 	return Object.assign((...args) => {
-		expect(args[0].finalized).toBeTruthy()
+		if (!global.USES_BUILD) expect(args[0].finalized_).toBeTruthy()
 		args[0].draft = args[0].drafts = null
 		fn(...args)
 	}, fn)

@@ -24,38 +24,38 @@ import {
 import invariant from "tiny-invariant"
 
 export function processResult(immer: Immer, result: any, scope: ImmerScope) {
-	const baseDraft = scope.drafts![0]
+	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
 	willFinalize(immer, scope, result, isReplaced)
 	if (isReplaced) {
-		if (baseDraft[DRAFT_STATE].modified) {
-			scope.revoke()
+		if (baseDraft[DRAFT_STATE].modified_) {
+			scope.revoke_()
 			invariant(false, "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
 			result = finalize(immer, result, scope)
-			if (!scope.parent) maybeFreeze(immer, result)
+			if (!scope.parent_) maybeFreeze(immer, result)
 		}
-		if (scope.patches) {
-			scope.patches.push({
+		if (scope.patches_) {
+			scope.patches_.push({
 				op: "replace",
 				path: [],
 				value: result
 			})
-			scope.inversePatches!.push({
+			scope.inversePatches_!.push({
 				op: "replace",
 				path: [],
-				value: baseDraft[DRAFT_STATE].base
+				value: (baseDraft[DRAFT_STATE] as ImmerState).base_
 			})
 		}
 	} else {
 		// Finalize the base draft.
 		result = finalize(immer, baseDraft, scope, [])
 	}
-	scope.revoke()
-	if (scope.patches) {
-		scope.patchListener!(scope.patches, scope.inversePatches!)
+	scope.revoke_()
+	if (scope.patches_) {
+		scope.patchListener_!(scope.patches_, scope.inversePatches_!)
 	}
 	return result !== NOTHING ? result : undefined
 }
@@ -66,35 +66,35 @@ function finalize(
 	scope: ImmerScope,
 	path?: PatchPath
 ) {
-	const state = draft[DRAFT_STATE]
+	const state: ImmerState = draft[DRAFT_STATE]
 	if (!state) {
 		if (Object.isFrozen(draft)) return draft
 		return finalizeTree(immer, draft, scope)
 	}
 	// Never finalize drafts owned by another scope.
-	if (state.scope !== scope) {
+	if (state.scope_ !== scope) {
 		return draft
 	}
-	if (!state.modified) {
-		maybeFreeze(immer, state.base, true)
-		return state.base
+	if (!state.modified_) {
+		maybeFreeze(immer, state.base_, true)
+		return state.base_
 	}
-	if (!state.finalized) {
-		state.finalized = true
-		finalizeTree(immer, state.draft, scope, path)
+	if (!state.finalized_) {
+		state.finalized_ = true
+		finalizeTree(immer, state.draft_, scope, path)
 
 		// We cannot really delete anything inside of a Set. We can only replace the whole Set.
-		if (immer.onDelete && state.type !== ProxyType.Set) {
+		if (immer.onDelete && state.type_ !== ProxyType.Set) {
 			// The `assigned` object is unreliable with ES5 drafts.
 			if (immer.useProxies) {
-				const {assigned} = state
-				each(assigned, (prop, exists) => {
+				const {assigned_} = state
+				each(assigned_ as any, (prop, exists) => {
 					if (!exists) immer.onDelete!(state, prop as any)
 				})
 			} else {
-				const {base, copy} = state
-				each(base, prop => {
-					if (!has(copy, prop)) immer.onDelete!(state, prop as any)
+				const {base_, copy_} = state
+				each(base_, prop => {
+					if (!has(copy_, prop)) immer.onDelete!(state, prop as any)
 				})
 			}
 		}
@@ -104,15 +104,15 @@ function finalize(
 
 		// At this point, all descendants of `state.copy` have been finalized,
 		// so we can be sure that `scope.canAutoFreeze` is accurate.
-		if (immer.autoFreeze && scope.canAutoFreeze) {
-			freeze(state.copy, false)
+		if (immer.autoFreeze && scope.canAutoFreeze_) {
+			freeze(state.copy_, false)
 		}
 
-		if (path && scope.patches) {
-			generatePatches(state, path, scope.patches, scope.inversePatches!)
+		if (path && scope.patches_) {
+			generatePatches(state, path, scope.patches_, scope.inversePatches_!)
 		}
 	}
-	return state.copy
+	return state.copy_
 }
 
 function finalizeTree(
@@ -121,16 +121,16 @@ function finalizeTree(
 	scope: ImmerScope,
 	rootPath?: PatchPath
 ) {
-	const state = root[DRAFT_STATE]
+	const state: ImmerState = root[DRAFT_STATE]
 	if (state) {
 		if (
-			state.type === ProxyType.ES5Object ||
-			state.type === ProxyType.ES5Array
+			state.type_ === ProxyType.ES5Object ||
+			state.type_ === ProxyType.ES5Array
 		) {
 			// Create the final copy, with added keys and without deleted keys.
-			state.copy = shallowCopy(state.draft, true)
+			state.copy_ = shallowCopy(state.draft_, true)
 		}
-		root = state.copy
+		root = state.copy_
 	}
 	each(root, (key, value) =>
 		finalizeProperty(immer, scope, root, state, root, key, value, rootPath)
@@ -159,7 +159,7 @@ function finalizeProperty(
 			rootPath &&
 			isDraftProp &&
 			!isSetMember && // Set objects are atomic since they have no keys.
-			!has((rootState as Exclude<ImmerState, SetState>).assigned!, prop) // Skip deep patches for assigned keys.
+			!has((rootState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined
 
@@ -169,11 +169,11 @@ function finalizeProperty(
 
 		// Drafts from another scope must prevent auto-freezing.
 		if (isDraft(childValue)) {
-			scope.canAutoFreeze = false
+			scope.canAutoFreeze_ = false
 		}
 	}
 	// Unchanged draft properties are ignored.
-	else if (isDraftProp && is(childValue, get(rootState.base, prop))) {
+	else if (isDraftProp && is(childValue, get(rootState.base_, prop))) {
 		return
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
@@ -192,7 +192,7 @@ function finalizeProperty(
 				rootPath
 			)
 		)
-		if (!scope.parent) maybeFreeze(immer, childValue)
+		if (!scope.parent_) maybeFreeze(immer, childValue)
 	}
 
 	if (isDraftProp && immer.onAssign && !isSetMember) {

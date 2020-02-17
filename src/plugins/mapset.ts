@@ -50,18 +50,18 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
 			this[DRAFT_STATE] = {
-				type: ProxyType.Map,
-				parent,
-				scope: parent ? parent.scope : ImmerScope.current!,
-				modified: false,
-				finalized: false,
-				copy: undefined,
-				assigned: undefined,
-				base: target,
-				draft: this as any,
-				isManual: false,
-				revoked: false
-			}
+				type_: ProxyType.Map,
+				parent_: parent,
+				scope_: parent ? parent.scope_ : ImmerScope.current_!,
+				modified_: false,
+				finalized_: false,
+				copy_: undefined,
+				assigned_: undefined,
+				base_: target,
+				draft_: this as any,
+				isManual_: false,
+				revoked_: false
+			} as MapState
 			return this
 		}
 		const p = DraftMap.prototype
@@ -80,14 +80,14 @@ export function enableMapSet() {
 		}
 
 		p.set = function(key: any, value: any) {
-			const state = this[DRAFT_STATE]
+			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			if (latest(state).get(key) !== value) {
 				prepareMapCopy(state)
-				markChanged(state.scope.immer, state)
-				state.assigned!.set(key, true)
-				state.copy!.set(key, value)
-				state.assigned!.set(key, true)
+				markChanged(state.scope_.immer_, state)
+				state.assigned_!.set(key, true)
+				state.copy_!.set(key, value)
+				state.assigned_!.set(key, true)
 			}
 			return this
 		}
@@ -97,48 +97,48 @@ export function enableMapSet() {
 				return false
 			}
 
-			const state = this[DRAFT_STATE]
+			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			markChanged(state.scope.immer, state)
-			state.assigned!.set(key, false)
-			state.copy!.delete(key)
+			markChanged(state.scope_.immer_, state)
+			state.assigned_!.set(key, false)
+			state.copy_!.delete(key)
 			return true
 		}
 
 		p.clear = function() {
-			const state = this[DRAFT_STATE]
+			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			markChanged(state.scope.immer, state)
-			state.assigned = new Map()
-			return state.copy!.clear()
+			markChanged(state.scope_.immer_, state)
+			state.assigned_ = new Map()
+			return state.copy_!.clear()
 		}
 
 		p.forEach = function(
 			cb: (value: any, key: any, self: any) => void,
 			thisArg?: any
 		) {
-			const state = this[DRAFT_STATE]
+			const state: MapState = this[DRAFT_STATE]
 			latest(state).forEach((_value: any, key: any, _map: any) => {
 				cb.call(thisArg, this.get(key), key, this)
 			})
 		}
 
 		p.get = function(key: any): any {
-			const state = this[DRAFT_STATE]
+			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			const value = latest(state).get(key)
-			if (state.finalized || !isDraftable(value)) {
+			if (state.finalized_ || !isDraftable(value)) {
 				return value
 			}
-			if (value !== state.base.get(key)) {
+			if (value !== state.base_.get(key)) {
 				return value // either already drafted or reassigned
 			}
 			// despite what it looks, this creates a draft only once, see above condition
-			const draft = createProxy(state.scope.immer, value, state)
+			const draft = createProxy(state.scope_.immer_, value, state)
 			prepareMapCopy(state)
-			state.copy!.set(key, draft)
+			state.copy_!.set(key, draft)
 			return draft
 		}
 
@@ -193,9 +193,9 @@ export function enableMapSet() {
 	}
 
 	function prepareMapCopy(state: MapState) {
-		if (!state.copy) {
-			state.assigned = new Map()
-			state.copy = new Map(state.base)
+		if (!state.copy_) {
+			state.assigned_ = new Map()
+			state.copy_ = new Map(state.base_)
 		}
 	}
 
@@ -206,18 +206,18 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
 			this[DRAFT_STATE] = {
-				type: ProxyType.Set,
-				parent,
-				scope: parent ? parent.scope : ImmerScope.current!,
-				modified: false,
-				finalized: false,
-				copy: undefined,
-				base: target,
-				draft: this,
-				drafts: new Map(),
-				revoked: false,
-				isManual: false
-			}
+				type_: ProxyType.Set,
+				parent_: parent,
+				scope_: parent ? parent.scope_ : ImmerScope.current_!,
+				modified_: false,
+				finalized_: false,
+				copy_: undefined,
+				base_: target,
+				draft_: this,
+				drafts_: new Map(),
+				revoked_: false,
+				isManual_: false
+			} as SetState
 			return this
 		}
 		const p = DraftSet.prototype
@@ -231,27 +231,27 @@ export function enableMapSet() {
 		})
 
 		p.has = function(value: any): boolean {
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			// bit of trickery here, to be able to recognize both the value, and the draft of its value
-			if (!state.copy) {
-				return state.base.has(value)
+			if (!state.copy_) {
+				return state.base_.has(value)
 			}
-			if (state.copy.has(value)) return true
-			if (state.drafts.has(value) && state.copy.has(state.drafts.get(value)))
+			if (state.copy_.has(value)) return true
+			if (state.drafts_.has(value) && state.copy_.has(state.drafts_.get(value)))
 				return true
 			return false
 		}
 
 		p.add = function(value: any): any {
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (state.copy) {
-				state.copy.add(value)
-			} else if (!state.base.has(value)) {
+			if (state.copy_) {
+				state.copy_.add(value)
+			} else if (!state.base_.has(value)) {
 				prepareSetCopy(state)
-				markChanged(state.scope.immer, state)
-				state.copy!.add(value)
+				markChanged(state.scope_.immer_, state)
+				state.copy_!.add(value)
 			}
 			return this
 		}
@@ -261,38 +261,38 @@ export function enableMapSet() {
 				return false
 			}
 
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			markChanged(state.scope.immer, state)
+			markChanged(state.scope_.immer_, state)
 			return (
-				state.copy!.delete(value) ||
-				(state.drafts.has(value)
-					? state.copy!.delete(state.drafts.get(value))
+				state.copy_!.delete(value) ||
+				(state.drafts_.has(value)
+					? state.copy_!.delete(state.drafts_.get(value))
 					: /* istanbul ignore next */ false)
 			)
 		}
 
 		p.clear = function() {
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			markChanged(state.scope.immer, state)
-			return state.copy!.clear()
+			markChanged(state.scope_.immer_, state)
+			return state.copy_!.clear()
 		}
 
 		p.values = function(): IterableIterator<any> {
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			return state.copy!.values()
+			return state.copy_!.values()
 		}
 
 		p.entries = function entries(): IterableIterator<[any, any]> {
-			const state = this[DRAFT_STATE]
+			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			return state.copy!.entries()
+			return state.copy_!.entries()
 		}
 
 		p.keys = function(): IterableIterator<any> {
@@ -321,16 +321,16 @@ export function enableMapSet() {
 	}
 
 	function prepareSetCopy(state: SetState) {
-		if (!state.copy) {
+		if (!state.copy_) {
 			// create drafts for all entries to preserve insertion order
-			state.copy = new Set()
-			state.base.forEach(value => {
+			state.copy_ = new Set()
+			state.base_.forEach(value => {
 				if (isDraftable(value)) {
-					const draft = createProxy(state.scope.immer, value, state)
-					state.drafts.set(value, draft)
-					state.copy!.add(draft)
+					const draft = createProxy(state.scope_.immer_, value, state)
+					state.drafts_.set(value, draft)
+					state.copy_!.add(draft)
 				} else {
-					state.copy!.add(value)
+					state.copy_!.add(value)
 				}
 			})
 		}

@@ -464,7 +464,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const nextState = produce(baseState, s => {
 					// Map.prototype.set should return the Map itself
 					const res = s.aMap.set("force", true)
-					if (!global.USES_BUILD) expect(res).toBe(s.aMap[DRAFT_STATE].draft)
+					if (!global.USES_BUILD) expect(res).toBe(s.aMap[DRAFT_STATE].draft_)
 				})
 				expect(nextState).not.toBe(baseState)
 				expect(nextState.aMap).not.toBe(baseState.aMap)
@@ -789,7 +789,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const nextState = produce(baseState, s => {
 					// Set.prototype.set should return the Set itself
 					const res = s.aSet.add("force")
-					if (!global.USES_BUILD) expect(res).toBe(s.aSet[DRAFT_STATE].draft)
+					if (!global.USES_BUILD) expect(res).toBe(s.aSet[DRAFT_STATE].draft_)
 				})
 				expect(nextState).not.toBe(baseState)
 				expect(nextState.aSet).not.toBe(baseState.aSet)

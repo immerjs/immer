@@ -20,7 +20,7 @@
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "build": "rimraf dist/ && tsdx build --name immer --format cjs,esm,umd && yarn build:flow",
+    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && yarn build:flow",
     "build:flow": "cpx 'src/immer.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
     "start": "cd website && yarn start",

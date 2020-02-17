@@ -33,11 +33,11 @@ export enum ProxyType {
 }
 
 export interface ImmerBaseState {
-	parent?: ImmerState
-	scope: ImmerScope
-	modified: boolean
-	finalized: boolean
-	isManual: boolean
+	parent_?: ImmerState
+	scope_: ImmerScope
+	modified_: boolean
+	finalized_: boolean
+	isManual_: boolean
 }
 
 export type ImmerState =

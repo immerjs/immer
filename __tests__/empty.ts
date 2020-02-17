@@ -87,7 +87,7 @@ describe("map set - proxy", () => {
 			const res = s.aMap.set("force", true)
 			// @ts-ignore
 			if (!global.USES_BUILD)
-				expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft)
+				expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft_)
 		})
 		expect(nextState).not.toBe(baseState)
 		expect(nextState.aMap).not.toBe(baseState.aMap)

@@ -126,7 +126,7 @@ export class Immer implements ProducersFns {
 
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
-			const scope = ImmerScope.enter(this)
+			const scope = ImmerScope.enter_(this)
 			const proxy = createProxy(this, base, undefined)
 			let hasError = true
 			try {
@@ -134,22 +134,22 @@ export class Immer implements ProducersFns {
 				hasError = false
 			} finally {
 				// finally instead of catch + rethrow better preserves original stack
-				if (hasError) scope.revoke()
-				else scope.leave()
+				if (hasError) scope.revoke_()
+				else scope.leave_()
 			}
 			if (typeof Promise !== "undefined" && result instanceof Promise) {
 				return result.then(
 					result => {
-						scope.usePatches(patchListener)
+						scope.usePatches_(patchListener)
 						return processResult(this, result, scope)
 					},
 					error => {
-						scope.revoke()
+						scope.revoke_()
 						throw error
 					}
 				)
 			}
-			scope.usePatches(patchListener)
+			scope.usePatches_(patchListener)
 			return processResult(this, result, scope)
 		} else {
 			result = recipe(base)
@@ -178,10 +178,10 @@ export class Immer implements ProducersFns {
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
 		invariant(isDraftable(base), "First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
-		const scope = ImmerScope.enter(this)
+		const scope = ImmerScope.enter_(this)
 		const proxy = createProxy(this, base, undefined)
-		proxy[DRAFT_STATE].isManual = true
-		scope.leave()
+		proxy[DRAFT_STATE].isManual_ = true
+		scope.leave_()
 		return proxy as any
 	}
 
@@ -190,10 +190,10 @@ export class Immer implements ProducersFns {
 		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
 		const state: ImmerState = draft && draft[DRAFT_STATE]
-		invariant(state && state.isManual, "First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
-		invariant(!state.finalized, "The given draft is already finalized") // prettier-ignore
-		const {scope} = state
-		scope.usePatches(patchListener)
+		invariant(state && state.isManual_, "First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
+		invariant(!state.finalized_, "The given draft is already finalized") // prettier-ignore
+		const {scope_: scope} = state
+		scope.usePatches_(patchListener)
 		return processResult(this, undefined, scope)
 	}
 
@@ -253,8 +253,8 @@ export function createProxy<T extends Objectish>(
 		? createProxyProxy(value, parent)
 		: createES5Proxy(value, parent)
 
-	const scope = parent ? parent.scope : ImmerScope.current!
-	scope.drafts.push(draft)
+	const scope = parent ? parent.scope_ : ImmerScope.current_!
+	scope.drafts_.push(draft)
 	return draft
 }
 

@@ -55,24 +55,24 @@ export function loadPlugin<K extends keyof Plugins>(
 /** ES5 Plugin */
 
 interface ES5BaseState extends ImmerBaseState {
-	finalizing: boolean
-	assigned: {[key: string]: any}
-	parent?: ImmerState
-	revoked: boolean
+	finalizing_: boolean
+	assigned_: {[key: string]: any}
+	parent_?: ImmerState
+	revoked_: boolean
 }
 
 export interface ES5ObjectState extends ES5BaseState {
-	type: ProxyType.ES5Object
-	draft: Drafted<AnyObject, ES5ObjectState>
-	base: AnyObject
-	copy: AnyObject | null
+	type_: ProxyType.ES5Object
+	draft_: Drafted<AnyObject, ES5ObjectState>
+	base_: AnyObject
+	copy_: AnyObject | null
 }
 
 export interface ES5ArrayState extends ES5BaseState {
-	type: ProxyType.ES5Array
-	draft: Drafted<AnyObject, ES5ArrayState>
-	base: AnyArray
-	copy: AnyArray | null
+	type_: ProxyType.ES5Array
+	draft_: Drafted<AnyObject, ES5ArrayState>
+	base_: AnyArray
+	copy_: AnyArray | null
 }
 
 export function willFinalizeES5(
@@ -97,21 +97,21 @@ export function markChangedES5(state: ImmerState) {
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
-	type: ProxyType.Map
-	copy: AnyMap | undefined
-	assigned: Map<any, boolean> | undefined
-	base: AnyMap
-	revoked: boolean
-	draft: Drafted<AnyMap, MapState>
+	type_: ProxyType.Map
+	copy_: AnyMap | undefined
+	assigned_: Map<any, boolean> | undefined
+	base_: AnyMap
+	revoked_: boolean
+	draft_: Drafted<AnyMap, MapState>
 }
 
 export interface SetState extends ImmerBaseState {
-	type: ProxyType.Set
-	copy: AnySet | undefined
-	base: AnySet
-	drafts: Map<any, Drafted> // maps the original value to the draft value in the new set
-	revoked: boolean
-	draft: Drafted<AnySet, SetState>
+	type_: ProxyType.Set
+	copy_: AnySet | undefined
+	base_: AnySet
+	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set
+	revoked_: boolean
+	draft_: Drafted<AnySet, SetState>
 }
 
 export function proxyMap<T extends AnyMap>(target: T, parent?: ImmerState): T {

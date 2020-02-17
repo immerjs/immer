@@ -29,19 +29,22 @@ export function enableES5() {
 		result: any,
 		isReplaced: boolean
 	) {
-		scope.drafts!.forEach((draft: any) => {
-			draft[DRAFT_STATE].finalizing = true
+		scope.drafts_!.forEach((draft: any) => {
+			;(draft[DRAFT_STATE] as ES5State).finalizing_ = true
 		})
 		if (!isReplaced) {
-			if (scope.patches) {
-				markChangesRecursively(scope.drafts![0])
+			if (scope.patches_) {
+				markChangesRecursively(scope.drafts_![0])
 			}
 			// This is faster when we don't care about which attributes changed.
-			markChangesSweep(scope.drafts)
+			markChangesSweep(scope.drafts_)
 		}
 		// When a child draft is returned, look for changes.
-		else if (isDraft(result) && result[DRAFT_STATE].scope === scope) {
-			markChangesSweep(scope.drafts)
+		else if (
+			isDraft(result) &&
+			(result[DRAFT_STATE] as ES5State).scope_ === scope
+		) {
+			markChangesSweep(scope.drafts_)
 		}
 	}
 
@@ -50,25 +53,25 @@ export function enableES5() {
 		parent?: ImmerState
 	): Drafted<T, ES5ObjectState | ES5ArrayState> {
 		const isArray = Array.isArray(base)
-		const draft = clonePotentialDraft(base)
+		const draft: any = clonePotentialDraft(base)
 
 		each(draft, prop => {
 			proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
 		})
 
 		const state: ES5ObjectState | ES5ArrayState = {
-			type: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
-			scope: parent ? parent.scope : ImmerScope.current!,
-			modified: false,
-			finalizing: false,
-			finalized: false,
-			assigned: {},
-			parent,
-			base,
-			draft,
-			copy: null,
-			revoked: false,
-			isManual: false
+			type_: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
+			scope_: parent ? parent.scope_ : ImmerScope.current_!,
+			modified_: false,
+			finalizing_: false,
+			finalized_: false,
+			assigned_: {},
+			parent_: parent,
+			base_: base,
+			draft_: draft,
+			copy_: null,
+			revoked_: false,
+			isManual_: false
 		}
 
 		createHiddenProperty(draft, DRAFT_STATE, state)
@@ -77,11 +80,11 @@ export function enableES5() {
 
 	// Access a property without creating an Immer draft.
 	function peek(draft: Drafted, prop: PropertyKey) {
-		const state = draft[DRAFT_STATE]
-		if (state && !state.finalizing) {
-			state.finalizing = true
+		const state: ES5State = draft[DRAFT_STATE]
+		if (state && !state.finalizing_) {
+			state.finalizing_ = true
 			const value = draft[prop]
-			state.finalizing = false
+			state.finalizing_ = false
 			return value
 		}
 		return draft[prop]
@@ -90,45 +93,49 @@ export function enableES5() {
 	function get(state: ES5State, prop: string | number) {
 		assertUnrevoked(state)
 		const value = peek(latest(state), prop)
-		if (state.finalizing) return value
+		if (state.finalizing_) return value
 		// Create a draft if the value is unmodified.
-		if (value === peek(state.base, prop) && isDraftable(value)) {
+		if (value === peek(state.base_, prop) && isDraftable(value)) {
 			prepareCopy(state)
 			// @ts-ignore
-			return (state.copy![prop] = createProxy(state.scope.immer, value, state))
+			return (state.copy_![prop] = createProxy(
+				state.scope_.immer_,
+				value,
+				state
+			))
 		}
 		return value
 	}
 
 	function set(state: ES5State, prop: string | number, value: any) {
 		assertUnrevoked(state)
-		state.assigned[prop] = true
-		if (!state.modified) {
+		state.assigned_[prop] = true
+		if (!state.modified_) {
 			if (is(value, peek(latest(state), prop))) return
 			markChangedES5(state)
 			prepareCopy(state)
 		}
 		// @ts-ignore
-		state.copy![prop] = value
+		state.copy_![prop] = value
 	}
 
 	function markChangedES5(state: ImmerState) {
-		if (!state.modified) {
-			state.modified = true
-			if (state.parent) markChangedES5(state.parent)
+		if (!state.modified_) {
+			state.modified_ = true
+			if (state.parent_) markChangedES5(state.parent_)
 		}
 	}
 
 	function prepareCopy(state: ES5State) {
-		if (!state.copy) state.copy = clonePotentialDraft(state.base)
+		if (!state.copy_) state.copy_ = clonePotentialDraft(state.base_)
 	}
 
 	function clonePotentialDraft(base: Objectish) {
-		const state = base && (base as any)[DRAFT_STATE]
+		const state: ES5State | undefined = base && (base as any)[DRAFT_STATE]
 		if (state) {
-			state.finalizing = true
-			const draft = shallowCopy(state.draft, true)
-			state.finalizing = false
+			state.finalizing_ = true
+			const draft = shallowCopy(state.draft_, true)
+			state.finalizing_ = false
 			return draft
 		}
 		return shallowCopy(base)
@@ -168,9 +175,9 @@ export function enableES5() {
 		// better chance of processing leaf nodes first. When a leaf node is known to
 		// have changed, we can avoid any traversal of its ancestor nodes.
 		for (let i = drafts.length - 1; i >= 0; i--) {
-			const state = drafts[i][DRAFT_STATE]
-			if (!state.modified) {
-				switch (state.type) {
+			const state: ES5State = drafts[i][DRAFT_STATE]
+			if (!state.modified_) {
+				switch (state.type_) {
 					case ProxyType.ES5Array:
 						if (hasArrayChanges(state)) markChangedES5(state)
 						break
@@ -184,75 +191,75 @@ export function enableES5() {
 
 	function markChangesRecursively(object: any) {
 		if (!object || typeof object !== "object") return
-		const state = object[DRAFT_STATE]
+		const state: ES5State | undefined = object[DRAFT_STATE]
 		if (!state) return
-		const {base, draft, assigned, type} = state
-		if (type === ProxyType.ES5Object) {
+		const {base_, draft_, assigned_, type_} = state
+		if (type_ === ProxyType.ES5Object) {
 			// Look for added keys.
 			// TODO: looks quite duplicate to hasObjectChanges,
 			// probably there is a faster way to detect changes, as sweep + recurse seems to do some
 			// unnecessary work.
 			// also: probably we can store the information we detect here, to speed up tree finalization!
-			each(draft, key => {
+			each(draft_, key => {
 				if ((key as any) === DRAFT_STATE) return
 				// The `undefined` check is a fast path for pre-existing keys.
-				if (base[key] === undefined && !has(base, key)) {
-					assigned[key] = true
+				if ((base_ as any)[key] === undefined && !has(base_, key)) {
+					assigned_[key] = true
 					markChangedES5(state)
-				} else if (!assigned[key]) {
+				} else if (!assigned_[key]) {
 					// Only untouched properties trigger recursion.
-					markChangesRecursively(draft[key])
+					markChangesRecursively(draft_[key])
 				}
 			})
 			// Look for removed keys.
-			each(base, key => {
+			each(base_, key => {
 				// The `undefined` check is a fast path for pre-existing keys.
-				if (draft[key] === undefined && !has(draft, key)) {
-					assigned[key] = false
+				if (draft_[key] === undefined && !has(draft_, key)) {
+					assigned_[key] = false
 					markChangedES5(state)
 				}
 			})
-		} else if (type === ProxyType.ES5Array) {
-			if (hasArrayChanges(state)) {
+		} else if (type_ === ProxyType.ES5Array) {
+			if (hasArrayChanges(state as ES5ArrayState)) {
 				markChangedES5(state)
-				assigned.length = true
+				assigned_.length = true
 			}
 
-			if (draft.length < base.length) {
-				for (let i = draft.length; i < base.length; i++) assigned[i] = false
+			if (draft_.length < base_.length) {
+				for (let i = draft_.length; i < base_.length; i++) assigned_[i] = false
 			} else {
-				for (let i = base.length; i < draft.length; i++) assigned[i] = true
+				for (let i = base_.length; i < draft_.length; i++) assigned_[i] = true
 			}
 
 			// Minimum count is enough, the other parts has been processed.
-			const min = Math.min(draft.length, base.length)
+			const min = Math.min(draft_.length, base_.length)
 
 			for (let i = 0; i < min; i++) {
 				// Only untouched indices trigger recursion.
-				if (assigned[i] === undefined) markChangesRecursively(draft[i])
+				if (assigned_[i] === undefined) markChangesRecursively(draft_[i])
 			}
 		}
 	}
 
 	function hasObjectChanges(state: ES5ObjectState) {
-		const {base, draft} = state
+		const {base_, draft_} = state
 
 		// Search for added keys and changed keys. Start at the back, because
 		// non-numeric keys are ordered by time of definition on the object.
-		const keys = Object.keys(draft)
+		const keys = Object.keys(draft_)
 		for (let i = keys.length - 1; i >= 0; i--) {
 			const key = keys[i]
-			const baseValue = base[key]
+			const baseValue = base_[key]
 			// The `undefined` check is a fast path for pre-existing keys.
-			if (baseValue === undefined && !has(base, key)) {
+			if (baseValue === undefined && !has(base_, key)) {
 				return true
 			}
 			// Once a base key is deleted, future changes go undetected, because its
 			// descriptor is erased. This branch detects any missed changes.
 			else {
-				const value = draft[key]
-				const state = value && value[DRAFT_STATE]
-				if (state ? state.base !== baseValue : !is(value, baseValue)) {
+				const value = draft_[key]
+				const state: ImmerState = value && value[DRAFT_STATE]
+				if (state ? state.base_ !== baseValue : !is(value, baseValue)) {
 					return true
 				}
 			}
@@ -260,12 +267,12 @@ export function enableES5() {
 
 		// At this point, no keys were added or changed.
 		// Compare key count to determine if keys were deleted.
-		return keys.length !== Object.keys(base).length
+		return keys.length !== Object.keys(base_).length
 	}
 
 	function hasArrayChanges(state: ES5ArrayState) {
-		const {draft} = state
-		if (draft.length !== state.base.length) return true
+		const {draft_} = state
+		if (draft_.length !== state.base_.length) return true
 		// See #116
 		// If we first shorten the length, our array interceptors will be removed.
 		// If after that new items are added, result in the same original length,
@@ -273,7 +280,10 @@ export function enableES5() {
 		// So if there is no own descriptor on the last position, we know that items were removed and added
 		// N.B.: splice, unshift, etc only shift values around, but not prop descriptors, so we only have to check
 		// the last one
-		const descriptor = Object.getOwnPropertyDescriptor(draft, draft.length - 1)
+		const descriptor = Object.getOwnPropertyDescriptor(
+			draft_,
+			draft_.length - 1
+		)
 		// descriptor can be null, but only for newly created sparse arrays, eg. new Array(10)
 		if (descriptor && !descriptor.get) return true
 		// For all other cases, we don't have to compare, as they would have been picked up by the index setters

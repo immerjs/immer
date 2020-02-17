@@ -47,7 +47,7 @@ export function isPlainObject(value: any): boolean {
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
 	if (value && value[DRAFT_STATE]) {
-		return value[DRAFT_STATE].base as any
+		return value[DRAFT_STATE].base_ as any
 	}
 	// otherwise return undefined
 }
@@ -157,7 +157,7 @@ export function isSet(target: any): target is AnySet {
 }
 /*#__PURE__*/
 export function latest(state: ImmerState): any {
-	return state.copy || state.base
+	return state.copy_ || state.base_
 }
 
 /*#__PURE__*/
@@ -226,7 +226,7 @@ export function die(): never {
 
 export function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
 	invariant(
-		!state.revoked,
+		!state.revoked_,
 		"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
 			JSON.stringify(latest(state))
 	)
