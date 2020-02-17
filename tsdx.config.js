@@ -3,12 +3,7 @@ module.exports = {
 	rollup(config, options) {
 		return options.format === "esm"
 			? {
-					...config,
-					// this makes sure sideEffects: true can clean up files
-					// preserveModules: true,
-					output: {
-						dir: "dist"
-					}
+					...config
 			  }
 			: config
 	}

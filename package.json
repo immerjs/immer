@@ -74,6 +74,7 @@
     "seamless-immutable": "^7.1.3",
     "semantic-release": "^17.0.2",
     "spec.ts": "^1.1.0",
+    "tiny-invariant": "^1.1.0",
     "ts-jest": "^25.2.0",
     "tsdx": "^0.12.3",
     "typescript": "^3.7.3",

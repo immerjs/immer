@@ -8,6 +8,7 @@ import {
 } from "./internal"
 
 /** Each scope represents a `produce` call. */
+// TODO: non-class?
 export class ImmerScope {
 	static current?: ImmerScope
 

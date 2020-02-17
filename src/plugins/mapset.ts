@@ -16,6 +16,7 @@ import {
 	loadPlugin,
 	markChanged
 } from "../internal"
+import invariant from "tiny-invariant"
 
 export function enableMapSet() {
 	/* istanbul ignore next */
@@ -44,10 +45,7 @@ export function enableMapSet() {
 	}
 
 	const DraftMap = (function(_super) {
-		if (!_super) {
-			/* istanbul ignore next */
-			throw new Error("Map is not polyfilled")
-		}
+		invariant(_super, "Map is not polyfilled")
 		__extends(DraftMap, _super)
 		// Create class manually, cause #502
 		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
@@ -202,10 +200,8 @@ export function enableMapSet() {
 	}
 
 	const DraftSet = (function(_super) {
-		if (!_super) {
-			/* istanbul ignore next */
-			throw new Error("Set is not polyfilled")
-		}
+		invariant(_super, "Set is not polyfilled")
+
 		__extends(DraftSet, _super)
 		// Create class manually, cause #502
 		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {

@@ -21,6 +21,7 @@ import {
 	get,
 	willFinalize
 } from "./internal"
+import invariant from "tiny-invariant"
 
 export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts![0]
@@ -29,7 +30,7 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified) {
 			scope.revoke()
-			throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
+			invariant(false, "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
@@ -147,9 +148,7 @@ function finalizeProperty(
 	childValue: any,
 	rootPath?: PatchPath
 ) {
-	if (childValue === parentValue) {
-		throw Error("Immer forbids circular references")
-	}
+	invariant(childValue !== parentValue, "Immer forbids circular references")
 
 	// In the `finalizeTree` method, only the `root` object may be a draft.
 	const isDraftProp = !!rootState && parentValue === root

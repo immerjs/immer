@@ -17,6 +17,7 @@ import {
 	DRAFT_STATE,
 	createProxy
 } from "./internal"
+import invariant from "tiny-invariant"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned: {
@@ -181,13 +182,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		return desc
 	},
 	defineProperty() {
-		throw new Error("Object.defineProperty() cannot be used on an Immer draft") // prettier-ignore
+		invariant(false, "Object.defineProperty() cannot be used on an Immer draft") // prettier-ignore
 	},
 	getPrototypeOf(state) {
 		return Object.getPrototypeOf(state.base)
 	},
 	setPrototypeOf() {
-		throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
+		invariant(false, "Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
 	}
 }
 
@@ -204,15 +205,11 @@ each(objectTraps, (key, fn) => {
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
-	if (isNaN(parseInt(prop as any))) {
-		throw new Error("Immer only supports deleting array indices") // prettier-ignore
-	}
+	invariant(!isNaN(parseInt(prop as any)), "Immer only supports deleting array indices") // prettier-ignore
 	return objectTraps.deleteProperty!.call(this, state[0], prop)
 }
 arrayTraps.set = function(state, prop, value) {
-	if (prop !== "length" && isNaN(parseInt(prop as any))) {
-		throw new Error("Immer only supports setting array indices and the 'length' property") // prettier-ignore
-	}
+	invariant(prop === "length" || !isNaN(parseInt(prop as any)), "Immer only supports setting array indices and the 'length' property") // prettier-ignore
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
