@@ -23,10 +23,10 @@ import {
 } from "./internal"
 import invariant from "tiny-invariant"
 
-export function processResult(immer: Immer, result: any, scope: ImmerScope) {
+export function processResult(result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
-	willFinalize(immer, scope, result, isReplaced)
+	willFinalize(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			scope.revoke_()
@@ -34,8 +34,8 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
-			result = finalize(immer, result, scope)
-			if (!scope.parent_) maybeFreeze(immer, result)
+			result = finalize(result, scope)
+			if (!scope.parent_) maybeFreeze(scope, result)
 		}
 		if (scope.patches_) {
 			scope.patches_.push({
@@ -51,7 +51,7 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 		}
 	} else {
 		// Finalize the base draft.
-		result = finalize(immer, baseDraft, scope, [])
+		result = finalize(baseDraft, scope, [])
 	}
 	scope.revoke_()
 	if (scope.patches_) {
@@ -60,32 +60,27 @@ export function processResult(immer: Immer, result: any, scope: ImmerScope) {
 	return result !== NOTHING ? result : undefined
 }
 
-function finalize(
-	immer: Immer,
-	draft: Drafted,
-	scope: ImmerScope,
-	path?: PatchPath
-) {
+function finalize(draft: Drafted, scope: ImmerScope, path?: PatchPath) {
 	const state: ImmerState = draft[DRAFT_STATE]
 	if (!state) {
 		if (Object.isFrozen(draft)) return draft
-		return finalizeTree(immer, draft, scope)
+		return finalizeTree(draft, scope)
 	}
 	// Never finalize drafts owned by another scope.
 	if (state.scope_ !== scope) {
 		return draft
 	}
 	if (!state.modified_) {
-		maybeFreeze(immer, state.base_, true)
+		maybeFreeze(scope, state.base_, true)
 		return state.base_
 	}
 	if (!state.finalized_) {
 		state.finalized_ = true
-		finalizeTree(immer, state.draft_, scope, path)
+		finalizeTree(draft, scope, path)
 
 		// At this point, all descendants of `state.copy` have been finalized,
 		// so we can be sure that `scope.canAutoFreeze` is accurate.
-		if (immer.autoFreeze_ && scope.canAutoFreeze_) {
+		if (scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
 			freeze(state.copy_, false)
 		}
 
@@ -96,12 +91,7 @@ function finalize(
 	return state.copy_
 }
 
-function finalizeTree(
-	immer: Immer,
-	root: Drafted,
-	scope: ImmerScope,
-	rootPath?: PatchPath
-) {
+function finalizeTree(root: Drafted, scope: ImmerScope, rootPath?: PatchPath) {
 	const state: ImmerState = root[DRAFT_STATE]
 	if (state) {
 		if (
@@ -114,13 +104,12 @@ function finalizeTree(
 		root = state.copy_
 	}
 	each(root, (key, value) =>
-		finalizeProperty(immer, scope, root, state, root, key, value, rootPath)
+		finalizeProperty(scope, root, state, root, key, value, rootPath)
 	)
 	return root
 }
 
 function finalizeProperty(
-	immer: Immer,
 	scope: ImmerScope,
 	root: Drafted,
 	rootState: ImmerState,
@@ -145,7 +134,7 @@ function finalizeProperty(
 				: undefined
 
 		// Drafts owned by `scope` are finalized here.
-		childValue = finalize(immer, childValue, scope, path)
+		childValue = finalize(childValue, scope, path)
 		set(parentValue, prop, childValue)
 
 		// Drafts from another scope must prevent auto-freezing.
@@ -163,7 +152,6 @@ function finalizeProperty(
 	else if (isDraftable(childValue)) {
 		each(childValue, (key, grandChild) =>
 			finalizeProperty(
-				immer,
 				scope,
 				root,
 				rootState,
@@ -173,12 +161,12 @@ function finalizeProperty(
 				rootPath
 			)
 		)
-		if (!scope.parent_) maybeFreeze(immer, childValue)
+		if (!scope.parent_) maybeFreeze(scope, childValue)
 	}
 }
 
-export function maybeFreeze(immer: Immer, value: any, deep = false) {
-	if (immer.autoFreeze_ && !isDraft(value)) {
+export function maybeFreeze(scope: {immer_: Immer}, value: any, deep = false) {
+	if (scope.immer_.autoFreeze_ && !isDraft(value)) {
 		freeze(value, deep)
 	}
 }

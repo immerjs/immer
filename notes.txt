@@ -16,6 +16,8 @@ Things to optimize
 [ ] kill ownKeys?
 [ ] kill isEnumerable?
 [ ] check todos
+[ ] kill marchChangesSweep recursive if possible and no perf impact
+[ ] todo try immer perf on really big tree
 
 Import size report for immer:
 ┌───────────────────────┬───────────┬────────────┬───────────┐

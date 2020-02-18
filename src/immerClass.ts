@@ -117,7 +117,7 @@ export class Immer implements ProducersFns {
 				return result.then(
 					result => {
 						scope.usePatches_(patchListener)
-						return processResult(this, result, scope)
+						return processResult(result, scope)
 					},
 					error => {
 						scope.revoke_()
@@ -126,12 +126,12 @@ export class Immer implements ProducersFns {
 				)
 			}
 			scope.usePatches_(patchListener)
-			return processResult(this, result, scope)
+			return processResult(result, scope)
 		} else {
 			result = recipe(base)
 			if (result === NOTHING) return undefined
 			if (result === undefined) result = base
-			maybeFreeze(this, result, true)
+			maybeFreeze({immer_: this}, result, true)
 			return result
 		}
 	}
@@ -170,7 +170,7 @@ export class Immer implements ProducersFns {
 		invariant(!state.finalized_, "The given draft is already finalized") // prettier-ignore
 		const {scope_: scope} = state
 		scope.usePatches_(patchListener)
-		return processResult(this, undefined, scope)
+		return processResult(undefined, scope)
 	}
 
 	/**
@@ -235,12 +235,11 @@ export function createProxy<T extends Objectish>(
 }
 
 export function willFinalize(
-	immer: Immer,
 	scope: ImmerScope,
 	thing: any,
 	isReplaced: boolean
 ) {
-	if (!immer.useProxies_) willFinalizeES5(scope, thing, isReplaced)
+	if (!scope.immer_.useProxies_) willFinalizeES5(scope, thing, isReplaced)
 }
 
 export function markChanged(immer: Immer, state: ImmerState) {
