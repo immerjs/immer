@@ -22,6 +22,7 @@ import {
 	willFinalize
 } from "./internal"
 import invariant from "tiny-invariant"
+import {Archtype} from "./types-internal"
 
 export function processResult(result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts_![0]
@@ -92,14 +93,10 @@ function finalize(scope: ImmerScope, draft: Drafted, path?: PatchPath) {
 }
 
 function finalizeTree(rootScope: ImmerScope, value: any, rootPath?: PatchPath) {
-	// TODO: enable
-	// if (Object.isFrozen(value))
-	// 	return value;
+	// Don't recurse in tho recursive data structures
+	if (Object.isFrozen(value)) return value
 	const state: ImmerState = value[DRAFT_STATE]
 	if (state) {
-		// if (rootScope !== state.scope_)
-		// 		// Drafts from another scope must prevent auto-freezing.
-		// 		state.scope_.canAutoFreeze_ = false;
 		if (
 			state.type_ === ProxyType.ES5Object ||
 			state.type_ === ProxyType.ES5Array
@@ -124,46 +121,32 @@ function finalizeProperty(
 	rootPath?: PatchPath
 ) {
 	invariant(childValue !== targetObject, "Immer forbids circular references")
-
-	// In the `finalizeTree` method, only the `root` object may be a draft.
-	const isDraftProp = !!parentState
-	const isSetMember = isSet(targetObject) // TODO: move inside if
-
-	// if the child is a draft, we can build a more precise patch
 	if (isDraft(childValue)) {
 		const path =
 			rootPath &&
-			isDraftProp &&
-			!isSetMember && // Set objects are atomic since they have no keys.
+			parentState &&
+			parentState!.type_ !== ProxyType.Set && // Set objects are atomic since they have no keys.
 			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined
-
 		// Drafts owned by `scope` are finalized here.
 		const res = finalize(rootScope, childValue, path)
 		set(targetObject, prop, res)
-
-		// Drafts from another scope must prevent auto-freezing.
-		// TODO: weird place for this condition
-		// if we got a draft back, we're in a nested thing and shouldn't freese
+		// Drafts from another scope must prevented to be frozen
+		// if we got a draft back from finalize, we're in a nested produce and shouldn't freeze
 		if (isDraft(res)) {
 			rootScope.canAutoFreeze_ = false
 		}
-
 		return
 	}
 	// Unchanged draft properties are ignored.
-	if (isDraftProp && is(childValue, get(parentState!.base_, prop))) {
+	if (parentState && is(childValue, get(parentState!.base_, prop))) {
 		return
 	}
-	// TODO: cleanup conditions for reuse?
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 	if (isDraftable(childValue)) {
 		finalizeTree(rootScope, childValue)
-		// TODO: needed?
-		// set(targetObject, prop, res)
-		// TODO: drop first condition?
-		// TODO: needed?
+		// immer deep freezes plain objects, so if there is no parent state, we freeze as well
 		if (!parentState || !parentState.scope_.parent_)
 			maybeFreeze(rootScope, childValue)
 	}

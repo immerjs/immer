@@ -1391,6 +1391,24 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(world.inc(world).counter.count).toBe(2)
 		})
 
+		it("doesnt recurse into frozen structures if external data is frozen", () => {
+			const frozen = {}
+			Object.defineProperty(frozen, "x", {
+				get() {
+					throw "oops"
+				},
+				enumerable: true,
+				configurable: true
+			})
+			Object.freeze(frozen)
+
+			expect(() => {
+				produce({}, d => {
+					d.x = frozen
+				})
+			}).not.toThrow()
+		})
+
 		// See here: https://github.com/mweststrate/immer/issues/89
 		it("supports the spread operator", () => {
 			const base = {foo: {x: 0, y: 0}, bar: [0, 0]}

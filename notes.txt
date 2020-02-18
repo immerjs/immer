@@ -19,6 +19,7 @@ Things to optimize
 [ ] kill marchChangesSweep recursive if possible and no perf impact
 [ ] todo try immer perf on really big tree
 [ ] optimize each closures away?
+[ ] document performance tip: if externally added data is frozen, it doesn't recurse (also update related issue)
 
 Import size report for immer:
 ┌───────────────────────┬───────────┬────────────┬───────────┐
