@@ -14,7 +14,7 @@
   "sideEffects": false,
   "scripts": {
     "test": "jest && yarn test:build && yarn test:flow",
-    "test:perf": "NODE_ENV=production yarn build && cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
+    "test:perf": "cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
     "test:flow": "yarn flow check __tests__/flow",
     "test:build": "yarn build && yarn jest --config jest.config.build.js",
     "watch": "jest --watch",
@@ -55,6 +55,8 @@
     "src"
   ],
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/node": "^7.8.4",
     "@types/jest": "^25.1.2",
     "coveralls": "^3.0.0",
     "cpx": "^1.5.0",
