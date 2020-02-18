@@ -23,6 +23,7 @@ function runTests(name, useProxies) {
 			const base = {arr: [1], obj: {a: 1}}
 			const next = produce(base, draft => {
 				draft.arr.push(1)
+				debugger
 			})
 			expect(isFrozen(base)).toBeFalsy()
 			expect(isFrozen(base.arr)).toBeFalsy()

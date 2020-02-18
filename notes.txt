@@ -18,6 +18,7 @@ Things to optimize
 [ ] check todos
 [ ] kill marchChangesSweep recursive if possible and no perf impact
 [ ] todo try immer perf on really big tree
+[ ] optimize each closures away?
 
 Import size report for immer:
 ┌───────────────────────┬───────────┬────────────┬───────────┐

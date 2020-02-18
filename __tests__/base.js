@@ -23,9 +23,13 @@ test("immer should have no dependencies", () => {
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+// runBaseTest("proxy (patch listener)", true, ufalse, true)
+
+// TODO: no freeze + patch
 runBaseTest("es5 (no freeze)", false, false)
 runBaseTest("es5 (autofreeze)", false, true)
 runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+// TODO: no freeze + patch
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined

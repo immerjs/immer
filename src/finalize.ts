@@ -34,7 +34,7 @@ export function processResult(result: any, scope: ImmerScope) {
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
-			result = finalize(result, scope)
+			result = finalize(scope, result)
 			if (!scope.parent_) maybeFreeze(scope, result)
 		}
 		if (scope.patches_) {
@@ -51,7 +51,7 @@ export function processResult(result: any, scope: ImmerScope) {
 		}
 	} else {
 		// Finalize the base draft.
-		result = finalize(baseDraft, scope, [])
+		result = finalize(scope, baseDraft, [])
 	}
 	scope.revoke_()
 	if (scope.patches_) {
@@ -60,11 +60,11 @@ export function processResult(result: any, scope: ImmerScope) {
 	return result !== NOTHING ? result : undefined
 }
 
-function finalize(draft: Drafted, scope: ImmerScope, path?: PatchPath) {
+function finalize(scope: ImmerScope, draft: Drafted, path?: PatchPath) {
 	const state: ImmerState = draft[DRAFT_STATE]
 	if (!state) {
 		if (Object.isFrozen(draft)) return draft
-		return finalizeTree(draft, scope)
+		return finalizeTree(scope, draft)
 	}
 	// Never finalize drafts owned by another scope.
 	if (state.scope_ !== scope) {
@@ -76,7 +76,7 @@ function finalize(draft: Drafted, scope: ImmerScope, path?: PatchPath) {
 	}
 	if (!state.finalized_) {
 		state.finalized_ = true
-		finalizeTree(draft, scope, path)
+		finalizeTree(scope, draft, path)
 
 		// At this point, all descendants of `state.copy` have been finalized,
 		// so we can be sure that `scope.canAutoFreeze` is accurate.
@@ -91,9 +91,15 @@ function finalize(draft: Drafted, scope: ImmerScope, path?: PatchPath) {
 	return state.copy_
 }
 
-function finalizeTree(root: Drafted, scope: ImmerScope, rootPath?: PatchPath) {
-	const state: ImmerState = root[DRAFT_STATE]
+function finalizeTree(rootScope: ImmerScope, value: any, rootPath?: PatchPath) {
+	// TODO: enable
+	// if (Object.isFrozen(value))
+	// 	return value;
+	const state: ImmerState = value[DRAFT_STATE]
 	if (state) {
+		// if (rootScope !== state.scope_)
+		// 		// Drafts from another scope must prevent auto-freezing.
+		// 		state.scope_.canAutoFreeze_ = false;
 		if (
 			state.type_ === ProxyType.ES5Object ||
 			state.type_ === ProxyType.ES5Array
@@ -101,67 +107,65 @@ function finalizeTree(root: Drafted, scope: ImmerScope, rootPath?: PatchPath) {
 			// Create the final copy, with added keys and without deleted keys.
 			state.copy_ = shallowCopy(state.draft_, true)
 		}
-		root = state.copy_
+		value = state.copy_
 	}
-	each(root, (key, value) =>
-		finalizeProperty(scope, root, state, root, key, value, rootPath)
+	each(value, (key, childValue) =>
+		finalizeProperty(rootScope, state, value, key, childValue, rootPath)
 	)
-	return root
+	return value
 }
 
 function finalizeProperty(
-	scope: ImmerScope,
-	root: Drafted,
-	rootState: ImmerState,
-	parentValue: Drafted,
+	rootScope: ImmerScope,
+	parentState: undefined | ImmerState,
+	targetObject: any,
 	prop: string | number,
 	childValue: any,
 	rootPath?: PatchPath
 ) {
-	invariant(childValue !== parentValue, "Immer forbids circular references")
+	invariant(childValue !== targetObject, "Immer forbids circular references")
 
 	// In the `finalizeTree` method, only the `root` object may be a draft.
-	const isDraftProp = !!rootState && parentValue === root
-	const isSetMember = isSet(parentValue)
+	const isDraftProp = !!parentState
+	const isSetMember = isSet(targetObject) // TODO: move inside if
 
+	// if the child is a draft, we can build a more precise patch
 	if (isDraft(childValue)) {
 		const path =
 			rootPath &&
 			isDraftProp &&
 			!isSetMember && // Set objects are atomic since they have no keys.
-			!has((rootState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
+			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined
 
 		// Drafts owned by `scope` are finalized here.
-		childValue = finalize(childValue, scope, path)
-		set(parentValue, prop, childValue)
+		const res = finalize(rootScope, childValue, path)
+		set(targetObject, prop, res)
 
 		// Drafts from another scope must prevent auto-freezing.
-		if (isDraft(childValue)) {
-			scope.canAutoFreeze_ = false
+		// TODO: weird place for this condition
+		// if we got a draft back, we're in a nested thing and shouldn't freese
+		if (isDraft(res)) {
+			rootScope.canAutoFreeze_ = false
 		}
-	}
-	// Unchanged draft properties are ignored.
-	else if (isDraftProp && is(childValue, get(rootState.base_, prop))) {
+
 		return
 	}
+	// Unchanged draft properties are ignored.
+	if (isDraftProp && is(childValue, get(parentState!.base_, prop))) {
+		return
+	}
+	// TODO: cleanup conditions for reuse?
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-	// TODO: the recursion over here looks weird, shouldn't non-draft stuff have it's own recursion?
-	// especially the passing on of root and rootState doesn't make sense...
-	else if (isDraftable(childValue)) {
-		each(childValue, (key, grandChild) =>
-			finalizeProperty(
-				scope,
-				root,
-				rootState,
-				childValue,
-				key,
-				grandChild,
-				rootPath
-			)
-		)
-		if (!scope.parent_) maybeFreeze(scope, childValue)
+	if (isDraftable(childValue)) {
+		finalizeTree(rootScope, childValue)
+		// TODO: needed?
+		// set(targetObject, prop, res)
+		// TODO: drop first condition?
+		// TODO: needed?
+		if (!parentState || !parentState.scope_.parent_)
+			maybeFreeze(rootScope, childValue)
 	}
 }
 
