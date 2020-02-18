@@ -10,7 +10,6 @@ import {
 	ImmerScope,
 	processResult,
 	NOTHING,
-	maybeFreeze,
 	Patch,
 	Objectish,
 	DRAFT_STATE,
@@ -26,6 +25,7 @@ import {
 	createProxyProxy
 } from "./internal"
 import invariant from "tiny-invariant"
+import {freeze} from "./common"
 
 declare const __DEV__: boolean
 /* istanbul ignore next */
@@ -131,7 +131,7 @@ export class Immer implements ProducersFns {
 			result = recipe(base)
 			if (result === NOTHING) return undefined
 			if (result === undefined) result = base
-			maybeFreeze({immer_: this}, result, true)
+			if (this.autoFreeze_) freeze(result, true)
 			return result
 		}
 	}
