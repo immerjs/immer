@@ -10,6 +10,18 @@
   "jsnext:main": "dist/immer.module.js",
   "react-native": "dist/immer.module.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    ">=3.7": {
+      "*": [
+        "./*"
+      ]
+    },
+    ">=3.1": {
+      "*": [
+        "compat/pre-3.7/*"
+      ]
+    }
+  },
   "sideEffects": false,
   "scripts": {
     "test": "jest && yarn-or-npm test:build && yarn-or-npm test:flow",
@@ -50,6 +62,7 @@
   "homepage": "https://github.com/immerjs/immer#readme",
   "files": [
     "dist",
+    "compat",
     "src"
   ],
   "devDependencies": {
