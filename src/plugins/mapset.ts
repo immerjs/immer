@@ -188,7 +188,7 @@ export function enableMapSet() {
 		return DraftMap
 	})(Map)
 
-	function proxyMap<T extends AnyMap>(target: T, parent?: ImmerState): T {
+	function proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T {
 		// @ts-ignore
 		return new DraftMap(target, parent)
 	}
@@ -315,7 +315,7 @@ export function enableMapSet() {
 		return DraftSet
 	})(Set)
 
-	function proxySet<T extends AnySet>(target: T, parent?: ImmerState): T {
+	function proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T {
 		// @ts-ignore
 		return new DraftSet(target, parent)
 	}
@@ -336,5 +336,5 @@ export function enableMapSet() {
 		}
 	}
 
-	loadPlugin("mapset", {proxyMap, proxySet})
+	loadPlugin("mapset", {proxyMap_, proxySet_})
 }

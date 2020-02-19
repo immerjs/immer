@@ -25,7 +25,7 @@ import {
 type ES5State = ES5ArrayState | ES5ObjectState
 
 export function enableES5() {
-	function willFinalizeES5(
+	function willFinalizeES5_(
 		scope: ImmerScope,
 		result: any,
 		isReplaced: boolean
@@ -50,7 +50,7 @@ export function enableES5() {
 		}
 	}
 
-	function createES5Proxy<T>(
+	function createES5Proxy_<T>(
 		base: T,
 		parent?: ImmerState
 	): Drafted<T, ES5ObjectState | ES5ArrayState> {
@@ -114,17 +114,17 @@ export function enableES5() {
 		state.assigned_[prop] = true
 		if (!state.modified_) {
 			if (is(value, peek(latest(state), prop))) return
-			markChangedES5(state)
+			markChangedES5_(state)
 			prepareCopy(state)
 		}
 		// @ts-ignore
 		state.copy_![prop] = value
 	}
 
-	function markChangedES5(state: ImmerState) {
+	function markChangedES5_(state: ImmerState) {
 		if (!state.modified_) {
 			state.modified_ = true
-			if (state.parent_) markChangedES5(state.parent_)
+			if (state.parent_) markChangedES5_(state.parent_)
 		}
 	}
 
@@ -181,10 +181,10 @@ export function enableES5() {
 			if (!state.modified_) {
 				switch (state.type_) {
 					case ProxyTypeES5Array:
-						if (hasArrayChanges(state)) markChangedES5(state)
+						if (hasArrayChanges(state)) markChangedES5_(state)
 						break
 					case ProxyTypeES5Object:
-						if (hasObjectChanges(state)) markChangedES5(state)
+						if (hasObjectChanges(state)) markChangedES5_(state)
 						break
 				}
 			}
@@ -207,7 +207,7 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if ((base_ as any)[key] === undefined && !has(base_, key)) {
 					assigned_[key] = true
-					markChangedES5(state)
+					markChangedES5_(state)
 				} else if (!assigned_[key]) {
 					// Only untouched properties trigger recursion.
 					markChangesRecursively(draft_[key])
@@ -218,12 +218,12 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if (draft_[key] === undefined && !has(draft_, key)) {
 					assigned_[key] = false
-					markChangedES5(state)
+					markChangedES5_(state)
 				}
 			})
 		} else if (type_ === ProxyTypeES5Array) {
 			if (hasArrayChanges(state as ES5ArrayState)) {
-				markChangedES5(state)
+				markChangedES5_(state)
 				assigned_.length = true
 			}
 
@@ -293,8 +293,8 @@ export function enableES5() {
 	}
 
 	loadPlugin("es5", {
-		createES5Proxy,
-		markChangedES5,
-		willFinalizeES5
+		createES5Proxy_,
+		markChangedES5_,
+		willFinalizeES5_
 	})
 }

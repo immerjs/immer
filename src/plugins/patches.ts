@@ -29,7 +29,7 @@ import {
 import invariant from "tiny-invariant"
 
 export function enablePatches() {
-	function generatePatches(
+	function generatePatches_(
 		state: ImmerState,
 		basePath: PatchPath,
 		patches: Patch[],
@@ -191,7 +191,7 @@ export function enablePatches() {
 		})
 	}
 
-	function applyPatches<T>(draft: T, patches: Patch[]): T {
+	function applyPatches_<T>(draft: T, patches: Patch[]): T {
 		patches.forEach(patch => {
 			const {path, op} = patch
 
@@ -266,5 +266,5 @@ export function enablePatches() {
 		return cloned
 	}
 
-	loadPlugin("patches", {applyPatches, generatePatches})
+	loadPlugin("patches", {applyPatches_, generatePatches_})
 }

@@ -7,7 +7,6 @@ import {
 	each,
 	has,
 	freeze,
-	generatePatches,
 	shallowCopy,
 	ImmerState,
 	isDraft,
@@ -15,17 +14,18 @@ import {
 	set,
 	is,
 	get,
-	willFinalize,
 	ProxyTypeES5Object,
 	ProxyTypeES5Array,
-	ProxyTypeSet
+	ProxyTypeSet,
+	getPlugin
 } from "./internal"
 import invariant from "tiny-invariant"
 
 export function processResult(result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
-	willFinalize(scope, result, isReplaced)
+	if (!scope.immer_.useProxies_)
+		getPlugin("es5").willFinalizeES5_(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			scope.revoke_()
@@ -36,6 +36,7 @@ export function processResult(result: any, scope: ImmerScope) {
 			result = finalize(scope, result)
 			if (!scope.parent_) maybeFreeze(scope, result)
 		}
+		// TODO: move to plugin?
 		if (scope.patches_) {
 			scope.patches_.push({
 				op: "replace",
@@ -94,7 +95,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		maybeFreeze(rootScope, result, false)
 		// first time finalizing, let's create those patches
 		if (path && rootScope.patches_) {
-			generatePatches(
+			getPlugin("patches").generatePatches_(
 				state,
 				path,
 				rootScope.patches_,

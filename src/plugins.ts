@@ -17,17 +17,25 @@ import {
 /** Plugin utilities */
 const plugins: {
 	patches?: {
-		generatePatches: typeof generatePatches
-		applyPatches: typeof applyPatches
+		generatePatches_(
+			state: ImmerState,
+			basePath: PatchPath,
+			patches: Patch[],
+			inversePatches: Patch[]
+		): void
+		applyPatches_<T>(draft: T, patches: Patch[]): T
 	}
 	es5?: {
-		willFinalizeES5: typeof willFinalizeES5
-		createES5Proxy: typeof createES5Proxy
-		markChangedES5: typeof markChangedES5
+		willFinalizeES5_(scope: ImmerScope, result: any, isReplaced: boolean): void
+		createES5Proxy_<T>(
+			base: T,
+			parent?: ImmerState
+		): Drafted<T, ES5ObjectState | ES5ArrayState>
+		markChangedES5_(state: ImmerState): void
 	}
 	mapset?: {
-		proxyMap: typeof proxyMap
-		proxySet: typeof proxySet
+		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
+		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
 	}
 } = {}
 
@@ -78,25 +86,6 @@ export interface ES5ArrayState extends ES5BaseState {
 	copy_: AnyArray | null
 }
 
-export function willFinalizeES5(
-	scope: ImmerScope,
-	result: any,
-	isReplaced: boolean
-) {
-	getPlugin("es5").willFinalizeES5(scope, result, isReplaced)
-}
-
-export function createES5Proxy<T>(
-	base: T,
-	parent?: ImmerState
-): Drafted<T, ES5ObjectState | ES5ArrayState> {
-	return getPlugin("es5").createES5Proxy(base, parent)
-}
-
-export function markChangedES5(state: ImmerState) {
-	getPlugin("es5").markChangedES5(state)
-}
-
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
@@ -117,27 +106,6 @@ export interface SetState extends ImmerBaseState {
 	draft_: Drafted<AnySet, SetState>
 }
 
-export function proxyMap<T extends AnyMap>(target: T, parent?: ImmerState): T {
-	return getPlugin("mapset").proxyMap(target, parent)
-}
-
-export function proxySet<T extends AnySet>(target: T, parent?: ImmerState): T {
-	return getPlugin("mapset").proxySet(target, parent)
-}
-
 /** Patches plugin */
 
 export type PatchPath = (string | number)[]
-
-export function generatePatches(
-	state: ImmerState,
-	basePath: PatchPath,
-	patches: Patch[],
-	inversePatches: Patch[]
-): void {
-	getPlugin("patches").generatePatches(state, basePath, patches, inversePatches)
-}
-
-export function applyPatches<T>(draft: T, patches: Patch[]): T {
-	return getPlugin("patches").applyPatches(draft, patches)
-}

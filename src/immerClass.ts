@@ -1,7 +1,4 @@
 import {
-	createES5Proxy,
-	willFinalizeES5,
-	markChangedES5,
 	IProduceWithPatches,
 	IProduce,
 	ImmerState,
@@ -16,16 +13,14 @@ import {
 	Draft,
 	PatchListener,
 	isDraft,
-	applyPatches,
 	isMap,
-	proxyMap,
 	isSet,
-	proxySet,
 	markChangedProxy,
 	createProxyProxy
 } from "./internal"
 import invariant from "tiny-invariant"
 import {freeze} from "./common"
+import {getPlugin} from "./plugins"
 
 declare const __DEV__: boolean
 /* istanbul ignore next */
@@ -204,13 +199,14 @@ export class Immer implements ProducersFns {
 			}
 		}
 
+		const applyPatchesImpl = getPlugin("patches").applyPatches_
 		if (isDraft(base)) {
 			// N.B: never hits if some patch a replacement, patches are never drafts
-			return applyPatches(base, patches)
+			return applyPatchesImpl(base, patches)
 		}
 		// Otherwise, produce a copy of the base state.
 		return this.produce(base, (draft: Drafted) =>
-			applyPatches(draft, patches.slice(i + 1))
+			applyPatchesImpl(draft, patches.slice(i + 1))
 		)
 	}
 }
@@ -222,30 +218,22 @@ export function createProxy<T extends Objectish>(
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
 	const draft: Drafted = isMap(value)
-		? proxyMap(value, parent)
+		? getPlugin("mapset").proxyMap_(value, parent)
 		: isSet(value)
-		? proxySet(value, parent)
+		? getPlugin("mapset").proxySet_(value, parent)
 		: immer.useProxies_
 		? createProxyProxy(value, parent)
-		: createES5Proxy(value, parent)
+		: getPlugin("es5").createES5Proxy_(value, parent)
 
 	const scope = parent ? parent.scope_ : ImmerScope.current_!
 	scope.drafts_.push(draft)
 	return draft
 }
 
-export function willFinalize(
-	scope: ImmerScope,
-	thing: any,
-	isReplaced: boolean
-) {
-	if (!scope.immer_.useProxies_) willFinalizeES5(scope, thing, isReplaced)
-}
-
 export function markChanged(immer: Immer, state: ImmerState) {
 	if (immer.useProxies_) {
 		markChangedProxy(state)
 	} else {
-		markChangedES5(state)
+		getPlugin("es5").markChangedES5_(state)
 	}
 }
