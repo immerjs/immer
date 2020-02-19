@@ -9,13 +9,14 @@ import {
 	ImmerBaseState,
 	ImmerState,
 	Drafted,
-	ProxyType,
 	AnyObject,
 	AnyArray,
 	Objectish,
 	ImmerScope,
 	DRAFT_STATE,
-	createProxy
+	createProxy,
+	ProxyTypeProxyObject,
+	ProxyTypeProxyArray
 } from "./internal"
 import invariant from "tiny-invariant"
 
@@ -31,14 +32,14 @@ interface ProxyBaseState extends ImmerBaseState {
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
-	type_: ProxyType.ProxyObject
+	type_: typeof ProxyTypeProxyObject
 	base_: AnyObject
 	copy_: AnyObject | null
 	draft_: Drafted<AnyObject, ProxyObjectState>
 }
 
 export interface ProxyArrayState extends ProxyBaseState {
-	type_: ProxyType.ProxyArray
+	type_: typeof ProxyTypeProxyArray
 	base_: AnyArray
 	copy_: AnyArray | null
 	draft_: Drafted<AnyArray, ProxyArrayState>
@@ -57,7 +58,7 @@ export function createProxyProxy<T extends Objectish>(
 ): Drafted<T, ProxyState> {
 	const isArray = Array.isArray(base)
 	const state: ProxyState = {
-		type_: isArray ? ProxyType.ProxyArray : (ProxyType.ProxyObject as any),
+		type_: isArray ? ProxyTypeProxyArray : (ProxyTypeProxyObject as any),
 		// Track which produce call this is associated with.
 		scope_: parent ? parent.scope_ : ImmerScope.current_!,
 		// True for both shallow and deep changes.
@@ -181,7 +182,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		if (desc) {
 			desc.writable = true
 			desc.configurable =
-				state.type_ !== ProxyType.ProxyArray || prop !== "length"
+				state.type_ !== ProxyTypeProxyArray || prop !== "length"
 		}
 		return desc
 	},
@@ -235,8 +236,8 @@ export function markChangedProxy(state: ImmerState) {
 	if (!state.modified_) {
 		state.modified_ = true
 		if (
-			state.type_ === ProxyType.ProxyObject ||
-			state.type_ === ProxyType.ProxyArray
+			state.type_ === ProxyTypeProxyObject ||
+			state.type_ === ProxyTypeProxyArray
 		) {
 			const copy = (state.copy_ = shallowCopy(state.base_))
 			each(state.drafts_!, (key, value) => {

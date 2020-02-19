@@ -6,7 +6,6 @@ import {
 	MapState,
 	SetState,
 	DRAFT_STATE,
-	ProxyType,
 	ImmerScope,
 	latest,
 	assertUnrevoked,
@@ -14,7 +13,9 @@ import {
 	isDraftable,
 	createProxy,
 	loadPlugin,
-	markChanged
+	markChanged,
+	ProxyTypeMap,
+	ProxyTypeSet
 } from "../internal"
 import invariant from "tiny-invariant"
 
@@ -50,7 +51,7 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
 			this[DRAFT_STATE] = {
-				type_: ProxyType.Map,
+				type_: ProxyTypeMap,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : ImmerScope.current_!,
 				modified_: false,
@@ -206,7 +207,7 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
 			this[DRAFT_STATE] = {
-				type_: ProxyType.Set,
+				type_: ProxyTypeSet,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : ImmerScope.current_!,
 				modified_: false,

@@ -12,13 +12,14 @@ import {
 	shallowCopy,
 	latest,
 	createHiddenProperty,
-	ProxyType,
 	DRAFT_STATE,
 	assertUnrevoked,
 	is,
 	loadPlugin,
 	ImmerScope,
-	createProxy
+	createProxy,
+	ProxyTypeES5Array,
+	ProxyTypeES5Object
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -61,7 +62,7 @@ export function enableES5() {
 		})
 
 		const state: ES5ObjectState | ES5ArrayState = {
-			type_: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
+			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
 			scope_: parent ? parent.scope_ : ImmerScope.current_!,
 			modified_: false,
 			finalizing_: false,
@@ -179,10 +180,10 @@ export function enableES5() {
 			const state: ES5State = drafts[i][DRAFT_STATE]
 			if (!state.modified_) {
 				switch (state.type_) {
-					case ProxyType.ES5Array:
+					case ProxyTypeES5Array:
 						if (hasArrayChanges(state)) markChangedES5(state)
 						break
-					case ProxyType.ES5Object:
+					case ProxyTypeES5Object:
 						if (hasObjectChanges(state)) markChangedES5(state)
 						break
 				}
@@ -195,7 +196,7 @@ export function enableES5() {
 		const state: ES5State | undefined = object[DRAFT_STATE]
 		if (!state) return
 		const {base_, draft_, assigned_, type_} = state
-		if (type_ === ProxyType.ES5Object) {
+		if (type_ === ProxyTypeES5Object) {
 			// Look for added keys.
 			// TODO: looks quite duplicate to hasObjectChanges,
 			// probably there is a faster way to detect changes, as sweep + recurse seems to do some
@@ -220,7 +221,7 @@ export function enableES5() {
 					markChangedES5(state)
 				}
 			})
-		} else if (type_ === ProxyType.ES5Array) {
+		} else if (type_ === ProxyTypeES5Array) {
 			if (hasArrayChanges(state as ES5ArrayState)) {
 				markChangedES5(state)
 				assigned_.length = true

@@ -16,21 +16,18 @@ export type AnyObject = {[key: string]: any}
 export type AnyArray = Array<any>
 export type AnySet = Set<any>
 export type AnyMap = Map<any, any>
-export enum Archtype {
-	Object,
-	Array,
-	Map,
-	Set
-}
 
-export enum ProxyType {
-	ProxyObject,
-	ProxyArray,
-	ES5Object,
-	ES5Array,
-	Map,
-	Set
-}
+export const ArchtypeObject = 0
+export const ArchtypeArray = 1
+export const ArchtypeMap = 2
+export const ArchtypeSet = 3
+
+export const ProxyTypeProxyObject = 0
+export const ProxyTypeProxyArray = 1
+export const ProxyTypeES5Object = 4
+export const ProxyTypeES5Array = 5
+export const ProxyTypeMap = 2
+export const ProxyTypeSet = 3
 
 export interface ImmerBaseState {
 	parent_?: ImmerState

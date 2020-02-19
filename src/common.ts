@@ -9,9 +9,17 @@ import {
 	AnyMap,
 	AnySet,
 	ImmerState,
-	ProxyType,
-	Archtype,
-	hasMap
+	hasMap,
+	ArchtypeObject,
+	ProxyTypeES5Object,
+	ProxyTypeProxyObject,
+	ProxyTypeES5Array,
+	ProxyTypeProxyArray,
+	ArchtypeArray,
+	ProxyTypeMap,
+	ArchtypeMap,
+	ProxyTypeSet,
+	ArchtypeSet
 } from "./internal"
 import invariant from "tiny-invariant"
 
@@ -68,7 +76,7 @@ export function each<T extends Objectish>(
 	iter: (key: string | number, value: any, source: T) => void
 ): void
 export function each(obj: any, iter: any) {
-	if (getArchtype(obj) === Archtype.Object) {
+	if (getArchtype(obj) === ArchtypeObject) {
 		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
@@ -82,34 +90,34 @@ export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 }
 
 /*#__PURE__*/
-export function getArchtype(thing: any): Archtype {
+export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
 	/* istanbul ignore next */
 	if (thing[DRAFT_STATE]) {
 		switch ((thing as Drafted)[DRAFT_STATE].type) {
-			case ProxyType.ES5Object:
-			case ProxyType.ProxyObject:
-				return Archtype.Object
-			case ProxyType.ES5Array:
-			case ProxyType.ProxyArray:
-				return Archtype.Array
-			case ProxyType.Map:
-				return Archtype.Map
-			case ProxyType.Set:
-				return Archtype.Set
+			case ProxyTypeES5Object:
+			case ProxyTypeProxyObject:
+				return ArchtypeObject
+			case ProxyTypeES5Array:
+			case ProxyTypeProxyArray:
+				return ArchtypeArray
+			case ProxyTypeMap:
+				return ArchtypeMap
+			case ProxyTypeSet:
+				return ArchtypeSet
 		}
 	}
 	return Array.isArray(thing)
-		? Archtype.Array
+		? ArchtypeArray
 		: isMap(thing)
-		? Archtype.Map
+		? ArchtypeMap
 		: isSet(thing)
-		? Archtype.Set
-		: Archtype.Object
+		? ArchtypeSet
+		: ArchtypeObject
 }
 
 /*#__PURE__*/
 export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === Archtype.Map
+	return getArchtype(thing) === ArchtypeMap
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
@@ -117,16 +125,16 @@ export function has(thing: any, prop: PropertyKey): boolean {
 /*#__PURE__*/
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 	// @ts-ignore
-	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
+	return getArchtype(thing) === ArchtypeMap ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	switch (getArchtype(thing)) {
-		case Archtype.Map:
+		case ArchtypeMap:
 			thing.set(propOrOldValue, value)
 			break
-		case Archtype.Set:
+		case ArchtypeSet:
 			thing.delete(propOrOldValue)
 			thing.add(value)
 			break
@@ -194,9 +202,9 @@ export function shallowCopy(base: any, invokeGetters = false) {
 export function freeze(obj: any, deep: boolean): void {
 	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
 	const type = getArchtype(obj)
-	if (type === Archtype.Set) {
+	if (type === ArchtypeSet) {
 		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
-	} else if (type === Archtype.Map) {
+	} else if (type === ArchtypeMap) {
 		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)

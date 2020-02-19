@@ -8,7 +8,10 @@ import {
 	AnyArray,
 	AnyMap,
 	AnySet,
-	ProxyType
+	ProxyTypeES5Array,
+	ProxyTypeES5Object,
+	ProxyTypeMap,
+	ProxyTypeSet
 } from "./internal"
 
 /** Plugin utilities */
@@ -62,14 +65,14 @@ interface ES5BaseState extends ImmerBaseState {
 }
 
 export interface ES5ObjectState extends ES5BaseState {
-	type_: ProxyType.ES5Object
+	type_: typeof ProxyTypeES5Object
 	draft_: Drafted<AnyObject, ES5ObjectState>
 	base_: AnyObject
 	copy_: AnyObject | null
 }
 
 export interface ES5ArrayState extends ES5BaseState {
-	type_: ProxyType.ES5Array
+	type_: typeof ProxyTypeES5Array
 	draft_: Drafted<AnyObject, ES5ArrayState>
 	base_: AnyArray
 	copy_: AnyArray | null
@@ -97,7 +100,7 @@ export function markChangedES5(state: ImmerState) {
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
-	type_: ProxyType.Map
+	type_: typeof ProxyTypeMap
 	copy_: AnyMap | undefined
 	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
@@ -106,7 +109,7 @@ export interface MapState extends ImmerBaseState {
 }
 
 export interface SetState extends ImmerBaseState {
-	type_: ProxyType.Set
+	type_: typeof ProxyTypeSet
 	copy_: AnySet | undefined
 	base_: AnySet
 	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set

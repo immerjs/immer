@@ -4,7 +4,6 @@ import {
 	isDraftable,
 	NOTHING,
 	PatchPath,
-	ProxyType,
 	each,
 	has,
 	freeze,
@@ -16,7 +15,10 @@ import {
 	set,
 	is,
 	get,
-	willFinalize
+	willFinalize,
+	ProxyTypeES5Object,
+	ProxyTypeES5Array,
+	ProxyTypeSet
 } from "./internal"
 import invariant from "tiny-invariant"
 
@@ -81,7 +83,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		state.finalized_ = true
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
-			state.type_ === ProxyType.ES5Object || state.type_ === ProxyType.ES5Array
+			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
 				? (state.copy_ = shallowCopy(state.draft_, true))
 				: state.copy_
 		// finalize all children of the copy
@@ -116,7 +118,7 @@ function finalizeProperty(
 		const path =
 			rootPath &&
 			parentState &&
-			parentState!.type_ !== ProxyType.Set && // Set objects are atomic since they have no keys.
+			parentState!.type_ !== ProxyTypeSet && // Set objects are atomic since they have no keys.
 			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined
@@ -142,7 +144,7 @@ function finalizeProperty(
 	}
 }
 
-export function maybeFreeze(scope: ImmerScope, value: any, deep = false) {
+function maybeFreeze(scope: ImmerScope, value: any, deep = false) {
 	if (scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
 		freeze(value, deep)
 	}
