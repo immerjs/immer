@@ -22,6 +22,7 @@ import {
 import invariant from "tiny-invariant"
 
 export function processResult(result: any, scope: ImmerScope) {
+	scope.unfinalizedDrafts_ = scope.drafts_.length
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
 	if (!scope.immer_.useProxies_)
@@ -82,6 +83,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	// Not finalized yet, let's do that now
 	if (!state.finalized_) {
 		state.finalized_ = true
+		state.scope_.unfinalizedDrafts_--
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
@@ -138,6 +140,14 @@ function finalizeProperty(
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 	if (isDraftable(childValue)) {
+		if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
+			// optimization: if an object is not a draft, and we don't have to
+			// deepfreeze everything, and we are sure that no drafts are left in the remaining object
+			// cause we saw and finalized all drafts already; we can stop visiting the rest of the tree.
+			// This benefits especially adding large data tree's without further processing.
+			// See add-data.js perf test
+			return
+		}
 		finalize(rootScope, childValue)
 		// immer deep freezes plain objects, so if there is no parent state, we freeze as well
 		if (!parentState || !parentState.scope_.parent_)

@@ -7,7 +7,7 @@ import {
 	immerable,
 	enableAllPlugins
 } from "../src/immer"
-import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/internal"
+import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
@@ -973,6 +973,51 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				s.foo = {}
 				expect(s.bar).toBeDefined()
 				expect(s.foo).toBe(s.bar)
+			})
+		})
+
+		it("optimization: does not visit properties of new data structures if autofreeze is disabled and no drafts are unfinalized", () => {
+			const newData = {}
+			Object.defineProperty(newData, "x", {
+				enumerable: true,
+				get() {
+					throw new Error("visited!")
+				}
+			})
+
+			const run = () =>
+				produce({}, d => {
+					d.data = newData
+				})
+			if (autoFreeze) {
+				expect(run).toThrow("visited!")
+			} else {
+				expect(run).not.toThrow("visited!")
+			}
+		})
+
+		it("same optimization doesn't cause draft from nested producers to be unfinished", () => {
+			const base = {
+				y: 1,
+				child: {
+					x: 1
+				}
+			}
+			const wrap = produce(draft => {
+				return {
+					wrapped: draft
+				}
+			})
+
+			const res = produce(base, draft => {
+				draft.y++
+				draft.child = wrap(draft.child)
+				draft.child.wrapped.x++
+			})
+
+			expect(res).toEqual({
+				y: 2,
+				child: {wrapped: {x: 2}}
 			})
 		})
 
@@ -2117,4 +2162,9 @@ function enumerableOnly(x) {
 		}
 	})
 	return copy
+}
+
+function isEnumerable(base, prop) {
+	const desc = Object.getOwnPropertyDescriptor(base, prop)
+	return desc && desc.enumerable ? true : false
 }

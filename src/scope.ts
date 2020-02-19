@@ -17,6 +17,7 @@ export class ImmerScope {
 	parent_?: ImmerScope
 	patchListener_?: PatchListener
 	immer_: Immer
+	unfinalizedDrafts_ = 0
 
 	constructor(parent: ImmerScope | undefined, immer: Immer) {
 		this.drafts_ = []
