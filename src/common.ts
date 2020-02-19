@@ -11,14 +11,8 @@ import {
 	ImmerState,
 	hasMap,
 	ArchtypeObject,
-	ProxyTypeES5Object,
-	ProxyTypeProxyObject,
-	ProxyTypeES5Array,
-	ProxyTypeProxyArray,
 	ArchtypeArray,
-	ProxyTypeMap,
 	ArchtypeMap,
-	ProxyTypeSet,
 	ArchtypeSet
 } from "./internal"
 import invariant from "tiny-invariant"
@@ -84,29 +78,14 @@ export function each(obj: any, iter: any) {
 }
 
 /*#__PURE__*/
-export function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
-	const desc = Object.getOwnPropertyDescriptor(base, prop)
-	return desc && desc.enumerable ? true : false
-}
-
-/*#__PURE__*/
 export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
 	/* istanbul ignore next */
-	if (thing[DRAFT_STATE]) {
-		switch ((thing as Drafted)[DRAFT_STATE].type) {
-			case ProxyTypeES5Object:
-			case ProxyTypeProxyObject:
-				return ArchtypeObject
-			case ProxyTypeES5Array:
-			case ProxyTypeProxyArray:
-				return ArchtypeArray
-			case ProxyTypeMap:
-				return ArchtypeMap
-			case ProxyTypeSet:
-				return ArchtypeSet
-		}
-	}
-	return Array.isArray(thing)
+	const state: undefined | ImmerState = thing[DRAFT_STATE]
+	return state
+		? state.type_ > 3
+			? state.type_ - 4 // cause Object and Array map back from 4 and 5
+			: (state.type_ as any) // others are the same
+		: Array.isArray(thing)
 		? ArchtypeArray
 		: isMap(thing)
 		? ArchtypeMap
@@ -200,12 +179,9 @@ export function shallowCopy(base: any, invokeGetters = false) {
 }
 
 export function freeze(obj: any, deep: boolean): void {
-	if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) return
-	const type = getArchtype(obj)
-	if (type === ArchtypeSet) {
-		obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
-	} else if (type === ArchtypeMap) {
-		obj.set = obj.clear = obj.delete = dontMutateFrozenCollections as any
+	if (isDraft(obj) || Object.isFrozen(obj) || !isDraftable(obj)) return
+	if (getArchtype(obj) > 1 /* Map or Set */) {
+		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
 	if (deep) each(obj, (_, value) => freeze(value, true))
@@ -215,19 +191,7 @@ function dontMutateFrozenCollections() {
 	invariant(false, "This object has been frozen and should not be mutated")
 }
 
-// TODO: used only once, inline
-export function createHiddenProperty(
-	target: AnyObject,
-	prop: PropertyKey,
-	value: any
-) {
-	Object.defineProperty(target, prop, {
-		value: value,
-		// enumerable: false <- the default
-		writable: true
-	})
-}
-
+// TODO: move to ES5 / Map
 export function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
 	invariant(
 		!state.revoked_,

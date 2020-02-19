@@ -8,10 +8,8 @@ import {
 	has,
 	isDraft,
 	isDraftable,
-	isEnumerable,
 	shallowCopy,
 	latest,
-	createHiddenProperty,
 	DRAFT_STATE,
 	assertUnrevoked,
 	is,
@@ -19,7 +17,8 @@ import {
 	ImmerScope,
 	createProxy,
 	ProxyTypeES5Array,
-	ProxyTypeES5Object
+	ProxyTypeES5Object,
+	AnyObject
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -76,7 +75,11 @@ export function enableES5() {
 			isManual_: false
 		}
 
-		createHiddenProperty(draft, DRAFT_STATE, state)
+		Object.defineProperty(draft, DRAFT_STATE, {
+			value: state,
+			// enumerable: false <- the default
+			writable: true
+		})
 		return draft
 	}
 
@@ -290,6 +293,12 @@ export function enableES5() {
 		if (descriptor && !descriptor.get) return true
 		// For all other cases, we don't have to compare, as they would have been picked up by the index setters
 		return false
+	}
+
+	/*#__PURE__*/
+	function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
+		const desc = Object.getOwnPropertyDescriptor(base, prop)
+		return desc && desc.enumerable ? true : false
 	}
 
 	loadPlugin("es5", {

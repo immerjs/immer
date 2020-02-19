@@ -2,7 +2,7 @@ Things to optimize
 
 [x] extract errors
 [x] don't enable all features by default
-[ ] "undefined" "object" "function" prototype undefined + buildin FNs ?
+[ ] "undefined" "object" "function" prototype undefined bind, getOwnPropertyies, isArray etc + buildin FNs ?
 [x] kill hooks
 [x] _ postfix all members
 [x] clean up finalize
@@ -17,8 +17,11 @@ Things to optimize
 [ ] check todos
 [ ] kill marchChangesSweep recursive if possible and no perf impact
 [ ] optimize each closures away? pass in additional args?
-[ ] document performance tip: if externally added data is frozen, it doesn't recurse (also update related issue)
+[x] document performance tip: if externally added data is frozen, it doesn't recurse (also update related issue) #465
 [ ] put some invariants behind __DEV__
+[x] check for plugin specific utils
+[ ] bind util
+[ ] eliminate switches
 
 Import size report for immer:
 ┌───────────────────────┬───────────┬────────────┬───────────┐
@@ -106,3 +109,6 @@ Import size report for immer:
 
 Minimize plugin api's:
  3196
+
+add draft optimization
+3199
