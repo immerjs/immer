@@ -15,7 +15,7 @@ import {
 	ArchtypeMap,
 	ArchtypeSet,
 	die
-} from "./internal"
+} from "../internal"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/

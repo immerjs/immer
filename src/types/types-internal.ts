@@ -7,7 +7,7 @@ import {
 	ES5ArrayState,
 	MapState,
 	DRAFT_STATE
-} from "./internal"
+} from "../internal"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap

@@ -156,7 +156,7 @@ export function enablePatches() {
 		let {base_, copy_} = state
 
 		let i = 0
-		base_.forEach(value => {
+		base_.forEach((value: any) => {
 			if (!copy_!.has(value)) {
 				const path = basePath.concat([i])
 				patches.push({
@@ -173,7 +173,7 @@ export function enablePatches() {
 			i++
 		})
 		i = 0
-		copy_!.forEach(value => {
+		copy_!.forEach((value: any) => {
 			if (!base_.has(value)) {
 				const path = basePath.concat([i])
 				patches.push({

@@ -19,7 +19,7 @@ import {
 	ProxyTypeSet,
 	getPlugin,
 	die
-} from "./internal"
+} from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length

@@ -20,7 +20,7 @@ import {
 	freeze,
 	getPlugin,
 	die
-} from "./internal"
+} from "../internal"
 
 /* istanbul ignore next */
 function verifyMinified() {}

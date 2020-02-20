@@ -13,7 +13,7 @@ import {
 	ProxyTypeMap,
 	ProxyTypeSet,
 	die
-} from "./internal"
+} from "../internal"
 
 /** Plugin utilities */
 const plugins: {

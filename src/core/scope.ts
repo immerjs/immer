@@ -1,9 +1,13 @@
-import {Patch, PatchListener, Drafted, Immer, DRAFT_STATE} from "./internal"
 import {
+	Patch,
+	PatchListener,
+	Drafted,
+	Immer,
+	DRAFT_STATE,
 	ImmerState,
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
-} from "./types-internal"
+} from "../internal"
 
 /** Each scope represents a `produce` call. */
 // TODO: non-class?

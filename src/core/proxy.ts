@@ -14,11 +14,11 @@ import {
 	Objectish,
 	ImmerScope,
 	DRAFT_STATE,
+	die,
 	createProxy,
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
-} from "./internal"
-import {die} from "./errors"
+} from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
