@@ -18,7 +18,7 @@ import {
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
 } from "./internal"
-import invariant from "tiny-invariant"
+import {die} from "./errors"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -187,13 +187,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		return desc
 	},
 	defineProperty() {
-		invariant(false, "Object.defineProperty() cannot be used on an Immer draft") // prettier-ignore
+		die(11)
 	},
 	getPrototypeOf(state) {
 		return Object.getPrototypeOf(state.base_)
 	},
 	setPrototypeOf() {
-		invariant(false, "Object.setPrototypeOf() cannot be used on an Immer draft") // prettier-ignore
+		die(12)
 	}
 }
 
@@ -210,11 +210,11 @@ each(objectTraps, (key, fn) => {
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
-	invariant(!isNaN(parseInt(prop as any)), "Immer only supports deleting array indices") // prettier-ignore
+	if (__DEV__ && isNaN(parseInt(prop as any))) die(13)
 	return objectTraps.deleteProperty!.call(this, state[0], prop)
 }
 arrayTraps.set = function(state, prop, value) {
-	invariant(prop === "length" || !isNaN(parseInt(prop as any)), "Immer only supports setting array indices and the 'length' property") // prettier-ignore
+	if (__DEV__ && prop !== "length" && isNaN(parseInt(prop as any))) die(14)
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 

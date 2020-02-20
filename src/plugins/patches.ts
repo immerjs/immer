@@ -24,9 +24,9 @@ import {
 	ProxyTypeSet,
 	ArchtypeMap,
 	ArchtypeSet,
-	ArchtypeArray
+	ArchtypeArray,
+	die
 } from "../internal"
-import invariant from "tiny-invariant"
 
 export function enablePatches() {
 	function generatePatches_(
@@ -198,7 +198,7 @@ export function enablePatches() {
 			let base: any = draft
 			for (let i = 0; i < path.length - 1; i++) {
 				base = get(base, path[i])
-				invariant(typeof base === "object","Cannot apply patch, path doesn't resolve: " + path.join("/")) // prettier-ignore
+				if (typeof base !== "object") die(15, path.join("/"))
 			}
 
 			const type = getArchtype(base)
@@ -211,7 +211,7 @@ export function enablePatches() {
 							return base.set(key, value)
 						/* istanbul ignore next */
 						case ArchtypeSet:
-							invariant(false, 'Sets cannot have "replace" patches.')
+							die(16)
 						default:
 							// if value is an object, then it's assigned by reference
 							// in the following add or remove ops, the value field inside the patch will also be modifyed
@@ -242,7 +242,7 @@ export function enablePatches() {
 							return delete base[key]
 					}
 				default:
-					invariant(false, "Unsupported patch operation: " + op)
+					die(17, op)
 			}
 		})
 

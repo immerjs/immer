@@ -17,9 +17,9 @@ import {
 	ProxyTypeES5Object,
 	ProxyTypeES5Array,
 	ProxyTypeSet,
-	getPlugin
+	getPlugin,
+	die
 } from "./internal"
-import invariant from "tiny-invariant"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
@@ -30,7 +30,7 @@ export function processResult(result: any, scope: ImmerScope) {
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			scope.revoke_()
-			invariant(false, "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.") // prettier-ignore
+			die(4)
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
@@ -116,7 +116,7 @@ function finalizeProperty(
 	childValue: any,
 	rootPath?: PatchPath
 ) {
-	invariant(childValue !== targetObject, "Immer forbids circular references")
+	if (__DEV__ && childValue === targetObject) die(5)
 	if (isDraft(childValue)) {
 		const path =
 			rootPath &&

@@ -8,16 +8,15 @@ import {
 	DRAFT_STATE,
 	ImmerScope,
 	latest,
-	assertUnrevoked,
 	iteratorSymbol,
 	isDraftable,
 	createProxy,
 	loadPlugin,
 	markChanged,
 	ProxyTypeMap,
-	ProxyTypeSet
+	ProxyTypeSet,
+	die
 } from "../internal"
-import invariant from "tiny-invariant"
 
 export function enableMapSet() {
 	/* istanbul ignore next */
@@ -46,7 +45,6 @@ export function enableMapSet() {
 	}
 
 	const DraftMap = (function(_super) {
-		invariant(_super, "Map is not polyfilled")
 		__extends(DraftMap, _super)
 		// Create class manually, cause #502
 		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
@@ -201,8 +199,6 @@ export function enableMapSet() {
 	}
 
 	const DraftSet = (function(_super) {
-		invariant(_super, "Set is not polyfilled")
-
 		__extends(DraftSet, _super)
 		// Create class manually, cause #502
 		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
@@ -334,6 +330,10 @@ export function enableMapSet() {
 				}
 			})
 		}
+	}
+
+	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
+		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
 	loadPlugin("mapset", {proxyMap_, proxySet_})

@@ -13,9 +13,9 @@ import {
 	ArchtypeObject,
 	ArchtypeArray,
 	ArchtypeMap,
-	ArchtypeSet
+	ArchtypeSet,
+	die
 } from "./internal"
-import invariant from "tiny-invariant"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
@@ -162,7 +162,7 @@ export function shallowCopy(base: any, invokeGetters = false) {
 		const desc = Object.getOwnPropertyDescriptor(base, key)!
 		let {value} = desc
 		if (desc.get) {
-			invariant(invokeGetters, "Immer drafts cannot have computed properties")
+			if (!invokeGetters) die(1)
 			value = desc.get.call(base)
 		}
 		if (desc.enumerable) {
@@ -188,14 +188,5 @@ export function freeze(obj: any, deep: boolean): void {
 }
 
 function dontMutateFrozenCollections() {
-	invariant(false, "This object has been frozen and should not be mutated")
-}
-
-// TODO: move to ES5 / Map
-export function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
-	invariant(
-		!state.revoked_,
-		"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
-			JSON.stringify(latest(state))
-	)
+	die(2)
 }

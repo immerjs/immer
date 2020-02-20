@@ -16,13 +16,12 @@ import {
 	isMap,
 	isSet,
 	markChangedProxy,
-	createProxyProxy
+	createProxyProxy,
+	freeze,
+	getPlugin,
+	die
 } from "./internal"
-import invariant from "tiny-invariant"
-import {freeze} from "./common"
-import {getPlugin} from "./plugins"
 
-declare const __DEV__: boolean
 /* istanbul ignore next */
 function verifyMinified() {}
 
@@ -84,14 +83,11 @@ export class Immer implements ProducersFns {
 			}
 		}
 
-		invariant(
-			typeof recipe === "function",
-			"The first or second argument to `produce` must be a function"
-		)
-		invariant(
-			patchListener === undefined || typeof patchListener === "function",
-			"The third argument to `produce` must be a function or undefined"
-		)
+		if (__DEV__) {
+			if (typeof recipe !== "function") die(6)
+			if (patchListener !== undefined && typeof patchListener !== "function")
+				die(7)
+		}
 
 		let result
 
@@ -136,9 +132,7 @@ export class Immer implements ProducersFns {
 			return (state: any, ...args: any[]) =>
 				this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
 		}
-		// non-curried form
-		/* istanbul ignore next */
-		invariant(!arg3)
+
 		let patches: Patch[], inversePatches: Patch[]
 		const nextState = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
 			patches = p
@@ -148,7 +142,7 @@ export class Immer implements ProducersFns {
 	}
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
-		invariant(isDraftable(base), "First argument to `createDraft` must be a plain object, an array, or an immerable object") // prettier-ignore
+		if (!isDraftable(base)) die(8)
 		const scope = ImmerScope.enter_(this)
 		const proxy = createProxy(this, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
@@ -161,8 +155,10 @@ export class Immer implements ProducersFns {
 		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
 		const state: ImmerState = draft && draft[DRAFT_STATE]
-		invariant(state && state.isManual_, "First argument to `finishDraft` must be a draft returned by `createDraft`") // prettier-ignore
-		invariant(!state.finalized_, "The given draft is already finalized") // prettier-ignore
+		if (__DEV__) {
+			if (!state || !state.isManual_) die(9)
+			if (state.finalized_) die(10)
+		}
 		const {scope_: scope} = state
 		scope.usePatches_(patchListener)
 		return processResult(undefined, scope)

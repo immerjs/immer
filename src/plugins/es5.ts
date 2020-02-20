@@ -11,14 +11,14 @@ import {
 	shallowCopy,
 	latest,
 	DRAFT_STATE,
-	assertUnrevoked,
 	is,
 	loadPlugin,
 	ImmerScope,
 	createProxy,
 	ProxyTypeES5Array,
 	ProxyTypeES5Object,
-	AnyObject
+	AnyObject,
+	die
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -299,6 +299,10 @@ export function enableES5() {
 	function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
 		const desc = Object.getOwnPropertyDescriptor(base, prop)
 		return desc && desc.enumerable ? true : false
+	}
+
+	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
+		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
 	loadPlugin("es5", {

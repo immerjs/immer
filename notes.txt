@@ -7,7 +7,7 @@ Things to optimize
 [x] _ postfix all members
 [x] clean up finalize
 [x] remove die
-[ ] own invariant
+[x] own invariant
 [ ] update docs
 [ ] plugin tests
 [ ] check if we can create more local vars
@@ -112,3 +112,6 @@ Minimize plugin api's:
 
 add draft optimization
 3199
+
+invariant
+3206
