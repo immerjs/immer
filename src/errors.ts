@@ -1,5 +1,3 @@
-declare const __DEV__: boolean
-
 const errors = {
 	0: "Illegal state",
 	1: "Immer drafts cannot have computed properties",
@@ -27,7 +25,13 @@ const errors = {
 	16: 'Sets cannot have "replace" patches.',
 	17(op: string) {
 		return "Unsupported patch operation: " + op
-	}
+	},
+	18(plugin: string) {
+		return `The plugin ${plugin} has not been loaded into Immer. Make sure to call "enable${plugin[0].toUpperCase()}${plugin.substr(
+			1
+		)}()" when initializing your application, just after requiring immer itself.`
+	},
+	19: "plugin not loaded"
 } as const
 
 export function die(error: keyof typeof errors, ...args: any[]): never {

@@ -149,15 +149,9 @@ function runTests(name, useProxies) {
 			const res = produce(base, draft => {
 				draft.set("a", 1)
 			})
-			expect(() => res.set("b", 2)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => res.clear()).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => res.delete("b")).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
+			expect(() => res.set("b", 2)).toThrowErrorMatchingSnapshot()
+			expect(() => res.clear()).toThrowErrorMatchingSnapshot()
+			expect(() => res.delete("b")).toThrowErrorMatchingSnapshot()
 
 			// In draft, still editable
 			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
@@ -168,15 +162,9 @@ function runTests(name, useProxies) {
 			const res = produce(base, draft => {
 				base.add(1)
 			})
-			expect(() => base.add(2)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => base.delete(1)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => base.clear()).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
+			expect(() => base.add(2)).toThrowErrorMatchingSnapshot()
+			expect(() => base.delete(1)).toThrowErrorMatchingSnapshot()
+			expect(() => base.clear()).toThrowErrorMatchingSnapshot()
 
 			// In draft, still editable
 			expect(produce(res, d => void d.add(2))).not.toBe(res)

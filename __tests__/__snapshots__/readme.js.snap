@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Producers can update Maps 4`] = `"[Immer] This object has been frozen and should not be mutated"`;

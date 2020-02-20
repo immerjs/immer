@@ -11,7 +11,8 @@ import {
 	ProxyTypeES5Array,
 	ProxyTypeES5Object,
 	ProxyTypeMap,
-	ProxyTypeSet
+	ProxyTypeSet,
+	die
 } from "./internal"
 
 /** Plugin utilities */
@@ -46,11 +47,7 @@ export function getPlugin<K extends keyof Plugins>(
 ): Exclude<Plugins[K], undefined> {
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
-		throw new Error(
-			`The plugin ${pluginKey} has not been loaded into Immer. Make sure to call "enable${pluginKey[0].toUpperCase()}${pluginKey.substr(
-				1
-			)}()" when initializing your application, just after requiring immer itself.`
-		)
+		die(__DEV__ ? 18 : 19, plugin)
 	}
 	// @ts-ignore
 	return plugin

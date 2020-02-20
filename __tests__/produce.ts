@@ -465,3 +465,14 @@ it("works with ReadonlyMap and ReadonlySet", () => {
 	})
 	assert(res2, _ as ReadonlySet<{readonly x: number}>)
 })
+
+it("shows error in production if called incorrectly", () => {
+	expect(() => {
+		debugger
+		produce(null as any)
+	}).toThrow(
+		(global as any).USES_BUILD
+			? "[Immer] minified error nr: 6"
+			: "[Immer] The first or second argument to `produce` must be a function"
+	)
+})

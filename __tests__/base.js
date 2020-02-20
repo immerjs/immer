@@ -294,7 +294,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect("x" in nextState).toBeFalsy()
 			})
 
-			if (useProxies) {
+			if (useProxies && !global.USES_BUILD) {
 				it("throws when a non-numeric property is added", () => {
 					expect(() => {
 						produce([], d => {
@@ -567,12 +567,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				produce(baseState, s => {
 					m = s.aMap
 				})
-				expect(() => m.get("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
-				expect(() => m.set("x", 3)).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
+				expect(() => m.get("x")).toThrowErrorMatchingSnapshot()
+				expect(() => m.set("x", 3)).toThrowErrorMatchingSnapshot()
 			})
 
 			it("does not draft map keys", () => {
@@ -875,12 +871,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				produce(baseState, s => {
 					m = s.aSet
 				})
-				expect(() => m.has("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
-				expect(() => m.add("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
+				expect(() => m.has("x")).toThrowErrorMatchingSnapshot()
+				expect(() => m.add("x")).toThrowErrorMatchingSnapshot()
 			})
 
 			it("does support instanceof Set", () => {

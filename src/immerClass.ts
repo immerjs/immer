@@ -83,11 +83,9 @@ export class Immer implements ProducersFns {
 			}
 		}
 
-		if (__DEV__) {
-			if (typeof recipe !== "function") die(6)
-			if (patchListener !== undefined && typeof patchListener !== "function")
-				die(7)
-		}
+		if (typeof recipe !== "function") die(6)
+		if (patchListener !== undefined && typeof patchListener !== "function")
+			die(7)
 
 		let result
 
