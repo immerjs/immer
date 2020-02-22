@@ -10,7 +10,10 @@ module.exports = {
 					module: true,
 					compress: {
 						hoist_funs: true,
-						passes: 3
+						passes: 2,
+						keep_fargs: false,
+						pure_getters: true,
+						unsafe: true
 					},
 					mangle: {
 						properties: {

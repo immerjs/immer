@@ -10,7 +10,7 @@ Things to optimize
 [x] own invariant
 [x] update docs
 [x] plugin tests
-[ ] check if we can create more local vars
+[x] check if we can create more local vars
 [x] verify performance
 [ ] kill ownKeys?
 [x] kill enumerations

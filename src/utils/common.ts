@@ -109,17 +109,12 @@ export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 
 /*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
-	switch (getArchtype(thing)) {
-		case ArchtypeMap:
-			thing.set(propOrOldValue, value)
-			break
-		case ArchtypeSet:
-			thing.delete(propOrOldValue)
-			thing.add(value)
-			break
-		default:
-			thing[propOrOldValue] = value
-	}
+	const t = getArchtype(thing)
+	if (t === ArchtypeMap) thing.set(propOrOldValue, value)
+	else if (t === ArchtypeSet) {
+		thing.delete(propOrOldValue)
+		thing.add(value)
+	} else thing[propOrOldValue] = value
 }
 
 /*#__PURE__*/
