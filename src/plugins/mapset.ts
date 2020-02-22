@@ -6,7 +6,7 @@ import {
 	MapState,
 	SetState,
 	DRAFT_STATE,
-	ImmerScope,
+	getCurrentScope,
 	latest,
 	iteratorSymbol,
 	isDraftable,
@@ -51,7 +51,7 @@ export function enableMapSet() {
 			this[DRAFT_STATE] = {
 				type_: ProxyTypeMap,
 				parent_: parent,
-				scope_: parent ? parent.scope_ : ImmerScope.current_!,
+				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,
 				finalized_: false,
 				copy_: undefined,
@@ -204,7 +204,7 @@ export function enableMapSet() {
 			this[DRAFT_STATE] = {
 				type_: ProxyTypeSet,
 				parent_: parent,
-				scope_: parent ? parent.scope_ : ImmerScope.current_!,
+				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,
 				finalized_: false,
 				copy_: undefined,

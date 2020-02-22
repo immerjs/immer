@@ -18,7 +18,8 @@ import {
 	ProxyTypeES5Array,
 	ProxyTypeSet,
 	getPlugin,
-	die
+	die,
+	revokeScope
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -29,7 +30,7 @@ export function processResult(result: any, scope: ImmerScope) {
 		getPlugin("ES5").willFinalizeES5_(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
-			scope.revoke_()
+			revokeScope(scope)
 			die(4)
 		}
 		if (isDraftable(result)) {
@@ -49,7 +50,7 @@ export function processResult(result: any, scope: ImmerScope) {
 		// Finalize the base draft.
 		result = finalize(scope, baseDraft, [])
 	}
-	scope.revoke_()
+	revokeScope(scope)
 	if (scope.patches_) {
 		scope.patchListener_!(scope.patches_, scope.inversePatches_!)
 	}

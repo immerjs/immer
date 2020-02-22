@@ -12,7 +12,7 @@ import {
 	AnyObject,
 	AnyArray,
 	Objectish,
-	ImmerScope,
+	getCurrentScope,
 	DRAFT_STATE,
 	die,
 	createProxy,
@@ -60,7 +60,7 @@ export function createProxyProxy<T extends Objectish>(
 	const state: ProxyState = {
 		type_: isArray ? ProxyTypeProxyArray : (ProxyTypeProxyObject as any),
 		// Track which produce call this is associated with.
-		scope_: parent ? parent.scope_ : ImmerScope.current_!,
+		scope_: parent ? parent.scope_ : getCurrentScope()!,
 		// True for both shallow and deep changes.
 		modified_: false,
 		// Used during finalization.

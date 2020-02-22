@@ -9,12 +9,11 @@ import {
 	ProxyTypeProxyArray,
 	getPlugin
 } from "../internal"
+import {die} from "../utils/errors"
 
 /** Each scope represents a `produce` call. */
-// TODO: non-class?
-export class ImmerScope {
-	static current_?: ImmerScope
 
+export interface ImmerScope {
 	patches_?: Patch[]
 	inversePatches_?: Patch[]
 	canAutoFreeze_: boolean
@@ -22,48 +21,61 @@ export class ImmerScope {
 	parent_?: ImmerScope
 	patchListener_?: PatchListener
 	immer_: Immer
-	unfinalizedDrafts_ = 0
+	unfinalizedDrafts_: number
+}
 
-	constructor(parent: ImmerScope | undefined, immer: Immer) {
-		this.drafts_ = []
-		this.parent_ = parent
-		this.immer_ = immer
+let currentScope: ImmerScope | undefined
 
+export function getCurrentScope() {
+	if (__DEV__ && !currentScope) die(0)
+	return currentScope!
+}
+
+function createScope(
+	parent_: ImmerScope | undefined,
+	immer_: Immer
+): ImmerScope {
+	return {
+		drafts_: [],
+		parent_,
+		immer_,
 		// Whenever the modified draft contains a draft from another scope, we
 		// need to prevent auto-freezing so the unowned draft can be finalized.
-		this.canAutoFreeze_ = true
-	}
-
-	usePatches_(patchListener?: PatchListener) {
-		if (patchListener) {
-			getPlugin("Patches") // assert we have the plugin
-			this.patches_ = []
-			this.inversePatches_ = []
-			this.patchListener_ = patchListener
-		}
-	}
-
-	revoke_() {
-		this.leave_()
-		this.drafts_.forEach(revoke)
-		// @ts-ignore
-		this.drafts_ = null
-	}
-
-	leave_() {
-		if (this === ImmerScope.current_) {
-			ImmerScope.current_ = this.parent_
-		}
-	}
-
-	static enter_(immer: Immer) {
-		const scope = new ImmerScope(ImmerScope.current_, immer)
-		ImmerScope.current_ = scope
-		return scope
+		canAutoFreeze_: true,
+		unfinalizedDrafts_: 0
 	}
 }
 
-function revoke(draft: Drafted) {
+export function usePatchesInScope(
+	scope: ImmerScope,
+	patchListener?: PatchListener
+) {
+	if (patchListener) {
+		getPlugin("Patches") // assert we have the plugin
+		scope.patches_ = []
+		scope.inversePatches_ = []
+		scope.patchListener_ = patchListener
+	}
+}
+
+export function revokeScope(scope: ImmerScope) {
+	leaveScope(scope)
+	scope.drafts_.forEach(revokeDraft)
+	// @ts-ignore
+	scope.drafts_ = null
+}
+
+export function leaveScope(scope: ImmerScope) {
+	if (scope === currentScope) {
+		currentScope = scope.parent_
+	}
+}
+
+export function enterScope(immer: Immer) {
+	return (currentScope = createScope(currentScope, immer))
+}
+
+function revokeDraft(draft: Drafted) {
 	const state: ImmerState = draft[DRAFT_STATE]
 	if (
 		state.type_ === ProxyTypeProxyObject ||

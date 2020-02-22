@@ -18,6 +18,7 @@ import {
 	ProxyTypeES5Array,
 	ProxyTypeES5Object,
 	AnyObject,
+	getCurrentScope,
 	die
 } from "../internal"
 
@@ -61,7 +62,7 @@ export function enableES5() {
 
 		const state: ES5ObjectState | ES5ArrayState = {
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
-			scope_: parent ? parent.scope_ : ImmerScope.current_!,
+			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,
 			finalizing_: false,
 			finalized_: false,

@@ -4,7 +4,6 @@ import {
 	ImmerState,
 	Drafted,
 	isDraftable,
-	ImmerScope,
 	processResult,
 	NOTHING,
 	Patch,
@@ -21,7 +20,12 @@ import {
 	getPlugin,
 	die,
 	hasProxies,
-	isMinified
+	isMinified,
+	enterScope,
+	revokeScope,
+	leaveScope,
+	usePatchesInScope,
+	getCurrentScope
 } from "../internal"
 
 interface ProducersFns {
@@ -86,7 +90,7 @@ export class Immer implements ProducersFns {
 
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
-			const scope = ImmerScope.enter_(this)
+			const scope = enterScope(this)
 			const proxy = createProxy(this, base, undefined)
 			let hasError = true
 			try {
@@ -94,22 +98,22 @@ export class Immer implements ProducersFns {
 				hasError = false
 			} finally {
 				// finally instead of catch + rethrow better preserves original stack
-				if (hasError) scope.revoke_()
-				else scope.leave_()
+				if (hasError) revokeScope(scope)
+				else leaveScope(scope)
 			}
 			if (typeof Promise !== "undefined" && result instanceof Promise) {
 				return result.then(
 					result => {
-						scope.usePatches_(patchListener)
+						usePatchesInScope(scope, patchListener)
 						return processResult(result, scope)
 					},
 					error => {
-						scope.revoke_()
+						revokeScope(scope)
 						throw error
 					}
 				)
 			}
-			scope.usePatches_(patchListener)
+			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
 		} else {
 			result = recipe(base)
@@ -136,10 +140,10 @@ export class Immer implements ProducersFns {
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) die(8)
-		const scope = ImmerScope.enter_(this)
+		const scope = enterScope(this)
 		const proxy = createProxy(this, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
-		scope.leave_()
+		leaveScope(scope)
 		return proxy as any
 	}
 
@@ -153,7 +157,7 @@ export class Immer implements ProducersFns {
 			if (state.finalized_) die(10)
 		}
 		const {scope_: scope} = state
-		scope.usePatches_(patchListener)
+		usePatchesInScope(scope, patchListener)
 		return processResult(undefined, scope)
 	}
 
@@ -217,7 +221,7 @@ export function createProxy<T extends Objectish>(
 		? createProxyProxy(value, parent)
 		: getPlugin("ES5").createES5Proxy_(value, parent)
 
-	const scope = parent ? parent.scope_ : ImmerScope.current_!
+	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)
 	return draft
 }
