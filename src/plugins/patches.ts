@@ -266,5 +266,5 @@ export function enablePatches() {
 		return cloned
 	}
 
-	loadPlugin("patches", {applyPatches_, generatePatches_})
+	loadPlugin("Patches", {applyPatches_, generatePatches_})
 }

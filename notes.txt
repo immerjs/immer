@@ -9,7 +9,7 @@ Things to optimize
 [x] remove die
 [x] own invariant
 [ ] update docs
-[ ] plugin tests
+[x] plugin tests
 [ ] check if we can create more local vars
 [x] verify performance
 [ ] kill ownKeys?

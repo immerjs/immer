@@ -305,7 +305,7 @@ export function enableES5() {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
-	loadPlugin("es5", {
+	loadPlugin("ES5", {
 		createES5Proxy_,
 		markChangedES5_,
 		willFinalizeES5_

@@ -6,7 +6,8 @@ import {
 	DRAFT_STATE,
 	ImmerState,
 	ProxyTypeProxyObject,
-	ProxyTypeProxyArray
+	ProxyTypeProxyArray,
+	getPlugin
 } from "../internal"
 
 /** Each scope represents a `produce` call. */
@@ -35,6 +36,7 @@ export class ImmerScope {
 
 	usePatches_(patchListener?: PatchListener) {
 		if (patchListener) {
+			getPlugin("Patches") // assert we have the plugin
 			this.patches_ = []
 			this.inversePatches_ = []
 			this.patchListener_ = patchListener

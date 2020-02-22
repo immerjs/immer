@@ -19,11 +19,10 @@ import {
 	createProxyProxy,
 	freeze,
 	getPlugin,
-	die
+	die,
+	hasProxies,
+	isMinified
 } from "../internal"
-
-/* istanbul ignore next */
-function verifyMinified() {}
 
 interface ProducersFns {
 	produce: IProduce
@@ -31,13 +30,9 @@ interface ProducersFns {
 }
 
 export class Immer implements ProducersFns {
-	useProxies_: boolean =
-		typeof Proxy !== "undefined" &&
-		typeof Proxy.revocable !== "undefined" &&
-		typeof Reflect !== "undefined"
-	autoFreeze_: boolean = __DEV__
-		? false /* istanbul ignore next */
-		: verifyMinified.name === "verifyMinified"
+	useProxies_: boolean = hasProxies
+
+	autoFreeze_: boolean = __DEV__ ? true /* istanbul ignore next */ : !isMinified
 
 	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
 		if (typeof config?.useProxies === "boolean")
@@ -178,6 +173,9 @@ export class Immer implements ProducersFns {
 	 * By default, feature detection is used, so calling this is rarely necessary.
 	 */
 	setUseProxies(value: boolean) {
+		if (!hasProxies) {
+			die(20)
+		}
 		this.useProxies_ = value
 	}
 
@@ -193,7 +191,7 @@ export class Immer implements ProducersFns {
 			}
 		}
 
-		const applyPatchesImpl = getPlugin("patches").applyPatches_
+		const applyPatchesImpl = getPlugin("Patches").applyPatches_
 		if (isDraft(base)) {
 			// N.B: never hits if some patch a replacement, patches are never drafts
 			return applyPatchesImpl(base, patches)
@@ -212,12 +210,12 @@ export function createProxy<T extends Objectish>(
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
 	const draft: Drafted = isMap(value)
-		? getPlugin("mapset").proxyMap_(value, parent)
+		? getPlugin("MapSet").proxyMap_(value, parent)
 		: isSet(value)
-		? getPlugin("mapset").proxySet_(value, parent)
+		? getPlugin("MapSet").proxySet_(value, parent)
 		: immer.useProxies_
 		? createProxyProxy(value, parent)
-		: getPlugin("es5").createES5Proxy_(value, parent)
+		: getPlugin("ES5").createES5Proxy_(value, parent)
 
 	const scope = parent ? parent.scope_ : ImmerScope.current_!
 	scope.drafts_.push(draft)
@@ -228,6 +226,6 @@ export function markChanged(immer: Immer, state: ImmerState) {
 	if (immer.useProxies_) {
 		markChangedProxy(state)
 	} else {
-		getPlugin("es5").markChangedES5_(state)
+		getPlugin("ES5").markChangedES5_(state)
 	}
 }

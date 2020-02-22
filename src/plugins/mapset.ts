@@ -336,5 +336,5 @@ export function enableMapSet() {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
-	loadPlugin("mapset", {proxyMap_, proxySet_})
+	loadPlugin("MapSet", {proxyMap_, proxySet_})
 }

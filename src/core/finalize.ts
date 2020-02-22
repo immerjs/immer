@@ -26,7 +26,7 @@ export function processResult(result: any, scope: ImmerScope) {
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
 	if (!scope.immer_.useProxies_)
-		getPlugin("es5").willFinalizeES5_(scope, result, isReplaced)
+		getPlugin("ES5").willFinalizeES5_(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			scope.revoke_()
@@ -97,7 +97,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		maybeFreeze(rootScope, result, false)
 		// first time finalizing, let's create those patches
 		if (path && rootScope.patches_) {
-			getPlugin("patches").generatePatches_(
+			getPlugin("Patches").generatePatches_(
 				state,
 				path,
 				rootScope.patches_,

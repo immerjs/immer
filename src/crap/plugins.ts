@@ -17,7 +17,7 @@ import {
 
 /** Plugin utilities */
 const plugins: {
-	patches?: {
+	Patches?: {
 		generatePatches_(
 			state: ImmerState,
 			basePath: PatchPath,
@@ -26,7 +26,7 @@ const plugins: {
 		): void
 		applyPatches_<T>(draft: T, patches: Patch[]): T
 	}
-	es5?: {
+	ES5?: {
 		willFinalizeES5_(scope: ImmerScope, result: any, isReplaced: boolean): void
 		createES5Proxy_<T>(
 			base: T,
@@ -34,7 +34,7 @@ const plugins: {
 		): Drafted<T, ES5ObjectState | ES5ArrayState>
 		markChangedES5_(state: ImmerState): void
 	}
-	mapset?: {
+	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
 		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
 	}
@@ -47,7 +47,7 @@ export function getPlugin<K extends keyof Plugins>(
 ): Exclude<Plugins[K], undefined> {
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
-		die(__DEV__ ? 18 : 19, plugin)
+		die(__DEV__ ? 18 : 19, pluginKey)
 	}
 	// @ts-ignore
 	return plugin

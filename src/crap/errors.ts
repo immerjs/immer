@@ -27,11 +27,10 @@ const errors = {
 		return "Unsupported patch operation: " + op
 	},
 	18(plugin: string) {
-		return `The plugin ${plugin} has not been loaded into Immer. Make sure to call "enable${plugin[0].toUpperCase()}${plugin.substr(
-			1
-		)}()" when initializing your application, just after requiring immer itself.`
+		return `The plugin for '${plugin}' has not been loaded into Immer. To enable the plugin, import and call \`enable${plugin}()\` when initializing your application.`
 	},
-	19: "plugin not loaded"
+	19: "plugin not loaded",
+	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available"
 } as const
 
 export function die(error: keyof typeof errors, ...args: any[]): never {
@@ -47,6 +46,6 @@ export function die(error: keyof typeof errors, ...args: any[]): never {
 	throw new Error(
 		`[Immer] minified error nr: ${error}${
 			args.length ? " " + args.join(",") : ""
-		}`
+		}. Find the full error at: https://bit.ly/38PiBHb`
 	)
 }
