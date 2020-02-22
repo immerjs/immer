@@ -7,11 +7,16 @@ title: API overview
 
 | Exported name | Description | Section |
 | --- | --- | --- |
+| `(default)` | The core API of Immer, typically named `produce`: `import produce from "immer"` | [Produce](produce.md) |
 | `applyPatches` | Given a base state or draft, and a set of patches, applies the patches | [Patches](patches.md) |
 | `castDraft` | Converts any immutable type to its mutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
 | `castImmutable` | Converts any mutable type to its immutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
 | `createDraft` | Given a base state, creates a mutable draft for which any modifications will be recorded | [Async](async.md) |
 | `Draft<T>` | Exposed TypeScript type to convert an immutable type to a mutable type | [TypeScript](typescript.md) |
+| `enableAllPlugins()` | Enables all plugins mentioned below | [Installation](installation#pick-your-immer-version) |
+| `enableES5()` | Enables support for older JavaScript engines, such as Internet Explorer and React Native | [Installation](installation#pick-your-immer-version) |
+| `enableMapSet()` | Enables support for `Map` and `Set` collections. | [Installation](installation#pick-your-immer-version) |
+| `enablePatches()` | Enables support for JSON patches. | [Installation](installation#pick-your-immer-version) |
 | `finishDraft` | Given an draft created using `createDraft`, seals the draft and produces and returns the next immutable state that captures all the changes | [Async](async.md) |
 | `Immer` | constructor that can be used to create a second "immer" instance (exposing all APIs listed in this instance), that doesn't share its settings with global instance. |
 | `immerable` | Symbol that can be added to a constructor or prototype, to indicate that Immer should treat the class as something that can be safely drafted | [Classes](complex-objects.md) |

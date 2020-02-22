@@ -23,6 +23,8 @@ title: Patches
     <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients">Hosted on egghead.io</a>
 </details>
 
+_⚠ Since version 6 support for Patches has to be enabled explicitly by calling [`enablePatches()`](installation#pick-your-immer-version) once when starting your application._
+
 During the run of a producer, Immer can record all the patches that would replay the changes made by the reducer. This is a very powerful tool if you want to fork your state temporarily and replay the changes to the original.
 
 Patches are useful in few scenarios:

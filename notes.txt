@@ -8,17 +8,17 @@ Things to optimize
 [x] clean up finalize
 [x] remove die
 [x] own invariant
-[ ] update docs
+[x] update docs
 [x] plugin tests
 [ ] check if we can create more local vars
 [x] verify performance
 [ ] kill ownKeys?
 [x] kill enumerations
 [ ] check todos
-[ ] kill marchChangesSweep recursive if possible and no perf impact
+[ ] ~~kill marchChangesSweep recursive if possible and no perf impact~~ does have perf impact
 [ ] optimize each closures away? pass in additional args?
 [x] document performance tip: if externally added data is frozen, it doesn't recurse (also update related issue) #465
-[ ] put some invariants behind __DEV__
+[x] put some invariants behind __DEV__
 [x] check for plugin specific utils
 [ ] bind util
 [ ] eliminate switches

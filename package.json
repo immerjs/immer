@@ -24,7 +24,7 @@
     "build:flow": "cpx 'src/types/immer.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
     "start": "cd website && yarn start",
-    "test:size": "yarn build && yarn import-size --report . produce enableES5 enableMapSet enablePatches"
+    "test:size": "yarn build && yarn import-size --report . produce enableES5 enableMapSet enablePatches enableAllPlugins"
   },
   "husky": {
     "hooks": {
