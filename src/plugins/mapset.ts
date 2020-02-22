@@ -65,7 +65,6 @@ export function enableMapSet() {
 		}
 		const p = DraftMap.prototype
 
-		// TODO: smaller build size if we create a util for Object.defineProperty
 		Object.defineProperty(p, "size", {
 			get: function() {
 				return latest(this[DRAFT_STATE]).size

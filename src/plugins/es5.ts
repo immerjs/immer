@@ -37,7 +37,6 @@ export function enableES5() {
 				markChangesRecursively(scope.drafts_![0])
 			}
 			// This is faster when we don't care about which attributes changed.
-			// TODO: should be prefixed with else!
 			markChangesSweep(scope.drafts_)
 		}
 		// When a child draft is returned, look for changes.

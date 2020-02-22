@@ -37,18 +37,13 @@ export function processResult(result: any, scope: ImmerScope) {
 			result = finalize(scope, result)
 			if (!scope.parent_) maybeFreeze(scope, result)
 		}
-		// TODO: move to plugin?
 		if (scope.patches_) {
-			scope.patches_.push({
-				op: "replace",
-				path: [],
-				value: result
-			})
-			scope.inversePatches_!.push({
-				op: "replace",
-				path: [],
-				value: (baseDraft[DRAFT_STATE] as ImmerState).base_
-			})
+			getPlugin("Patches").generateReplacementPatches_(
+				baseDraft[DRAFT_STATE],
+				result,
+				scope.patches_,
+				scope.inversePatches_!
+			)
 		}
 	} else {
 		// Finalize the base draft.

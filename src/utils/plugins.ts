@@ -24,6 +24,12 @@ const plugins: {
 			patches: Patch[],
 			inversePatches: Patch[]
 		): void
+		generateReplacementPatches_(
+			rootState: ImmerState,
+			replacement: any,
+			patches: Patch[],
+			inversePatches: Patch[]
+		): void
 		applyPatches_<T>(draft: T, patches: Patch[]): T
 	}
 	ES5?: {

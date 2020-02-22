@@ -154,8 +154,7 @@ export function shallowCopy<T extends AnyObject | AnyArray>(
 export function shallowCopy(base: any, invokeGetters = false) {
 	if (Array.isArray(base)) return base.slice()
 	const clone = Object.create(Object.getPrototypeOf(base))
-	// TODO: each?
-	ownKeys(base).forEach(key => {
+	each(base, (key: any) => {
 		if (key === DRAFT_STATE) {
 			return // Never copy over draft state.
 		}

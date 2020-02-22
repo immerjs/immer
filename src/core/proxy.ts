@@ -95,8 +95,6 @@ export function createProxyProxy<T extends Objectish>(
 		traps = arrayTraps
 	}
 
-	// TODO: optimization: might be faster, cheaper if we created a non-revocable proxy
-	// and administrate revoking ourselves
 	const {revoke, proxy} = Proxy.revocable(target, traps)
 	state.draft_ = proxy as any
 	state.revoke_ = revoke

@@ -1,4 +1,3 @@
-// Import types only! TODO: force in TS 3.8
 import {
 	ImmerState,
 	Patch,
@@ -29,6 +28,10 @@ import {
 } from "../internal"
 
 export function enablePatches() {
+	const REPLACE = "replace"
+	const ADD = "add"
+	const REMOVE = "remove"
+
 	function generatePatches_(
 		state: ImmerState,
 		basePath: PatchPath,
@@ -93,12 +96,12 @@ export function enablePatches() {
 			if (assigned_[i] && copy_[i] !== base_[i]) {
 				const path = basePath.concat([i])
 				patches.push({
-					op: "replace",
+					op: REPLACE,
 					path,
 					value: copy_[i]
 				})
 				inversePatches.push({
-					op: "replace",
+					op: REPLACE,
 					path,
 					value: base_[i]
 				})
@@ -111,12 +114,12 @@ export function enablePatches() {
 		for (let i = end + delta - 1; i >= end; --i) {
 			const path = basePath.concat([i])
 			patches[replaceCount + i - end] = {
-				op: "add",
+				op: ADD,
 				path,
 				value: copy_[i]
 			}
 			inversePatches.push({
-				op: "remove",
+				op: REMOVE,
 				path
 			})
 		}
@@ -133,16 +136,16 @@ export function enablePatches() {
 		each(state.assigned_!, (key, assignedValue) => {
 			const origValue = get(base_, key)
 			const value = get(copy_!, key)
-			const op = !assignedValue ? "remove" : has(base_, key) ? "replace" : "add"
-			if (origValue === value && op === "replace") return
+			const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
+			if (origValue === value && op === REPLACE) return
 			const path = basePath.concat(key as any)
-			patches.push(op === "remove" ? {op, path} : {op, path, value})
+			patches.push(op === REMOVE ? {op, path} : {op, path, value})
 			inversePatches.push(
-				op === "add"
-					? {op: "remove", path}
-					: op === "remove"
-					? {op: "add", path, value: origValue}
-					: {op: "replace", path, value: origValue}
+				op === ADD
+					? {op: REMOVE, path}
+					: op === REMOVE
+					? {op: ADD, path, value: origValue}
+					: {op: REPLACE, path, value: origValue}
 			)
 		})
 	}
@@ -160,12 +163,12 @@ export function enablePatches() {
 			if (!copy_!.has(value)) {
 				const path = basePath.concat([i])
 				patches.push({
-					op: "remove",
+					op: REMOVE,
 					path,
 					value
 				})
 				inversePatches.unshift({
-					op: "add",
+					op: ADD,
 					path,
 					value
 				})
@@ -177,17 +180,35 @@ export function enablePatches() {
 			if (!base_.has(value)) {
 				const path = basePath.concat([i])
 				patches.push({
-					op: "add",
+					op: ADD,
 					path,
 					value
 				})
 				inversePatches.unshift({
-					op: "remove",
+					op: REMOVE,
 					path,
 					value
 				})
 			}
 			i++
+		})
+	}
+
+	function generateReplacementPatches_(
+		rootState: ImmerState,
+		replacement: any,
+		patches: Patch[],
+		inversePatches: Patch[]
+	): void {
+		patches.push({
+			op: REPLACE,
+			path: [],
+			value: replacement
+		})
+		inversePatches.push({
+			op: REPLACE,
+			path: [],
+			value: rootState.base_
 		})
 	}
 
@@ -205,7 +226,7 @@ export function enablePatches() {
 			const value = deepClonePatchValue(patch.value) // used to clone patch to ensure original patch is not modified, see #411
 			const key = path[path.length - 1]
 			switch (op) {
-				case "replace":
+				case REPLACE:
 					switch (type) {
 						case ArchtypeMap:
 							return base.set(key, value)
@@ -219,7 +240,7 @@ export function enablePatches() {
 							// @ts-ignore
 							return (base[key] = value)
 					}
-				case "add":
+				case ADD:
 					switch (type) {
 						case ArchtypeArray:
 							return base.splice(key as any, 0, value)
@@ -230,7 +251,7 @@ export function enablePatches() {
 						default:
 							return (base[key] = value)
 					}
-				case "remove":
+				case REMOVE:
 					switch (type) {
 						case ArchtypeArray:
 							return base.splice(key as any, 1)
@@ -249,7 +270,7 @@ export function enablePatches() {
 		return draft
 	}
 
-	// TODO: optimize: this is quite a performance hit, can we detect intelligently when it is needed?
+	// optimize: this is quite a performance hit, can we detect intelligently when it is needed?
 	// E.g. auto-draft when new objects from outside are assigned and modified?
 	// (See failing test when deepClone just returns obj)
 	function deepClonePatchValue<T>(obj: T): T
@@ -266,5 +287,9 @@ export function enablePatches() {
 		return cloned
 	}
 
-	loadPlugin("Patches", {applyPatches_, generatePatches_})
+	loadPlugin("Patches", {
+		applyPatches_,
+		generatePatches_,
+		generateReplacementPatches_
+	})
 }
