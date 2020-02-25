@@ -1,8 +1,8 @@
 {
   "name": "immer",
-  "version": "6.0.0-alpha.2",
+  "version": "6.0.0-alpha.3 ",
   "description": "Create your next immutable state by mutating the current one",
-  "main": "dist/immer.js",
+  "main": "dist/index.js",
   "module": "dist/immer.esm.js",
   "umd:main": "dist/immer.umd.production.min.js",
   "unpkg": "dist/immer.umd.production.min.js",
