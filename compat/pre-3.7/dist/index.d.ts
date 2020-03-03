@@ -305,3 +305,8 @@ declare global {
 	interface WeakSet<T> {}
 	interface WeakMap<K extends object, V> {}
 }
+
+export declare function enableAllPlugins(): void
+export declare function enableES5(): void
+export declare function enableMapSet(): void
+export declare function enablePatches(): void
