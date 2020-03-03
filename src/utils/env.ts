@@ -4,6 +4,14 @@
 const hasSymbol = typeof Symbol !== "undefined"
 export const hasMap = typeof Map !== "undefined"
 export const hasSet = typeof Set !== "undefined"
+export const hasProxies =
+	typeof Proxy !== "undefined" &&
+	typeof Proxy.revocable !== "undefined" &&
+	typeof Reflect !== "undefined"
+
+/* istanbul ignore next */
+function mini() {}
+export const isMinified = mini.name !== "mini"
 
 /**
  * The sentinel value returned by producers to replace the draft with undefined.

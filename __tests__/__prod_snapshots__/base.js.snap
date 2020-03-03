@@ -1,0 +1,633 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`base functionality - es5 (autofreeze) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 1`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 2`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 3`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 2`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 3`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 1`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 2`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 3`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 1`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 2`] = `"[Immer] minified error nr: 3 {\\"a\\":1}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 3`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - es5 (patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] minified error nr: 12. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] minified error nr: 12. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] minified error nr: 12. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (no freeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - proxy (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] minified error nr: 12. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`base functionality - proxy (patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`complex nesting map / set / object modify deep object 1`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 2`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 3`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 4`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 5`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 6`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 7`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 8`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 9`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 10`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 11`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 12`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 13`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 14`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object modify deep object 15`] = `
+Object {
+  "map": Map {
+    "set1" => Set {
+      Object {
+        "a": 2,
+      },
+      Object {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      Object {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object modify deep object 16`] = `
+Array [
+  Object {
+    "op": "remove",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 1,
+    },
+  },
+  Object {
+    "op": "add",
+    "path": Array [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": Object {
+      "a": 2,
+    },
+  },
+]
+`;

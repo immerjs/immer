@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`curry - es5 should check arguments 1`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - es5 should check arguments 2`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - es5 should check arguments 3`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - es5 should check arguments 4`] = `"[Immer] minified error nr: 7. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - proxy should check arguments 1`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - proxy should check arguments 2`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - proxy should check arguments 3`] = `"[Immer] minified error nr: 6. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`curry - proxy should check arguments 4`] = `"[Immer] minified error nr: 7. Find the full error at: https://bit.ly/38PiBHb"`;

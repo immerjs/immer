@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ES5 plugins should throw if no proxies are available error when using ES5 1`] = `"[Immer] minified error nr: 19 ES5. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`error when using Maps 1`] = `"[Immer] minified error nr: 19 MapSet. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`error when using patches - 1 1`] = `"[Immer] minified error nr: 19 Patches. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`error when using patches - 2 1`] = `"[Immer] minified error nr: 19 Patches. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`error when using patches - 3 1`] = `"[Immer] minified error nr: 19 Patches. Find the full error at: https://bit.ly/38PiBHb"`;

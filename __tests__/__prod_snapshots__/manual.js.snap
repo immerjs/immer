@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`manual - es5 cannot modify after finish 1`] = `"[Immer] minified error nr: 3 {\\"a\\":2}. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`manual - es5 should check arguments 1`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`manual - es5 should check arguments 2`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`manual - es5 should check arguments 3`] = `"Cannot read property 'A' of undefined"`;
+
+exports[`manual - es5 should not finish twice 1`] = `"Cannot read property 'length' of null"`;
+
+exports[`manual - es5 should support patches drafts 1`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 2,
+      },
+      Object {
+        "op": "add",
+        "path": Array [
+          "b",
+        ],
+        "value": 3,
+      },
+    ],
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 1,
+      },
+      Object {
+        "op": "remove",
+        "path": Array [
+          "b",
+        ],
+      },
+    ],
+  ],
+]
+`;
+
+exports[`manual - proxy cannot modify after finish 1`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`manual - proxy should check arguments 1`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`manual - proxy should check arguments 2`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`manual - proxy should check arguments 3`] = `"Cannot read property 'A' of undefined"`;
+
+exports[`manual - proxy should not finish twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`manual - proxy should support patches drafts 1`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 2,
+      },
+      Object {
+        "op": "add",
+        "path": Array [
+          "b",
+        ],
+        "value": 3,
+      },
+    ],
+    Array [
+      Object {
+        "op": "replace",
+        "path": Array [
+          "a",
+        ],
+        "value": 1,
+      },
+      Object {
+        "op": "remove",
+        "path": Array [
+          "b",
+        ],
+      },
+    ],
+  ],
+]
+`;

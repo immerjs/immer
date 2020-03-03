@@ -5,8 +5,11 @@ import produce, {
 	Patch,
 	nothing,
 	Draft,
-	Immutable
-} from "../src/"
+	Immutable,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 interface State {
 	readonly num: number
@@ -170,10 +173,8 @@ describe("curried producer", () => {
 				state?: S | undefined,
 				...rest: number[]
 			) => S
-			let bar = produce(
-				(state: Draft<State>, ...args: number[]) => {},
-				_ as State
-			)
+			let bar = produce((state: Draft<State>, ...args: number[]) => {},
+			_ as State)
 			assert(bar, _ as Recipe)
 			bar(_ as State, 1, 2)
 			bar(_ as State)
@@ -208,9 +209,10 @@ describe("curried producer", () => {
 		// With initial state:
 		{
 			let bar = produce(() => {}, [] as ReadonlyArray<string>)
-			assert(bar, _ as <S extends readonly string[]>(
-				state?: S | undefined
-			) => S)
+			assert(
+				bar,
+				_ as <S extends readonly string[]>(state?: S | undefined) => S
+			)
 			bar([] as ReadonlyArray<string>)
 			bar(undefined)
 			bar()
@@ -462,4 +464,15 @@ it("works with ReadonlyMap and ReadonlySet", () => {
 		assert(draft, _ as Set<{x: number}>)
 	})
 	assert(res2, _ as ReadonlySet<{readonly x: number}>)
+})
+
+it("shows error in production if called incorrectly", () => {
+	expect(() => {
+		debugger
+		produce(null as any)
+	}).toThrow(
+		(global as any).USES_BUILD
+			? "[Immer] minified error nr: 6"
+			: "[Immer] The first or second argument to `produce` must be a function"
+	)
 })

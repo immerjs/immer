@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`auto freeze - es5 will freeze maps 1`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - es5 will freeze maps 2`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - es5 will freeze maps 3`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - es5 will freeze sets 1`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - es5 will freeze sets 2`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - es5 will freeze sets 3`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze maps 1`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze maps 2`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze maps 3`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze sets 1`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze sets 2`] = `"[Immer] This object has been frozen and should not be mutated"`;
+
+exports[`auto freeze - proxy will freeze sets 3`] = `"[Immer] This object has been frozen and should not be mutated"`;

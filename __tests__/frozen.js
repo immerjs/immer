@@ -1,5 +1,11 @@
 "use strict"
-import produce, {setUseProxies, setAutoFreeze} from "../src/index"
+import produce, {
+	setUseProxies,
+	setAutoFreeze,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 const {isFrozen} = Object
 
@@ -17,6 +23,7 @@ function runTests(name, useProxies) {
 			const base = {arr: [1], obj: {a: 1}}
 			const next = produce(base, draft => {
 				draft.arr.push(1)
+				debugger
 			})
 			expect(isFrozen(base)).toBeFalsy()
 			expect(isFrozen(base.arr)).toBeFalsy()
@@ -142,15 +149,9 @@ function runTests(name, useProxies) {
 			const res = produce(base, draft => {
 				draft.set("a", 1)
 			})
-			expect(() => res.set("b", 2)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => res.clear()).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => res.delete("b")).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
+			expect(() => res.set("b", 2)).toThrowErrorMatchingSnapshot()
+			expect(() => res.clear()).toThrowErrorMatchingSnapshot()
+			expect(() => res.delete("b")).toThrowErrorMatchingSnapshot()
 
 			// In draft, still editable
 			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
@@ -161,15 +162,9 @@ function runTests(name, useProxies) {
 			const res = produce(base, draft => {
 				base.add(1)
 			})
-			expect(() => base.add(2)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => base.delete(1)).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
-			expect(() => base.clear()).toThrow(
-				"This object has been frozen and should not be mutated"
-			)
+			expect(() => base.add(2)).toThrowErrorMatchingSnapshot()
+			expect(() => base.delete(1)).toThrowErrorMatchingSnapshot()
+			expect(() => base.clear()).toThrowErrorMatchingSnapshot()
 
 			// In draft, still editable
 			expect(produce(res, d => void d.add(2))).not.toBe(res)
@@ -178,7 +173,14 @@ function runTests(name, useProxies) {
 		it("Map#get() of frozen object will became draftable", () => {
 			const base = {
 				map: new Map([
-					["a", new Map([["a", true], ["b", true], ["c", true]])],
+					[
+						"a",
+						new Map([
+							["a", true],
+							["b", true],
+							["c", true]
+						])
+					],
 					["b", new Map([["a", true]])],
 					["c", new Map([["a", true]])]
 				])

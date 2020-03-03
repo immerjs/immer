@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`applyPatches throws when \`op\` is not "add", "replace", nor "remove" 1`] = `"Unsupported patch operation: copy"`;
+exports[`applyPatches throws when \`op\` is not "add", "replace", nor "remove" 1`] = `"[Immer] Unsupported patch operation: copy"`;
 
-exports[`applyPatches throws when \`path\` cannot be resolved 1`] = `"Cannot apply patch, path doesn't resolve: a/b"`;
+exports[`applyPatches throws when \`path\` cannot be resolved 1`] = `"[Immer] Cannot apply patch, path doesn't resolve: a/b"`;
 
-exports[`applyPatches throws when \`path\` cannot be resolved 2`] = `"Cannot apply patch, path doesn't resolve: a/b/c"`;
+exports[`applyPatches throws when \`path\` cannot be resolved 2`] = `"[Immer] Cannot apply patch, path doesn't resolve: a/b/c"`;
