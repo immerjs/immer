@@ -1,4 +1,4 @@
-import {Nothing} from "./internal"
+import {Nothing} from "../internal"
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,

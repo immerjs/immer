@@ -61,4 +61,4 @@ Head to the [next section](produce) to further dive into `produce`.
 - Deep updates are a breeze
 - Boilerplate reduction. Less noise, more concise code.
 - First class support for patches
-- Small [![size](https://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js?compression=gzip)](https://img.badgesize.io/https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js)
+- Small: 3KB gzipped

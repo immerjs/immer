@@ -1,5 +1,12 @@
-import {produce, produceWithPatches, setUseProxies} from "../src"
+import {
+	produce,
+	produceWithPatches,
+	setUseProxies,
+	enableAllPlugins
+} from "../src/immer"
 import {DRAFT_STATE} from "../src/internal"
+
+enableAllPlugins()
 
 test("empty stub test", () => {
 	expect(true).toBe(true)
@@ -80,7 +87,7 @@ describe("map set - proxy", () => {
 			const res = s.aMap.set("force", true)
 			// @ts-ignore
 			if (!global.USES_BUILD)
-				expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft)
+				expect(res).toBe((s.aMap as any)[DRAFT_STATE].draft_)
 		})
 		expect(nextState).not.toBe(baseState)
 		expect(nextState.aMap).not.toBe(baseState.aMap)

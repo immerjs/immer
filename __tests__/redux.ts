@@ -5,9 +5,12 @@ import produce, {
 	Patch,
 	nothing,
 	Draft,
-	Immutable
-} from "../src/"
+	Immutable,
+	enableES5
+} from "../src/immer"
 import * as redux from "redux"
+
+enableES5()
 
 interface State {
 	counter: number

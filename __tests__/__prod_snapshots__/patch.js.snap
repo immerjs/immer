@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`applyPatches throws when \`op\` is not "add", "replace", nor "remove" 1`] = `"[Immer] minified error nr: 17 copy. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`applyPatches throws when \`path\` cannot be resolved 1`] = `"[Immer] minified error nr: 15 a/b. Find the full error at: https://bit.ly/38PiBHb"`;
+
+exports[`applyPatches throws when \`path\` cannot be resolved 2`] = `"[Immer] minified error nr: 15 a/b/c. Find the full error at: https://bit.ly/38PiBHb"`;

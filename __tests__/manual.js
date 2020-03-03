@@ -4,8 +4,11 @@ import {
 	createDraft,
 	finishDraft,
 	produce,
-	isDraft
-} from "../src/index"
+	isDraft,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 runTests("proxy", true)
 runTests("es5", false)
@@ -123,11 +126,12 @@ function runTests(name, useProxies) {
 			})
 		})
 
-		it("should not finish drafts from produce", () => {
-			produce({x: 1}, draft => {
-				expect(() => finishDraft(draft)).toThrowErrorMatchingSnapshot()
+		!global.USES_BUILD &&
+			it("should not finish drafts from produce", () => {
+				produce({x: 1}, draft => {
+					expect(() => finishDraft(draft)).toThrowErrorMatchingSnapshot()
+				})
 			})
-		})
 
 		it("should not finish twice", () => {
 			const draft = createDraft({a: 1})
