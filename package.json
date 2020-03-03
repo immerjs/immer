@@ -11,6 +11,18 @@
   "react-native": "dist/immer.esm.js",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
+  "typesVersions": {
+    ">=3.7": {
+      "*": [
+        "./*"
+      ]
+    },
+    ">=3.1": {
+      "*": [
+        "compat/pre-3.7/*"
+      ]
+    }
+  },
   "sideEffects": false,
   "scripts": {
     "test": "jest && yarn test:build && yarn test:flow",
@@ -53,6 +65,7 @@
   "homepage": "https://github.com/immerjs/immer#readme",
   "files": [
     "dist",
+    "compat",
     "src"
   ],
   "devDependencies": {
