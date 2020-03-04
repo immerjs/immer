@@ -6,7 +6,7 @@ title: Built with Immer
 <div id="codefund"><!-- fallback content --></div>
 
 - [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
-- [redux-starter-kit](https://github.com/markerikson/redux-starter-kit) _A simple set of tools to make using Redux easier_
+- [redux-toolkit](https://github.com/reduxjs/redux-toolkit) _The official, opinionated, batteries-included toolset for efficient Redux development_
 - [immer based handleActions](https://gist.github.com/kitze/fb65f527803a93fb2803ce79a792fff8) _Boilerplate free actions for Redux_
 - [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 - [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux development quicker and easier_
