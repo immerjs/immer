@@ -46,6 +46,6 @@ export function die(error: keyof typeof errors, ...args: any[]): never {
 	throw new Error(
 		`[Immer] minified error nr: ${error}${
 			args.length ? " " + args.join(",") : ""
-		}. Find the full error at: https://bit.ly/38PiBHb`
+		}. Find the full error at: https://bit.ly/3cXEKWf`
 	)
 }
