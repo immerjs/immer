@@ -2090,6 +2090,46 @@ function testObjectTypes(produce) {
 			})
 		})
 	}
+
+	describe("class with getters", () => {
+		class State {
+			[immerable] = true
+			_bar = {baz: 1}
+			foo
+			get bar() {
+				return this._bar
+			}
+			syncFoo() {
+				this.foo = this.bar.baz
+			}
+		}
+		const state = new State()
+
+		it("should use a method to assing a field using a getter that return a non primitive object", () => {
+			const newState = produce(state, draft => {
+				draft.syncFoo()
+			})
+			expect(newState.foo).toEqual(1)
+		})
+	})
+
+	describe("class with setters", () => {
+		class State {
+			[immerable] = true
+			_bar = 0
+			set bar(x) {
+				this._bar = x
+			}
+		}
+		const state = new State()
+
+		it("should define a field with a setter", () => {
+			const newState3 = produce(state, d => {
+				d.bar = 1
+			})
+			expect(newState3._bar).toEqual(1)
+		})
+	})
 }
 
 function testLiteralTypes(produce) {
