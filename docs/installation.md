@@ -10,8 +10,9 @@ Immer can be installed as a direct dependency, and will work in any ES5 environm
 - Yarn: `yarn add immer`
 - NPM: `npm install immer`
 - CDN: Exposed global is `immer`
-  - Unpkg: `<script src="https://unpkg.com/immer/dist/immer.umd.js"></script>`
-  - JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer/dist/immer.umd.js"></script>`
+  - Unpkg: `<script src="https://unpkg.com/immer"></script>`
+  - JSDelivr: `<script src="https://cdn.jsdelivr.net/npm/immer"></script>`
+  - ⚠️ When using a CDN, it is best to check the url in your browser and see what version it resolves to, so that your users aren't accidentally served a newer version in the future when updates are release. So use an url like: https://unpkg.com/immer@6.0.3/dist/immer.umd.production.min.js instead. Substitute `production.min` with `development` in the URL for a development build. 
 
 ## Pick your Immer version
 
