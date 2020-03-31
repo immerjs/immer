@@ -63,7 +63,7 @@ export const ownKeys: (target: AnyObject) => PropertyKey[] =
 				Object.getOwnPropertyNames(obj).concat(
 					Object.getOwnPropertySymbols(obj) as any
 				)
-		: /* istanbul ignore next */ Object.getOwnPropertyNames
+		: /* istanbul ignore next */ Object.getOwnPropertyNames || Object.keys
 
 export function each<T extends Objectish>(
 	obj: T,
