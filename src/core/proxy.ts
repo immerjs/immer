@@ -17,7 +17,8 @@ import {
 	die,
 	createProxy,
 	ProxyTypeProxyObject,
-	ProxyTypeProxyArray
+	ProxyTypeProxyArray,
+	ownKeys
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -138,7 +139,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		return prop in latest(state)
 	},
 	ownKeys(state) {
-		return Reflect.ownKeys(latest(state))
+		return ownKeys(latest(state))
 	},
 	set(state, prop: string /* strictly not, but helps TS */, value) {
 		if (!state.modified_) {
