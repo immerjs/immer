@@ -3,7 +3,8 @@ import produce, {
 	setUseProxies,
 	applyPatches,
 	produceWithPatches,
-	enableAllPlugins
+	enableAllPlugins,
+	isDraft
 } from "../src/immer"
 
 enableAllPlugins()
@@ -1013,4 +1014,37 @@ test("#521", () => {
 	expect(applyPatches(nextState, patchesV2)).toEqual(
 		new Map([["hello", new Set(["world", "immer"])]])
 	)
+})
+
+test.only("#559 patches works in a nested reducer with proxies", () => {
+	setUseProxies(true)
+
+	const state = {
+		x: 1,
+		sub: {
+			y: [{a: 0}, {a: 1}]
+		}
+	}
+
+	const changes = []
+	const inverseChanges = []
+
+	const newState = produce(state, draft => {
+		draft.sub = produce(
+			draft.sub,
+			draft => {
+				draft.y.pop()
+			},
+			(patches, inversePatches) => {
+				expect(isDraft(inversePatches[0].value)).toBeFalsy()
+				expect(inversePatches[0].value).toMatchObject({a: 1})
+				changes.push(...patches)
+				inverseChanges.push(...inversePatches)
+			}
+		)
+	})
+
+	const reversedSubState = applyPatches(newState.sub, inverseChanges)
+
+	expect(reversedSubState).toMatchObject(state.sub)
 })
