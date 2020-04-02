@@ -2108,8 +2108,11 @@ function testObjectTypes(produce) {
 		it("should use a method to assing a field using a getter that return a non primitive object", () => {
 			const newState = produce(state, draft => {
 				draft.syncFoo()
+				expect(draft.bar).toEqual({baz: 1})
 			})
 			expect(newState.foo).toEqual(1)
+			expect(newState.bar).toEqual({baz: 1})
+			expect(state.bar).toEqual({baz: 1})
 		})
 	})
 
@@ -2117,6 +2120,9 @@ function testObjectTypes(produce) {
 		class State {
 			[immerable] = true
 			_bar = 0
+			get bar() {
+				return this._bar
+			}
 			set bar(x) {
 				this._bar = x
 			}
@@ -2126,8 +2132,12 @@ function testObjectTypes(produce) {
 		it("should define a field with a setter", () => {
 			const newState3 = produce(state, d => {
 				d.bar = 1
+				expect(d._bar).toEqual(1)
 			})
 			expect(newState3._bar).toEqual(1)
+			expect(newState3.bar).toEqual(1)
+			expect(state._bar).toEqual(0)
+			expect(state.bar).toEqual(0)
 		})
 	})
 }
