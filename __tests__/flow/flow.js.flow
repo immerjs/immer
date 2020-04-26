@@ -28,7 +28,7 @@ const result2 = produce({x: 3}, draft => {
 console.log(result2.x)
 
 const f = produce(
-    (draft): {x: number} => {
+    (draft): {| x: number |} => {
         return {x: 4}
     }
 )
@@ -75,7 +75,7 @@ produce({x: 3}, [])
 {
     // curried f & no initial arg
     const f2 = produce(
-        (state: {x: number}, increment: number): void => {
+        (state: {| x: number |}, increment: number): void => {
             state.x += increment
         }
     )
