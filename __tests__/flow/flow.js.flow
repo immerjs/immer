@@ -6,7 +6,7 @@ import produce, {
     applyPatches,
     Patch,
     original
-} from "../../dist/immer.js"
+} from "../../dist/index.js.flow"
 
 setAutoFreeze(true)
 setUseProxies(true)
@@ -86,6 +86,20 @@ produce({x: 3}, [])
     f2(undefined, 3)
 }
 
+type State = {| user: {| age: number |} |}
+{
+    declare function setState(updater: (State) => $Shape<State>): void
+    // curried use with setState, infer type of draft
+    setState(produce(draft => {
+        if (draft.user.age === 10) {
+            return
+        }
+        draft.user.age += 1
+        // $ExpectError
+        draft.user.name = "missing"
+    }))
+}
+
 {
     // $ExpectError
     produce2({x: 3})
@@ -122,7 +136,8 @@ produce({x: 3}, [])
 }
 
 {
-    produce([1], draftState => {
+    const arr: Array<number> = [1];
+    produce(arr, draftState => {
         const a = original(draftState)
         if (a) {
             const b: number = a[0]
