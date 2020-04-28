@@ -9,6 +9,10 @@
 // site configuration options.
 
 const siteConfig = {
+    	algolia: {
+     		apiKey: '3570c86ca04edefca80e124a50e2bed9',
+		indexName: 'immerjs',
+	},
 	title: "Immer", // Title for your website.
 	tagline: "Create the next immutable state by mutating the current one",
 	url: "https://immerjs.github.io", // Your website URL
