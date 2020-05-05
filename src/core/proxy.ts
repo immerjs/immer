@@ -19,6 +19,7 @@ import {
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
 } from "../internal"
+import {isPlainObject} from "../utils/common"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -114,7 +115,15 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			return drafts![prop as any]
 		}
 
-		const value = latest(state)[prop]
+		const l = latest(state)
+		const desc = Object.getOwnPropertyDescriptor(
+			isPlainObject(l) ? l : Object.getPrototypeOf(l),
+			prop
+		)
+		// If the prop is a getter, don't proxy the full prop, but invoke the getter with the correct scope. Fixes #558
+		if (desc?.get) return desc.get.call(state.draft_)
+
+		const value = l[prop]
 		if (state.finalized_ || !isDraftable(value)) {
 			return value
 		}
@@ -128,6 +137,10 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			drafts = state.copy_
 		}
 
+		// const desc = Object.getOwnPropertyDescriptor(latest(state), prop)
+		// Don't create and store proxies for getters (they might return drafts though)
+		// See #558
+		// if (!desc || desc.get) return value
 		return (drafts![prop as any] = createProxy(
 			state.scope_.immer_,
 			value,
@@ -239,14 +252,8 @@ export function markChangedProxy(state: ImmerState) {
 		) {
 			const copy = (state.copy_ = shallowCopy(state.base_))
 			each(state.drafts_!, (key, value) => {
-				const descProto = Object.getOwnPropertyDescriptor(
-					Object.getPrototypeOf(copy),
-					key
-				)
-				if (!(descProto && descProto.get && !descProto.set)) {
-					// @ts-ignore
-					copy[key] = value
-				}
+				// @ts-ignore
+				copy[key] = value
 			})
 			state.drafts_ = undefined
 		}

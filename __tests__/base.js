@@ -2101,6 +2101,7 @@ function testObjectTypes(produce) {
 			}
 			syncFoo() {
 				this.foo = this.bar.baz
+				this.bar.baz++
 			}
 		}
 		const state = new State()
@@ -2108,10 +2109,9 @@ function testObjectTypes(produce) {
 		it("should use a method to assing a field using a getter that return a non primitive object", () => {
 			const newState = produce(state, draft => {
 				draft.syncFoo()
-				expect(draft.bar).toEqual({baz: 1})
 			})
 			expect(newState.foo).toEqual(1)
-			expect(newState.bar).toEqual({baz: 1})
+			expect(newState.bar).toEqual({baz: 2})
 			expect(state.bar).toEqual({baz: 1})
 		})
 	})
