@@ -1,0 +1,11 @@
+tasks:
+  - command: gp await-port 3000 && gp preview $(gp url 3000)/immer/
+  - init: yarn install && cd website && yarn install && cd ..
+    command: yarn run start
+ports:
+  - port: 3000
+    onOpen: ignore
+
+vscode:
+  extensions:
+    - flowtype.flow-for-vscode@1.5.0:AwOT6wgHTF43loZQCAUMLA==
