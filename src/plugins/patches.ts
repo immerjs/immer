@@ -26,6 +26,7 @@ import {
 	ArchtypeArray,
 	die
 } from "../internal"
+import {isDraft} from "../utils/common"
 
 export function enablePatches() {
 	const REPLACE = "replace"
@@ -98,12 +99,14 @@ export function enablePatches() {
 				patches.push({
 					op: REPLACE,
 					path,
-					value: copy_[i]
+					// Need to maybe clone it, as it can in fact be the original value
+					// due to the base/copy inversion at the start of this function
+					value: clonePatchValueIfNeeded(copy_[i])
 				})
 				inversePatches.push({
 					op: REPLACE,
 					path,
-					value: base_[i]
+					value: clonePatchValueIfNeeded(base_[i])
 				})
 			}
 		}
@@ -116,7 +119,9 @@ export function enablePatches() {
 			patches[replaceCount + i - end] = {
 				op: ADD,
 				path,
-				value: copy_[i]
+				// Need to maybe clone it, as it can in fact be the original value
+				// due to the base/copy inversion at the start of this function
+				value: clonePatchValueIfNeeded(copy_[i])
 			}
 			inversePatches.push({
 				op: REMOVE,
@@ -144,8 +149,8 @@ export function enablePatches() {
 				op === ADD
 					? {op: REMOVE, path}
 					: op === REMOVE
-					? {op: ADD, path, value: origValue}
-					: {op: REPLACE, path, value: origValue}
+					? {op: ADD, path, value: clonePatchValueIfNeeded(origValue)}
+					: {op: REPLACE, path, value: clonePatchValueIfNeeded(origValue)}
 			)
 		})
 	}
@@ -285,6 +290,12 @@ export function enablePatches() {
 		const cloned = Object.create(Object.getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 		return cloned
+	}
+
+	function clonePatchValueIfNeeded<T>(obj: T): T {
+		if (isDraft(obj)) {
+			return deepClonePatchValue(obj)
+		} else return obj
 	}
 
 	loadPlugin("Patches", {
