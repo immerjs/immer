@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["es2015"],
-    "target": "ES5",
+    "target": "ES6",
     "strict": true,
     "declaration": true,
     "importHelpers": false,
@@ -11,7 +11,9 @@
     "sourceMap": true,
     "declarationMap": true,
     "noEmit": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "esnext",
+    "allowJs": true
   },
-  "files": ["./src/index.ts"]
+  "files": ["./src/immer.ts", "./src/plugins/es5.ts", "./src/plugins/mapset.ts", "./src/plugins/patches.ts", "src/types/globals.d.ts"]
 }

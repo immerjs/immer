@@ -2,7 +2,10 @@
 ../../dist
 
 [lints]
+ambiguous-object-type=error
+deprecated-type=error
 untyped-import=error
 
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$ExpectError
+include_warnings=true

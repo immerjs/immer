@@ -1,5 +1,7 @@
 import {assert, _} from "spec.ts"
-import produce, {Immutable, castImmutable} from "../src/index"
+import produce, {Immutable, castImmutable, enableAllPlugins} from "../src/immer"
+
+enableAllPlugins()
 
 test("types are ok", () => {
 	// array in tuple

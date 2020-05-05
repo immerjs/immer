@@ -8,6 +8,7 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
+type Base = {...} | Array<any> | Map<any> | Set<any>;
 interface IProduce {
     /**
      * Immer takes a state, and runs a function against it.
@@ -22,48 +23,20 @@ interface IProduce {
      * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
      * @returns The next state: a new state, or the current state if nothing was modified
      */
-    <S>(
+    <S: Base>(
         currentState: S,
         recipe: (draftState: S) => S | void,
         patchListener?: PatchListener
     ): S;
     // curried invocations with inital state
-    <S, A, B, C>(
-        recipe: (draftState: S, a: A, b: B, c: C) => S | void,
+    <S: Base, A = void, B = void, C = void>(
+        recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void,
         initialState: S
-    ): (currentState: S | void, a: A, b: B, c: C) => S;
-    <S, A, B>(
-        recipe: (draftState: S, a: A, b: B) => S | void,
-        initialState: S
-    ): (currentState: S | void, a: A, b: B) => S;
-    <S, A>(
-        recipe: (draftState: S, a: A) => S | void,
-        initialState: S
-    ): (currentState: S | void, a: A) => S;
-    <S>(
-        recipe: (draftState: S) => S | void,
-        initialState: S
-    ): (currentState: S | void) => S;
-    <S>(
-        recipe: (draftState: S, ...extraArgs: any[]) => S | void,
-        initialState: S
-    ): (currentState: S | void, ...extraArgs: any[]) => S;
+    ): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => S;
     // curried invocations without inital state
-    <S, A, B, C>(
-        recipe: (draftState: S, a: A, b: B, c: C) => S | void
-    ): (currentState: S, a: A, b: B, c: C) => S;
-    <S, A, B>(
-        recipe: (draftState: S, a: A, b: B) => S | void
-    ): (currentState: S, a: A, b: B) => S;
-    <S, A>(
-        recipe: (draftState: S, a: A) => S | void
-    ): (currentState: S, a: A) => S;
-    <S>(
-        recipe: (draftState: S) => S | void
-    ): (currentState: S) => S;
-    <S>(
-        recipe: (draftState: S, ...extraArgs: any[]) => S | void
-    ): (currentState: S, ...extraArgs: any[]) => S;
+    <S: Base, A = void, B = void, C = void>(
+        recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
+    ): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S;
 }
 
 declare export var produce: IProduce
@@ -105,3 +78,8 @@ declare export function createDraft<T>(base: T): T
  * Optionally a patch-listener can be provided to gather the patches that are needed to construct the object.
  */
 declare export function finishDraft<T>(base: T, listener?: PatchListener): T
+
+declare export function enableES5(): void
+declare export function enableMapSet(): void
+declare export function enablePatches(): void
+declare export function enableAllPlugins(): void

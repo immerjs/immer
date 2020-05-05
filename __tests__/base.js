@@ -1,11 +1,20 @@
 "use strict"
-import {Immer, nothing, original, isDraft, immerable} from "../src/index"
-import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/internal"
+import {
+	Immer,
+	nothing,
+	original,
+	isDraft,
+	immerable,
+	enableAllPlugins
+} from "../src/immer"
+import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
 
 jest.setTimeout(1000)
+
+enableAllPlugins()
 
 test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
@@ -13,9 +22,12 @@ test("immer should have no dependencies", () => {
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
+runBaseTest("proxy (patch listener)", true, false, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+
 runBaseTest("es5 (no freeze)", false, false)
 runBaseTest("es5 (autofreeze)", false, true)
+runBaseTest("es5 (patch listener)", false, false, true)
 runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
@@ -282,7 +294,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect("x" in nextState).toBeFalsy()
 			})
 
-			if (useProxies) {
+			if (useProxies && !global.USES_BUILD) {
 				it("throws when a non-numeric property is added", () => {
 					expect(() => {
 						produce([], d => {
@@ -455,7 +467,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const nextState = produce(baseState, s => {
 					// Map.prototype.set should return the Map itself
 					const res = s.aMap.set("force", true)
-					if (!global.USES_BUILD) expect(res).toBe(s.aMap[DRAFT_STATE].draft)
+					if (!global.USES_BUILD) expect(res).toBe(s.aMap[DRAFT_STATE].draft_)
 				})
 				expect(nextState).not.toBe(baseState)
 				expect(nextState.aMap).not.toBe(baseState.aMap)
@@ -555,12 +567,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				produce(baseState, s => {
 					m = s.aMap
 				})
-				expect(() => m.get("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
-				expect(() => m.set("x", 3)).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
+				expect(() => m.get("x")).toThrowErrorMatchingSnapshot()
+				expect(() => m.set("x", 3)).toThrowErrorMatchingSnapshot()
 			})
 
 			it("does not draft map keys", () => {
@@ -780,7 +788,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const nextState = produce(baseState, s => {
 					// Set.prototype.set should return the Set itself
 					const res = s.aSet.add("force")
-					if (!global.USES_BUILD) expect(res).toBe(s.aSet[DRAFT_STATE].draft)
+					if (!global.USES_BUILD) expect(res).toBe(s.aSet[DRAFT_STATE].draft_)
 				})
 				expect(nextState).not.toBe(baseState)
 				expect(nextState.aSet).not.toBe(baseState.aSet)
@@ -863,12 +871,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				produce(baseState, s => {
 					m = s.aSet
 				})
-				expect(() => m.has("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
-				expect(() => m.add("x")).toThrow(
-					"Cannot use a proxy that has been revoked"
-				)
+				expect(() => m.has("x")).toThrowErrorMatchingSnapshot()
+				expect(() => m.add("x")).toThrowErrorMatchingSnapshot()
 			})
 
 			it("does support instanceof Set", () => {
@@ -961,6 +965,51 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				s.foo = {}
 				expect(s.bar).toBeDefined()
 				expect(s.foo).toBe(s.bar)
+			})
+		})
+
+		it("optimization: does not visit properties of new data structures if autofreeze is disabled and no drafts are unfinalized", () => {
+			const newData = {}
+			Object.defineProperty(newData, "x", {
+				enumerable: true,
+				get() {
+					throw new Error("visited!")
+				}
+			})
+
+			const run = () =>
+				produce({}, d => {
+					d.data = newData
+				})
+			if (autoFreeze) {
+				expect(run).toThrow("visited!")
+			} else {
+				expect(run).not.toThrow("visited!")
+			}
+		})
+
+		it("same optimization doesn't cause draft from nested producers to be unfinished", () => {
+			const base = {
+				y: 1,
+				child: {
+					x: 1
+				}
+			}
+			const wrap = produce(draft => {
+				return {
+					wrapped: draft
+				}
+			})
+
+			const res = produce(base, draft => {
+				draft.y++
+				draft.child = wrap(draft.child)
+				draft.child.wrapped.x++
+			})
+
+			expect(res).toEqual({
+				y: 2,
+				child: {wrapped: {x: 2}}
 			})
 		})
 
@@ -1377,6 +1426,24 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			}
 
 			expect(world.inc(world).counter.count).toBe(2)
+		})
+
+		it("doesnt recurse into frozen structures if external data is frozen", () => {
+			const frozen = {}
+			Object.defineProperty(frozen, "x", {
+				get() {
+					throw "oops"
+				},
+				enumerable: true,
+				configurable: true
+			})
+			Object.freeze(frozen)
+
+			expect(() => {
+				produce({}, d => {
+					d.x = frozen
+				})
+			}).not.toThrow()
 		})
 
 		// See here: https://github.com/mweststrate/immer/issues/89
@@ -2087,4 +2154,9 @@ function enumerableOnly(x) {
 		}
 	})
 	return copy
+}
+
+function isEnumerable(base, prop) {
+	const desc = Object.getOwnPropertyDescriptor(base, prop)
+	return desc && desc.enumerable ? true : false
 }

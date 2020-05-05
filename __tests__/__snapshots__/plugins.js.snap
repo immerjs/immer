@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ES5 plugins should throw if no proxies are available error when using ES5 1`] = `"[Immer] The plugin for 'ES5' has not been loaded into Immer. To enable the plugin, import and call \`enableES5()\` when initializing your application."`;
+
+exports[`error when using Maps 1`] = `"[Immer] The plugin for 'MapSet' has not been loaded into Immer. To enable the plugin, import and call \`enableMapSet()\` when initializing your application."`;
+
+exports[`error when using patches - 1 1`] = `"[Immer] The plugin for 'Patches' has not been loaded into Immer. To enable the plugin, import and call \`enablePatches()\` when initializing your application."`;
+
+exports[`error when using patches - 2 1`] = `"[Immer] The plugin for 'Patches' has not been loaded into Immer. To enable the plugin, import and call \`enablePatches()\` when initializing your application."`;
+
+exports[`error when using patches - 3 1`] = `"[Immer] The plugin for 'Patches' has not been loaded into Immer. To enable the plugin, import and call \`enablePatches()\` when initializing your application."`;

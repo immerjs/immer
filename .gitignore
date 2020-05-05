@@ -58,5 +58,6 @@ typings/
 .env
 
 .idea
-dist/
+/dist/
 website/build
+.rts2*

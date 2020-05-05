@@ -1,5 +1,11 @@
 "use strict"
-import produce, {setUseProxies, produceWithPatches} from "../src/index"
+import produce, {
+	setUseProxies,
+	produceWithPatches,
+	enableAllPlugins
+} from "../src/immer"
+
+enableAllPlugins()
 
 runTests("proxy", true)
 runTests("es5", false)

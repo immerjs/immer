@@ -2,8 +2,12 @@
 import produce, {
 	applyPatches,
 	immerable,
-	produceWithPatches
-} from "../src/index"
+	produceWithPatches,
+	enableAllPlugins,
+	setAutoFreeze
+} from "../src/immer"
+
+enableAllPlugins()
 
 describe("readme example", () => {
 	it("works", () => {
@@ -190,6 +194,7 @@ describe("readme example", () => {
 })
 
 test("Producers can update Maps", () => {
+	setAutoFreeze(true)
 	const usersById_v1 = new Map()
 
 	const usersById_v2 = produce(usersById_v1, draft => {
@@ -200,6 +205,7 @@ test("Producers can update Maps", () => {
 	const usersById_v3 = produce(usersById_v2, draft => {
 		// Making a change deep inside a map, results in a new map as well!
 		draft.get("michel").country = "UK"
+		debugger
 	})
 
 	// We got a new map each time!
@@ -226,7 +232,5 @@ test("Producers can update Maps", () => {
 	// The old one was never modified
 	expect(usersById_v1.size).toBe(0)
 	// And trying to change a Map outside a producers is going to: NO!
-	expect(() => usersById_v3.clear()).toThrowErrorMatchingInlineSnapshot(
-		`"This object has been frozen and should not be mutated"`
-	)
+	expect(() => usersById_v3.clear()).toThrowErrorMatchingSnapshot()
 })
