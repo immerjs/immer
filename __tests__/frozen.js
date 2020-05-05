@@ -23,7 +23,6 @@ function runTests(name, useProxies) {
 			const base = {arr: [1], obj: {a: 1}}
 			const next = produce(base, draft => {
 				draft.arr.push(1)
-				debugger
 			})
 			expect(isFrozen(base)).toBeFalsy()
 			expect(isFrozen(base.arr)).toBeFalsy()
@@ -191,13 +190,35 @@ function runTests(name, useProxies) {
 
 			// https://github.com/immerjs/immer/issues/472
 			produce(frozen, draft => {
-				// if (useProxies) debugger
 				;["b", "c"].forEach(other => {
 					const m = draft.map.get(other)
 
 					m.delete("a")
 				})
 			})
+		})
+
+		it("never freezes non-enumerable fields #590", () => {
+			const component = {}
+			Object.defineProperty(component, "state", {
+				value: {x: 1},
+				enumerable: false,
+				writable: true,
+				configurable: true
+			})
+
+			const state = {
+				x: 1
+			}
+
+			const state2 = produce(state, draft => {
+				draft.ref = component
+			})
+
+			expect(() => {
+				state2.ref.state.x++
+			}).not.toThrow()
+			expect(state2.ref.state.x).toBe(2)
 		})
 	})
 }
