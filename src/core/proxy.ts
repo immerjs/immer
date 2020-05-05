@@ -239,8 +239,14 @@ export function markChangedProxy(state: ImmerState) {
 		) {
 			const copy = (state.copy_ = shallowCopy(state.base_))
 			each(state.drafts_!, (key, value) => {
-				// @ts-ignore
-				copy[key] = value
+				const descProto = Object.getOwnPropertyDescriptor(
+					Object.getPrototypeOf(copy),
+					key
+				)
+				if (!(descProto && descProto.get && !descProto.set)) {
+					// @ts-ignore
+					copy[key] = value
+				}
 			})
 			state.drafts_ = undefined
 		}
