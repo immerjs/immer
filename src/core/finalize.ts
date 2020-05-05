@@ -64,8 +64,11 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	const state: ImmerState = value[DRAFT_STATE]
 	// A plain object, might need freezing, might contain drafts
 	if (!state) {
-		each(value, (key, childValue) =>
-			finalizeProperty(rootScope, state, value, key, childValue, path)
+		each(
+			value,
+			(key, childValue) =>
+				finalizeProperty(rootScope, state, value, key, childValue, path),
+			true // See #590, don't recurse into non-enumarable of non drafted objects
 		)
 		return value
 	}

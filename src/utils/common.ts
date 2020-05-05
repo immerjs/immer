@@ -67,11 +67,14 @@ export const ownKeys: (target: AnyObject) => PropertyKey[] =
 
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: string | number, value: any, source: T) => void
+	iter: (key: string | number, value: any, source: T) => void,
+	enumerableOnly?: boolean
 ): void
-export function each(obj: any, iter: any) {
+export function each(obj: any, iter: any, enumerableOnly = false) {
 	if (getArchtype(obj) === ArchtypeObject) {
-		ownKeys(obj).forEach(key => iter(key, obj[key], obj))
+		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key =>
+			iter(key, obj[key], obj)
+		)
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
 	}
@@ -178,7 +181,7 @@ export function freeze(obj: any, deep: boolean): void {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
-	if (deep) each(obj, (_, value) => freeze(value, true))
+	if (deep) each(obj, (key, value) => freeze(value, true), true)
 }
 
 function dontMutateFrozenCollections() {
