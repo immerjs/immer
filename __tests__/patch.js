@@ -1016,7 +1016,7 @@ test("#521", () => {
 	)
 })
 
-test.only("#559 patches works in a nested reducer with proxies", () => {
+test("#559 patches works in a nested reducer with proxies", () => {
 	setUseProxies(true)
 
 	const state = {
