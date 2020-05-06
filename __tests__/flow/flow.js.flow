@@ -100,6 +100,34 @@ type State = {| user: {| age: number |} |}
     }))
 }
 
+// #594 Allow undefined currentState with normal produce
+type Foo = {| a: boolean |} | void
+function func(foo: Foo) {
+    let bar = produce(foo, (draft) => {
+        // $ExpectError
+        draft.a = true
+        if (!draft) return
+        draft.a = true
+        // $ExpectError
+        draft.b = true
+    });
+    (bar: Foo)
+}
+
+// #594 Allow undefined currentState with curried produce and no initial state
+function func(foo: Foo) {
+    const f = produce(draft => {
+        // $ExpectError
+        draft.a = true
+        if (!draft) return
+        draft.a = true
+        // $ExpectError
+        draft.b = true
+    })
+    const bar = f(foo);
+    (bar: Foo)
+}
+
 {
     // $ExpectError
     produce2({x: 3})

@@ -8,7 +8,7 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
-type Base = {...} | Array<any> | Map<any> | Set<any>;
+type Base = {...} | Array<any> | Map<any> | Set<any> | string | number | null;
 interface IProduce {
     /**
      * Immer takes a state, and runs a function against it.
@@ -23,7 +23,7 @@ interface IProduce {
      * @param initialState - if a curried function is created and this argument was given, it will be used as fallback if the curried function is called with a state of undefined
      * @returns The next state: a new state, or the current state if nothing was modified
      */
-    <S: Base>(
+    <S: Base | void>(
         currentState: S,
         recipe: (draftState: S) => S | void,
         patchListener?: PatchListener
@@ -34,7 +34,7 @@ interface IProduce {
         initialState: S
     ): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => S;
     // curried invocations without inital state
-    <S: Base, A = void, B = void, C = void>(
+    <S: Base | void, A = void, B = void, C = void>(
         recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
     ): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S;
 }
