@@ -29,7 +29,9 @@ const errors = {
 	18(plugin: string) {
 		return `The plugin for '${plugin}' has not been loaded into Immer. To enable the plugin, import and call \`enable${plugin}()\` when initializing your application.`
 	},
-	19: "plugin not loaded",
+	19(plugin: string) {
+		return "plugin not loaded: " + plugin
+	},
 	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available"
 } as const
 

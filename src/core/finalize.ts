@@ -19,7 +19,8 @@ import {
 	ProxyTypeSet,
 	getPlugin,
 	die,
-	revokeScope
+	revokeScope,
+	isFrozen
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -59,7 +60,7 @@ export function processResult(result: any, scope: ImmerScope) {
 
 function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	// Don't recurse in tho recursive data structures
-	if (Object.isFrozen(value)) return value
+	if (isFrozen(value)) return value
 
 	const state: ImmerState = value[DRAFT_STATE]
 	// A plain object, might need freezing, might contain drafts
