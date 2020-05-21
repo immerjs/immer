@@ -137,10 +137,6 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			drafts = state.copy_
 		}
 
-		// const desc = Object.getOwnPropertyDescriptor(latest(state), prop)
-		// Don't create and store proxies for getters (they might return drafts though)
-		// See #558
-		// if (!desc || desc.get) return value
 		return (drafts![prop as any] = createProxy(
 			state.scope_.immer_,
 			value,

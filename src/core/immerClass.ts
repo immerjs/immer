@@ -116,6 +116,7 @@ export class Immer implements ProducersFns {
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
 		} else {
+			// TODO: simply throw!
 			result = recipe(base)
 			if (result === NOTHING) return undefined
 			if (result === undefined) result = base

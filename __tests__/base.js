@@ -20,15 +20,15 @@ test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
 
-runBaseTest("proxy (no freeze)", true, false)
-runBaseTest("proxy (autofreeze)", true, true)
-runBaseTest("proxy (patch listener)", true, false, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+// runBaseTest("proxy (no freeze)", true, false)
+// runBaseTest("proxy (autofreeze)", true, true)
+// runBaseTest("proxy (patch listener)", true, false, true)
+// runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
 
 runBaseTest("es5 (no freeze)", false, false)
-runBaseTest("es5 (autofreeze)", false, true)
-runBaseTest("es5 (patch listener)", false, false, true)
-runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+// runBaseTest("es5 (autofreeze)", false, true)
+// runBaseTest("es5 (patch listener)", false, false, true)
+// runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
@@ -933,7 +933,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(isEnumerable(nextState, "foo")).toBeFalsy()
 			})
 
-		it("throws on computed properties", () => {
+		it("does not throws on computed properties", () => {
 			const baseState = {}
 			Object.defineProperty(baseState, "foo", {
 				get: () => {},
@@ -946,7 +946,64 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 						s.modified = true
 					}
 				})
-			}).toThrowErrorMatchingSnapshot()
+			}).not.toThrow()
+		})
+
+		it("can work with computed props", () => {
+			const baseState = {
+				x: 1,
+				set y(v) {
+					this.x = v;
+				},
+				get y() {
+					return this.x
+				}
+			}
+
+			debugger;
+			const nextState = produce(baseState, d => {
+				expect(d.y).toBe(1)
+				d.y = 2;
+				expect(d.x).toBe(2)
+				expect(d.y).toBe(2)
+			})
+			expect(baseState.x).toBe(1)
+			expect(baseState.y).toBe(1)
+
+			expect(nextState.x).toBe(2)
+			expect(nextState.y).toBe(2)
+		})
+
+		it("can work with class with computed props", () => {
+			class State {
+				[immerable]= true
+
+				x= 1,
+
+				set y(v) {
+					this.x = v;
+				},
+
+				get y() {
+					return this.x
+				}
+			}
+
+			const baseState = new State();
+
+			const nextState = produce(baseState, d => {
+				expect(d.y).toBe(1)
+				d.y = 2;
+				expect(d.x).toBe(2)
+				expect(d.y).toBe(2)
+				expect(Object.hasOwnProperty(d, "y")).toBeNull()
+			})
+			expect(baseState.x).toBe(1)
+			expect(baseState.y).toBe(1)
+
+			expect(nextState.x).toBe(2)
+			expect(nextState.y).toBe(2)
+			expect(Object.hasOwnProperty(nextState, "y")).toBeNull()
 		})
 
 		it("allows inherited computed properties", () => {

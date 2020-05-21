@@ -159,7 +159,10 @@ export function shallowCopy(base: any, invokeGetters = false) {
 		const desc = Object.getOwnPropertyDescriptor(base, key)!
 		let {value} = desc
 		if (desc.get) {
-			if (!invokeGetters) die(1)
+			if (!invokeGetters) {
+				Object.defineProperty(clone, key, desc);
+				return;
+			}
 			value = desc.get.call(base)
 		}
 		if (desc.enumerable) {
