@@ -176,7 +176,7 @@ export function shallowCopy(base: any, invokeGetters = false) {
 }
 
 export function freeze(obj: any, deep: boolean): void {
-	if (isDraft(obj) || Object.isFrozen(obj) || !isDraftable(obj)) return
+	if (isDraft(obj) || isFrozen(obj) || !isDraftable(obj)) return
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
@@ -186,4 +186,10 @@ export function freeze(obj: any, deep: boolean): void {
 
 function dontMutateFrozenCollections() {
 	die(2)
+}
+
+export function isFrozen(obj: any): boolean {
+	if (obj == null || typeof obj !== "object") return true
+	// See #600, IE dies on non-objects in Object.isFrozen
+	return Object.isFrozen(obj)
 }
