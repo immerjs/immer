@@ -37,3 +37,9 @@ Most important observation:
 - Immer is roughly as fast as ImmutableJS. However, the _immutableJS + toJS_ makes clear the cost that often needs to be paid later; converting the immutableJS objects back to plain objects, to be able to pass them to components, over the network etc... (And there is also the upfront cost of converting data received from e.g. the server to immutable JS)
 - Generating patches doesn't significantly slow down immer
 - The ES5 fallback implementation is roughly twice as slow as the proxy implementation, in some cases worse.
+
+## Performance tips
+
+- When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to cool `Object.freeze(json)` on the root of the data to be added first. This will allow Immer to add the new data to the tree faster, as it will skeeping freezing it, or searching the tree for any changes (drafts) that might be made.
+- Immer will convert anything you read in a draft recursively into a draft as well. If you have expensive side effect free operations on a draft that involves a lot of reading, for example finding an index using `find(Index)` in a very large array, you can speed this up by first doing the search, and only call the `produce` function once you know the index. Thereby preventing Immer to turn everything that was searched for in a draft. Or, perform the search on the original value of a draft, by using `original(someDraft)`, which boils to the same thing.
+- Always try to pull produce 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
