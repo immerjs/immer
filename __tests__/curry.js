@@ -36,14 +36,14 @@ function runTests(name, useProxies) {
 
 		it("should support returning new states from curring", () => {
 			const reducer = produce((item, index) => {
-				if (!item) {
+				if (!item.x) {
 					return {hello: "world"}
 				}
 				item.index = index
 			})
 
-			expect(reducer(undefined, 3)).toEqual({hello: "world"})
-			expect(reducer({}, 3)).toEqual({index: 3})
+			expect(reducer({}, 3)).toEqual({hello: "world"})
+			expect(reducer({x: true}, 3)).toEqual({x: true, index: 3})
 		})
 
 		it("should support passing an initial state as second argument", () => {

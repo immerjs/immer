@@ -5,7 +5,8 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins
+	enableAllPlugins,
+	isDraftable
 } from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
@@ -959,6 +960,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					this.bar = val
 				}
 			})
+			proto[immerable] = true
 			const baseState = Object.create(proto)
 			produce(baseState, s => {
 				expect(s.bar).toBeUndefined()
@@ -1413,7 +1415,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			const incrementor = produce(function() {
 				expect(this).toBe(undefined)
 			})
-			incrementor()
+			incrementor({})
 		})
 
 		it("should be possible to use dynamic bound this", () => {
@@ -1785,20 +1787,12 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		it("cannot produce undefined by returning undefined", () => {
-			const base = 3
-			expect(produce(base, () => 4)).toBe(4)
-			expect(produce(base, () => null)).toBe(null)
-			expect(produce(base, () => undefined)).toBe(3)
-			expect(produce(base, () => {})).toBe(3)
-			expect(produce(base, () => nothing)).toBe(undefined)
-
 			expect(produce({}, () => undefined)).toEqual({})
 			expect(produce({}, () => nothing)).toBe(undefined)
-			expect(produce(3, () => nothing)).toBe(undefined)
 
 			expect(produce(() => undefined)({})).toEqual({})
 			expect(produce(() => nothing)({})).toBe(undefined)
-			expect(produce(() => nothing)(3)).toBe(undefined)
+			expect(produce(() => nothing, {})(undefined)).toEqual(undefined)
 		})
 
 		describe("base state type", () => {
@@ -1958,11 +1952,11 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 		it("returns false for objects returned by the producer", () => {
-			const object = produce(null, Object.create)
+			const object = produce([], () => Object.create(null))
 			expect(isDraft(object)).toBeFalsy()
 		})
 		it("returns false for arrays returned by the producer", () => {
-			const array = produce(null, _ => [])
+			const array = produce({}, _ => [])
 			expect(isDraft(array)).toBeFalsy()
 		})
 		it("returns false for object drafts returned by the producer", () => {
@@ -2124,24 +2118,10 @@ function testLiteralTypes(produce) {
 			const value = values[name]
 
 			it("does not create a draft", () => {
-				produce(value, draft => {
-					expect(draft).toBe(value)
-				})
+				expect(() => produce(value, () => {})).toThrow(
+					/produce can only be called on things that are draftable/
+				)
 			})
-
-			it("returns the base state when no changes are made", () => {
-				expect(produce(value, () => {})).toBe(value)
-			})
-
-			if (value && typeof value == "object") {
-				it("does not return a copy when changes are made", () => {
-					expect(
-						produce(value, draft => {
-							draft.foo = true
-						})
-					).toBe(value)
-				})
-			}
 		})
 	}
 }

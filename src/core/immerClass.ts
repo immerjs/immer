@@ -115,13 +115,8 @@ export class Immer implements ProducersFns {
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
-		} else {
-			result = recipe(base)
-			if (result === NOTHING) return undefined
-			if (result === undefined) result = base
-			if (this.autoFreeze_) freeze(result, true)
-			return result
 		}
+		die(21, base)
 	}
 
 	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {
@@ -151,7 +146,7 @@ export class Immer implements ProducersFns {
 		draft: D,
 		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
-		const state: ImmerState = draft && draft[DRAFT_STATE]
+		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
 		if (__DEV__) {
 			if (!state || !state.isManual_) die(9)
 			if (state.finalized_) die(10)
