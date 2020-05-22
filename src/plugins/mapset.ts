@@ -241,9 +241,7 @@ export function enableMapSet() {
 		p.add = function(value: any): any {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (state.copy_) {
-				state.copy_.add(value)
-			} else if (!state.base_.has(value)) {
+			if (!this.has(value)) {
 				prepareSetCopy(state)
 				markChanged(state.scope_.immer_, state)
 				state.copy_!.add(value)

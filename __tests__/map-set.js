@@ -225,5 +225,15 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				}
 			])
 		})
+
+		test("#586", () => {
+			const base = new Set([1, 2])
+			const set = produce(base, draftSet => {
+				debugger
+				expect(Array.from(draftSet)).toEqual([1, 2])
+				draftSet.add(3)
+			})
+			expect(Array.from(set).sort()).toEqual([1, 2, 3])
+		})
 	})
 }
