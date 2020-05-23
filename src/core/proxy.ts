@@ -19,6 +19,7 @@ import {
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
 } from "../internal"
+import {isPlainObject} from "../utils/common"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -114,7 +115,15 @@ const objectTraps: ProxyHandler<ProxyState> = {
 			return drafts![prop as any]
 		}
 
-		const value = latest(state)[prop]
+		const l = latest(state)
+		const desc = Object.getOwnPropertyDescriptor(
+			isPlainObject(l) ? l : Object.getPrototypeOf(l),
+			prop
+		)
+		// If the prop is a getter, don't proxy the full prop, but invoke the getter with the correct scope. Fixes #558
+		if (desc?.get) return desc.get.call(state.draft_)
+
+		const value = l[prop]
 		if (state.finalized_ || !isDraftable(value)) {
 			return value
 		}
