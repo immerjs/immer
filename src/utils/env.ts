@@ -1,7 +1,10 @@
 // Should be no imports here!
 
-// SOme things that should be evaluated before all else...
-const hasSymbol = typeof Symbol !== "undefined"
+// Some things that should be evaluated before all else...
+
+// We only want to know if non-polyfilled symbols are available
+const hasSymbol =
+	typeof Symbol !== "undefined" && typeof Symbol("x") === "symbol"
 export const hasMap = typeof Map !== "undefined"
 export const hasSet = typeof Set !== "undefined"
 export const hasProxies =
@@ -36,9 +39,9 @@ export const DRAFT_STATE: unique symbol = hasSymbol
 	? Symbol("immer-state")
 	: ("__$immer_state" as any)
 
-export const iteratorSymbol: typeof Symbol.iterator = hasSymbol
-	? Symbol.iterator
-	: ("@@iterator" as any)
+// Even a polyfilled Symbol might provide Symbol.iterator
+export const iteratorSymbol: typeof Symbol.iterator =
+	(typeof Symbol != "undefined" && Symbol.iterator) || ("@@iterator" as any)
 
 /** Use a class type for `nothing` so its type is unique */
 export class Nothing {
