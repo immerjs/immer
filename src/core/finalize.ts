@@ -7,7 +7,6 @@ import {
 	each,
 	has,
 	freeze,
-	shallowCopy,
 	ImmerState,
 	isDraft,
 	SetState,
@@ -87,7 +86,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
-				? (state.copy_ = shallowCopy(state.draft_, true))
+				? (state.copy_ = getPlugin("ES5").createFinalCopy_(state))
 				: state.copy_
 		// finalize all children of the copy
 		each(result as any, (key, childValue) =>

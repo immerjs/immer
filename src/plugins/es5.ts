@@ -1,7 +1,6 @@
 import {
 	ImmerState,
 	Drafted,
-	Objectish,
 	ES5ArrayState,
 	ES5ObjectState,
 	each,
@@ -54,11 +53,29 @@ export function enableES5() {
 		parent?: ImmerState
 	): Drafted<T, ES5ObjectState | ES5ArrayState> {
 		const isArray = Array.isArray(base)
-		const draft: any = clonePotentialDraft(base)
+		const baseDescriptors = Object.getOwnPropertyDescriptors(base)
+		// Descriptors we want to skip:
+		if (isArray) delete baseDescriptors.length
+		delete baseDescriptors[DRAFT_STATE as any]
+		let draft: any
+		const newDescriptors = {}
 
-		each(draft, prop => {
-			proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
-		})
+		for (let key in baseDescriptors) {
+			// @ts-ignore
+			newDescriptors[key] = proxyProperty(
+				key,
+				// @ts-ignore
+				isArray || baseDescriptors[key].enumerable
+			)
+		}
+		if (isArray) {
+			// @ts-ignore
+			draft = new Array(base.length)
+			// @ts-ignore
+			Object.defineProperties(draft, newDescriptors)
+		} else {
+			draft = Object.create(Object.getPrototypeOf(base), newDescriptors)
+		}
 
 		const state: ES5ObjectState | ES5ArrayState = {
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
@@ -132,18 +149,36 @@ export function enableES5() {
 	}
 
 	function prepareCopy(state: ES5State) {
-		if (!state.copy_) state.copy_ = clonePotentialDraft(state.base_)
+		if (state.copy_) return
+		const stateofBase: ES5State | undefined = (state.base_ as any)[DRAFT_STATE]
+		// make a copy, if the base is a draft itself, we take a copy of it's current state
+		state.copy_ = shallowCopy(
+			stateofBase ? latest(stateofBase) : state.base_,
+			true
+		)
 	}
 
-	function clonePotentialDraft(base: Objectish) {
-		const state: ES5State | undefined = base && (base as any)[DRAFT_STATE]
-		if (state) {
-			state.finalizing_ = true
-			const draft = shallowCopy(state.draft_, true)
-			state.finalizing_ = false
-			return draft
+	function createFinalCopy_(state: ES5ArrayState | ES5ObjectState): any {
+		if (state.type_ === ProxyTypeES5Array) return state.draft_?.slice()
+		// We create a final copy, based on the keys present in the draft.
+		// However, since most draft keys are wrapped getters, so lets take the descriptor of the copy
+		// so that any getters can be preserved (if present)
+		const final = Object.create(Object.getPrototypeOf(state.draft_))
+		// TODO: extract utils for getPrototypeOf / getOwnPropertyDescriptors
+		const draftDescriptors = Object.getOwnPropertyDescriptors(state.draft_)
+		const copyDescriptors = Object.getOwnPropertyDescriptors(latest(state))
+		for (let key in draftDescriptors) {
+			// @ts-ignore
+			if (key === DRAFT_STATE) return
+			const desc = draftDescriptors[key]
+			// if there is a value in the descriptor, it was deleted and readded, so respect the draft one
+			Object.defineProperty(
+				final,
+				key,
+				"value" in desc ? desc : copyDescriptors[key] || desc
+			)
 		}
-		return shallowCopy(base)
+		return final
 	}
 
 	// property descriptors are recycled to make sure we don't create a get and set closure per property,
@@ -151,16 +186,15 @@ export function enableES5() {
 	const descriptors: {[prop: string]: PropertyDescriptor} = {}
 
 	function proxyProperty(
-		draft: Drafted<any, ES5State>,
 		prop: string | number,
 		enumerable: boolean
-	) {
+	): PropertyDescriptor {
 		let desc = descriptors[prop]
 		if (desc) {
 			desc.enumerable = enumerable
 		} else {
 			descriptors[prop] = desc = {
-				// configurable: true,
+				configurable: true,
 				enumerable,
 				get(this: any) {
 					return get(this[DRAFT_STATE], prop)
@@ -170,7 +204,7 @@ export function enableES5() {
 				}
 			}
 		}
-		Object.defineProperty(draft, prop, desc)
+		return desc
 	}
 
 	// This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
@@ -308,6 +342,7 @@ export function enableES5() {
 	loadPlugin("ES5", {
 		createES5Proxy_,
 		markChangedES5_,
-		willFinalizeES5_
+		willFinalizeES5_,
+		createFinalCopy_
 	})
 }

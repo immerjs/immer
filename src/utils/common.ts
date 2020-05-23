@@ -145,34 +145,14 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy<T extends AnyObject | AnyArray>(
-	base: T,
-	invokeGetters?: boolean
-): T
-export function shallowCopy(base: any, invokeGetters = false) {
+export function shallowCopy(base: any, makeWritable = false) {
 	if (Array.isArray(base)) return base.slice()
-	const clone = Object.create(Object.getPrototypeOf(base))
-	each(base, (key: any) => {
-		if (key === DRAFT_STATE) {
-			return // Never copy over draft state.
-		}
-		const desc = Object.getOwnPropertyDescriptor(base, key)!
-		let {value} = desc
-		if (desc.get) {
-			if (!invokeGetters) die(1)
-			value = desc.get.call(base)
-		}
-		if (desc.enumerable) {
-			clone[key] = value
-		} else {
-			Object.defineProperty(clone, key, {
-				value,
-				writable: true,
-				configurable: true
-			})
-		}
-	})
-	return clone
+	const descriptors = Object.getOwnPropertyDescriptors(base)
+	delete descriptors[DRAFT_STATE as any]
+	if (makeWritable)
+		for (let key in descriptors)
+			if (descriptors[key].writable === false) descriptors[key].writable = true
+	return Object.create(Object.getPrototypeOf(base), descriptors)
 }
 
 export function freeze(obj: any, deep: boolean): void {

@@ -39,6 +39,7 @@ const plugins: {
 			parent?: ImmerState
 		): Drafted<T, ES5ObjectState | ES5ArrayState>
 		markChangedES5_(state: ImmerState): void
+		createFinalCopy_(state: ES5ArrayState | ES5ObjectState): any
 	}
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
