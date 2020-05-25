@@ -5,7 +5,6 @@ import {
 	Objectish,
 	Drafted,
 	AnyObject,
-	AnyArray,
 	AnyMap,
 	AnySet,
 	ImmerState,
@@ -146,12 +145,28 @@ export function latest(state: ImmerState): any {
 
 /*#__PURE__*/
 export function shallowCopy(base: any, makeWritable = false) {
+	// TODO: makeWritable is always true?
 	if (Array.isArray(base)) return base.slice()
 	const descriptors = Object.getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
-	if (makeWritable)
-		for (let key in descriptors)
-			if (descriptors[key].writable === false) descriptors[key].writable = true
+	for (let key in descriptors) {
+		const desc = descriptors[key]
+		if (makeWritable && desc.writable === false) {
+			desc.writable = true
+			desc.configurable = true
+		}
+		// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
+		// with libraries that trap values, like mobx or vue
+		// unlike object.assign, non-enumerables will be copied as well
+		// TODO: document!
+		if (desc.get)
+			descriptors[key] = {
+				configurable: true,
+				writable: true, // TODO: or !!desc.set ?
+				enumerable: desc.enumerable,
+				value: base[key]
+			}
+	}
 	return Object.create(Object.getPrototypeOf(base), descriptors)
 }
 

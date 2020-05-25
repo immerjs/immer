@@ -48,34 +48,33 @@ export function enableES5() {
 		}
 	}
 
+	function createES5Draft(isArray: boolean, base: any) {
+		// Create a new object / array, where each own property is trapped with an accessor
+		const descriptors = Object.getOwnPropertyDescriptors(base)
+		// Descriptors we want to skip:
+		if (isArray) delete descriptors.length
+		delete descriptors[DRAFT_STATE as any]
+		for (let key in descriptors) {
+			descriptors[key] = proxyProperty(
+				key,
+				isArray || !!descriptors[key].enumerable
+			)
+		}
+		if (isArray) {
+			const draft = new Array(base.length)
+			Object.defineProperties(draft, descriptors)
+			return draft
+		} else {
+			return Object.create(Object.getPrototypeOf(base), descriptors)
+		}
+	}
+
 	function createES5Proxy_<T>(
 		base: T,
 		parent?: ImmerState
 	): Drafted<T, ES5ObjectState | ES5ArrayState> {
 		const isArray = Array.isArray(base)
-		const baseDescriptors = Object.getOwnPropertyDescriptors(base)
-		// Descriptors we want to skip:
-		if (isArray) delete baseDescriptors.length
-		delete baseDescriptors[DRAFT_STATE as any]
-		let draft: any
-		const newDescriptors = {}
-
-		for (let key in baseDescriptors) {
-			// @ts-ignore
-			newDescriptors[key] = proxyProperty(
-				key,
-				// @ts-ignore
-				isArray || baseDescriptors[key].enumerable
-			)
-		}
-		if (isArray) {
-			// @ts-ignore
-			draft = new Array(base.length)
-			// @ts-ignore
-			Object.defineProperties(draft, newDescriptors)
-		} else {
-			draft = Object.create(Object.getPrototypeOf(base), newDescriptors)
-		}
+		const draft = createES5Draft(isArray, base)
 
 		const state: ES5ObjectState | ES5ArrayState = {
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
@@ -85,7 +84,9 @@ export function enableES5() {
 			finalized_: false,
 			assigned_: {},
 			parent_: parent,
+			// base is the object we are drafting
 			base_: base,
+			// draft is the draft object itself, that traps all reads and reads from either the base (if unmodified) or copy (if modified)
 			draft_: draft,
 			copy_: null,
 			revoked_: false,
@@ -104,9 +105,10 @@ export function enableES5() {
 	function peek(draft: Drafted, prop: PropertyKey) {
 		const state: ES5State = draft[DRAFT_STATE]
 		if (state && !state.finalizing_) {
-			state.finalizing_ = true
+			// state.finalizing_ = true // TODO: still needed?
+			// If not, delete this block!
 			const value = draft[prop]
-			state.finalizing_ = false
+			// state.finalizing_ = false
 			return value
 		}
 		return draft[prop]
@@ -151,14 +153,22 @@ export function enableES5() {
 	function prepareCopy(state: ES5State) {
 		if (state.copy_) return
 		const stateofBase: ES5State | undefined = (state.base_ as any)[DRAFT_STATE]
+
 		// make a copy, if the base is a draft itself, we take a copy of it's current state
-		state.copy_ = shallowCopy(
-			stateofBase ? latest(stateofBase) : state.base_,
-			true
-		)
+		// stateofBase?.finalizing_ = true; // TODO: needed?
+
+		// TODO: some code reuse?
+		// Object.getOwnPropertyDescriptors
+		state.copy_ = shallowCopy(state.base_, true)
+		// stateofBase?.finalizing_ = false; // TODO: needed?
 	}
 
 	function createFinalCopy_(state: ES5ArrayState | ES5ObjectState): any {
+		state.finalizing_ = true
+		const res = shallowCopy(state.draft_, true)
+		state.finalizing_ = false
+		return res
+
 		if (state.type_ === ProxyTypeES5Array) return state.draft_?.slice()
 		// We create a final copy, based on the keys present in the draft.
 		// However, since most draft keys are wrapped getters, so lets take the descriptor of the copy
@@ -166,17 +176,18 @@ export function enableES5() {
 		const final = Object.create(Object.getPrototypeOf(state.draft_))
 		// TODO: extract utils for getPrototypeOf / getOwnPropertyDescriptors
 		const draftDescriptors = Object.getOwnPropertyDescriptors(state.draft_)
-		const copyDescriptors = Object.getOwnPropertyDescriptors(latest(state))
+		// const copyDescriptors = Object.getOwnPropertyDescriptors(latest(state))
 		for (let key in draftDescriptors) {
 			// @ts-ignore
 			if (key === DRAFT_STATE) return
 			const desc = draftDescriptors[key]
 			// if there is a value in the descriptor, it was deleted and readded, so respect the draft one
-			Object.defineProperty(
-				final,
-				key,
-				"value" in desc ? desc : copyDescriptors[key] || desc
-			)
+			Object.defineProperty(final, key, {
+				writable: true,
+				enumerable: desc.enumerable,
+				configurable: true,
+				value: state.draft_[key]
+			})
 		}
 		return final
 	}
