@@ -177,9 +177,6 @@ export class Immer implements ProducersFns {
 	 * By default, feature detection is used, so calling this is rarely necessary.
 	 */
 	setUseProxies(value: boolean) {
-		if (!hasProxies) {
-			die(20)
-		}
 		this.useProxies_ = value
 	}
 
