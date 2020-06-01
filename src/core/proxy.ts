@@ -1,4 +1,3 @@
-"use strict"
 import {
 	each,
 	has,
@@ -25,16 +24,13 @@ interface ProxyBaseState extends ImmerBaseState {
 		[property: string]: boolean
 	}
 	parent_?: ImmerState
-	drafts_?: {
-		[property: string]: Drafted<any, any>
-	}
 	revoke_(): void
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
 	type_: typeof ProxyTypeProxyObject
 	base_: AnyObject
-	copy_: AnyObject | null
+	copy_: any
 	draft_: Drafted<AnyObject, ProxyObjectState>
 }
 
@@ -73,8 +69,6 @@ export function createProxyProxy<T extends Objectish>(
 		base_: base,
 		// The base proxy.
 		draft_: null as any, // set below
-		// Any property proxies.
-		drafts_: {},
 		// The base copy with any updated values.
 		copy_: null,
 		// Called by the `produce` function.
@@ -107,12 +101,6 @@ export function createProxyProxy<T extends Objectish>(
 const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
-		let {drafts_: drafts} = state
-
-		// Check for existing draft in unmodified state.
-		if (!state.modified_ && has(drafts, prop)) {
-			return drafts![prop as any]
-		}
 
 		const value = latest(state)[prop]
 		if (state.finalized_ || !isDraftable(value)) {
@@ -120,19 +108,19 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		}
 
 		// Check for existing draft in modified state.
-		if (state.modified_) {
-			// Assigned values are never drafted. This catches any drafts we created, too.
-			if (value !== peek(state.base_, prop)) return value
+		// TODO: dedupe
+		// Assigned values are never drafted. This catches any drafts we created, too.
+		if (value === peek(state.base_, prop)) {
+			prepareCopy(state)
+			return (state.copy_![prop as any] = createProxy(
+				state.scope_.immer_,
+				value,
+				state
+			))
 			// Store drafts on the copy (when one exists).
 			// @ts-ignore
-			drafts = state.copy_
 		}
-
-		return (drafts![prop as any] = createProxy(
-			state.scope_.immer_,
-			value,
-			state
-		))
+		return value
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -140,20 +128,14 @@ const objectTraps: ProxyHandler<ProxyState> = {
 	ownKeys(state) {
 		return Reflect.ownKeys(latest(state))
 	},
+	// TODO: dedupe
 	set(state, prop: string /* strictly not, but helps TS */, value) {
+		state.assigned_[prop] = true
 		if (!state.modified_) {
-			const baseValue = peek(state.base_, prop)
-			// Optimize based on value's truthiness. Truthy values are guaranteed to
-			// never be undefined, so we can avoid the `in` operator. Lastly, truthy
-			// values may be drafts, but falsy values are never drafts.
-			const isUnchanged = value
-				? is(baseValue, value) || value === state.drafts_![prop]
-				: is(baseValue, value) && prop in state.base_
-			if (isUnchanged) return true
+			if (is(value, peek(latest(state), prop))) return true
 			prepareCopy(state)
 			markChangedProxy(state)
 		}
-		state.assigned_[prop] = true
 		// @ts-ignore
 		state.copy_![prop] = value
 		return true
@@ -177,12 +159,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 	getOwnPropertyDescriptor(state, prop) {
 		const owner = latest(state)
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
-		if (desc) {
-			desc.writable = true
-			desc.configurable =
-				state.type_ !== ProxyTypeProxyArray || prop !== "length"
+		if (!desc) return desc
+		return {
+			writable: true,
+			configurable: state.type_ !== ProxyTypeProxyArray || prop !== "length",
+			enumerable: desc.enumerable,
+			value: owner[prop]
 		}
-		return desc
 	},
 	defineProperty() {
 		die(11)
@@ -221,6 +204,7 @@ arrayTraps.set = function(state, prop, value) {
  */
 
 // Access a property without creating an Immer draft.
+// TODO: duplicate with ES5?
 function peek(draft: Drafted, prop: PropertyKey): any {
 	const state = draft[DRAFT_STATE]
 	const desc = Reflect.getOwnPropertyDescriptor(
@@ -230,20 +214,22 @@ function peek(draft: Drafted, prop: PropertyKey): any {
 	return desc && desc.value
 }
 
+// TODO: dedupe
 export function markChangedProxy(state: ImmerState) {
 	if (!state.modified_) {
 		state.modified_ = true
-		if (
-			state.type_ === ProxyTypeProxyObject ||
-			state.type_ === ProxyTypeProxyArray
-		) {
-			const copy = (state.copy_ = shallowCopy(state.base_))
-			each(state.drafts_!, (key, value) => {
-				// @ts-ignore
-				copy[key] = value
-			})
-			state.drafts_ = undefined
-		}
+		// if (
+		// 	state.type_ === ProxyTypeProxyObject ||
+		// 	state.type_ === ProxyTypeProxyArray
+		// ) {
+		// 	prepareCopy(state);
+		// 	const copy = (state.copy_ = shallowCopy(state.base_, true))
+		// 	each(state.drafts_!, (key, value) => {
+		// 		// @ts-ignore
+		// 		copy[key] = value
+		// 	})
+		// 	state.drafts_ = undefined
+		// }
 
 		if (state.parent_) {
 			markChangedProxy(state.parent_)
@@ -251,8 +237,9 @@ export function markChangedProxy(state: ImmerState) {
 	}
 }
 
+// TODO: duplicate with ES5
 function prepareCopy(state: ProxyState) {
 	if (!state.copy_) {
-		state.copy_ = shallowCopy(state.base_)
+		state.copy_ = shallowCopy(state.base_, true)
 	}
 }
