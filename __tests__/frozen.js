@@ -30,13 +30,13 @@ function runTests(name, useProxies) {
 			expect(isFrozen(next.arr)).toBeTruthy()
 		})
 
-		it("never freezes reused state", () => {
+		it("freezes reused base state", () => {
 			const base = {arr: [1], obj: {a: 1}}
 			const next = produce(base, draft => {
 				draft.arr.push(1)
 			})
 			expect(next.obj).toBe(base.obj)
-			expect(isFrozen(next.obj)).toBeFalsy()
+			expect(isFrozen(next.obj)).toBeTruthy()
 		})
 
 		describe("the result is always auto-frozen when", () => {

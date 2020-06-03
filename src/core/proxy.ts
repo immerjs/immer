@@ -29,7 +29,7 @@ interface ProxyBaseState extends ImmerBaseState {
 
 export interface ProxyObjectState extends ProxyBaseState {
 	type_: typeof ProxyTypeProxyObject
-	base_: AnyObject
+	base_: any
 	copy_: any
 	draft_: Drafted<AnyObject, ProxyObjectState>
 }
@@ -60,6 +60,7 @@ export function createProxyProxy<T extends Objectish>(
 		// True for both shallow and deep changes.
 		modified_: false,
 		// Used during finalization.
+		// TODO: still needed?
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
 		assigned_: {},
@@ -98,17 +99,20 @@ export function createProxyProxy<T extends Objectish>(
 /**
  * Object drafts
  */
-const objectTraps: ProxyHandler<ProxyState> = {
+export const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 
-		const value = latest(state)[prop]
+		const source = latest(state)
+		if (!has(source, prop)) {
+			// non-existing or non-own property...
+			return readPropFromProto(state, source, prop)
+		}
+		const value = source[prop]
 		if (state.finalized_ || !isDraftable(value)) {
 			return value
 		}
-
 		// Check for existing draft in modified state.
-		// TODO: dedupe
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
@@ -128,13 +132,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 	ownKeys(state) {
 		return Reflect.ownKeys(latest(state))
 	},
-	// TODO: dedupe
 	set(state, prop: string /* strictly not, but helps TS */, value) {
 		state.assigned_[prop] = true
 		if (!state.modified_) {
-			if (is(value, peek(latest(state), prop))) return true
+			if (is(value, peek(latest(state), prop)) && value !== undefined)
+				return true
 			prepareCopy(state)
-			markChangedProxy(state)
+			markChanged(state)
 		}
 		// @ts-ignore
 		state.copy_![prop] = value
@@ -145,7 +149,7 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
 			state.assigned_[prop] = false
 			prepareCopy(state)
-			markChangedProxy(state)
+			markChanged(state)
 		} else if (state.assigned_[prop]) {
 			// if an originally not assigned property was deleted
 			delete state.assigned_[prop]
@@ -199,46 +203,37 @@ arrayTraps.set = function(state, prop, value) {
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
-/**
- * Map drafts
- */
-
 // Access a property without creating an Immer draft.
-// TODO: duplicate with ES5?
-function peek(draft: Drafted, prop: PropertyKey): any {
+function peek(draft: Drafted, prop: PropertyKey) {
 	const state = draft[DRAFT_STATE]
-	const desc = Reflect.getOwnPropertyDescriptor(
-		state ? latest(state) : draft,
-		prop
-	)
-	return desc && desc.value
+	const source = state ? latest(state) : draft
+	return source[prop]
 }
 
-// TODO: dedupe
-export function markChangedProxy(state: ImmerState) {
+function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {
+	// 'in' checks proto!
+	if (!(prop in source)) return undefined
+	let proto = Object.getPrototypeOf(source)
+	while (proto) {
+		const desc = Object.getOwnPropertyDescriptor(proto, prop)
+		// This is a very special case, if the prop is a getter defined by the
+		// prototype, we should invoke it with the draft as context!
+		if (desc) return `value` in desc ? desc.value : desc.get?.call(state.draft_)
+		proto = Object.getPrototypeOf(proto)
+	}
+	return undefined
+}
+
+export function markChanged(state: ImmerState) {
 	if (!state.modified_) {
 		state.modified_ = true
-		// if (
-		// 	state.type_ === ProxyTypeProxyObject ||
-		// 	state.type_ === ProxyTypeProxyArray
-		// ) {
-		// 	prepareCopy(state);
-		// 	const copy = (state.copy_ = shallowCopy(state.base_, true))
-		// 	each(state.drafts_!, (key, value) => {
-		// 		// @ts-ignore
-		// 		copy[key] = value
-		// 	})
-		// 	state.drafts_ = undefined
-		// }
-
 		if (state.parent_) {
-			markChangedProxy(state.parent_)
+			markChanged(state.parent_)
 		}
 	}
 }
 
-// TODO: duplicate with ES5
-function prepareCopy(state: ProxyState) {
+export function prepareCopy(state: {base_: any; copy_: any}) {
 	if (!state.copy_) {
 		state.copy_ = shallowCopy(state.base_, true)
 	}

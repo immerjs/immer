@@ -21,15 +21,15 @@ test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
 
-// runBaseTest("proxy (no freeze)", true, false)
-// runBaseTest("proxy (autofreeze)", true, true)
-// runBaseTest("proxy (patch listener)", true, false, true)
-// runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+runBaseTest("proxy (no freeze)", true, false)
+runBaseTest("proxy (autofreeze)", true, true)
+runBaseTest("proxy (patch listener)", true, false, true)
+runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
 
 runBaseTest("es5 (no freeze)", false, false)
-// runBaseTest("es5 (autofreeze)", false, true)
-// runBaseTest("es5 (patch listener)", false, false, true)
-// runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+runBaseTest("es5 (autofreeze)", false, true)
+runBaseTest("es5 (patch listener)", false, false, true)
+runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
@@ -896,7 +896,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState.foo).toBeTruthy()
 		})
 
-		it.skip("preserves symbol properties", () => {
+		it("preserves symbol properties", () => {
 			const test = Symbol("test")
 			const baseState = {[test]: true}
 			const nextState = produce(baseState, s => {
@@ -933,22 +933,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(nextState.foo).toBeTruthy()
 				expect(isEnumerable(nextState, "foo")).toBeFalsy()
 			})
-
-		it.skip("throws on computed properties", () => {
-			const baseState = {}
-			Object.defineProperty(baseState, "foo", {
-				get: () => {},
-				enumerable: true
-			})
-			expect(() => {
-				produce(baseState, s => {
-					// Proxies only throw once a change is made.
-					if (useProxies) {
-						s.modified = true
-					}
-				})
-			}).toThrowErrorMatchingSnapshot()
-		})
 
 		it("can work with own computed props", () => {
 			const baseState = {
@@ -1413,7 +1397,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				})
 			})
 
-			it.skip("works with interweaved Immer instances", () => {
+			it("works with interweaved Immer instances", () => {
 				const options = {useProxies, autoFreeze}
 				const one = createPatchedImmer(options)
 				const two = createPatchedImmer(options)
@@ -1574,7 +1558,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		autoFreeze &&
-			test.skip("issue #462 - frozen", () => {
+			test("issue #462 - frozen", () => {
 				var origin = {
 					a: {
 						value: "no"
@@ -1583,12 +1567,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 						value: "no"
 					}
 				}
-				var im = produce(origin, origin => {
-					origin.a.value = "im"
+				const next = produce(origin, draft => {
+					draft.a.value = "im"
 				})
-				expect(() => (origin.b.value = "yes")).toThrow() // should throw!
-				// to prevent this...:
-				// expect(im.b.value).toBe('no');
+				expect(() => {
+					origin.b.value = "yes"
+				}).toThrowError(
+					"Cannot assign to read only property 'value' of object '#<Object>'"
+				)
+				expect(() => {
+					next.b.value = "yes"
+				}).toThrowError(
+					"Cannot assign to read only property 'value' of object '#<Object>'"
+				) // should throw!
 			})
 
 		autoFreeze &&
@@ -2119,7 +2110,7 @@ function testObjectTypes(produce) {
 	}
 	function testObjectType(name, base) {
 		describe(name, () => {
-			it.skip("creates a draft", () => {
+			it("creates a draft", () => {
 				produce(base, draft => {
 					expect(draft).not.toBe(base)
 					expect(shallowCopy(draft, true)).toEqual(base)

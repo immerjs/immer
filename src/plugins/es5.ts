@@ -6,19 +6,17 @@ import {
 	each,
 	has,
 	isDraft,
-	isDraftable,
-	shallowCopy,
 	latest,
 	DRAFT_STATE,
 	is,
 	loadPlugin,
 	ImmerScope,
-	createProxy,
 	ProxyTypeES5Array,
 	ProxyTypeES5Object,
-	AnyObject,
 	getCurrentScope,
-	die
+	die,
+	markChanged,
+	objectTraps
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -50,6 +48,7 @@ export function enableES5() {
 
 	function createES5Draft(isArray: boolean, base: any) {
 		// Create a new object / array, where each own property is trapped with an accessor
+		// TODO: extract all utils used in this fn?
 		const descriptors = Object.getOwnPropertyDescriptors(base)
 		// Descriptors we want to skip:
 		if (isArray) delete descriptors.length
@@ -77,9 +76,11 @@ export function enableES5() {
 		const draft = createES5Draft(isArray, base)
 
 		const state: ES5ObjectState | ES5ArrayState = {
+			// TODO: reuse this object construction from proxy?
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
 			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,
+			// TODO: still needed?
 			finalizing_: false,
 			finalized_: false,
 			assigned_: {},
@@ -101,97 +102,6 @@ export function enableES5() {
 		return draft
 	}
 
-	// Access a property without creating an Immer draft.
-	function peek(draft: Drafted, prop: PropertyKey) {
-		const state: ES5State = draft[DRAFT_STATE]
-		if (state && !state.finalizing_) {
-			// state.finalizing_ = true // TODO: still needed?
-			// If not, delete this block!
-			const value = draft[prop]
-			// state.finalizing_ = false
-			return value
-		}
-		return draft[prop]
-	}
-
-	function get(state: ES5State, prop: string | number) {
-		assertUnrevoked(state)
-		const value = peek(latest(state), prop)
-		if (state.finalizing_) return value
-		// Create a draft if the value is unmodified.
-		if (value === peek(state.base_, prop) && isDraftable(value)) {
-			prepareCopy(state)
-			// @ts-ignore
-			return (state.copy_![prop] = createProxy(
-				state.scope_.immer_,
-				value,
-				state
-			))
-		}
-		return value
-	}
-
-	function set(state: ES5State, prop: string | number, value: any) {
-		assertUnrevoked(state)
-		state.assigned_[prop] = true
-		if (!state.modified_) {
-			if (is(value, peek(latest(state), prop))) return
-			markChangedES5_(state)
-			prepareCopy(state)
-		}
-		// @ts-ignore
-		state.copy_![prop] = value
-	}
-
-	function markChangedES5_(state: ImmerState) {
-		if (!state.modified_) {
-			state.modified_ = true
-			if (state.parent_) markChangedES5_(state.parent_)
-		}
-	}
-
-	function prepareCopy(state: ES5State) {
-		if (state.copy_) return
-		const stateofBase: ES5State | undefined = (state.base_ as any)[DRAFT_STATE]
-
-		// make a copy, if the base is a draft itself, we take a copy of it's current state
-		// stateofBase?.finalizing_ = true; // TODO: needed?
-
-		// TODO: some code reuse?
-		// Object.getOwnPropertyDescriptors
-		state.copy_ = shallowCopy(state.base_, true)
-		// stateofBase?.finalizing_ = false; // TODO: needed?
-	}
-
-	function createFinalCopy_(state: ES5ArrayState | ES5ObjectState): any {
-		state.finalizing_ = true
-		const res = shallowCopy(state.draft_, true)
-		state.finalizing_ = false
-		return res
-
-		if (state.type_ === ProxyTypeES5Array) return state.draft_?.slice()
-		// We create a final copy, based on the keys present in the draft.
-		// However, since most draft keys are wrapped getters, so lets take the descriptor of the copy
-		// so that any getters can be preserved (if present)
-		const final = Object.create(Object.getPrototypeOf(state.draft_))
-		// TODO: extract utils for getPrototypeOf / getOwnPropertyDescriptors
-		const draftDescriptors = Object.getOwnPropertyDescriptors(state.draft_)
-		// const copyDescriptors = Object.getOwnPropertyDescriptors(latest(state))
-		for (let key in draftDescriptors) {
-			// @ts-ignore
-			if (key === DRAFT_STATE) return
-			const desc = draftDescriptors[key]
-			// if there is a value in the descriptor, it was deleted and readded, so respect the draft one
-			Object.defineProperty(final, key, {
-				writable: true,
-				enumerable: desc.enumerable,
-				configurable: true,
-				value: state.draft_[key]
-			})
-		}
-		return final
-	}
-
 	// property descriptors are recycled to make sure we don't create a get and set closure per property,
 	// but share them all instead
 	const descriptors: {[prop: string]: PropertyDescriptor} = {}
@@ -208,10 +118,16 @@ export function enableES5() {
 				configurable: true,
 				enumerable,
 				get(this: any) {
-					return get(this[DRAFT_STATE], prop)
+					const state = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					// @ts-ignore
+					return objectTraps.get(state, prop)
 				},
 				set(this: any, value) {
-					set(this[DRAFT_STATE], prop, value)
+					const state = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					// @ts-ignore
+					objectTraps.set(state, prop, value)
 				}
 			}
 		}
@@ -229,10 +145,10 @@ export function enableES5() {
 			if (!state.modified_) {
 				switch (state.type_) {
 					case ProxyTypeES5Array:
-						if (hasArrayChanges(state)) markChangedES5_(state)
+						if (hasArrayChanges(state)) markChanged(state)
 						break
 					case ProxyTypeES5Object:
-						if (hasObjectChanges(state)) markChangedES5_(state)
+						if (hasObjectChanges(state)) markChanged(state)
 						break
 				}
 			}
@@ -255,7 +171,7 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if ((base_ as any)[key] === undefined && !has(base_, key)) {
 					assigned_[key] = true
-					markChangedES5_(state)
+					markChanged(state)
 				} else if (!assigned_[key]) {
 					// Only untouched properties trigger recursion.
 					markChangesRecursively(draft_[key])
@@ -266,12 +182,12 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if (draft_[key] === undefined && !has(draft_, key)) {
 					assigned_[key] = false
-					markChangedES5_(state)
+					markChanged(state)
 				}
 			})
 		} else if (type_ === ProxyTypeES5Array) {
 			if (hasArrayChanges(state as ES5ArrayState)) {
-				markChangedES5_(state)
+				markChanged(state)
 				assigned_.length = true
 			}
 
@@ -340,20 +256,12 @@ export function enableES5() {
 		return false
 	}
 
-	/*#__PURE__*/
-	function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
-		const desc = Object.getOwnPropertyDescriptor(base, prop)
-		return desc && desc.enumerable ? true : false
-	}
-
 	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
 	loadPlugin("ES5", {
 		createES5Proxy_,
-		markChangedES5_,
-		willFinalizeES5_,
-		createFinalCopy_
+		willFinalizeES5_
 	})
 }

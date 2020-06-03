@@ -5,7 +5,6 @@ import {
 	Drafted,
 	AnyObject,
 	ImmerBaseState,
-	AnyArray,
 	AnyMap,
 	AnySet,
 	ProxyTypeES5Array,
@@ -38,8 +37,6 @@ const plugins: {
 			base: T,
 			parent?: ImmerState
 		): Drafted<T, ES5ObjectState | ES5ArrayState>
-		markChangedES5_(state: ImmerState): void
-		createFinalCopy_(state: ES5ArrayState | ES5ObjectState): any
 	}
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
@@ -86,8 +83,8 @@ export interface ES5ObjectState extends ES5BaseState {
 export interface ES5ArrayState extends ES5BaseState {
 	type_: typeof ProxyTypeES5Array
 	draft_: Drafted<AnyObject, ES5ArrayState>
-	base_: AnyArray
-	copy_: AnyArray | null
+	base_: any
+	copy_: any
 }
 
 /** Map / Set plugin */

@@ -5,7 +5,6 @@ import {
 	Drafted,
 	isDraftable,
 	processResult,
-	NOTHING,
 	Patch,
 	Objectish,
 	DRAFT_STATE,
@@ -14,9 +13,7 @@ import {
 	isDraft,
 	isMap,
 	isSet,
-	markChangedProxy,
 	createProxyProxy,
-	freeze,
 	getPlugin,
 	die,
 	hasProxies,
@@ -219,12 +216,4 @@ export function createProxy<T extends Objectish>(
 	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)
 	return draft
-}
-
-export function markChanged(immer: Immer, state: ImmerState) {
-	if (immer.useProxies_) {
-		markChangedProxy(state)
-	} else {
-		getPlugin("ES5").markChangedES5_(state)
-	}
 }

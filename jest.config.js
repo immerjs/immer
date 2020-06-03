@@ -5,7 +5,8 @@ module.exports = {
 		"ts-jest": {
 			tsConfig: {
 				noUnusedLocals: false
-			}
+			},
+			disableSourceMapSupport: true
 		}
 	},
 	preset: "ts-jest/presets/js-with-ts",
