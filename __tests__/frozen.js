@@ -220,5 +220,29 @@ function runTests(name, useProxies) {
 			}).not.toThrow()
 			expect(state2.ref.state.x).toBe(2)
 		})
+
+		it("never freezes symbolic fields #590", () => {
+			const component = {}
+			const symbol = Symbol("test")
+			Object.defineProperty(component, symbol, {
+				value: {x: 1},
+				enumerable: true,
+				writable: true,
+				configurable: true
+			})
+
+			const state = {
+				x: 1
+			}
+
+			const state2 = produce(state, draft => {
+				draft.ref = component
+			})
+
+			expect(() => {
+				state2.ref[symbol].x++
+			}).not.toThrow()
+			expect(state2.ref[symbol].x).toBe(2)
+		})
 	})
 }

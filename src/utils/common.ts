@@ -71,9 +71,9 @@ export function each<T extends Objectish>(
 ): void
 export function each(obj: any, iter: any, enumerableOnly = false) {
 	if (getArchtype(obj) === ArchtypeObject) {
-		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key =>
-			iter(key, obj[key], obj)
-		)
+		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
+			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
+		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
 	}
