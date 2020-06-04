@@ -1,4 +1,4 @@
-import {Nothing, DRAFTABLE} from "../internal"
+import {Nothing} from "../internal"
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
@@ -48,15 +48,6 @@ export type Immutable<T> = T extends AtomicObject
 	? {readonly [K in keyof T]: Immutable<T[K]>}
 	: T
 
-export type Draftable =
-	| {readonly [K in keyof any]: any}
-	| ReadonlyMap<any, any>
-	| ReadonlySet<any>
-	| ReadonlyArray<any>
-	| {
-			[DRAFTABLE]: true
-	  }
-
 export interface Patch {
 	op: "replace" | "remove" | "add"
 	path: (string | number)[]
@@ -99,7 +90,7 @@ export interface IProduce {
 	<
 		Recipe extends (...args: any[]) => any,
 		Params extends any[] = Parameters<Recipe>,
-		T = Params[0] extends object ? Params[0] : never
+		T = Params[0]
 	>(
 		recipe: Recipe
 	): <Base extends Immutable<T>>(
@@ -114,7 +105,7 @@ export interface IProduce {
 	<
 		Recipe extends (...args: any[]) => any,
 		Params extends any[] = Parameters<Recipe>,
-		T = Params[0] extends object ? Params[0] : never
+		T = Params[0]
 	>(
 		recipe: Recipe,
 		initialState: Immutable<T>
@@ -124,7 +115,7 @@ export interface IProduce {
 	) => Produced<Base, ReturnType<Recipe>>
 
 	/** Normal producer */
-	<Base extends Draftable, D = Draft<Base>, Return = void>(
+	<Base, D = Draft<Base>, Return = void>(
 		base: Base,
 		recipe: (draft: D) => Return,
 		listener?: PatchListener
@@ -142,7 +133,7 @@ export interface IProduceWithPatches {
 	<
 		Recipe extends (...args: any[]) => any,
 		Params extends any[] = Parameters<Recipe>,
-		T = Params[0] extends object ? Params[0] : never
+		T = Params[0]
 	>(
 		recipe: Recipe
 	): <Base extends Immutable<T>>(
@@ -157,7 +148,7 @@ export interface IProduceWithPatches {
 	<
 		Recipe extends (...args: any[]) => any,
 		Params extends any[] = Parameters<Recipe>,
-		T = Params[0] extends object ? Params[0] : never
+		T = Params[0]
 	>(
 		recipe: Recipe,
 		initialState: Immutable<T>
@@ -167,7 +158,7 @@ export interface IProduceWithPatches {
 	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
 
 	/** Normal producer */
-	<Base extends Draftable, D = Draft<Base>, Return = void>(
+	<Base, D = Draft<Base>, Return = void>(
 		base: Base,
 		recipe: (draft: D) => Return
 	): [Produced<Base, Return>, Patch[], Patch[]]

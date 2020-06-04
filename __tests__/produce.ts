@@ -78,22 +78,6 @@ it("can infer state type from recipe function", () => {
 	assert(foo, _ as Recipe)
 })
 
-it("does not allow recipes for primitives", () => {
-	let foo = produce((x: number) => {})
-	if (false) {
-		// @ts-expect-error
-		foo(3)
-	}
-})
-
-it("does not allow recipes for primitives - 2", () => {
-	let foo = produce((x: number) => {})
-	if (false) {
-		// @ts-expect-error
-		foo(3)
-	}
-})
-
 it("can infer state type from recipe function with arguments", () => {
 	type State = {readonly a: string} | {readonly b: string}
 	type Recipe = <S extends State>(state: S, x: number) => S
@@ -110,11 +94,11 @@ it("can infer state type from recipe function with arguments and initial state",
 	assert(foo, _ as Recipe)
 })
 
-it("won't accept non draftables", () => {
-	if (false) {
-		// @ts-expect-error
-		produce(3, () => {})
-	}
+it("cannot infer state type when the function type and default state are missing", () => {
+	type Recipe = <S extends any>(state: S) => S
+	const foo = produce((_: any) => {})
+	// @ts-expect-error
+	assert(foo, _ as Recipe)
 })
 
 it("can update readonly state via curried api", () => {
@@ -173,7 +157,7 @@ describe("curried producer", () => {
 			type Recipe = <S extends State>(state: S, a: number, b: number) => S
 			let foo = produce((s: State, a: number, b: number) => {})
 			assert(foo, _ as Recipe)
-			foo({} as State, 1, 2)
+			foo(_ as State, 1, 2)
 		}
 
 		// Using argument parameters:
@@ -181,7 +165,7 @@ describe("curried producer", () => {
 			type Recipe = <S extends State>(state: S, ...rest: number[]) => S
 			let woo = produce((state: Draft<State>, ...args: number[]) => {})
 			assert(woo, _ as Recipe)
-			woo({} as State, 1, 2)
+			woo(_ as State, 1, 2)
 		}
 
 		// With initial state:
@@ -193,8 +177,9 @@ describe("curried producer", () => {
 			let bar = produce((state: Draft<State>, ...args: number[]) => {},
 			_ as State)
 			assert(bar, _ as Recipe)
-			bar({} as State, 1, 2)
-			bar({} as State)
+			bar(_ as State, 1, 2)
+			bar(_ as State)
+			bar()
 		}
 
 		// When args is a tuple:
@@ -210,6 +195,7 @@ describe("curried producer", () => {
 			)
 			assert(tup, _ as Recipe)
 			tup({a: 1}, "", 2)
+			tup(undefined, "", 2)
 		}
 	})
 
@@ -236,7 +222,7 @@ describe("curried producer", () => {
 })
 
 it("works with return type of: number", () => {
-	let base = {} as {a: number}
+	let base = _ as {a: number}
 	let result = produce(base, () => 1)
 	assert(result, _ as number)
 })
@@ -288,7 +274,7 @@ it("can produce an undefined value", () => {
 })
 
 it("can return the draft itself", () => {
-	let base = {} as {readonly a: number}
+	let base = _ as {readonly a: number}
 	let result = produce(base, draft => draft)
 
 	// Currently, the `readonly` modifier is lost.

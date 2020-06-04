@@ -22,7 +22,9 @@ import {
 	revokeScope,
 	leaveScope,
 	usePatchesInScope,
-	getCurrentScope
+	getCurrentScope,
+	NOTHING,
+	freeze
 } from "../internal"
 
 interface ProducersFns {
@@ -112,8 +114,13 @@ export class Immer implements ProducersFns {
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
-		}
-		die(21, base)
+		} else if (!base || typeof base !== "object") {
+			result = recipe(base)
+			if (result === NOTHING) return undefined
+			if (result === undefined) result = base
+			if (this.autoFreeze_) freeze(result, true)
+			return result
+		} else die(21, base)
 	}
 
 	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {

@@ -120,6 +120,14 @@ function runTests(name, useProxies) {
 				expect(isFrozen(next)).toBeTruthy()
 				expect(isFrozen(next.a)).toBeTruthy()
 			})
+
+			it("a new object replaces a primitive base", () => {
+				const obj = {a: {}}
+				const next = produce(null, () => obj)
+				expect(next).toBe(obj)
+				expect(isFrozen(next)).toBeTruthy()
+				expect(isFrozen(next.a)).toBeTruthy()
+			})
 		})
 
 		it("can handle already frozen trees", () => {

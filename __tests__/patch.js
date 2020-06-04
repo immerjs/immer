@@ -759,7 +759,7 @@ describe("arrays - NESTED splice should should result in remove op.", () => {
 })
 
 describe("simple replacement", () => {
-	runPatchTest({x: 3}, _d => [], [{op: "replace", path: [], value: []}])
+	runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
 })
 
 describe("same value replacement - 1", () => {

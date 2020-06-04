@@ -5,8 +5,7 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins,
-	isDraftable
+	enableAllPlugins
 } from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
@@ -1463,7 +1462,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			const incrementor = produce(function() {
 				expect(this).toBe(undefined)
 			})
-			incrementor({})
+			incrementor()
 		})
 
 		it("should be possible to use dynamic bound this", () => {
@@ -1842,12 +1841,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		it("cannot produce undefined by returning undefined", () => {
+			const base = 3
+			expect(produce(base, () => 4)).toBe(4)
+			expect(produce(base, () => null)).toBe(null)
+			expect(produce(base, () => undefined)).toBe(3)
+			expect(produce(base, () => {})).toBe(3)
+			expect(produce(base, () => nothing)).toBe(undefined)
+
 			expect(produce({}, () => undefined)).toEqual({})
 			expect(produce({}, () => nothing)).toBe(undefined)
+			expect(produce(3, () => nothing)).toBe(undefined)
 
 			expect(produce(() => undefined)({})).toEqual({})
 			expect(produce(() => nothing)({})).toBe(undefined)
-			expect(produce(() => nothing, {})(undefined)).toEqual(undefined)
+			expect(produce(() => nothing)(3)).toBe(undefined)
 		})
 
 		describe("base state type", () => {
@@ -2223,11 +2230,27 @@ function testLiteralTypes(produce) {
 		describe(name, () => {
 			const value = values[name]
 
-			it("does not create a draft", () => {
-				expect(() => produce(value, () => {})).toThrow(
-					/produce can only be called on things that are draftable/
-				)
-			})
+			if (value && typeof value == "object") {
+				it("does not return a copy when changes are made", () => {
+					expect(() =>
+						produce(value, draft => {
+							draft.foo = true
+						})
+					).toThrowError(
+						"produce can only be called on things that are draftable"
+					)
+				})
+			} else {
+				it("does not create a draft", () => {
+					produce(value, draft => {
+						expect(draft).toBe(value)
+					})
+				})
+
+				it("returns the base state when no changes are made", () => {
+					expect(produce(value, () => {})).toBe(value)
+				})
+			}
 		})
 	}
 }
