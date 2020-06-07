@@ -67,7 +67,6 @@ export function loadPlugin<K extends keyof Plugins>(
 /** ES5 Plugin */
 
 interface ES5BaseState extends ImmerBaseState {
-	finalizing_: boolean
 	assigned_: {[key: string]: any}
 	parent_?: ImmerState
 	revoked_: boolean

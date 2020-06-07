@@ -60,7 +60,6 @@ export function createProxyProxy<T extends Objectish>(
 		// True for both shallow and deep changes.
 		modified_: false,
 		// Used during finalization.
-		// TODO: still needed?
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
 		assigned_: {},
@@ -150,7 +149,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			state.assigned_[prop] = false
 			prepareCopy(state)
 			markChanged(state)
-		} else if (state.assigned_[prop]) {
+		} else {
 			// if an originally not assigned property was deleted
 			delete state.assigned_[prop]
 		}
@@ -235,6 +234,6 @@ export function markChanged(state: ImmerState) {
 
 export function prepareCopy(state: {base_: any; copy_: any}) {
 	if (!state.copy_) {
-		state.copy_ = shallowCopy(state.base_, true)
+		state.copy_ = shallowCopy(state.base_)
 	}
 }

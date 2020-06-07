@@ -11,8 +11,6 @@ import {
 	isDraft,
 	SetState,
 	set,
-	is,
-	get,
 	ProxyTypeES5Object,
 	ProxyTypeES5Array,
 	ProxyTypeSet,
@@ -87,7 +85,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
-				? (state.copy_ = shallowCopy(state.draft_, true))
+				? (state.copy_ = shallowCopy(state.draft_))
 				: state.copy_
 		// finalize all children of the copy
 		each(result as any, (key, childValue) =>

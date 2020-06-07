@@ -51,6 +51,7 @@ export function original(value: Drafted<any>): any {
 		return value[DRAFT_STATE].base_ as any
 	}
 	// otherwise return undefined
+	// TODO: or die
 }
 
 /*#__PURE__*/
@@ -144,14 +145,13 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any, makeWritable = false) {
-	// TODO: makeWritable is always true?
+export function shallowCopy(base: any) {
 	if (Array.isArray(base)) return base.slice()
 	const descriptors = Object.getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
 	for (let key in descriptors) {
 		const desc = descriptors[key]
-		if (makeWritable && desc.writable === false) {
+		if (desc.writable === false) {
 			desc.writable = true
 			desc.configurable = true
 		}
@@ -162,7 +162,7 @@ export function shallowCopy(base: any, makeWritable = false) {
 		if (desc.get)
 			descriptors[key] = {
 				configurable: true,
-				writable: true, // TODO: or !!desc.set ?
+				writable: !!desc.set, // could live with 'true' as well here...
 				enumerable: desc.enumerable,
 				value: base[key]
 			}

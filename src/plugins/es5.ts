@@ -27,9 +27,6 @@ export function enableES5() {
 		result: any,
 		isReplaced: boolean
 	) {
-		scope.drafts_!.forEach((draft: any) => {
-			;(draft[DRAFT_STATE] as ES5State).finalizing_ = true
-		})
 		if (!isReplaced) {
 			if (scope.patches_) {
 				markChangesRecursively(scope.drafts_![0])
@@ -80,8 +77,6 @@ export function enableES5() {
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
 			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,
-			// TODO: still needed?
-			finalizing_: false,
 			finalized_: false,
 			assigned_: {},
 			parent_: parent,
@@ -162,7 +157,6 @@ export function enableES5() {
 		const {base_, draft_, assigned_, type_} = state
 		if (type_ === ProxyTypeES5Object) {
 			// Look for added keys.
-			// TODO: looks quite duplicate to hasObjectChanges,
 			// probably there is a faster way to detect changes, as sweep + recurse seems to do some
 			// unnecessary work.
 			// also: probably we can store the information we detect here, to speed up tree finalization!

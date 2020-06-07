@@ -1840,6 +1840,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState).not.toBe(baseState)
 		})
 
+		it("cannot always detect noop assignments - 4", () => {
+			const baseState = {}
+			const [nextState, patches] = produceWithPatches(baseState, d => {
+				d.x = 4
+				delete d.x
+			})
+			expect(nextState).toEqual({})
+			expect(patches).toEqual([])
+			// This differs between ES5 and proxy, and ES5 does it better :(
+			if (useProxies) expect(nextState).not.toBe(baseState)
+			else expect(nextState).toBe(baseState)
+		})
+
 		it("cannot produce undefined by returning undefined", () => {
 			const base = 3
 			expect(produce(base, () => 4)).toBe(4)
@@ -2161,6 +2174,35 @@ function testObjectTypes(produce) {
 				this.bar.baz++
 			}
 		}
+		const state = new State()
+
+		it("should use a method to assing a field using a getter that return a non primitive object", () => {
+			const newState = produce(state, draft => {
+				draft.syncFoo()
+			})
+			expect(newState.foo).toEqual(1)
+			expect(newState.bar).toEqual({baz: 2})
+			expect(state.bar).toEqual({baz: 1})
+		})
+	})
+
+	describe("super class with getters", () => {
+		class BaseState {
+			[immerable] = true
+			_bar = {baz: 1}
+			foo
+			get bar() {
+				return this._bar
+			}
+			syncFoo() {
+				const value = this.bar.baz
+				this.foo = value
+				this.bar.baz++
+			}
+		}
+
+		class State extends BaseState {}
+
 		const state = new State()
 
 		it("should use a method to assing a field using a getter that return a non primitive object", () => {
