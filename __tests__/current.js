@@ -1,15 +1,19 @@
-import produce, {
+import {
 	setUseProxies,
 	setAutoFreeze,
 	enableAllPlugins,
 	current,
-	immerable
+	immerable,
+	isDraft,
+	produce,
+	original
 } from "../src/immer"
 
 enableAllPlugins()
 
 runTests("proxy", true)
-runTests("es5", false)
+// TODO: enable
+// runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("current - " + name, () => {
@@ -18,13 +22,10 @@ function runTests(name, useProxies) {
 			setUseProxies(useProxies)
 		})
 
-		it("returns undraftable values", () => {
-			;[null, undefined, 1, true, "test"].forEach(value => {
-				// TODO: or throw?
-				produce(value, draft => {
-					expect(current(draft)).toBe(value)
-				})
-			})
+		it("must be called on draft", () => {
+			expect(() => {
+				current({})
+			}).toThrowError("[Immer] 'current' expects a draft, got: [object Object]")
 		})
 
 		it("can handle simple objects", () => {
@@ -32,6 +33,7 @@ function runTests(name, useProxies) {
 			let c
 			const next = produce(base, draft => {
 				draft.x++
+				debugger
 				c = current(draft)
 				draft.x++
 			})
@@ -104,7 +106,8 @@ function runTests(name, useProxies) {
 				x: 1,
 				y: {
 					z: 2
-				}
+				},
+				z: {}
 			}
 			produce(base, draft => {
 				draft.y.z++
@@ -118,9 +121,11 @@ function runTests(name, useProxies) {
 						nested: {
 							z: 3
 						}
-					}
+					},
+					z: {}
 				})
 				expect(isDraft(c.y.nested)).toBe(false)
+				expect(c.z).toBe(base.z)
 				expect(c.y.nested).not.toBe(draft.y.nested)
 			})
 		})
@@ -128,10 +133,10 @@ function runTests(name, useProxies) {
 		it("handles map - 1", () => {
 			const base = new Map([["a", {x: 1}]])
 			produce(base, draft => {
-				expect(current(draft)).toBe(draft)
+				expect(current(draft)).toBe(base)
 				draft.delete("a")
 				let c = current(draft)
-				expect(current(draft)).not.toBe(draft)
+				expect(current(draft)).not.toBe(base)
 				expect(c).toEqual(new Map())
 				const obj = {}
 				draft.set("b", obj)
@@ -146,7 +151,7 @@ function runTests(name, useProxies) {
 			produce(base, draft => {
 				draft.get("a").x++
 				const c = current(draft)
-				expect(c).not.toBe(draft)
+				expect(c).not.toBe(base)
 				expect(c).toEqual(new Map([["a", {x: 2}]]))
 				draft.get("a").x++
 				expect(c).toEqual(new Map([["a", {x: 2}]]))
@@ -156,7 +161,7 @@ function runTests(name, useProxies) {
 		it("handles set", () => {
 			const base = new Set([1])
 			produce(base, draft => {
-				expect(current(draft)).toBe(draft)
+				expect(current(draft)).toBe(base)
 				base.add(2)
 				const c = current(draft)
 				expect(c).toEqual(new Set([1, 2]))
@@ -178,7 +183,7 @@ function runTests(name, useProxies) {
 
 			const c = new Counter()
 			produce(c, draft => {
-				expect(current(draft)).toBe(draft)
+				expect(current(draft)).toBe(c)
 				draft.inc()
 				const c = current(draft)
 				expect(c).not.toBe(draft)

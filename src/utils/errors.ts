@@ -33,6 +33,9 @@ const errors = {
 	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available",
 	21(thing: string) {
 		return `produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '${thing}'`
+	},
+	22(thing: string) {
+		return `'current' expects a draft, got: ${thing}`
 	}
 } as const
 
