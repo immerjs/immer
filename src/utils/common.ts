@@ -27,13 +27,12 @@ export function isDraft(value: any): boolean {
 export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
-		(isPlainObject(value) ||
-			Array.isArray(value) ||
-			!!value[DRAFTABLE] ||
-			!!value.constructor[DRAFTABLE] ||
-			isMap(value) ||
-			isSet(value)) &&
-		!isFrozen(value)
+		isPlainObject(value) ||
+		Array.isArray(value) ||
+		!!value[DRAFTABLE] ||
+		!!value.constructor[DRAFTABLE] ||
+		isMap(value) ||
+		isSet(value)
 	)
 }
 
@@ -172,7 +171,7 @@ export function shallowCopy(base: any) {
 }
 
 export function freeze(obj: any, deep: boolean): void {
-	if (isDraft(obj) || !isDraftable(obj)) return
+	if (Object.isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}

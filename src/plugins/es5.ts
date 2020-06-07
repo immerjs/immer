@@ -250,12 +250,19 @@ export function enableES5() {
 		return false
 	}
 
+	function hasChanges_(state: ES5State) {
+		return state.type_ === ProxyTypeES5Object
+			? hasObjectChanges(state)
+			: hasArrayChanges(state)
+	}
+
 	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
 	loadPlugin("ES5", {
 		createES5Proxy_,
-		willFinalizeES5_
+		willFinalizeES5_,
+		hasChanges_
 	})
 }

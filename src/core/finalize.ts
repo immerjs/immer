@@ -133,7 +133,7 @@ function finalizeProperty(
 		} else return
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-	if (isDraftable(childValue)) {
+	if (isDraftable(childValue) && !Object.isFrozen(childValue)) {
 		if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
 			// optimization: if an object is not a draft, and we don't have to
 			// deepfreeze everything, and we are sure that no drafts are left in the remaining object

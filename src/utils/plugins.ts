@@ -37,6 +37,7 @@ const plugins: {
 			base: T,
 			parent?: ImmerState
 		): Drafted<T, ES5ObjectState | ES5ArrayState>
+		hasChanges_(state: ES5ArrayState | ES5ObjectState): boolean
 	}
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T

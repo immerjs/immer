@@ -12,6 +12,7 @@ import {
 	ArchtypeSet,
 	getArchtype
 } from "../internal"
+import {getPlugin} from "../utils/plugins"
 
 export function current<T>(value: T): T
 export function current(value: any): any {
@@ -25,7 +26,11 @@ function currentImpl(value: any): any {
 	let copy: any
 	const archType = getArchtype(value)
 	if (state) {
-		if (!state.modified_) return state.base_
+		if (
+			!state.modified_ &&
+			(state.type_ < 4 || !getPlugin("ES5").hasChanges_(state as any))
+		)
+			return state.base_
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
 		copy = copyHelper(value, archType)
