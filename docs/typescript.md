@@ -123,8 +123,8 @@ const nextState = castImmutable(produce(baseState, _draft => {}))
 
 **Note:** Immer v5.3+ supports TypeScript v3.7+ only.
 
-**Note:** Immer v1.9+ supports TypeScript v3.1+ only.
-
 **Note:** Immer v3.0+ supports TypeScript v3.4+ only.
+
+**Note:** Immer v1.9+ supports TypeScript v3.1+ only.
 
 **Note:** Flow support might be removed in future versions and we recommend TypeScript
