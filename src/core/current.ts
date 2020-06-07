@@ -7,7 +7,10 @@ import {
 	get,
 	set,
 	ImmerState,
-	isDraftable
+	isDraftable,
+	ArchtypeMap,
+	ArchtypeSet,
+	getArchtype
 } from "../internal"
 
 export function current<T>(value: T): T
@@ -20,19 +23,32 @@ function currentImpl(value: any): any {
 	if (!isDraftable(value)) return value
 	const state: ImmerState | undefined = value[DRAFT_STATE]
 	let copy: any
+	const archType = getArchtype(value)
 	if (state) {
 		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
-		copy = shallowCopy(value)
+		copy = copyHelper(value, archType)
 		state.finalized_ = false
 	} else {
-		copy = shallowCopy(value)
+		copy = copyHelper(value, archType)
 	}
 
 	each(copy, (key, childValue) => {
-		if (state && get(state.base_, key) === childValue) return // no need to copy a current of something that didn't change
+		if (state && get(state.base_, key) === childValue) return // no need to copy or search in something that didn't change
 		set(copy, key, currentImpl(childValue))
 	})
-	return copy
+	return archType === ArchtypeSet ? new Set(copy) : copy
+}
+
+function copyHelper(value: any, archType: number): any {
+	// creates a shallow copy, even if it is a map or set
+	switch (archType) {
+		case ArchtypeMap:
+			return new Map(value)
+		case ArchtypeSet:
+			// Set will be cloned as array temporarily, so that we can replace individual items
+			return Array.from(value)
+	}
+	return shallowCopy(value)
 }

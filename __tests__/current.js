@@ -12,8 +12,7 @@ import {
 enableAllPlugins()
 
 runTests("proxy", true)
-// TODO: enable
-// runTests("es5", false)
+runTests("es5", false)
 
 function runTests(name, useProxies) {
 	describe("current - " + name, () => {
@@ -28,17 +27,19 @@ function runTests(name, useProxies) {
 			}).toThrowError("[Immer] 'current' expects a draft, got: [object Object]")
 		})
 
-		it("can handle simple objects", () => {
-			const base = {x: 1}
+		it("can handle simple arrays", () => {
+			const base = [{x: 1}]
 			let c
 			const next = produce(base, draft => {
-				draft.x++
-				debugger
+				expect(current(draft)).toEqual(base)
+				draft[0].x++
 				c = current(draft)
-				draft.x++
+				expect(c).toEqual([{x: 2}])
+				expect(Array.isArray(c))
+				draft[0].x++
 			})
-			expect(next).toEqual({x: 3})
-			expect(c).toEqual({x: 2})
+			expect(next).toEqual([{x: 3}])
+			expect(c).toEqual([{x: 2}])
 			expect(isDraft(c)).toBe(false)
 		})
 
@@ -137,12 +138,13 @@ function runTests(name, useProxies) {
 				draft.delete("a")
 				let c = current(draft)
 				expect(current(draft)).not.toBe(base)
+				expect(current(draft)).not.toBe(draft)
 				expect(c).toEqual(new Map())
 				const obj = {}
 				draft.set("b", obj)
 				expect(c).toEqual(new Map())
 				expect(current(draft)).toEqual(new Map([["b", obj]]))
-				expect(current(draft).get("b")).toBe(obj)
+				expect(c).toBeInstanceOf(Map)
 			})
 		})
 
@@ -162,12 +164,14 @@ function runTests(name, useProxies) {
 			const base = new Set([1])
 			produce(base, draft => {
 				expect(current(draft)).toBe(base)
-				base.add(2)
+				draft.add(2)
 				const c = current(draft)
 				expect(c).toEqual(new Set([1, 2]))
 				expect(c).not.toBe(draft)
-				base.add(3)
+				expect(c).not.toBe(base)
+				draft.add(3)
 				expect(c).toEqual(new Set([1, 2]))
+				expect(c).toBeInstanceOf(Set)
 			})
 		})
 
@@ -181,9 +185,9 @@ function runTests(name, useProxies) {
 				}
 			}
 
-			const c = new Counter()
-			produce(c, draft => {
-				expect(current(draft)).toBe(c)
+			const counter1 = new Counter()
+			produce(counter1, draft => {
+				expect(current(draft)).toBe(counter1)
 				draft.inc()
 				const c = current(draft)
 				expect(c).not.toBe(draft)
@@ -195,6 +199,7 @@ function runTests(name, useProxies) {
 				draft.inc()
 				expect(c.current).toBe(2)
 				expect(draft.current).toBe(3)
+				expect(c).toBeInstanceOf(Counter)
 			})
 		})
 	})
