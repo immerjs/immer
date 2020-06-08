@@ -36,6 +36,9 @@ const errors = {
 	},
 	22(thing: string) {
 		return `'current' expects a draft, got: ${thing}`
+	},
+	23(thing: string) {
+		return `'original' expects a draft, got: ${thing}`
 	}
 } as const
 

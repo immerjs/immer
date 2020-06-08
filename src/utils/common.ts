@@ -47,11 +47,8 @@ export function isPlainObject(value: any): boolean {
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
-	if (value && value[DRAFT_STATE]) {
-		return value[DRAFT_STATE].base_ as any
-	}
-	// otherwise return undefined
-	// TODO: or die
+	if (!isDraft(value)) die(23, value)
+	return value[DRAFT_STATE].base_
 }
 
 /*#__PURE__*/
