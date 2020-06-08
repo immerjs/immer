@@ -12,6 +12,7 @@ title: Pitfalls
 1. It is possible to return values from producers, except, it is not possible to return `undefined` that way, as it is indistinguishable from not updating the draft at all! If you want to replace the draft with `undefined`, just return `nothing` from the producer.
 1. Immer [does not support exotic objects](https://github.com/immerjs/immer/issues/504) such as window.location.
 1. You will need to enable your own classes to work properly with Immer. For docs on the topic, check out the section on [working with complex objects](https://immerjs.github.io/immer/docs/complex-objects).
+1. For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
 1. Note that data that comes from the closure, and not from the base state, will never be drafted, even when the data has become part of the new draft:
 
 ```javascript

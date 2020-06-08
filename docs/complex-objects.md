@@ -1,59 +1,11 @@
 ---
 id: complex-objects
-title: Working with Map, Set and classes
+title: Classes
 ---
 
 <div id="codefund"><!-- fallback content --></div>
 
-_⚠ Since version 6 support for `Map`s and `Set`s has to be enabled explicitly by calling [`enableMapSet()`](installation#pick-your-immer-version) once when starting your application._
-
-Plain objects, arrays, `Map`s and `Set`s are always drafted by Immer. An example of using Maps with immer:
-
-```javascript
-test("Producers can update Maps", () => {
-	const usersById_v1 = new Map()
-
-	const usersById_v2 = produce(usersById_v1, draft => {
-		// Modifying a map results in a new map
-		draft.set("michel", {name: "Michel Weststrate", country: "NL"})
-	})
-
-	const usersById_v3 = produce(usersById_v2, draft => {
-		// Making a change deep inside a map, results in a new map as well!
-		draft.get("michel").country = "UK"
-	})
-
-	// We got a new map each time!
-	expect(usersById_v2).not.toBe(usersById_v1)
-	expect(usersById_v3).not.toBe(usersById_v2)
-	// With different content obviously
-	expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
-	expect(usersById_v2).toMatchInlineSnapshot(`
-		Map {
-		  "michel" => Object {
-		    "country": "NL",
-		    "name": "Michel Weststrate",
-		  },
-		}
-	`)
-	expect(usersById_v3).toMatchInlineSnapshot(`
-		Map {
-		  "michel" => Object {
-		    "country": "UK",
-		    "name": "Michel Weststrate",
-		  },
-		}
-	`)
-	// The old one was never modified
-	expect(usersById_v1.size).toBe(0)
-	// And trying to change a Map outside a producers is going to: NO!
-	expect(() => usersById_v3.clear()).toThrowErrorMatchingInlineSnapshot(
-		`"This object has been frozen and should not be mutated"`
-	)
-})
-```
-
-Every other object must use the `immerable` symbol to mark itself as compatible with Immer. When one of these objects is mutated within a producer, its prototype is preserved between copies.
+Plain objects (objects without a prototype), arrays, `Map`s and `Set`s are always drafted by Immer. Every other object must use the `immerable` symbol to mark itself as compatible with Immer. When one of these objects is mutated within a producer, its prototype is preserved between copies.
 
 ```js
 import {immerable} from "immer"
@@ -69,10 +21,51 @@ class Foo {
 Foo[immerable] = true // Option 3
 ```
 
-For arrays, only numeric properties and the `length` property can be mutated. Custom properties are not preserved on arrays.
+### Example
 
-When working with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.
+```js
+import {immerable, produce} from "immer"
 
-Maps and Sets that are produced by Immer will be made artificially immutable. This means that they will throw an exception when trying mutative methods like `set`, `clear` etc. outside a producer.
+class Clock {
+	[immerable] = true
 
-_Note: The **keys** of a map are never drafted! This is done to avoid confusing semantics and keep keys always referentially equal_
+	constructor(hour, minute) {
+		this.hour = hour
+		this.minute = minute
+	}
+
+	get time() {
+		return `${this.hour}:${minute}`
+	}
+
+	tick() {
+		return produce(this, draft => {
+			draft.minute++
+		})
+	}
+}
+
+const clock1 = new Clock(12, 10)
+const clock2 = clock1.tick()
+console.log(clock1.time) // 12:10
+console.log(clock2.time) // 12:11
+console.log(clock2 instanceof Clock) // true
+```
+
+### Semantics in detail
+
+The semantics on how classes are drafted are as follows:
+
+1. A draft of a class is a fresh object but with the same prototype as the original object.
+2. When creating a draft, Immer will copy all _own_ properties from the base to the draft.This includes non-enumerable and symbolic properties.
+3. _Own_ getters will be invoked during the copy process, just like `Object.assign` would.
+4. Inherited getters and methods will remain as is and be inherited by the draft.
+5. Immer will not invoke constructor functions.
+6. The final instance will be constructed with the same mechanism as the draft was created.
+7. Only getters that have a setter as well will be writable in the draft, as otherwise the value can't be copied back.
+
+Because Immer will dereference own getters of objects into normal properties, it is possible to use objects that use getter/setter traps on their fields, like MobX and Vue do.
+
+Immer does not support exotic objects such as DOM Nodes or Buffers.
+
+So when working for example with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.

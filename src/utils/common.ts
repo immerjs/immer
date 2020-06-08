@@ -155,11 +155,10 @@ export function shallowCopy(base: any) {
 		// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
 		// with libraries that trap values, like mobx or vue
 		// unlike object.assign, non-enumerables will be copied as well
-		// TODO: document!
-		if (desc.get)
+		if (desc.get || desc.set)
 			descriptors[key] = {
 				configurable: true,
-				writable: !!desc.set, // could live with 'true' as well here...
+				writable: true, // could live with !!desc.set as well here...
 				enumerable: desc.enumerable,
 				value: base[key]
 			}

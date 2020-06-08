@@ -234,3 +234,30 @@ test("Producers can update Maps", () => {
 	// And trying to change a Map outside a producers is going to: NO!
 	expect(() => usersById_v3.clear()).toThrowErrorMatchingSnapshot()
 })
+
+test("clock class", () => {
+	class Clock {
+		[immerable] = true
+
+		constructor(hour, minute) {
+			this.hour = hour
+			this.minute = minute
+		}
+
+		get time() {
+			return `${this.hour}:${this.minute}`
+		}
+
+		tick() {
+			return produce(this, draft => {
+				draft.minute++
+			})
+		}
+	}
+
+	const clock1 = new Clock(12, 10)
+	const clock2 = clock1.tick()
+	expect(clock1.time).toEqual("12:10") // 12:10
+	expect(clock2.time).toEqual("12:11") // 12:11
+	expect(clock2).toBeInstanceOf(Clock)
+})

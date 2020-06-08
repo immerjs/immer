@@ -45,7 +45,6 @@ export function enableES5() {
 
 	function createES5Draft(isArray: boolean, base: any) {
 		// Create a new object / array, where each own property is trapped with an accessor
-		// TODO: extract all utils used in this fn?
 		const descriptors = Object.getOwnPropertyDescriptors(base)
 		// Descriptors we want to skip:
 		if (isArray) delete descriptors.length
@@ -73,7 +72,6 @@ export function enableES5() {
 		const draft = createES5Draft(isArray, base)
 
 		const state: ES5ObjectState | ES5ArrayState = {
-			// TODO: reuse this object construction from proxy?
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
 			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,

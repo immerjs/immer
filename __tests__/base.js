@@ -2239,6 +2239,99 @@ function testObjectTypes(produce) {
 			expect(state.bar).toEqual(0)
 		})
 	})
+
+	describe("setter only", () => {
+		let setterCalled = 0
+		class State {
+			[immerable] = true
+			x = 0
+			set y(value) {
+				setterCalled++
+				this.x = value
+			}
+		}
+
+		const state = new State()
+		const next = produce(state, draft => {
+			expect(draft.y).toBeUndefined()
+			draft.y = 2 // setter is inherited, so works
+			expect(draft.x).toBe(2)
+		})
+		expect(setterCalled).toBe(1)
+		expect(next.x).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("getter only", () => {
+		let getterCalled = 0
+		class State {
+			[immerable] = true
+			x = 0
+			get y() {
+				getterCalled++
+				return this.x
+			}
+		}
+
+		const state = new State()
+		const next = produce(state, draft => {
+			expect(draft.y).toBe(0)
+			expect(() => {
+				draft.y = 2
+			}).toThrow("Cannot set property y")
+			draft.x = 2
+			expect(draft.y).toBe(2)
+		})
+		expect(next.x).toBe(2)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("own setter only", () => {
+		let setterCalled = 0
+		const state = {
+			x: 0,
+			set y(value) {
+				setterCalled++
+				this.x = value
+			}
+		}
+
+		const next = produce(state, draft => {
+			expect(draft.y).toBeUndefined()
+			// setter is not preserved, so we can write
+			draft.y = 2
+			expect(draft.x).toBe(0)
+			expect(draft.y).toBe(2)
+		})
+		expect(setterCalled).toBe(0)
+		expect(next.x).toBe(0)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("own getter only", () => {
+		let getterCalled = 0
+		const state = {
+			x: 0,
+			get y() {
+				getterCalled++
+				return this.x
+			}
+		}
+
+		const next = produce(state, draft => {
+			expect(draft.y).toBe(0)
+			// de-referenced, so stores it locally
+			draft.y = 2
+			expect(draft.y).toBe(2)
+			expect(draft.x).toBe(0)
+		})
+		expect(getterCalled).not.toBe(1)
+		expect(next.x).toBe(0)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
 }
 
 function testLiteralTypes(produce) {

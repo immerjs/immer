@@ -43,6 +43,7 @@ function currentImpl(value: any): any {
 		if (state && get(state.base_, key) === childValue) return // no need to copy or search in something that didn't change
 		set(copy, key, currentImpl(childValue))
 	})
+	// In the future, we might consider freezing here, based on the current settings
 	return archType === ArchtypeSet ? new Set(copy) : copy
 }
 

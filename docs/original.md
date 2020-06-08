@@ -1,6 +1,6 @@
 ---
 id: original
-title: Extracting the original object from a proxied instance
+title: Extracting the original state from a draft
 sidebar_label: Original
 ---
 
@@ -17,7 +17,7 @@ const nextState = produce(baseState, draftState => {
 })
 ```
 
-Just want to know if a value is a proxied instance? Use the `isDraft` function!
+Just want to know if a value is a proxied instance? Use the `isDraft` function! Note that `original` cannot be invoked on objects that aren't drafts.
 
 ```js
 import {isDraft, produce} from "immer"
