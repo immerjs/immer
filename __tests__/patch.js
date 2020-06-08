@@ -4,7 +4,8 @@ import produce, {
 	applyPatches,
 	produceWithPatches,
 	enableAllPlugins,
-	isDraft
+	isDraft,
+	immerable
 } from "../src/immer"
 
 enableAllPlugins()
@@ -1047,4 +1048,29 @@ test("#559 patches works in a nested reducer with proxies", () => {
 	const reversedSubState = applyPatches(newState.sub, inverseChanges)
 
 	expect(reversedSubState).toMatchObject(state.sub)
+})
+
+describe("#588", () => {
+	const reference = {value: {num: 53}}
+
+	class Base {
+		[immerable] = true
+		get nested() {
+			return reference.value
+		}
+		set nested(value) {}
+	}
+
+	let base = new Base()
+
+	runPatchTest(
+		base,
+		vdraft => {
+			reference.value = vdraft
+			produce(base, bdraft => {
+				bdraft.nested.num = 42
+			})
+		},
+		[{op: "add", path: ["num"], value: 42}]
+	)
 })
