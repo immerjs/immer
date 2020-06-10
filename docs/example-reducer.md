@@ -35,7 +35,7 @@ const byId = (state, action) => {
 }
 ```
 
-After using Immer, that simply becomes:
+After using Immer, our reducer can be expressed as:
 
 ```javascript
 import produce from "immer"
@@ -50,8 +50,8 @@ const byId = produce((draft, action) => {
 })
 ```
 
-Notice that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
+Notice that it is not necessary to handle the default case, a producer that doesn't do anything will return the original state.
 
 Creating Redux reducer is just a sample application of the Immer package. Immer is not just designed to simplify Redux reducers. It can be used in any context where you have an immutable data tree that you want to clone and modify (with structural sharing).
 
-_Note: it might be tempting after using producers for a while, to just place `produce` in your root reducer and then pass the draft to each reducer and work directly over such draft. Don't do that. It kills the point of Redux where each reducer is testable as pure reducer. Immer is best used when applying it to small individual pieces of logic._
+_Note: it might be tempting after using producers for a while, to just place `produce` in your root reducer and then pass the draft to each reducer and work directly over said draft. Don't do that. It removes the benefit of using Redux as a system where each reducer is testable as a pure function. Immer is best used when applied to small, individual pieces of logic._

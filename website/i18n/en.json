@@ -76,6 +76,9 @@
       "typescript": {
         "title": "Using TypeScript or Flow",
         "sidebar_label": "TypeScript / Flow"
+      },
+      "update-patterns": {
+        "title": "Update patterns"
       }
     },
     "links": {
