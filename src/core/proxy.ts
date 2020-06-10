@@ -120,8 +120,6 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 				value,
 				state
 			))
-			// Store drafts on the copy (when one exists).
-			// @ts-ignore
 		}
 		return value
 	},

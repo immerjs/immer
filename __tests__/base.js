@@ -2105,6 +2105,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(patches.length).toBe(0)
 		})
 	})
+
+	if (!autoFreeze) {
+		describe("#613", () => {
+			const x1 = {}
+			const y1 = produce(x1, draft => {
+				draft.foo = produce({bar: "baz"}, draft1 => {
+					draft1.bar = "baa"
+				})
+				draft.foo.bar = "a"
+			})
+			expect(y1.foo.bar).toBe("a")
+		})
+	}
 }
 
 function testObjectTypes(produce) {
