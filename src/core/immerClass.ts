@@ -24,7 +24,8 @@ import {
 	usePatchesInScope,
 	getCurrentScope,
 	NOTHING,
-	freeze
+	freeze,
+	current
 } from "../internal"
 
 interface ProducersFns {
@@ -139,6 +140,7 @@ export class Immer implements ProducersFns {
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) die(8)
+		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
 		const proxy = createProxy(this, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true

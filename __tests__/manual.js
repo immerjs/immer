@@ -102,7 +102,7 @@ function runTests(name, useProxies) {
 		})
 
 		// TODO: fix
-		it.skip("combines with produce - 2", () => {
+		it("combines with produce - 2", () => {
 			const state = {a: 1}
 
 			const res1 = produce(state, draft => {
