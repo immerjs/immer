@@ -19,7 +19,7 @@ Here is a simple example of the difference that Immer could make in practice.
 ```javascript
 // Redux reducer
 // Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
-const byId = (state, action) => {
+const byId = (state = {}, action) => {
 	switch (action.type) {
 		case RECEIVE_PRODUCTS:
 			return {
@@ -47,7 +47,7 @@ const byId = produce((draft, action) => {
 				draft[product.id] = product
 			})
 	}
-})
+}, {})
 ```
 
 Notice that it is not needed to handle the default case, a producer that doesn't do anything will simply return the original state.
