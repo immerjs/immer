@@ -20,6 +20,7 @@ import {
 	isFrozen,
 	shallowCopy
 } from "../internal"
+import {ProxyTypeProxyArray} from "../types/types-internal"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
@@ -87,6 +88,10 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
 				? (state.copy_ = shallowCopy(state.draft_))
 				: state.copy_
+		const originalCopy =
+			state.type_ === ProxyTypeES5Array || state.type_ === ProxyTypeProxyArray
+				? result.slice()
+				: undefined
 		// finalize all children of the copy
 		each(result as any, (key, childValue) =>
 			finalizeProperty(rootScope, state, result, key, childValue, path)
@@ -99,7 +104,8 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 				state,
 				path,
 				rootScope.patches_,
-				rootScope.inversePatches_!
+				rootScope.inversePatches_!,
+				originalCopy
 			)
 		}
 	}

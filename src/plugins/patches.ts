@@ -27,6 +27,7 @@ import {
 	die
 } from "../internal"
 import {isDraft} from "../utils/common"
+import {DRAFT_STATE} from "../utils/env"
 
 export function enablePatches() {
 	const REPLACE = "replace"
@@ -37,7 +38,8 @@ export function enablePatches() {
 		state: ImmerState,
 		basePath: PatchPath,
 		patches: Patch[],
-		inversePatches: Patch[]
+		inversePatches: Patch[],
+		originalCopy: any
 	): void {
 		switch (state.type_) {
 			case ProxyTypeProxyObject:
@@ -51,7 +53,13 @@ export function enablePatches() {
 				)
 			case ProxyTypeES5Array:
 			case ProxyTypeProxyArray:
-				return generateArrayPatches(state, basePath, patches, inversePatches)
+				return generateArrayPatches(
+					state,
+					basePath,
+					patches,
+					inversePatches,
+					originalCopy
+				)
 			case ProxyTypeSet:
 				return generateSetPatches(
 					(state as any) as SetState,
@@ -66,8 +74,10 @@ export function enablePatches() {
 		state: ES5ArrayState | ProxyArrayState,
 		basePath: PatchPath,
 		patches: Patch[],
-		inversePatches: Patch[]
+		inversePatches: Patch[],
+		originalCopy: any[]
 	) {
+		// TODO: we need originalCopy to determine the indices that remained
 		let {base_, assigned_} = state
 		let copy_ = state.copy_!
 
@@ -78,23 +88,63 @@ export function enablePatches() {
 			;[patches, inversePatches] = [inversePatches, patches]
 		}
 
-		const delta = copy_.length - base_.length
+		// for (let i = 0; i < base_.length; i++) {
+		// 	const origValue = base_[i];
+		// 	const value = copy_[i];
+		// 	if (assigned_[i]) {
+		// 		const path = basePath.concat([i]);
+		// 		patches.push({
+		// 			op: REPLACE,
+		// 			path,
+		// 			value: clonePatchValueIfNeeded(value)
+		// 		})
+		// 		inversePatches.push({
+		// 			op: REPLACE,
+		// 			path,
+		// 			value: clonePatchValueIfNeeded(origValue)
+		// 		})
+		// 	}
+		// }
+		// if (base_.length !== copy_.length) {
+		// 	inversePatches.push({
+		// 		op: REPLACE,
+		// 		path: basePath.concat(["length"]),
+		// 		value: base_.length
+		// 	})
+		// 	for (let i = base_.length; i < copy_.length; i++) {
 
-		// Find the first replaced index.
-		let start = 0
-		while (base_[start] === copy_[start] && start < base_.length) {
-			++start
-		}
+		// 	}
+		// }
+		// if (copy_.length < base_.length) {
+		// 	const path =
+		// 	patches.push({})
+		// }
 
-		// Find the last replaced index. Search from the end to optimize splice patches.
-		let end = base_.length
-		while (end > start && base_[end - 1] === copy_[end + delta - 1]) {
-			--end
-		}
+		// const delta = copy_.length - base_.length
+
+		// // Find the first replaced index.
+		// let start = 0
+		// while (
+		// 	(base_[start] === copy_[start] ||
+		// 		base_[start] === copy_[start]?.[DRAFT_STATE]?.base) &&
+		// 	start < base_.length
+		// ) {
+		// 	++start
+		// }
+
+		// // Find the last replaced index. Search from the end to optimize splice patches.
+		// let end = base_.length
+		// while (end > start && base_[end - 1] === copy_[end + delta - 1]) {
+		// 	--end
+		// }
 
 		// Process replaced indices.
-		for (let i = start; i < end; ++i) {
-			if (assigned_[i] && copy_[i] !== base_[i]) {
+		for (let i = 0; i < base_.length; i++) {
+			const draft = originalCopy[i] && originalCopy[i][DRAFT_STATE]
+			if (
+				assigned_[i] &&
+				(draft ? draft.base_ !== base_[i] : copy_[i] !== base_[i])
+			) {
 				const path = basePath.concat([i])
 				patches.push({
 					op: REPLACE,
@@ -111,21 +161,22 @@ export function enablePatches() {
 			}
 		}
 
-		const replaceCount = patches.length
-
 		// Process added indices.
-		for (let i = end + delta - 1; i >= end; --i) {
+		for (let i = base_.length; i < copy_.length; i++) {
 			const path = basePath.concat([i])
-			patches[replaceCount + i - end] = {
+			patches.push({
 				op: ADD,
 				path,
 				// Need to maybe clone it, as it can in fact be the original value
 				// due to the base/copy inversion at the start of this function
 				value: clonePatchValueIfNeeded(copy_[i])
-			}
+			})
+		}
+		if (base_.length < copy_.length) {
 			inversePatches.push({
-				op: REMOVE,
-				path
+				op: REPLACE,
+				path: basePath.concat(["length"]),
+				value: base_.length
 			})
 		}
 	}
