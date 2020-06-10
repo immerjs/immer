@@ -5,7 +5,6 @@ import {
 	Drafted,
 	isDraftable,
 	processResult,
-	NOTHING,
 	Patch,
 	Objectish,
 	DRAFT_STATE,
@@ -14,9 +13,7 @@ import {
 	isDraft,
 	isMap,
 	isSet,
-	markChangedProxy,
 	createProxyProxy,
-	freeze,
 	getPlugin,
 	die,
 	hasProxies,
@@ -25,7 +22,10 @@ import {
 	revokeScope,
 	leaveScope,
 	usePatchesInScope,
-	getCurrentScope
+	getCurrentScope,
+	NOTHING,
+	freeze,
+	current
 } from "../internal"
 
 interface ProducersFns {
@@ -115,13 +115,13 @@ export class Immer implements ProducersFns {
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
-		} else {
+		} else if (!base || typeof base !== "object") {
 			result = recipe(base)
 			if (result === NOTHING) return undefined
 			if (result === undefined) result = base
 			if (this.autoFreeze_) freeze(result, true)
 			return result
-		}
+		} else die(21, base)
 	}
 
 	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {
@@ -140,6 +140,7 @@ export class Immer implements ProducersFns {
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) die(8)
+		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
 		const proxy = createProxy(this, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
@@ -151,7 +152,7 @@ export class Immer implements ProducersFns {
 		draft: D,
 		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
-		const state: ImmerState = draft && draft[DRAFT_STATE]
+		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
 		if (__DEV__) {
 			if (!state || !state.isManual_) die(9)
 			if (state.finalized_) die(10)
@@ -177,7 +178,7 @@ export class Immer implements ProducersFns {
 	 * By default, feature detection is used, so calling this is rarely necessary.
 	 */
 	setUseProxies(value: boolean) {
-		if (!hasProxies) {
+		if (value && !hasProxies) {
 			die(20)
 		}
 		this.useProxies_ = value
@@ -224,12 +225,4 @@ export function createProxy<T extends Objectish>(
 	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)
 	return draft
-}
-
-export function markChanged(immer: Immer, state: ImmerState) {
-	if (immer.useProxies_) {
-		markChangedProxy(state)
-	} else {
-		getPlugin("ES5").markChangedES5_(state)
-	}
 }

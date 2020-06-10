@@ -82,7 +82,7 @@ export function enableMapSet() {
 			assertUnrevoked(state)
 			if (latest(state).get(key) !== value) {
 				prepareMapCopy(state)
-				markChanged(state.scope_.immer_, state)
+				markChanged(state)
 				state.assigned_!.set(key, true)
 				state.copy_!.set(key, value)
 				state.assigned_!.set(key, true)
@@ -98,7 +98,7 @@ export function enableMapSet() {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			markChanged(state.scope_.immer_, state)
+			markChanged(state)
 			state.assigned_!.set(key, false)
 			state.copy_!.delete(key)
 			return true
@@ -108,7 +108,7 @@ export function enableMapSet() {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareMapCopy(state)
-			markChanged(state.scope_.immer_, state)
+			markChanged(state)
 			state.assigned_ = new Map()
 			return state.copy_!.clear()
 		}
@@ -243,7 +243,7 @@ export function enableMapSet() {
 			assertUnrevoked(state)
 			if (!this.has(value)) {
 				prepareSetCopy(state)
-				markChanged(state.scope_.immer_, state)
+				markChanged(state)
 				state.copy_!.add(value)
 			}
 			return this
@@ -257,7 +257,7 @@ export function enableMapSet() {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			markChanged(state.scope_.immer_, state)
+			markChanged(state)
 			return (
 				state.copy_!.delete(value) ||
 				(state.drafts_.has(value)
@@ -270,7 +270,7 @@ export function enableMapSet() {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
-			markChanged(state.scope_.immer_, state)
+			markChanged(state)
 			return state.copy_!.clear()
 		}
 

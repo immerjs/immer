@@ -29,10 +29,17 @@ const errors = {
 	18(plugin: string) {
 		return `The plugin for '${plugin}' has not been loaded into Immer. To enable the plugin, import and call \`enable${plugin}()\` when initializing your application.`
 	},
-	19(plugin: string) {
-		return "plugin not loaded: " + plugin
+	19: "plugin not loaded",
+	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available",
+	21(thing: string) {
+		return `produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '${thing}'`
 	},
-	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available"
+	22(thing: string) {
+		return `'current' expects a draft, got: ${thing}`
+	},
+	23(thing: string) {
+		return `'original' expects a draft, got: ${thing}`
+	}
 } as const
 
 export function die(error: keyof typeof errors, ...args: any[]): never {

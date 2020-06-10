@@ -24,9 +24,9 @@ import {
 	ArchtypeMap,
 	ArchtypeSet,
 	ArchtypeArray,
-	die
+	die,
+	isDraft
 } from "../internal"
-import {isDraft} from "../utils/common"
 
 export function enablePatches() {
 	const REPLACE = "replace"
@@ -78,22 +78,8 @@ export function enablePatches() {
 			;[patches, inversePatches] = [inversePatches, patches]
 		}
 
-		const delta = copy_.length - base_.length
-
-		// Find the first replaced index.
-		let start = 0
-		while (base_[start] === copy_[start] && start < base_.length) {
-			++start
-		}
-
-		// Find the last replaced index. Search from the end to optimize splice patches.
-		let end = base_.length
-		while (end > start && base_[end - 1] === copy_[end + delta - 1]) {
-			--end
-		}
-
 		// Process replaced indices.
-		for (let i = start; i < end; ++i) {
+		for (let i = 0; i < base_.length; i++) {
 			if (assigned_[i] && copy_[i] !== base_[i]) {
 				const path = basePath.concat([i])
 				patches.push({
@@ -111,21 +97,22 @@ export function enablePatches() {
 			}
 		}
 
-		const replaceCount = patches.length
-
 		// Process added indices.
-		for (let i = end + delta - 1; i >= end; --i) {
+		for (let i = base_.length; i < copy_.length; i++) {
 			const path = basePath.concat([i])
-			patches[replaceCount + i - end] = {
+			patches.push({
 				op: ADD,
 				path,
 				// Need to maybe clone it, as it can in fact be the original value
 				// due to the base/copy inversion at the start of this function
 				value: clonePatchValueIfNeeded(copy_[i])
-			}
+			})
+		}
+		if (base_.length < copy_.length) {
 			inversePatches.push({
-				op: REMOVE,
-				path
+				op: REPLACE,
+				path: basePath.concat(["length"]),
+				value: base_.length
 			})
 		}
 	}

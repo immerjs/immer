@@ -22,8 +22,6 @@ exports[`base functionality - es5 (autofreeze) set drafts revokes sets 1`] = `"[
 
 exports[`base functionality - es5 (autofreeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
-exports[`base functionality - es5 (autofreeze) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
-
 exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
@@ -47,8 +45,6 @@ exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft
 exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
@@ -74,8 +70,6 @@ exports[`base functionality - es5 (no freeze) set drafts revokes sets 1`] = `"[I
 
 exports[`base functionality - es5 (no freeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
-exports[`base functionality - es5 (no freeze) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
-
 exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`base functionality - es5 (patch listener) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
@@ -99,8 +93,6 @@ exports[`base functionality - es5 (patch listener) revokes the draft once produc
 exports[`base functionality - es5 (patch listener) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - es5 (patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (patch listener) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
 
 exports[`base functionality - es5 (patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
@@ -137,8 +129,6 @@ exports[`base functionality - proxy (autofreeze) revokes the draft once produce 
 exports[`base functionality - proxy (autofreeze) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - proxy (autofreeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - proxy (autofreeze) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
 
 exports[`base functionality - proxy (autofreeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
 
@@ -180,8 +170,6 @@ exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revo
 
 exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
-
 exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
@@ -222,8 +210,6 @@ exports[`base functionality - proxy (no freeze) set drafts revokes sets 1`] = `"
 
 exports[`base functionality - proxy (no freeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
-exports[`base functionality - proxy (no freeze) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
-
 exports[`base functionality - proxy (no freeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
 
 exports[`base functionality - proxy (no freeze) throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
@@ -263,8 +249,6 @@ exports[`base functionality - proxy (patch listener) revokes the draft once prod
 exports[`base functionality - proxy (patch listener) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - proxy (patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - proxy (patch listener) throws on computed properties 1`] = `"[Immer] Immer drafts cannot have computed properties"`;
 
 exports[`base functionality - proxy (patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
 

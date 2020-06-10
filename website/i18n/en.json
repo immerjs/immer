@@ -16,7 +16,11 @@
         "title": "Built with Immer"
       },
       "complex-objects": {
-        "title": "Working with Map, Set and classes"
+        "title": "Classes"
+      },
+      "current": {
+        "title": "Extracting the current state from a draft",
+        "sidebar_label": "Current"
       },
       "curried-produce": {
         "title": "Curried producers"
@@ -41,8 +45,11 @@
         "title": "Introduction to Immer",
         "sidebar_label": "Introduction"
       },
+      "map-set": {
+        "title": "Map and Set"
+      },
       "original": {
-        "title": "Extracting the original object from a proxied instance",
+        "title": "Extracting the original state from a draft",
         "sidebar_label": "Original"
       },
       "patches": {
@@ -69,6 +76,9 @@
       "typescript": {
         "title": "Using TypeScript or Flow",
         "sidebar_label": "TypeScript / Flow"
+      },
+      "update-patterns": {
+        "title": "Update patterns"
       }
     },
     "links": {

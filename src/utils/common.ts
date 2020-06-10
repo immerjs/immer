@@ -5,7 +5,6 @@ import {
 	Objectish,
 	Drafted,
 	AnyObject,
-	AnyArray,
 	AnyMap,
 	AnySet,
 	ImmerState,
@@ -48,10 +47,8 @@ export function isPlainObject(value: any): boolean {
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
-	if (value && value[DRAFT_STATE]) {
-		return value[DRAFT_STATE].base_ as any
-	}
-	// otherwise return undefined
+	if (!isDraft(value)) die(23, value)
+	return value[DRAFT_STATE].base_
 }
 
 /*#__PURE__*/
@@ -72,9 +69,9 @@ export function each<T extends Objectish>(
 ): void
 export function each(obj: any, iter: any, enumerableOnly = false) {
 	if (getArchtype(obj) === ArchtypeObject) {
-		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key =>
-			iter(key, obj[key], obj)
-		)
+		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
+			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
+		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
 	}
@@ -145,38 +142,32 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy<T extends AnyObject | AnyArray>(
-	base: T,
-	invokeGetters?: boolean
-): T
-export function shallowCopy(base: any, invokeGetters = false) {
+export function shallowCopy(base: any) {
 	if (Array.isArray(base)) return base.slice()
-	const clone = Object.create(Object.getPrototypeOf(base))
-	each(base, (key: any) => {
-		if (key === DRAFT_STATE) {
-			return // Never copy over draft state.
+	const descriptors = Object.getOwnPropertyDescriptors(base)
+	delete descriptors[DRAFT_STATE as any]
+	for (let key in descriptors) {
+		const desc = descriptors[key]
+		if (desc.writable === false) {
+			desc.writable = true
+			desc.configurable = true
 		}
-		const desc = Object.getOwnPropertyDescriptor(base, key)!
-		let {value} = desc
-		if (desc.get) {
-			if (!invokeGetters) die(1)
-			value = desc.get.call(base)
-		}
-		if (desc.enumerable) {
-			clone[key] = value
-		} else {
-			Object.defineProperty(clone, key, {
-				value,
-				writable: true,
-				configurable: true
-			})
-		}
-	})
-	return clone
+		// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
+		// with libraries that trap values, like mobx or vue
+		// unlike object.assign, non-enumerables will be copied as well
+		if (desc.get || desc.set)
+			descriptors[key] = {
+				configurable: true,
+				writable: true, // could live with !!desc.set as well here...
+				enumerable: desc.enumerable,
+				value: base[key]
+			}
+	}
+	return Object.create(Object.getPrototypeOf(base), descriptors)
 }
 
 export function freeze(obj: any, deep: boolean): void {
-	if (isDraft(obj) || isFrozen(obj) || !isDraftable(obj)) return
+	if (Object.isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}

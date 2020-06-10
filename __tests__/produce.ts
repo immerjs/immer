@@ -97,6 +97,7 @@ it("can infer state type from recipe function with arguments and initial state",
 it("cannot infer state type when the function type and default state are missing", () => {
 	type Recipe = <S extends any>(state: S) => S
 	const foo = produce((_: any) => {})
+	// @ts-expect-error
 	assert(foo, _ as Recipe)
 })
 

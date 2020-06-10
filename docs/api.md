@@ -12,6 +12,7 @@ title: API overview
 | `castDraft` | Converts any immutable type to its mutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
 | `castImmutable` | Converts any mutable type to its immutable counterpart. This is just a cast and doesn't actually do anything. | [TypeScript](typescript.md) |
 | `createDraft` | Given a base state, creates a mutable draft for which any modifications will be recorded | [Async](async.md) |
+| `current` | Given a draft object (doesn't have to be a tree root), takes a snapshot of the current state of the draft | [Current](current.md) |
 | `Draft<T>` | Exposed TypeScript type to convert an immutable type to a mutable type | [TypeScript](typescript.md) |
 | `enableAllPlugins()` | Enables all plugins mentioned below | [Installation](installation#pick-your-immer-version) |
 | `enableES5()` | Enables support for older JavaScript engines, such as Internet Explorer and React Native | [Installation](installation#pick-your-immer-version) |

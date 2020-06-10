@@ -7,20 +7,18 @@ import {
 	each,
 	has,
 	freeze,
-	shallowCopy,
 	ImmerState,
 	isDraft,
 	SetState,
 	set,
-	is,
-	get,
 	ProxyTypeES5Object,
 	ProxyTypeES5Array,
 	ProxyTypeSet,
 	getPlugin,
 	die,
 	revokeScope,
-	isFrozen
+	isFrozen,
+	shallowCopy
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -87,7 +85,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
-				? (state.copy_ = shallowCopy(state.draft_, true))
+				? (state.copy_ = shallowCopy(state.draft_))
 				: state.copy_
 		// finalize all children of the copy
 		each(result as any, (key, childValue) =>
@@ -134,12 +132,8 @@ function finalizeProperty(
 			rootScope.canAutoFreeze_ = false
 		} else return
 	}
-	// Unchanged draft properties are ignored.
-	if (parentState && is(childValue, get(parentState!.base_, prop))) {
-		return
-	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-	if (isDraftable(childValue)) {
+	if (isDraftable(childValue) && !Object.isFrozen(childValue)) {
 		if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
 			// optimization: if an object is not a draft, and we don't have to
 			// deepfreeze everything, and we are sure that no drafts are left in the remaining object

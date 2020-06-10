@@ -933,20 +933,68 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(isEnumerable(nextState, "foo")).toBeFalsy()
 			})
 
-		it("throws on computed properties", () => {
-			const baseState = {}
-			Object.defineProperty(baseState, "foo", {
-				get: () => {},
-				enumerable: true
+		it("can work with own computed props", () => {
+			const baseState = {
+				x: 1,
+				get y() {
+					return this.x
+				},
+				set y(v) {
+					this.x = v
+				}
+			}
+
+			const nextState = produce(baseState, d => {
+				expect(d.y).toBe(1)
+				d.x = 2
+				expect(d.x).toBe(2)
+				expect(d.y).toBe(1) // this has been copied!
+				d.y = 3
+				expect(d.x).toBe(2)
 			})
-			expect(() => {
-				produce(baseState, s => {
-					// Proxies only throw once a change is made.
-					if (useProxies) {
-						s.modified = true
-					}
-				})
-			}).toThrowErrorMatchingSnapshot()
+			expect(baseState.x).toBe(1)
+			expect(baseState.y).toBe(1)
+
+			expect(nextState.x).toBe(2)
+			expect(nextState.y).toBe(3)
+			if (!autoFreeze) {
+				nextState.y = 4 // decoupled now!
+				expect(nextState.y).toBe(4)
+				expect(nextState.x).toBe(2)
+				expect(Object.getOwnPropertyDescriptor(nextState, "y").value).toBe(4)
+			}
+		})
+
+		it("can work with class with computed props", () => {
+			class State {
+				[immerable] = true
+
+				x = 1
+
+				set y(v) {
+					this.x = v
+				}
+
+				get y() {
+					return this.x
+				}
+			}
+
+			const baseState = new State()
+
+			const nextState = produce(baseState, d => {
+				expect(d.y).toBe(1)
+				d.y = 2
+				expect(d.x).toBe(2)
+				expect(d.y).toBe(2)
+				expect(Object.getOwnPropertyDescriptor(d, "y")).toBeUndefined()
+			})
+			expect(baseState.x).toBe(1)
+			expect(baseState.y).toBe(1)
+
+			expect(nextState.x).toBe(2)
+			expect(nextState.y).toBe(2)
+			expect(Object.getOwnPropertyDescriptor(nextState, "y")).toBeUndefined()
 		})
 
 		it("allows inherited computed properties", () => {
@@ -959,6 +1007,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					this.bar = val
 				}
 			})
+			proto[immerable] = true
 			const baseState = Object.create(proto)
 			produce(baseState, s => {
 				expect(s.bar).toBeUndefined()
@@ -1508,7 +1557,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		autoFreeze &&
-			test.skip("issue #462 - frozen", () => {
+			test("issue #462 - frozen", () => {
 				var origin = {
 					a: {
 						value: "no"
@@ -1517,12 +1566,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 						value: "no"
 					}
 				}
-				var im = produce(origin, origin => {
-					origin.a.value = "im"
+				const next = produce(origin, draft => {
+					draft.a.value = "im"
 				})
-				expect(() => (origin.b.value = "yes")).toThrow() // should throw!
-				// to prevent this...:
-				// expect(im.b.value).toBe('no');
+				expect(() => {
+					origin.b.value = "yes"
+				}).toThrowError(
+					"Cannot assign to read only property 'value' of object '#<Object>'"
+				)
+				expect(() => {
+					next.b.value = "yes"
+				}).toThrowError(
+					"Cannot assign to read only property 'value' of object '#<Object>'"
+				) // should throw!
 			})
 
 		autoFreeze &&
@@ -1784,6 +1840,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState).not.toBe(baseState)
 		})
 
+		it("cannot always detect noop assignments - 4", () => {
+			const baseState = {}
+			const [nextState, patches] = produceWithPatches(baseState, d => {
+				d.x = 4
+				delete d.x
+			})
+			expect(nextState).toEqual({})
+			expect(patches).toEqual([])
+			// This differs between ES5 and proxy, and ES5 does it better :(
+			if (useProxies) expect(nextState).not.toBe(baseState)
+			else expect(nextState).toBe(baseState)
+		})
+
 		it("cannot produce undefined by returning undefined", () => {
 			const base = 3
 			expect(produce(base, () => 4)).toBe(4)
@@ -1958,11 +2027,11 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 		it("returns false for objects returned by the producer", () => {
-			const object = produce(null, Object.create)
+			const object = produce([], () => Object.create(null))
 			expect(isDraft(object)).toBeFalsy()
 		})
 		it("returns false for arrays returned by the producer", () => {
-			const array = produce(null, _ => [])
+			const array = produce({}, _ => [])
 			expect(isDraft(array)).toBeFalsy()
 		})
 		it("returns false for object drafts returned by the producer", () => {
@@ -2036,6 +2105,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(patches.length).toBe(0)
 		})
 	})
+
+	if (!autoFreeze) {
+		describe("#613", () => {
+			const x1 = {}
+			const y1 = produce(x1, draft => {
+				draft.foo = produce({bar: "baz"}, draft1 => {
+					draft1.bar = "baa"
+				})
+				draft.foo.bar = "a"
+			})
+			expect(y1.foo.bar).toBe("a")
+		})
+	}
 }
 
 function testObjectTypes(produce) {
@@ -2090,6 +2172,179 @@ function testObjectTypes(produce) {
 			})
 		})
 	}
+
+	describe("class with getters", () => {
+		class State {
+			[immerable] = true
+			_bar = {baz: 1}
+			foo
+			get bar() {
+				return this._bar
+			}
+			syncFoo() {
+				const value = this.bar.baz
+				this.foo = value
+				this.bar.baz++
+			}
+		}
+		const state = new State()
+
+		it("should use a method to assing a field using a getter that return a non primitive object", () => {
+			const newState = produce(state, draft => {
+				draft.syncFoo()
+			})
+			expect(newState.foo).toEqual(1)
+			expect(newState.bar).toEqual({baz: 2})
+			expect(state.bar).toEqual({baz: 1})
+		})
+	})
+
+	describe("super class with getters", () => {
+		class BaseState {
+			[immerable] = true
+			_bar = {baz: 1}
+			foo
+			get bar() {
+				return this._bar
+			}
+			syncFoo() {
+				const value = this.bar.baz
+				this.foo = value
+				this.bar.baz++
+			}
+		}
+
+		class State extends BaseState {}
+
+		const state = new State()
+
+		it("should use a method to assing a field using a getter that return a non primitive object", () => {
+			const newState = produce(state, draft => {
+				draft.syncFoo()
+			})
+			expect(newState.foo).toEqual(1)
+			expect(newState.bar).toEqual({baz: 2})
+			expect(state.bar).toEqual({baz: 1})
+		})
+	})
+
+	describe("class with setters", () => {
+		class State {
+			[immerable] = true
+			_bar = 0
+			get bar() {
+				return this._bar
+			}
+			set bar(x) {
+				this._bar = x
+			}
+		}
+		const state = new State()
+
+		it("should define a field with a setter", () => {
+			const newState3 = produce(state, d => {
+				d.bar = 1
+				expect(d._bar).toEqual(1)
+			})
+			expect(newState3._bar).toEqual(1)
+			expect(newState3.bar).toEqual(1)
+			expect(state._bar).toEqual(0)
+			expect(state.bar).toEqual(0)
+		})
+	})
+
+	describe("setter only", () => {
+		let setterCalled = 0
+		class State {
+			[immerable] = true
+			x = 0
+			set y(value) {
+				setterCalled++
+				this.x = value
+			}
+		}
+
+		const state = new State()
+		const next = produce(state, draft => {
+			expect(draft.y).toBeUndefined()
+			draft.y = 2 // setter is inherited, so works
+			expect(draft.x).toBe(2)
+		})
+		expect(setterCalled).toBe(1)
+		expect(next.x).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("getter only", () => {
+		let getterCalled = 0
+		class State {
+			[immerable] = true
+			x = 0
+			get y() {
+				getterCalled++
+				return this.x
+			}
+		}
+
+		const state = new State()
+		const next = produce(state, draft => {
+			expect(draft.y).toBe(0)
+			expect(() => {
+				draft.y = 2
+			}).toThrow("Cannot set property y")
+			draft.x = 2
+			expect(draft.y).toBe(2)
+		})
+		expect(next.x).toBe(2)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("own setter only", () => {
+		let setterCalled = 0
+		const state = {
+			x: 0,
+			set y(value) {
+				setterCalled++
+				this.x = value
+			}
+		}
+
+		const next = produce(state, draft => {
+			expect(draft.y).toBeUndefined()
+			// setter is not preserved, so we can write
+			draft.y = 2
+			expect(draft.x).toBe(0)
+			expect(draft.y).toBe(2)
+		})
+		expect(setterCalled).toBe(0)
+		expect(next.x).toBe(0)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
+
+	describe("own getter only", () => {
+		let getterCalled = 0
+		const state = {
+			x: 0,
+			get y() {
+				getterCalled++
+				return this.x
+			}
+		}
+
+		const next = produce(state, draft => {
+			expect(draft.y).toBe(0)
+			// de-referenced, so stores it locally
+			draft.y = 2
+			expect(draft.y).toBe(2)
+			expect(draft.x).toBe(0)
+		})
+		expect(getterCalled).not.toBe(1)
+		expect(next.x).toBe(0)
+		expect(next.y).toBe(2)
+		expect(state.x).toBe(0)
+	})
 }
 
 function testLiteralTypes(produce) {
@@ -2123,23 +2378,25 @@ function testLiteralTypes(produce) {
 		describe(name, () => {
 			const value = values[name]
 
-			it("does not create a draft", () => {
-				produce(value, draft => {
-					expect(draft).toBe(value)
-				})
-			})
-
-			it("returns the base state when no changes are made", () => {
-				expect(produce(value, () => {})).toBe(value)
-			})
-
 			if (value && typeof value == "object") {
 				it("does not return a copy when changes are made", () => {
-					expect(
+					expect(() =>
 						produce(value, draft => {
 							draft.foo = true
 						})
-					).toBe(value)
+					).toThrowError(
+						"produce can only be called on things that are draftable"
+					)
+				})
+			} else {
+				it("does not create a draft", () => {
+					produce(value, draft => {
+						expect(draft).toBe(value)
+					})
+				})
+
+				it("returns the base state when no changes are made", () => {
+					expect(produce(value, () => {})).toBe(value)
 				})
 			}
 		})

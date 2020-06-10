@@ -1,4 +1,3 @@
-"use strict"
 import {
 	each,
 	has,
@@ -25,16 +24,13 @@ interface ProxyBaseState extends ImmerBaseState {
 		[property: string]: boolean
 	}
 	parent_?: ImmerState
-	drafts_?: {
-		[property: string]: Drafted<any, any>
-	}
 	revoke_(): void
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
 	type_: typeof ProxyTypeProxyObject
-	base_: AnyObject
-	copy_: AnyObject | null
+	base_: any
+	copy_: any
 	draft_: Drafted<AnyObject, ProxyObjectState>
 }
 
@@ -73,8 +69,6 @@ export function createProxyProxy<T extends Objectish>(
 		base_: base,
 		// The base proxy.
 		draft_: null as any, // set below
-		// Any property proxies.
-		drafts_: {},
 		// The base copy with any updated values.
 		copy_: null,
 		// Called by the `produce` function.
@@ -104,35 +98,30 @@ export function createProxyProxy<T extends Objectish>(
 /**
  * Object drafts
  */
-const objectTraps: ProxyHandler<ProxyState> = {
+export const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
-		let {drafts_: drafts} = state
 
-		// Check for existing draft in unmodified state.
-		if (!state.modified_ && has(drafts, prop)) {
-			return drafts![prop as any]
+		const source = latest(state)
+		if (!has(source, prop)) {
+			// non-existing or non-own property...
+			return readPropFromProto(state, source, prop)
 		}
-
-		const value = latest(state)[prop]
+		const value = source[prop]
 		if (state.finalized_ || !isDraftable(value)) {
 			return value
 		}
-
 		// Check for existing draft in modified state.
-		if (state.modified_) {
-			// Assigned values are never drafted. This catches any drafts we created, too.
-			if (value !== peek(state.base_, prop)) return value
-			// Store drafts on the copy (when one exists).
-			// @ts-ignore
-			drafts = state.copy_
+		// Assigned values are never drafted. This catches any drafts we created, too.
+		if (value === peek(state.base_, prop)) {
+			prepareCopy(state)
+			return (state.copy_![prop as any] = createProxy(
+				state.scope_.immer_,
+				value,
+				state
+			))
 		}
-
-		return (drafts![prop as any] = createProxy(
-			state.scope_.immer_,
-			value,
-			state
-		))
+		return value
 	},
 	has(state, prop) {
 		return prop in latest(state)
@@ -141,19 +130,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		return Reflect.ownKeys(latest(state))
 	},
 	set(state, prop: string /* strictly not, but helps TS */, value) {
-		if (!state.modified_) {
-			const baseValue = peek(state.base_, prop)
-			// Optimize based on value's truthiness. Truthy values are guaranteed to
-			// never be undefined, so we can avoid the `in` operator. Lastly, truthy
-			// values may be drafts, but falsy values are never drafts.
-			const isUnchanged = value
-				? is(baseValue, value) || value === state.drafts_![prop]
-				: is(baseValue, value) && prop in state.base_
-			if (isUnchanged) return true
-			prepareCopy(state)
-			markChangedProxy(state)
-		}
 		state.assigned_[prop] = true
+		if (!state.modified_) {
+			if (is(value, peek(latest(state), prop)) && value !== undefined)
+				return true
+			prepareCopy(state)
+			markChanged(state)
+		}
 		// @ts-ignore
 		state.copy_![prop] = value
 		return true
@@ -163,8 +146,8 @@ const objectTraps: ProxyHandler<ProxyState> = {
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
 			state.assigned_[prop] = false
 			prepareCopy(state)
-			markChangedProxy(state)
-		} else if (state.assigned_[prop]) {
+			markChanged(state)
+		} else {
 			// if an originally not assigned property was deleted
 			delete state.assigned_[prop]
 		}
@@ -177,12 +160,13 @@ const objectTraps: ProxyHandler<ProxyState> = {
 	getOwnPropertyDescriptor(state, prop) {
 		const owner = latest(state)
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
-		if (desc) {
-			desc.writable = true
-			desc.configurable =
-				state.type_ !== ProxyTypeProxyArray || prop !== "length"
+		if (!desc) return desc
+		return {
+			writable: true,
+			configurable: state.type_ !== ProxyTypeProxyArray || prop !== "length",
+			enumerable: desc.enumerable,
+			value: owner[prop]
 		}
-		return desc
 	},
 	defineProperty() {
 		die(11)
@@ -216,42 +200,37 @@ arrayTraps.set = function(state, prop, value) {
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
-/**
- * Map drafts
- */
-
 // Access a property without creating an Immer draft.
-function peek(draft: Drafted, prop: PropertyKey): any {
+function peek(draft: Drafted, prop: PropertyKey) {
 	const state = draft[DRAFT_STATE]
-	const desc = Reflect.getOwnPropertyDescriptor(
-		state ? latest(state) : draft,
-		prop
-	)
-	return desc && desc.value
+	const source = state ? latest(state) : draft
+	return source[prop]
 }
 
-export function markChangedProxy(state: ImmerState) {
+function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {
+	// 'in' checks proto!
+	if (!(prop in source)) return undefined
+	let proto = Object.getPrototypeOf(source)
+	while (proto) {
+		const desc = Object.getOwnPropertyDescriptor(proto, prop)
+		// This is a very special case, if the prop is a getter defined by the
+		// prototype, we should invoke it with the draft as context!
+		if (desc) return `value` in desc ? desc.value : desc.get?.call(state.draft_)
+		proto = Object.getPrototypeOf(proto)
+	}
+	return undefined
+}
+
+export function markChanged(state: ImmerState) {
 	if (!state.modified_) {
 		state.modified_ = true
-		if (
-			state.type_ === ProxyTypeProxyObject ||
-			state.type_ === ProxyTypeProxyArray
-		) {
-			const copy = (state.copy_ = shallowCopy(state.base_))
-			each(state.drafts_!, (key, value) => {
-				// @ts-ignore
-				copy[key] = value
-			})
-			state.drafts_ = undefined
-		}
-
 		if (state.parent_) {
-			markChangedProxy(state.parent_)
+			markChanged(state.parent_)
 		}
 	}
 }
 
-function prepareCopy(state: ProxyState) {
+export function prepareCopy(state: {base_: any; copy_: any}) {
 	if (!state.copy_) {
 		state.copy_ = shallowCopy(state.base_)
 	}

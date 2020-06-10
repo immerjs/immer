@@ -30,13 +30,13 @@ function runTests(name, useProxies) {
 			expect(isFrozen(next.arr)).toBeTruthy()
 		})
 
-		it("never freezes reused state", () => {
+		it("freezes reused base state", () => {
 			const base = {arr: [1], obj: {a: 1}}
 			const next = produce(base, draft => {
 				draft.arr.push(1)
 			})
 			expect(next.obj).toBe(base.obj)
-			expect(isFrozen(next.obj)).toBeFalsy()
+			expect(isFrozen(next.obj)).toBeTruthy()
 		})
 
 		describe("the result is always auto-frozen when", () => {
@@ -219,6 +219,30 @@ function runTests(name, useProxies) {
 				state2.ref.state.x++
 			}).not.toThrow()
 			expect(state2.ref.state.x).toBe(2)
+		})
+
+		it("never freezes symbolic fields #590", () => {
+			const component = {}
+			const symbol = Symbol("test")
+			Object.defineProperty(component, symbol, {
+				value: {x: 1},
+				enumerable: true,
+				writable: true,
+				configurable: true
+			})
+
+			const state = {
+				x: 1
+			}
+
+			const state2 = produce(state, draft => {
+				draft.ref = component
+			})
+
+			expect(() => {
+				state2.ref[symbol].x++
+			}).not.toThrow()
+			expect(state2.ref[symbol].x).toBe(2)
 		})
 	})
 }

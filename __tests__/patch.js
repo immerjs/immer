@@ -4,7 +4,8 @@ import produce, {
 	applyPatches,
 	produceWithPatches,
 	enableAllPlugins,
-	isDraft
+	isDraft,
+	immerable
 } from "../src/immer"
 
 enableAllPlugins()
@@ -299,6 +300,41 @@ describe("renaming properties", () => {
 		)
 	})
 
+	describe("nested change in object", () => {
+		runPatchTest(
+			{
+				a: {b: 1}
+			},
+			d => {
+				d.a.b++
+			},
+			[{op: "replace", path: ["a", "b"], value: 2}],
+			[{op: "replace", path: ["a", "b"], value: 1}]
+		)
+	})
+
+	describe("nested change in map", () => {
+		runPatchTest(
+			new Map([["a", new Map([["b", 1]])]]),
+			d => {
+				d.get("a").set("b", 2)
+			},
+			[{op: "replace", path: ["a", "b"], value: 2}],
+			[{op: "replace", path: ["a", "b"], value: 1}]
+		)
+	})
+
+	describe("nested change in array", () => {
+		runPatchTest(
+			[[{b: 1}]],
+			d => {
+				d[0][0].b++
+			},
+			[{op: "replace", path: [0, 0, "b"], value: 2}],
+			[{op: "replace", path: [0, 0, "b"], value: 1}]
+		)
+	})
+
 	describe("nested map (no changes)", () => {
 		runPatchTest(
 			new Map([["a", new Map([["b", 1]])]]),
@@ -476,7 +512,12 @@ describe("arrays - prepend", () => {
 		d => {
 			d.x.unshift(4)
 		},
-		[{op: "add", path: ["x", 0], value: 4}]
+		[
+			{op: "replace", path: ["x", 0], value: 4},
+			{op: "replace", path: ["x", 1], value: 1},
+			{op: "replace", path: ["x", 2], value: 2},
+			{op: "add", path: ["x", 3], value: 3}
+		]
 	)
 })
 
@@ -486,10 +527,14 @@ describe("arrays - multiple prepend", () => {
 		d => {
 			d.x.unshift(4)
 			d.x.unshift(5)
+			// 4,5,1,2,3
 		},
 		[
-			{op: "add", path: ["x", 0], value: 5},
-			{op: "add", path: ["x", 1], value: 4}
+			{op: "replace", path: ["x", 0], value: 5},
+			{op: "replace", path: ["x", 1], value: 4},
+			{op: "replace", path: ["x", 2], value: 1},
+			{op: "add", path: ["x", 3], value: 2},
+			{op: "add", path: ["x", 4], value: 3}
 		]
 	)
 })
@@ -500,7 +545,10 @@ describe("arrays - splice middle", () => {
 		d => {
 			d.x.splice(1, 1)
 		},
-		[{op: "remove", path: ["x", 1]}]
+		[
+			{op: "replace", path: ["x", 1], value: 3},
+			{op: "replace", path: ["x", "length"], value: 2}
+		]
 	)
 })
 
@@ -509,13 +557,16 @@ describe("arrays - multiple splice", () => {
 		[0, 1, 2, 3, 4, 5, 0],
 		d => {
 			d.splice(4, 2, 3)
+			// [0,1,2,3,3,0]
 			d.splice(1, 2, 3)
+			// [0,3,3,3,0]
+			expect(d.slice()).toEqual([0, 3, 3, 3, 0])
 		},
 		[
 			{op: "replace", path: [1], value: 3},
 			{op: "replace", path: [2], value: 3},
-			{op: "remove", path: [5]},
-			{op: "remove", path: [4]}
+			{op: "replace", path: [4], value: 0},
+			{op: "replace", path: ["length"], value: 5}
 		]
 	)
 })
@@ -526,10 +577,11 @@ describe("arrays - modify and shrink", () => {
 		d => {
 			d.x[0] = 4
 			d.x.length = 2
+			// [0, 2]
 		},
 		[
 			{op: "replace", path: ["x", 0], value: 4},
-			{op: "remove", path: ["x", 2]}
+			{op: "replace", path: ["x", "length"], value: 2}
 		],
 		[
 			{op: "replace", path: ["x", 0], value: 1},
@@ -544,6 +596,7 @@ describe("arrays - prepend then splice middle", () => {
 		d => {
 			d.x.unshift(4)
 			d.x.splice(2, 1)
+			// 4, 1, 3
 		},
 		[
 			{op: "replace", path: ["x", 0], value: 4},
@@ -558,6 +611,7 @@ describe("arrays - splice middle then prepend", () => {
 		d => {
 			d.x.splice(1, 1)
 			d.x.unshift(4)
+			// [4, 1, 3]
 		},
 		[
 			{op: "replace", path: ["x", 0], value: 4},
@@ -572,10 +626,7 @@ describe("arrays - truncate", () => {
 		d => {
 			d.x.length -= 2
 		},
-		[
-			{op: "remove", path: ["x", 2]},
-			{op: "remove", path: ["x", 1]}
-		],
+		[{op: "replace", path: ["x", "length"], value: 1}],
 		[
 			{op: "add", path: ["x", 1], value: 2},
 			{op: "add", path: ["x", 2], value: 3}
@@ -590,14 +641,12 @@ describe("arrays - pop twice", () => {
 			d.x.pop()
 			d.x.pop()
 		},
-		[
-			{op: "remove", path: ["x", 2]},
-			{op: "remove", path: ["x", 1]}
-		]
+		[{op: "replace", path: ["x", "length"], value: 1}]
 	)
 })
 
 describe("arrays - push multiple", () => {
+	// These patches were more optimal pre immer 7, but not always correct
 	runPatchTest(
 		{x: [1, 2, 3]},
 		d => {
@@ -607,47 +656,48 @@ describe("arrays - push multiple", () => {
 			{op: "add", path: ["x", 3], value: 4},
 			{op: "add", path: ["x", 4], value: 5}
 		],
-		[
-			{op: "remove", path: ["x", 4]},
-			{op: "remove", path: ["x", 3]}
-		]
+		[{op: "replace", path: ["x", "length"], value: 3}]
 	)
 })
 
 describe("arrays - splice (expand)", () => {
+	// These patches were more optimal pre immer 7, but not always correct
 	runPatchTest(
 		{x: [1, 2, 3]},
 		d => {
-			d.x.splice(1, 1, 4, 5, 6)
+			d.x.splice(1, 1, 4, 5, 6) // [1,4,5,6,3]
 		},
 		[
 			{op: "replace", path: ["x", 1], value: 4},
-			{op: "add", path: ["x", 2], value: 5},
-			{op: "add", path: ["x", 3], value: 6}
+			{op: "replace", path: ["x", 2], value: 5},
+			{op: "add", path: ["x", 3], value: 6},
+			{op: "add", path: ["x", 4], value: 3}
 		],
 		[
 			{op: "replace", path: ["x", 1], value: 2},
-			{op: "remove", path: ["x", 3]},
-			{op: "remove", path: ["x", 2]}
+			{op: "replace", path: ["x", 2], value: 3},
+			{op: "replace", path: ["x", "length"], value: 3}
 		]
 	)
 })
 
 describe("arrays - splice (shrink)", () => {
+	// These patches were more optimal pre immer 7, but not always correct
 	runPatchTest(
 		{x: [1, 2, 3, 4, 5]},
 		d => {
-			d.x.splice(1, 3, 6)
+			d.x.splice(1, 3, 6) // [1, 6, 5]
 		},
 		[
 			{op: "replace", path: ["x", 1], value: 6},
-			{op: "remove", path: ["x", 3]},
-			{op: "remove", path: ["x", 2]}
+			{op: "replace", path: ["x", 2], value: 5},
+			{op: "replace", path: ["x", "length"], value: 3}
 		],
 		[
 			{op: "replace", path: ["x", 1], value: 2},
-			{op: "add", path: ["x", 2], value: 3},
-			{op: "add", path: ["x", 3], value: 4}
+			{op: "replace", path: ["x", 2], value: 3},
+			{op: "add", path: ["x", 3], value: 4},
+			{op: "add", path: ["x", 4], value: 5}
 		]
 	)
 })
@@ -737,23 +787,25 @@ describe("sets - mutate - 1", () => {
 })
 
 describe("arrays - splice should should result in remove op.", () => {
+	// These patches were more optimal pre immer 7, but not always correct
 	runPatchTest(
 		[1, 2],
 		d => {
 			d.splice(1, 1)
 		},
-		[{op: "remove", path: [1]}],
+		[{op: "replace", path: ["length"], value: 1}],
 		[{op: "add", path: [1], value: 2}]
 	)
 })
 
 describe("arrays - NESTED splice should should result in remove op.", () => {
+	// These patches were more optimal pre immer 7, but not always correct
 	runPatchTest(
 		{a: {b: {c: [1, 2]}}},
 		d => {
 			d.a.b.c.splice(1, 1)
 		},
-		[{op: "remove", path: ["a", "b", "c", 1]}],
+		[{op: "replace", path: ["a", "b", "c", "length"], value: 1}],
 		[{op: "add", path: ["a", "b", "c", 1], value: 2}]
 	)
 })
@@ -951,50 +1003,44 @@ test("replaying patches with interweaved replacements should work correctly", ()
 	).toEqual({x: -1})
 })
 
-test.skip("#468", () => {
-	const item = {id: 1}
+describe("#468", () => {
+	function run() {
+		const item = {id: 1}
+		const state = [item]
+		const [nextState, patches] = produceWithPatches(state, draft => {
+			draft[0].id = 2
+			draft[1] = item
+		})
 
-	const state = [item]
+		expect(nextState).toEqual([{id: 2}, {id: 1}])
+		expect(patches).toEqual([
+			{
+				op: "replace",
+				path: [0, "id"],
+				value: 2
+			},
+			{
+				op: "add",
+				path: [1],
+				value: {
+					id: 1
+				}
+			}
+		])
 
-	const [nextState, patches] = produceWithPatches(state, draft => {
-		draft[0].id = 2
-		draft[1] = item
+		const final = applyPatches(state, patches)
+		expect(final).toEqual(nextState)
+	}
+
+	test("es5", () => {
+		setUseProxies(false)
+		run()
 	})
 
-	expect(nextState).toMatchInlineSnapshot(`
-		Array [
-		  Object {
-		    "id": 2,
-		  },
-		  Object {
-		    "id": 1,
-		  },
-		]
-	`)
-	expect(patches).toMatchInlineSnapshot(`
-				Array [
-				  Object {
-				    "op": "replace",
-				    "path": Array [
-				      0,
-				      "id",
-				    ],
-				    "value": 2,
-				  },
-				  Object {
-				    "op": "add",
-				    "path": Array [
-				      0,
-				    ],
-				    "value": Object {
-				      "id": 2,
-				    },
-				  },
-				]
-		`)
-
-	const final = applyPatches(state, patches)
-	expect(final).toEqual(nextState)
+	test("proxy", () => {
+		setUseProxies(true)
+		run()
+	})
 })
 
 test("#521", () => {
@@ -1047,4 +1093,29 @@ test("#559 patches works in a nested reducer with proxies", () => {
 	const reversedSubState = applyPatches(newState.sub, inverseChanges)
 
 	expect(reversedSubState).toMatchObject(state.sub)
+})
+
+describe("#588", () => {
+	const reference = {value: {num: 53}}
+
+	class Base {
+		[immerable] = true
+		get nested() {
+			return reference.value
+		}
+		set nested(value) {}
+	}
+
+	let base = new Base()
+
+	runPatchTest(
+		base,
+		vdraft => {
+			reference.value = vdraft
+			produce(base, bdraft => {
+				bdraft.nested.num = 42
+			})
+		},
+		[{op: "add", path: ["num"], value: 42}]
+	)
 })

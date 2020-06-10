@@ -13,15 +13,6 @@ const toDraft: <T>(value: T) => Draft<T> = x => x as any
 const fromDraft: <T>(draft: Draft<T>) => T = x => x as any
 
 test("draft.ts", () => {
-	// DraftArray<T>
-	{
-		// NOTE: As of 3.2.2, everything fails without "extends any"
-		;<Value extends any>(val: ReadonlyArray<Value>) => {
-			val = _ as Draft<typeof val>
-			let elem: Value = _ as Draft<Value>
-		}
-	}
-
 	// Tuple
 	{
 		let val: [1, 2] = _
@@ -302,7 +293,7 @@ test("draft.ts", () => {
 		// NOTE: "extends any" only helps a little.
 		const $ = <T extends any>(val: ReadonlyArray<T>) => {
 			let draft: Draft<typeof val> = _
-			val = assert(toDraft(val), draft)
+			assert(toDraft(val), draft)
 			// $ExpectError: [ts] Argument of type 'DraftArray<T>' is not assignable to parameter of type 'Draft<T>'. [2345]
 			// assert(fromDraft(draft), draft)
 		}

@@ -1,25 +1,22 @@
 import {
 	ImmerState,
 	Drafted,
-	Objectish,
 	ES5ArrayState,
 	ES5ObjectState,
 	each,
 	has,
 	isDraft,
-	isDraftable,
-	shallowCopy,
 	latest,
 	DRAFT_STATE,
 	is,
 	loadPlugin,
 	ImmerScope,
-	createProxy,
 	ProxyTypeES5Array,
 	ProxyTypeES5Object,
-	AnyObject,
 	getCurrentScope,
-	die
+	die,
+	markChanged,
+	objectTraps
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -30,9 +27,6 @@ export function enableES5() {
 		result: any,
 		isReplaced: boolean
 	) {
-		scope.drafts_!.forEach((draft: any) => {
-			;(draft[DRAFT_STATE] as ES5State).finalizing_ = true
-		})
 		if (!isReplaced) {
 			if (scope.patches_) {
 				markChangesRecursively(scope.drafts_![0])
@@ -49,26 +43,44 @@ export function enableES5() {
 		}
 	}
 
+	function createES5Draft(isArray: boolean, base: any) {
+		// Create a new object / array, where each own property is trapped with an accessor
+		const descriptors = Object.getOwnPropertyDescriptors(base)
+		// Descriptors we want to skip:
+		if (isArray) delete descriptors.length
+		delete descriptors[DRAFT_STATE as any]
+		for (let key in descriptors) {
+			descriptors[key] = proxyProperty(
+				key,
+				isArray || !!descriptors[key].enumerable
+			)
+		}
+		if (isArray) {
+			const draft = new Array(base.length)
+			Object.defineProperties(draft, descriptors)
+			return draft
+		} else {
+			return Object.create(Object.getPrototypeOf(base), descriptors)
+		}
+	}
+
 	function createES5Proxy_<T>(
 		base: T,
 		parent?: ImmerState
 	): Drafted<T, ES5ObjectState | ES5ArrayState> {
 		const isArray = Array.isArray(base)
-		const draft: any = clonePotentialDraft(base)
-
-		each(draft, prop => {
-			proxyProperty(draft, prop, isArray || isEnumerable(base, prop))
-		})
+		const draft = createES5Draft(isArray, base)
 
 		const state: ES5ObjectState | ES5ArrayState = {
 			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
 			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,
-			finalizing_: false,
 			finalized_: false,
 			assigned_: {},
 			parent_: parent,
+			// base is the object we are drafting
 			base_: base,
+			// draft is the draft object itself, that traps all reads and reads from either the base (if unmodified) or copy (if modified)
 			draft_: draft,
 			copy_: null,
 			revoked_: false,
@@ -83,94 +95,36 @@ export function enableES5() {
 		return draft
 	}
 
-	// Access a property without creating an Immer draft.
-	function peek(draft: Drafted, prop: PropertyKey) {
-		const state: ES5State = draft[DRAFT_STATE]
-		if (state && !state.finalizing_) {
-			state.finalizing_ = true
-			const value = draft[prop]
-			state.finalizing_ = false
-			return value
-		}
-		return draft[prop]
-	}
-
-	function get(state: ES5State, prop: string | number) {
-		assertUnrevoked(state)
-		const value = peek(latest(state), prop)
-		if (state.finalizing_) return value
-		// Create a draft if the value is unmodified.
-		if (value === peek(state.base_, prop) && isDraftable(value)) {
-			prepareCopy(state)
-			// @ts-ignore
-			return (state.copy_![prop] = createProxy(
-				state.scope_.immer_,
-				value,
-				state
-			))
-		}
-		return value
-	}
-
-	function set(state: ES5State, prop: string | number, value: any) {
-		assertUnrevoked(state)
-		state.assigned_[prop] = true
-		if (!state.modified_) {
-			if (is(value, peek(latest(state), prop))) return
-			markChangedES5_(state)
-			prepareCopy(state)
-		}
-		// @ts-ignore
-		state.copy_![prop] = value
-	}
-
-	function markChangedES5_(state: ImmerState) {
-		if (!state.modified_) {
-			state.modified_ = true
-			if (state.parent_) markChangedES5_(state.parent_)
-		}
-	}
-
-	function prepareCopy(state: ES5State) {
-		if (!state.copy_) state.copy_ = clonePotentialDraft(state.base_)
-	}
-
-	function clonePotentialDraft(base: Objectish) {
-		const state: ES5State | undefined = base && (base as any)[DRAFT_STATE]
-		if (state) {
-			state.finalizing_ = true
-			const draft = shallowCopy(state.draft_, true)
-			state.finalizing_ = false
-			return draft
-		}
-		return shallowCopy(base)
-	}
-
 	// property descriptors are recycled to make sure we don't create a get and set closure per property,
 	// but share them all instead
 	const descriptors: {[prop: string]: PropertyDescriptor} = {}
 
 	function proxyProperty(
-		draft: Drafted<any, ES5State>,
 		prop: string | number,
 		enumerable: boolean
-	) {
+	): PropertyDescriptor {
 		let desc = descriptors[prop]
 		if (desc) {
 			desc.enumerable = enumerable
 		} else {
 			descriptors[prop] = desc = {
-				// configurable: true,
+				configurable: true,
 				enumerable,
 				get(this: any) {
-					return get(this[DRAFT_STATE], prop)
+					const state = this[DRAFT_STATE]
+					if (__DEV__) assertUnrevoked(state)
+					// @ts-ignore
+					return objectTraps.get(state, prop)
 				},
 				set(this: any, value) {
-					set(this[DRAFT_STATE], prop, value)
+					const state = this[DRAFT_STATE]
+					if (__DEV__) assertUnrevoked(state)
+					// @ts-ignore
+					objectTraps.set(state, prop, value)
 				}
 			}
 		}
-		Object.defineProperty(draft, prop, desc)
+		return desc
 	}
 
 	// This looks expensive, but only proxies are visited, and only objects without known changes are scanned.
@@ -184,10 +138,10 @@ export function enableES5() {
 			if (!state.modified_) {
 				switch (state.type_) {
 					case ProxyTypeES5Array:
-						if (hasArrayChanges(state)) markChangedES5_(state)
+						if (hasArrayChanges(state)) markChanged(state)
 						break
 					case ProxyTypeES5Object:
-						if (hasObjectChanges(state)) markChangedES5_(state)
+						if (hasObjectChanges(state)) markChanged(state)
 						break
 				}
 			}
@@ -201,7 +155,6 @@ export function enableES5() {
 		const {base_, draft_, assigned_, type_} = state
 		if (type_ === ProxyTypeES5Object) {
 			// Look for added keys.
-			// TODO: looks quite duplicate to hasObjectChanges,
 			// probably there is a faster way to detect changes, as sweep + recurse seems to do some
 			// unnecessary work.
 			// also: probably we can store the information we detect here, to speed up tree finalization!
@@ -210,7 +163,7 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if ((base_ as any)[key] === undefined && !has(base_, key)) {
 					assigned_[key] = true
-					markChangedES5_(state)
+					markChanged(state)
 				} else if (!assigned_[key]) {
 					// Only untouched properties trigger recursion.
 					markChangesRecursively(draft_[key])
@@ -221,12 +174,12 @@ export function enableES5() {
 				// The `undefined` check is a fast path for pre-existing keys.
 				if (draft_[key] === undefined && !has(draft_, key)) {
 					assigned_[key] = false
-					markChangedES5_(state)
+					markChanged(state)
 				}
 			})
 		} else if (type_ === ProxyTypeES5Array) {
 			if (hasArrayChanges(state as ES5ArrayState)) {
-				markChangedES5_(state)
+				markChanged(state)
 				assigned_.length = true
 			}
 
@@ -295,10 +248,10 @@ export function enableES5() {
 		return false
 	}
 
-	/*#__PURE__*/
-	function isEnumerable(base: AnyObject, prop: PropertyKey): boolean {
-		const desc = Object.getOwnPropertyDescriptor(base, prop)
-		return desc && desc.enumerable ? true : false
+	function hasChanges_(state: ES5State) {
+		return state.type_ === ProxyTypeES5Object
+			? hasObjectChanges(state)
+			: hasArrayChanges(state)
 	}
 
 	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {
@@ -307,7 +260,7 @@ export function enableES5() {
 
 	loadPlugin("ES5", {
 		createES5Proxy_,
-		markChangedES5_,
-		willFinalizeES5_
+		willFinalizeES5_,
+		hasChanges_
 	})
 }
