@@ -9,10 +9,11 @@ Working with immutable data, before Immer, used to mean learning all the immutab
 
 To help 'unlearning' those patterns here is an overview how you can leverage the built-in JavaScript APIs to update objects and collections:
 
+### Object mutations
+
 ```javascript
 import produce from "immer"
 
-// object mutations
 const todosObj = {
 	id1: {done: false, body: "Take out the trash"},
 	id2: {done: false, body: "Check Email"}
@@ -32,8 +33,13 @@ const deletedTodosObj = produce(todosObj, draft => {
 const updatedTodosObj = produce(todosObj, draft => {
 	draft["id1"].done = true
 })
+```
 
-// array mutations
+### Array mutations
+
+```javascript
+import produce from "immer"
+
 const todosArray = [
 	{id: "id1", done: false, body: "Take out the trash"},
 	{id: "id2", done: false, body: "Check Email"}
@@ -86,6 +92,21 @@ const updatedTodosArray = produce(todosArray, draft => {
 	if (index !== -1) draft[index].done = true
 })
 
+// filtering items
+const updatedTodosArray = produce(todosArray, draft => {
+	// creating a new state is simpler in this example
+	// (note that we don't need produce in this case,
+	// but as shown below, if the filter is not on the top
+	// level produce is still pretty useful)
+	return draft.filter(todo => todo.done)
+})
+```
+
+### Nested data structures
+
+```javascript
+import produce from "immer"
+
 // example complex data structure
 const store = {
 	users: new Map([
@@ -107,6 +128,14 @@ const store = {
 // updating something deeply in-an-object-in-an-array-in-a-map-in-an-object:
 const nextStore = produce(store, draft => {
 	draft.users.get("17").todos[0].done = true
+})
+
+// filtering out all unfinished todo's
+const nextStore = produce(store, draft => {
+	const user = draft.users.get("17")
+	// when filtering, creating a fresh collection is simpler than
+	// removing irrelvant items
+	user.todos = user.todos.filter(todo => todo.done)
 })
 ```
 
