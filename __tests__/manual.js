@@ -101,7 +101,6 @@ function runTests(name, useProxies) {
 			expect(res2).toEqual({a: 2, b: 4})
 		})
 
-		// TODO: fix
 		it("combines with produce - 2", () => {
 			const state = {a: 1}
 

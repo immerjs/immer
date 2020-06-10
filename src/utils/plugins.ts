@@ -21,8 +21,7 @@ const plugins: {
 			state: ImmerState,
 			basePath: PatchPath,
 			patches: Patch[],
-			inversePatches: Patch[],
-			originalCopy: any
+			inversePatches: Patch[]
 		): void
 		generateReplacementPatches_(
 			rootState: ImmerState,

@@ -7,7 +7,6 @@ import produce, {
 	isDraft,
 	immerable
 } from "../src/immer"
-import {run} from "jest"
 
 enableAllPlugins()
 

@@ -10,9 +10,9 @@ import {
 	isDraftable,
 	ArchtypeMap,
 	ArchtypeSet,
-	getArchtype
+	getArchtype,
+	getPlugin
 } from "../internal"
-import {getPlugin} from "../utils/plugins"
 
 export function current<T>(value: T): T
 export function current(value: any): any {

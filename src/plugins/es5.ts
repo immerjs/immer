@@ -112,13 +112,13 @@ export function enableES5() {
 				enumerable,
 				get(this: any) {
 					const state = this[DRAFT_STATE]
-					assertUnrevoked(state)
+					if (__DEV__) assertUnrevoked(state)
 					// @ts-ignore
 					return objectTraps.get(state, prop)
 				},
 				set(this: any, value) {
 					const state = this[DRAFT_STATE]
-					assertUnrevoked(state)
+					if (__DEV__) assertUnrevoked(state)
 					// @ts-ignore
 					objectTraps.set(state, prop, value)
 				}
