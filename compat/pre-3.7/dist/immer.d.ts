@@ -230,6 +230,9 @@ export function finishDraft<T>(draft: T, listener?: PatchListener): Immutable<T>
 /** Get the underlying object that is represented by the given draft */
 export function original<T>(value: T): T | void
 
+/** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
+export function current<T>(value: T): T
+
 /** Returns true if the given value is an Immer draft */
 export function isDraft(value: any): boolean
 
