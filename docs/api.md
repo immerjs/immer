@@ -25,7 +25,7 @@ title: API overview
 | `isDraft` | Returns true if the given object is a draft object |  |
 | `isDraftable` | Returns true if Immer is capable of turning this object into a draft. Which is true for: arrays, objects without prototype, objects with `Object` as their prototype, objects that have the `immerable` symbol on their constructor or prototype |  |
 | `nothing` | Value that can be returned from a recipe, to indicate that the value `undefined` should be produced | [Return](return.md) |
-| `original` | Given a draft object (doesn't have to be a tree root), returns the the original object at the same path in the original state tree, if present | [Original](original.md) |
+| `original` | Given a draft object (doesn't have to be a tree root), returns the original object at the same path in the original state tree, if present | [Original](original.md) |
 | `Patch` | Exposed TypeScript type, describes the shape of an (inverse) patch object | [Patches](patches.md) |
 | `produce` | The core API of Immer, also exposed as the `default` export | [Produce](produce.md) |
 | `produceWithPatches` | Works the same as `produce`, but instead of just returning the produced object, it returns a tuple, consisting of `[result, patches, inversePatches]`. | [Patches](patches.md) |
