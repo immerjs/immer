@@ -1,5 +1,6 @@
 // @flow
 import produce, {
+    enableMapSet,
     setAutoFreeze,
     setUseProxies,
     produce as produce2,
@@ -8,6 +9,7 @@ import produce, {
     original
 } from "../../dist/index.js.flow"
 
+enableMapSet()
 setAutoFreeze(true)
 setUseProxies(true)
 
@@ -136,7 +138,7 @@ type State = {| user: {| age: number |} |}
 }
 
 {
-    const arr: Array<number> = [1];
+    const arr: Array<number> = [1]
     produce(arr, draftState => {
         const a = original(draftState)
         if (a) {
@@ -145,4 +147,42 @@ type State = {| user: {| age: number |} |}
             const c: string = a[0]
         }
     })
+}
+
+function testMap(state: Map<number, string>) {
+    // normal
+    state = produce(state, draft => {
+        if (draft.has(1)) {
+            return
+        }
+        // $ExpectError
+        draft.set(1, 2)
+        draft.set(1, "tada")
+    })
+    // curried, no initial state
+    const f1 = produce(draft=> { draft.set(2, "ok") })
+    state = f1(state)
+    // curried, with initial state
+    const f2 = produce(draft=> { draft.set(2, "ok") }, state)
+    state = f2(state)
+    state = f2(undefined)
+}
+
+function testSet(state: Set<number>) {
+    // normal
+    state = produce(state, draft => {
+        if (draft.has(1)) {
+            return
+        }
+        // $ExpectError
+        draft.add("me")
+        draft.add(100)
+    })
+    // curried, no initial state
+    const f1 = produce(draft => { draft.add(draft.size) })
+    state = f1(state)
+    // curried, with initial state
+    const f2 = produce(draft => { draft.add(draft.size) }, state)
+    state = f2(state)
+    state = f2(undefined)
 }
