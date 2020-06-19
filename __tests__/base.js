@@ -465,7 +465,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 
 			it("can assign by key", () => {
 				const nextState = produce(baseState, s => {
-                    // Map.prototype.set should return the Map itself
+					// Map.prototype.set should return the Map itself
 					const res = s.aMap.set("force", true)
 					if (!global.USES_BUILD) expect(res).toBe(s.aMap[DRAFT_STATE].draft_)
 				})
@@ -474,22 +474,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(nextState.aMap.get("force")).toEqual(true)
 			})
 
-            it("KO ==> new key with value=undefine", () => {
+			it("KO ==> new key with value=undefine", () => {
 				const nextState = produce(baseState, s => {
-                    // let res = s.aMap.set("new_key", 1)
-
-                    s.aMap.set("new_key", undefined)
+					s.aMap.set("new_key", undefined)
 				})
 				expect(nextState.aMap.has("new_key")).toBe(true)
-            })
+			})
 
-            it("OK ==> new key with value=undefine", () => {
+			it("OK ==> new key with value=undefine", () => {
 				const nextState = produce(baseState, s => {
-                    s.aMap.set("new_key", 1)
-                    s.aMap.set("new_key", undefined)
+					s.aMap.set("new_key", 1)
+					s.aMap.set("new_key", undefined)
 				})
 				expect(nextState.aMap.has("new_key")).toBe(true)
-            })
+			})
             
 			it("can assign by a non-primitive key", () => {
 				const key = {prop: "val"}
