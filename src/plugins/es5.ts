@@ -16,7 +16,8 @@ import {
 	getCurrentScope,
 	die,
 	markChanged,
-	objectTraps
+	objectTraps,
+	ownKeys
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -49,7 +50,9 @@ export function enableES5() {
 		// Descriptors we want to skip:
 		if (isArray) delete descriptors.length
 		delete descriptors[DRAFT_STATE as any]
-		for (let key in descriptors) {
+		const keys = ownKeys(descriptors)
+		for (let i = 0; i < keys.length; i++) {
+			const key: any = keys[i]
 			descriptors[key] = proxyProperty(
 				key,
 				isArray || !!descriptors[key].enumerable
@@ -204,9 +207,10 @@ export function enableES5() {
 
 		// Search for added keys and changed keys. Start at the back, because
 		// non-numeric keys are ordered by time of definition on the object.
-		const keys = Object.keys(draft_)
+		const keys = ownKeys(draft_)
 		for (let i = keys.length - 1; i >= 0; i--) {
-			const key = keys[i]
+			const key: any = keys[i]
+			if (key === DRAFT_STATE) continue
 			const baseValue = base_[key]
 			// The `undefined` check is a fast path for pre-existing keys.
 			if (baseValue === undefined && !has(base_, key)) {
@@ -225,7 +229,8 @@ export function enableES5() {
 
 		// At this point, no keys were added or changed.
 		// Compare key count to determine if keys were deleted.
-		return keys.length !== Object.keys(base_).length
+		const baseIsDraft = !!base_[DRAFT_STATE as any]
+		return keys.length !== ownKeys(base_).length + (baseIsDraft ? 0 : 1) // + 1 to correct for DRAFT_STATE
 	}
 
 	function hasArrayChanges(state: ES5ArrayState) {

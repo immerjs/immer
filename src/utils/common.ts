@@ -146,7 +146,9 @@ export function shallowCopy(base: any) {
 	if (Array.isArray(base)) return base.slice()
 	const descriptors = Object.getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
-	for (let key in descriptors) {
+	let keys = ownKeys(descriptors)
+	for (let i = 0; i < keys.length; i++) {
+		const key: any = keys[i]
 		const desc = descriptors[key]
 		if (desc.writable === false) {
 			desc.writable = true

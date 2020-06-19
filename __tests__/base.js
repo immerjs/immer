@@ -2345,6 +2345,39 @@ function testObjectTypes(produce) {
 		expect(next.y).toBe(2)
 		expect(state.x).toBe(0)
 	})
+
+	describe("#620", () => {
+		const customSymbol = Symbol("customSymbol")
+
+		class TestClass {
+			[immerable] = true;
+			[customSymbol] = 1
+		}
+
+		/* Create class instance */
+		let test0 = new TestClass()
+
+		/* First produce. This works */
+		let test1 = produce(test0, draft => {
+			expect(draft[customSymbol]).toBe(1)
+			draft[customSymbol] = 2
+		})
+		expect(test1).toEqual({
+			[immerable]: true,
+			[customSymbol]: 2
+		})
+
+		/* Second produce. This does NOT work. See console error */
+		/* With version 6.0.9, this works though */
+		let test2 = produce(test1, draft => {
+			expect(draft[customSymbol]).toBe(2)
+			draft[customSymbol] = 3
+		})
+		expect(test2).toEqual({
+			[immerable]: true,
+			[customSymbol]: 3
+		})
+	})
 }
 
 function testLiteralTypes(produce) {
