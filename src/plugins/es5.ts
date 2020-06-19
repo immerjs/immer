@@ -17,7 +17,8 @@ import {
 	die,
 	markChanged,
 	objectTraps,
-	ownKeys
+	ownKeys,
+	getOwnPropertyDescriptors
 } from "../internal"
 
 type ES5State = ES5ArrayState | ES5ObjectState
@@ -46,7 +47,7 @@ export function enableES5() {
 
 	function createES5Draft(isArray: boolean, base: any) {
 		// Create a new object / array, where each own property is trapped with an accessor
-		const descriptors = Object.getOwnPropertyDescriptors(base)
+		const descriptors = getOwnPropertyDescriptors(base)
 		// Descriptors we want to skip:
 		if (isArray) delete descriptors.length
 		delete descriptors[DRAFT_STATE as any]

@@ -62,6 +62,17 @@ export const ownKeys: (target: AnyObject) => PropertyKey[] =
 				)
 		: /* istanbul ignore next */ Object.getOwnPropertyNames
 
+export const getOwnPropertyDescriptors =
+	Object.getOwnPropertyDescriptors ||
+	function getOwnPropertyDescriptors(target: any) {
+		// Polyfill needed for Hermes and IE, see https://github.com/facebook/hermes/issues/274
+		const res: any = {}
+		ownKeys(target).forEach(key => {
+			res[key] = Object.getOwnPropertyDescriptor(target, key)
+		})
+		return res
+	}
+
 export function each<T extends Objectish>(
 	obj: T,
 	iter: (key: string | number, value: any, source: T) => void,
@@ -144,7 +155,7 @@ export function latest(state: ImmerState): any {
 /*#__PURE__*/
 export function shallowCopy(base: any) {
 	if (Array.isArray(base)) return base.slice()
-	const descriptors = Object.getOwnPropertyDescriptors(base)
+	const descriptors = getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
 	let keys = ownKeys(descriptors)
 	for (let i = 0; i < keys.length; i++) {

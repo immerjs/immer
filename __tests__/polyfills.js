@@ -1,10 +1,13 @@
-const {assign} = Object
+const {assign, getOwnPropertyDescriptors} = Object
 const {ownKeys} = Reflect
 const SymbolConstructor = Symbol
+
+const testSymbol = Symbol("test-symbol")
 
 Symbol = undefined
 Object.assign = undefined
 Reflect.ownKeys = undefined
+Object.getOwnPropertyDescriptors = undefined
 
 jest.resetModules()
 const common = require("../src/internal")
@@ -13,6 +16,7 @@ const common = require("../src/internal")
 Symbol = SymbolConstructor
 Object.assign = assign
 Reflect.ownKeys = ownKeys
+Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors
 
 if (!global.USES_BUILD)
 	describe("Symbol", () => {
@@ -46,6 +50,34 @@ if (!global.USES_BUILD)
 			const obj = {a: 1}
 			Object.defineProperty(obj, "b", {value: 1})
 			expect(ownKeys(obj)).toEqual(["a", "b"])
+		})
+	})
+
+if (!global.USES_BUILD)
+	describe("Object.getOwnPropertyDescriptors", () => {
+		const {getOwnPropertyDescriptors} = common
+
+		// Symbol keys are always last.
+		it("gets symbolic and nonsymbolic properties", () => {
+			expect(
+				Object.getOwnPropertyDescriptors({
+					x: 1,
+					[testSymbol]: 2
+				})
+			).toEqual({
+				x: {
+					value: 1,
+					enumerable: true,
+					configurable: true,
+					writable: true
+				},
+				[testSymbol]: {
+					value: 2,
+					enumerable: true,
+					configurable: true,
+					writable: true
+				}
+			})
 		})
 	})
 
