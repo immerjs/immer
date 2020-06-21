@@ -10,7 +10,7 @@ A clear and concise description of what the question is. In general we recommend
 
 ## Link to repro
 
-Please provide a [CodeSandbox demo](https://codesandbox.io/s/immer-sandbox-6wijw) to clarify your question if possible.
+Please provide a [CodeSandbox demo](https://codesandbox.io/s/immer-sandbox-6wijw) to clarify your question if possible. Typically, questions without minimal codesandbox demo won't be answered.
 
 ## Environment
 
