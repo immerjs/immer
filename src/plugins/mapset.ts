@@ -80,7 +80,7 @@ export function enableMapSet() {
 		p.set = function(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (latest(state).get(key) !== value) {
+			if (!latest(state).has(key) || latest(state).get(key) !== value) {
 				prepareMapCopy(state)
 				markChanged(state)
 				state.assigned_!.set(key, true)
