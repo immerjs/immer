@@ -474,21 +474,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect(nextState.aMap.get("force")).toEqual(true)
 			})
 
-			it("KO ==> new key with value=undefine", () => {
-				const nextState = produce(baseState, s => {
-					s.aMap.set("new_key", undefined)
-				})
-				expect(nextState.aMap.has("new_key")).toBe(true)
-			})
-
-			it("OK ==> new key with value=undefine", () => {
-				const nextState = produce(baseState, s => {
-					s.aMap.set("new_key", 1)
-					s.aMap.set("new_key", undefined)
-				})
-				expect(nextState.aMap.has("new_key")).toBe(true)
-			})
-            
 			it("can assign by a non-primitive key", () => {
 				const key = {prop: "val"}
 				const value = {id: 1, a: 1}

@@ -235,5 +235,14 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(Array.from(set).sort()).toEqual([1, 2, 3])
 		})
+
+		test("#627 - new map key with value=undefined", () => {
+			const map = new Map()
+			const map1 = produce(map, draft => {
+				draft.set("key", undefined)
+			})
+			expect(map1.has("key")).toBe(true)
+			expect(map1.get("key")).toBe(undefined)
+		})
 	})
 }
