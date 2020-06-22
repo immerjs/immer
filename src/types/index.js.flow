@@ -8,7 +8,7 @@ export interface Patch {
 
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
-type Base = {...} | Array<any> | Map<any> | Set<any>
+type Base = {...} | Array<any>
 interface IProduce {
 	/**
 	 * Immer takes a state, and runs a function against it.
