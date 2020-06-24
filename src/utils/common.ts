@@ -180,7 +180,7 @@ export function shallowCopy(base: any) {
 }
 
 export function freeze(obj: any, deep: boolean): void {
-	if (Object.isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return
+	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
