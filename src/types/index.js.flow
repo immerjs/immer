@@ -39,8 +39,32 @@ interface IProduce {
 	): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S;
 }
 
+interface IProduceWithPatches {
+        /**
+         * Like `produce`, but instead of just returning the new state,
+         * a tuple is returned with [nextState, patches, inversePatches]
+         *
+         * Like produce, this function supports currying
+         */
+	<S: Base>(
+		currentState: S,
+		recipe: (draftState: S) => S | void
+	): [S, Patch[], Patch[]];
+	// curried invocations with inital state
+	<S: Base, A = void, B = void, C = void>(
+		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void,
+		initialState: S
+	): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
+	// curried invocations without inital state
+	<S: Base, A = void, B = void, C = void>(
+		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
+	): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
+}
+
 declare export var produce: IProduce
 declare export default IProduce
+
+declare export var produceWithPatches: IProduceWithPatches
 
 declare export var nothing: typeof undefined
 
