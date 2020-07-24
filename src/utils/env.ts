@@ -20,7 +20,7 @@ export const isMinified = mini.name !== "mini"
  * The sentinel value returned by producers to replace the draft with undefined.
  */
 export const NOTHING: Nothing = hasSymbol
-	? Symbol("immer-nothing")
+	? Symbol.for("immer-nothing")
 	: ({["immer-nothing"]: true} as any)
 
 /**
@@ -32,11 +32,11 @@ export const NOTHING: Nothing = hasSymbol
  * safe to mutate in a produce callback.
  */
 export const DRAFTABLE: unique symbol = hasSymbol
-	? Symbol("immer-draftable")
+	? Symbol.for("immer-draftable")
 	: ("__$immer_draftable" as any)
 
 export const DRAFT_STATE: unique symbol = hasSymbol
-	? Symbol("immer-state")
+	? Symbol.for("immer-state")
 	: ("__$immer_state" as any)
 
 // Even a polyfilled Symbol might provide Symbol.iterator
