@@ -78,5 +78,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				x: 1
 			})
 		})
+
+		test("#646 setting undefined field to undefined should not create new result", () => {
+			const foo = {
+				bar: undefined
+			}
+			const foo2 = produce(foo, draft => {
+				draft.bar = undefined
+			})
+			expect(foo2).toBe(foo)
+		})
+
+		test("#646 -2 setting undefined field to undefined should not create new result", () => {
+			const foo = {}
+			const foo2 = produce(foo, draft => {
+				draft.bar = undefined
+			})
+			expect(foo2).not.toBe(foo)
+			expect(foo).toEqual({})
+			expect(foo2).toEqual({bar: undefined})
+		})
 	})
 }

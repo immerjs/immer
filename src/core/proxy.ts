@@ -139,7 +139,12 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		}
 		state.assigned_[prop] = true
 		if (!state.modified_) {
-			if (is(value, peek(latest(state), prop)) && value !== undefined)
+			// the last check is because we need to be able to distinguish setting a non-existig to undefined (which is a change)
+			// from setting an existing property with value undefined to undefined (which is not a change)
+			if (
+				is(value, peek(latest(state), prop)) &&
+				(value !== undefined || has(state.base_, prop))
+			)
 				return true
 			prepareCopy(state)
 			markChanged(state)
