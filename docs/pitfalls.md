@@ -3,7 +3,9 @@ id: pitfalls
 title: Pitfalls
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 1. For performance tips, see [Performance Tips](https://immerjs.github.io/immer/docs/performance/#performance-tips).
 1. Don't redefine draft like, `draft = myCoolNewState`. Instead, either modify the `draft` or return a new state. See [Returning data from producers](https://immerjs.github.io/immer/docs/return).

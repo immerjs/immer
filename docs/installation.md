@@ -3,7 +3,9 @@ id: installation
 title: Installation
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 Immer can be installed as a direct dependency, and will work in any ES5 environment:
 

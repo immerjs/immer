@@ -4,7 +4,9 @@ title: Extracting the original state from a draft
 sidebar_label: Original
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.
 

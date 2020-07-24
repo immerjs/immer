@@ -3,7 +3,9 @@ id: update-patterns
 title: Update patterns
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 Working with immutable data, before Immer, used to mean learning all the immutable update patterns.
 

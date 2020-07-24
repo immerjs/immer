@@ -3,7 +3,9 @@ id: resources
 title: External resources
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 - Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)
 - Blog: by Workday Prism on why they picked Immer to manage immutable state [The Search for a Strongly-Typed, Immutable State](https://medium.com/workday-engineering/workday-prism-analytics-the-search-for-a-strongly-typed-immutable-state-a09f6768b2b5)

@@ -4,7 +4,9 @@ title: Introduction to Immer
 sidebar_label: Introduction
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 <img src="/immer/img/immer-logo.svg" height="200px" align="right"/>
 

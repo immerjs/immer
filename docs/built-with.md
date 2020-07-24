@@ -3,7 +3,9 @@ id: built-with
 title: Built with Immer
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 - [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_
 - [redux-toolkit](https://github.com/reduxjs/redux-toolkit) _The official, opinionated, batteries-included toolset for efficient Redux development_
@@ -17,5 +19,5 @@ title: Built with Immer
 - [redux-ts-utils](https://github.com/knpwrs/redux-ts-utils) _Everything you need to create type-safe applications with Redux with a strong emphasis on simplicity_
 - [react-state-tree](https://github.com/suchipi/react-state-tree) _Drop-in replacement for useState that persists your state into a redux-like state tree_
 - [redux-immer](https://github.com/salvoravida/redux-immer) _is used to create an equivalent function of Redux combineReducers that works with `immer` state. Like `redux-immutable` but for `immer`_
-- [ngrx-wieder](https://github.com/nilsmehlhorn/ngrx-wieder)  _Lightweight yet configurable solution for implementing undo-redo in Angular apps on top of NgRx and Immer_
+- [ngrx-wieder](https://github.com/nilsmehlhorn/ngrx-wieder) _Lightweight yet configurable solution for implementing undo-redo in Angular apps on top of NgRx and Immer_
 - ... and [many more](https://www.npmjs.com/browse/depended/immer)

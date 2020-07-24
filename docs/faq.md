@@ -4,7 +4,9 @@ title: Frequently Asked Questions
 sidebar_label: FAQ
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 ## Q: How does Immer work?
 

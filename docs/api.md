@@ -3,7 +3,9 @@ id: api
 title: API overview
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 | Exported name | Description | Section |
 | --- | --- | --- |

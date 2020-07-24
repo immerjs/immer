@@ -4,7 +4,9 @@ title: Async producers & createDraft / finishDraft
 sidebar_label: Async produce / createDraft
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 <details>
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 11: Creating _async_ producers (and why you shouldn’t)</summary>

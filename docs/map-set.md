@@ -3,7 +3,9 @@ id: map-set
 title: Map and Set
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 _⚠ Since version 6 support for `Map`s and `Set`s has to be enabled explicitly by calling [`enableMapSet()`](installation#pick-your-immer-version) once when starting your application._
 

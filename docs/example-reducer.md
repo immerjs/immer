@@ -3,7 +3,9 @@ id: example-reducer
 title: Example Reducer
 ---
 
-<div id="codefund"><!-- fallback content --></div>
+<center>
+<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+</center>
 
 <details>
     <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 13: Using Immer in a (React) reducer</summary>
