@@ -46,24 +46,22 @@ export function enableES5() {
 	}
 
 	function createES5Draft(isArray: boolean, base: any) {
-		// Create a new object / array, where each own property is trapped with an accessor
-		const descriptors = getOwnPropertyDescriptors(base)
-		// Descriptors we want to skip:
-		if (isArray) delete descriptors.length
-		delete descriptors[DRAFT_STATE as any]
-		const keys = ownKeys(descriptors)
-		for (let i = 0; i < keys.length; i++) {
-			const key: any = keys[i]
-			descriptors[key] = proxyProperty(
-				key,
-				isArray || !!descriptors[key].enumerable
-			)
-		}
 		if (isArray) {
 			const draft = new Array(base.length)
-			Object.defineProperties(draft, descriptors)
+			for (let i = 0; i < base.length; i++)
+				Object.defineProperty(draft, "" + i, proxyProperty(i, true))
 			return draft
 		} else {
+			const descriptors = getOwnPropertyDescriptors(base)
+			delete descriptors[DRAFT_STATE as any]
+			const keys = ownKeys(descriptors)
+			for (let i = 0; i < keys.length; i++) {
+				const key: any = keys[i]
+				descriptors[key] = proxyProperty(
+					key,
+					isArray || !!descriptors[key].enumerable
+				)
+			}
 			return Object.create(Object.getPrototypeOf(base), descriptors)
 		}
 	}

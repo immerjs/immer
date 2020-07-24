@@ -89,7 +89,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(foo2).toBe(foo)
 		})
 
-		test("#646 -2 setting undefined field to undefined should not create new result", () => {
+		test("#646 - 2 setting undefined field to undefined should not create new result", () => {
 			const foo = {}
 			const foo2 = produce(foo, draft => {
 				draft.bar = undefined
@@ -97,6 +97,24 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(foo2).not.toBe(foo)
 			expect(foo).toEqual({})
 			expect(foo2).toEqual({bar: undefined})
+		})
+
+		test("#638 - out of range assignments", () => {
+			const state = []
+
+			const state1 = produce(state, draft => {
+				draft[2] = "v2"
+			})
+
+			expect(state1.length).toBe(3)
+			expect(state1).toEqual([undefined, undefined, "v2"])
+
+			const state2 = produce(state1, draft => {
+				draft[1] = "v1"
+			})
+
+			expect(state2.length).toBe(3)
+			expect(state2).toEqual([undefined, "v1", "v2"])
 		})
 	})
 }
