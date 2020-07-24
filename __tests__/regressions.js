@@ -116,5 +116,29 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(state2.length).toBe(3)
 			expect(state2).toEqual([undefined, "v1", "v2"])
 		})
+
+		test("#628 set removal hangs", () => {
+			let arr = []
+			let set = new Set([arr])
+
+			let result = produce(set, draft1 => {
+				produce(draft1, draft2 => {
+					draft2.delete(arr)
+				})
+			})
+			expect(result).toEqual(new Set([[]])) // N.B. this outcome doesn't seem not correct, but then again,
+			// double produce without return looks iffy as well, so not sure what the expected outcome in the
+			// original report was
+		})
+
+		test("#628 - 2 set removal hangs", () => {
+			let arr = []
+			let set = new Set([arr])
+
+			let result = produce(set, draft2 => {
+				draft2.delete(arr)
+			})
+			expect(result).toEqual(new Set())
+		})
 	})
 }

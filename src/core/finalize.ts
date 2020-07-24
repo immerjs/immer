@@ -87,9 +87,14 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
 				? (state.copy_ = shallowCopy(state.draft_))
 				: state.copy_
-		// finalize all children of the copy
-		each(result as any, (key, childValue) =>
-			finalizeProperty(rootScope, state, result, key, childValue, path)
+		// Finalize all children of the copy
+		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
+		// Although the original test case doesn't seem valid anyway, so if this in the way we can turn the next line
+		// back to each(result, ....)
+		each(
+			state.type_ === ProxyTypeSet ? new Set(result) : result,
+			(key, childValue) =>
+				finalizeProperty(rootScope, state, result, key, childValue, path)
 		)
 		// everything inside is frozen, we can freeze here
 		maybeFreeze(rootScope, result, false)
