@@ -38,6 +38,10 @@ To help with replaying patches, `applyPatches` comes in handy. Here is an exampl
 ```javascript
 import produce, {applyPatches} from "immer"
 
+// version 6
+import {enablePatches} from "immer"
+enablePatches()
+
 let state = {
 	name: "Micheal",
 	age: 32
