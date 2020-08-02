@@ -140,5 +140,23 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(result).toEqual(new Set())
 		})
+
+		test("#650 - changes with overridden arr.slice() fail", () => {
+			const data = {
+				foo: [
+					{
+						isActive: false
+					}
+				]
+			}
+			// That's roughly what seamless-immutable does
+			data.foo.slice = (...args) =>
+				Object.freeze(Array.prototype.slice.call(data.foo, ...args))
+
+			const newData = produce(data, draft => {
+				draft.foo[0].isActive = true
+			})
+			expect(newData.foo[0].isActive).toBe(true)
+		})
 	})
 }
