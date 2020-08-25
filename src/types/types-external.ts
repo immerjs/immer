@@ -23,6 +23,8 @@ type AtomicObject =
  */
 type WeakReferences = WeakMap<any, any> | WeakSet<any>
 
+export type WritableDraft<T> = {-readonly [K in keyof T]: Draft<T[K]>}
+
 export type Draft<T> = T extends AtomicObject
 	? T
 	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
@@ -32,7 +34,7 @@ export type Draft<T> = T extends AtomicObject
 	: T extends WeakReferences
 	? T
 	: T extends object
-	? {-readonly [K in keyof T]: Draft<T[K]>}
+	? WritableDraft<T>
 	: T
 
 /** Convert a mutable type into a readonly type */
