@@ -244,5 +244,27 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(map1.has("key")).toBe(true)
 			expect(map1.get("key")).toBe(undefined)
 		})
+
+		test("#663 - clear map", () => {
+			const map = new Map([
+				["a", "b"],
+				["b", "c"]
+			])
+			const result = produceWithPatches(map, draft => {
+				draft.clear()
+			})
+
+			expect(result).toEqual([
+				new Map(),
+				[
+					{op: "remove", path: ["a"]},
+					{op: "remove", path: ["b"]}
+				],
+				[
+					{op: "add", path: ["a"], value: "b"},
+					{op: "add", path: ["b"], value: "c"}
+				]
+			])
+		})
 	})
 }
