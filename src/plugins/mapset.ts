@@ -15,7 +15,8 @@ import {
 	markChanged,
 	ProxyTypeMap,
 	ProxyTypeSet,
-	die
+	die,
+	each
 } from "../internal"
 
 export function enableMapSet() {
@@ -110,6 +111,9 @@ export function enableMapSet() {
 			prepareMapCopy(state)
 			markChanged(state)
 			state.assigned_ = new Map()
+			each(state.base_, key => {
+				state.assigned_!.set(key, false)
+			})
 			return state.copy_!.clear()
 		}
 
