@@ -57,7 +57,7 @@ export function processResult(result: any, scope: ImmerScope) {
 }
 
 function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
-	// Don't recurse in tho recursive data structures
+	// Don't recurse into recursive data structures
 	if (isFrozen(value)) return value
 
 	const state: ImmerState = value[DRAFT_STATE]
