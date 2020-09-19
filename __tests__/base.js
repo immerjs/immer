@@ -897,6 +897,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			}).toThrowErrorMatchingSnapshot()
 		})
 
+		it("throws on non-immerable class-instance property of plain object", () => {
+			const Pet = class {
+				constructor(name) {
+					this.name = name
+				}
+			}
+			const baseState = {pet: new Pet("Rover")}
+			expect(() => {
+				produce(baseState, draft => {
+					draft.pet.name = "Rex"
+				})
+			}).toThrowErrorMatchingSnapshot()
+		})
+
 		it("supports `immerable` symbol on constructor", () => {
 			class One {}
 			One[immerable] = true
