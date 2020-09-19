@@ -883,6 +883,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
+		it("throws on non-immerable instance", () => {
+			const Pet = class {
+				constructor(name) {
+					this.name = name
+				}
+			}
+			const baseState = new Pet("Rover")
+			expect(() => {
+				produce(baseState, draft => {
+					draft.name = "Rex"
+				})
+			}).toThrowErrorMatchingSnapshot()
+		})
+
 		it("supports `immerable` symbol on constructor", () => {
 			class One {}
 			One[immerable] = true
