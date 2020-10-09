@@ -266,5 +266,19 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				]
 			])
 		})
+
+		test("#680 - Clearing empty Set&Map should be noop", () => {
+			const map = new Map()
+			let result = produce(map, draft => {
+				draft.clear()
+			})
+			expect(result).toBe(map)
+
+			const set = new Set()
+			result = produce(set, draft => {
+				draft.clear()
+			})
+			expect(result).toBe(set)
+		})
 	})
 }
