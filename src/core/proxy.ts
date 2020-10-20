@@ -18,6 +18,7 @@ import {
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
 } from "../internal"
+import {isDraft} from "../utils/common"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -129,7 +130,11 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 	ownKeys(state) {
 		return Reflect.ownKeys(latest(state))
 	},
-	set(state, prop: string /* strictly not, but helps TS */, value) {
+	set(
+		state: ProxyObjectState,
+		prop: string /* strictly not, but helps TS */,
+		value
+	) {
 		const desc = getDescriptorFromProto(latest(state), prop)
 		if (desc?.set) {
 			// special case: if this write is captured by a setter, we have
@@ -137,20 +142,25 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			desc.set.call(state.draft_, value)
 			return true
 		}
-		state.assigned_[prop] = true
 		if (!state.modified_) {
 			// the last check is because we need to be able to distinguish setting a non-existig to undefined (which is a change)
 			// from setting an existing property with value undefined to undefined (which is not a change)
-			if (
-				is(value, peek(latest(state), prop)) &&
-				(value !== undefined || has(state.base_, prop))
-			)
+			const current = peek(latest(state), prop)
+			// special case, if we assigning the original value to a draft, we can ignore the assignment
+			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
+			if (currentState && currentState.base_ === value) {
+				state.copy_![prop] = value
+				state.assigned_[prop] = false
+				return true
+			}
+			if (is(value, current) && (value !== undefined || has(state.base_, prop)))
 				return true
 			prepareCopy(state)
 			markChanged(state)
 		}
 		// @ts-ignore
 		state.copy_![prop] = value
+		state.assigned_[prop] = true
 		return true
 	},
 	deleteProperty(state, prop: string) {

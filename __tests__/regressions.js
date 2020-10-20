@@ -158,5 +158,86 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(newData.foo[0].isActive).toBe(true)
 		})
+
+		test("#659 no reconciliation after read", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				draft.bar
+				draft.bar = bar
+			})
+			expect(next).toBe(foo)
+		})
+
+		test("#659 no reconciliation after read - 2", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				const subDraft = draft.bar
+				draft.bar = bar
+				subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+			})
+
+			expect(next).toEqual(foo)
+		})
+
+		test("#659 no reconciliation after read - 3", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				const subDraft = draft.bar
+				subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+				draft.bar = bar
+			})
+			expect(next).toEqual(foo)
+		})
+
+		// Disabled: these are optimizations that would be nice if they
+		// could be detected, but don't change the correctness of the result
+		test.skip("#659 no reconciliation after read - 4", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				const subDraft = draft.bar
+				draft.bar = bar
+				subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+			})
+
+			expect(next).toBe(foo)
+		})
+
+		// Disabled: these are optimizations that would be nice if they
+		// could be detected, but don't change the correctness of the result
+		test.skip("#659 no reconciliation after read - 5", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				const subDraft = draft.bar
+				subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+				draft.bar = bar
+			})
+			expect(next).toBe(foo)
+		})
+
+		test("#659 no reconciliation after read - 6", () => {
+			const bar = {}
+			const foo = {bar}
+
+			const next = produce(foo, draft => {
+				const subDraft = draft.bar
+				subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+				draft.bar = bar
+				draft.bar = subDraft
+			})
+			expect(next).not.toBe(foo)
+			expect(next).toEqual({
+				bar: {x: 3}
+			})
+		})
 	})
 }
