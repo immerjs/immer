@@ -25,7 +25,8 @@ import {
 	ArchtypeSet,
 	ArchtypeArray,
 	die,
-	isDraft
+	isDraft,
+	isDraftable
 } from "../internal"
 
 export function enablePatches() {
@@ -267,7 +268,7 @@ export function enablePatches() {
 	// (See failing test when deepClone just returns obj)
 	function deepClonePatchValue<T>(obj: T): T
 	function deepClonePatchValue(obj: any) {
-		if (!obj || typeof obj !== "object") return obj
+		if (!isDraftable(obj)) return obj
 		if (Array.isArray(obj)) return obj.map(deepClonePatchValue)
 		if (isMap(obj))
 			return new Map(

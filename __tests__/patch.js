@@ -1119,3 +1119,31 @@ describe("#588", () => {
 		[{op: "add", path: ["num"], value: 42}]
 	)
 })
+
+test("#676 patching Date objects", () => {
+	class Test {
+		constructor() {
+			this.test = true
+		}
+		perform() {
+			return "tested!"
+		}
+	}
+
+	const [nextState, patches] = produceWithPatches({}, function(draft) {
+		draft.date = new Date(2020, 10, 10, 8, 8, 8, 3)
+		draft.test = new Test()
+	})
+
+	expect(nextState.date.toJSON()).toMatchInlineSnapshot(
+		`"2020-11-10T08:08:08.003Z"`
+	)
+	expect(nextState.test.perform()).toBe("tested!")
+
+	const rebuilt = applyPatches({}, patches)
+	expect(rebuilt.date).toBeInstanceOf(Date)
+	expect(rebuilt.date.toJSON()).toMatchInlineSnapshot(
+		`"2020-11-10T08:08:08.003Z"`
+	)
+	expect(rebuilt.date).toEqual(new Date(2020, 10, 10, 8, 8, 8, 3))
+})
