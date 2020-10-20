@@ -18,7 +18,6 @@ import {
 	ProxyTypeProxyObject,
 	ProxyTypeProxyArray
 } from "../internal"
-import {isDraft} from "../utils/common"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
