@@ -37,7 +37,7 @@ class Clock {
 	}
 
 	get time() {
-		return `${this.hour}:${minute}`
+		return `${this.hour}:${this.minute}`
 	}
 
 	tick() {
