@@ -52,7 +52,7 @@ export function getPlugin<K extends keyof Plugins>(
 ): Exclude<Plugins[K], undefined> {
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
-		die(__DEV__ ? 18 : 19, pluginKey)
+		die(18, pluginKey)
 	}
 	// @ts-ignore
 	return plugin
