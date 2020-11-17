@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - "10.18.1"
-  # - "node"
+  # - "10.18.1"
+  - "node"
 env:
   - NODE_ENV=TEST
 cache:
@@ -12,12 +12,13 @@ before_script:
   - yarn global add if-node-version
 script:
   - yarn build || travis_terminate 1
-  - if-node-version 10 || { yarn test && travis_terminate 0; }
-  - yarn coveralls
+  - yarn test || travis_terminate 1
+  - yarn coveralls  || travis_terminate 1
 jobs:
   include:
     - stage: deploy
       if: branch == master && !fork
       script:
+        - yarn test || travis_terminate 1
         - NODE_ENV= yarn build || travis_terminate 1
         - yarn semantic-release

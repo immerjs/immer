@@ -2,9 +2,9 @@
 
 exports[`base functionality - es5 (autofreeze) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (autofreeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -18,19 +18,17 @@ exports[`base functionality - es5 (autofreeze) revokes the draft once produce re
 
 exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - es5 (autofreeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -44,19 +42,17 @@ exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft
 
 exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (no freeze) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (no freeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -70,19 +66,17 @@ exports[`base functionality - es5 (no freeze) revokes the draft once produce ret
 
 exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - es5 (no freeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (patch listener) async recipe function works with rejected promises 1`] = `"[Immer] minified error nr: 3 {\\"a\\":0,\\"b\\":1}. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -96,19 +90,17 @@ exports[`base functionality - es5 (patch listener) revokes the draft once produc
 
 exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 4`] = `"[Immer] minified error nr: 3 [1]. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - es5 (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - es5 (patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - es5 (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - es5 (patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (autofreeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (autofreeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -130,11 +122,9 @@ exports[`base functionality - proxy (autofreeze) revokes the draft once produce 
 
 exports[`base functionality - proxy (autofreeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - proxy (autofreeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (autofreeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -144,9 +134,9 @@ exports[`base functionality - proxy (autofreeze) throws when the draft is modifi
 
 exports[`base functionality - proxy (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -168,11 +158,9 @@ exports[`base functionality - proxy (autofreeze)(patch listener) revokes the dra
 
 exports[`base functionality - proxy (autofreeze)(patch listener) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - proxy (autofreeze)(patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -182,9 +170,9 @@ exports[`base functionality - proxy (autofreeze)(patch listener) throws when the
 
 exports[`base functionality - proxy (no freeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (no freeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -206,11 +194,9 @@ exports[`base functionality - proxy (no freeze) revokes the draft once produce r
 
 exports[`base functionality - proxy (no freeze) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (no freeze) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - proxy (no freeze) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (no freeze) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (no freeze) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -220,9 +206,9 @@ exports[`base functionality - proxy (no freeze) throws when the draft is modifie
 
 exports[`base functionality - proxy (patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Find the full error at: https://bit.ly/3cXEKWf"`;
 
@@ -244,11 +230,9 @@ exports[`base functionality - proxy (patch listener) revokes the draft once prod
 
 exports[`base functionality - proxy (patch listener) revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
-exports[`base functionality - proxy (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (patch listener) set drafts revokes sets 1`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`base functionality - proxy (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 {}. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`base functionality - proxy (patch listener) throws on computed properties 1`] = `"[Immer] minified error nr: 1. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`base functionality - proxy (patch listener) set drafts revokes sets 2`] = `"[Immer] minified error nr: 3 '{}'. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - proxy (patch listener) throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] minified error nr: 11. Find the full error at: https://bit.ly/3cXEKWf"`;
 
