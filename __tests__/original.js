@@ -3,6 +3,8 @@ import produce, {original, setUseProxies, enableAllPlugins} from "../src/immer"
 
 enableAllPlugins()
 
+const isProd = process.env.NODE_ENV === "production"
+
 describe("original", () => {
 	const baseState = {
 		a: [],
@@ -40,20 +42,28 @@ describe("original", () => {
 			draftState.c = {}
 			draftState.d = 3
 			expect(() => original(draftState.c)).toThrowErrorMatchingInlineSnapshot(
-				`"[Immer] 'original' expects a draft, got: [object Object]"`
+				isProd
+					? `"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
+					: `"[Immer] 'original' expects a draft, got: [object Object]"`
 			)
 			expect(() => original(draftState.d)).toThrowErrorMatchingInlineSnapshot(
-				`"[Immer] 'original' expects a draft, got: 3"`
+				isProd
+					? `"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
+					: `"[Immer] 'original' expects a draft, got: 3"`
 			)
 		})
 	})
 
 	it("should return undefined for an object that is not proxied", () => {
 		expect(() => original({})).toThrowErrorMatchingInlineSnapshot(
-			`"[Immer] 'original' expects a draft, got: [object Object]"`
+			isProd
+				? `"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
+				: `"[Immer] 'original' expects a draft, got: [object Object]"`
 		)
 		expect(() => original(3)).toThrowErrorMatchingInlineSnapshot(
-			`"[Immer] 'original' expects a draft, got: 3"`
+			isProd
+				? `"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
+				: `"[Immer] 'original' expects a draft, got: 3"`
 		)
 	})
 })

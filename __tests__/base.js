@@ -16,6 +16,8 @@ jest.setTimeout(1000)
 
 enableAllPlugins()
 
+const isProd = process.env.NODE_ENV === "production"
+
 test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
@@ -1145,65 +1147,66 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		})
 
 		// NOTE: ES5 drafts only protect existing properties when revoked.
-		it("revokes the draft once produce returns", () => {
-			const expectRevoked = (fn, shouldThrow = true) => {
-				if (shouldThrow) expect(fn).toThrowErrorMatchingSnapshot()
-				else expect(fn).not.toThrow()
-			}
+		if (!isProd)
+			it("revokes the draft once produce returns", () => {
+				const expectRevoked = (fn, shouldThrow = true) => {
+					if (shouldThrow) expect(fn).toThrowErrorMatchingSnapshot()
+					else expect(fn).not.toThrow()
+				}
 
-			// Test object drafts:
-			let draft
-			produce({a: 1, b: 1}, s => {
-				draft = s
-				delete s.b
+				// Test object drafts:
+				let draft
+				produce({a: 1, b: 1}, s => {
+					draft = s
+					delete s.b
+				})
+
+				// Access known property on object draft.
+				expectRevoked(() => {
+					draft.a
+				})
+
+				// Assign known property on object draft.
+				expectRevoked(() => {
+					draft.a = true
+				})
+
+				// Access unknown property on object draft.
+				expectRevoked(() => {
+					draft.z
+				}, useProxies)
+
+				// Assign unknown property on object draft.
+				expectRevoked(() => {
+					draft.z = true
+				}, useProxies)
+
+				// Test array drafts:
+				produce([1, 2], s => {
+					draft = s
+					s.pop()
+				})
+
+				// Access known index of an array draft.
+				expectRevoked(() => {
+					draft[0]
+				})
+
+				// Assign known index of an array draft.
+				expectRevoked(() => {
+					draft[0] = true
+				})
+
+				// Access unknown index of an array draft.
+				expectRevoked(() => {
+					draft[1]
+				}, useProxies)
+
+				// Assign unknown index of an array draft.
+				expectRevoked(() => {
+					draft[1] = true
+				}, useProxies)
 			})
-
-			// Access known property on object draft.
-			expectRevoked(() => {
-				draft.a
-			})
-
-			// Assign known property on object draft.
-			expectRevoked(() => {
-				draft.a = true
-			})
-
-			// Access unknown property on object draft.
-			expectRevoked(() => {
-				draft.z
-			}, useProxies)
-
-			// Assign unknown property on object draft.
-			expectRevoked(() => {
-				draft.z = true
-			}, useProxies)
-
-			// Test array drafts:
-			produce([1, 2], s => {
-				draft = s
-				s.pop()
-			})
-
-			// Access known index of an array draft.
-			expectRevoked(() => {
-				draft[0]
-			})
-
-			// Assign known index of an array draft.
-			expectRevoked(() => {
-				draft[0] = true
-			})
-
-			// Access unknown index of an array draft.
-			expectRevoked(() => {
-				draft[1]
-			}, useProxies)
-
-			// Assign unknown index of an array draft.
-			expectRevoked(() => {
-				draft[1] = true
-			}, useProxies)
-		})
 
 		it("can access a child draft that was created before the draft was modified", () => {
 			produce({a: {}}, s => {
@@ -1697,7 +1700,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					},
 					e => {
 						expect(e).toBe(err)
-						expect(() => draft.a).toThrowErrorMatchingSnapshot()
+						if (!isProd) expect(() => draft.a).toThrowErrorMatchingSnapshot()
 					}
 				)
 			})
@@ -2418,7 +2421,9 @@ function testLiteralTypes(produce) {
 							draft.foo = true
 						})
 					).toThrowError(
-						"produce can only be called on things that are draftable"
+						isProd
+							? "[Immer] minified error nr: 21"
+							: "produce can only be called on things that are draftable"
 					)
 				})
 			} else {

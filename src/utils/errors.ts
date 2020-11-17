@@ -29,7 +29,6 @@ const errors = {
 	18(plugin: string) {
 		return `The plugin for '${plugin}' has not been loaded into Immer. To enable the plugin, import and call \`enable${plugin}()\` when initializing your application.`
 	},
-	19: "plugin not loaded",
 	20: "Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available",
 	21(thing: string) {
 		return `produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '${thing}'`
@@ -54,7 +53,7 @@ export function die(error: keyof typeof errors, ...args: any[]): never {
 	}
 	throw new Error(
 		`[Immer] minified error nr: ${error}${
-			args.length ? " " + args.join(",") : ""
+			args.length ? " " + args.map(s => `'${s}'`).join(",") : ""
 		}. Find the full error at: https://bit.ly/3cXEKWf`
 	)
 }

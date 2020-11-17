@@ -42,6 +42,18 @@ Most important observation:
 
 ## Performance tips
 
-- When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to call `Object.freeze(json)` on the root of the data to be added first. This will allow Immer to add the new data to the tree faster, as it will skip freezing it, or searching the tree for any changes (drafts) that might be made.
-- Immer will convert anything you read in a draft recursively into a draft as well. If you have expensive side effect free operations on a draft that involves a lot of reading, for example finding an index using `find(Index)` in a very large array, you can speed this up by first doing the search, and only call the `produce` function once you know the index. Thereby preventing Immer to turn everything that was searched for in a draft. Or, perform the search on the original value of a draft, by using `original(someDraft)`, which boils to the same thing.
-- Always try to pull produce 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
+### Pre-freeze data
+
+When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to call `Object.freeze(json)` on the root of the data to be added first. This will allow Immer to add the new data to the tree faster, as it will skip freezing it, or searching the tree for any changes (drafts) that might be made.
+
+### You can always opt-out
+
+Realize that immer is opt-in everywhere, so it is perfectly fine to manually write super performance critical reducers, and use immer for all the normal ones. Even from within a producer you opt-out from Immer for certain parts of your logic by using utilies `original` or `current` and perform some of your operations on plain JavaScript objects.
+
+### For expensive search operations, read from the original state, not the draft
+
+Immer will convert anything you read in a draft recursively into a draft as well. If you have expensive side effect free operations on a draft that involves a lot of reading, for example finding an index using `find(Index)` in a very large array, you can speed this up by first doing the search, and only call the `produce` function once you know the index. Thereby preventing Immer to turn everything that was searched for in a draft. Or, alternatively, perform the search on the original value of a draft, by using `original(someDraft)`, which boils to the same thing.
+
+### Pull produce as far up as possible
+
+Always try to pull produce 'up', for example `for (let x of y) produce(base, d => d.push(x))` is exponentially slower than `produce(base, d => { for (let x of y) d.push(x)})`
