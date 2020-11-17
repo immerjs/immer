@@ -179,13 +179,22 @@ export function shallowCopy(base: any) {
 	return Object.create(Object.getPrototypeOf(base), descriptors)
 }
 
-export function freeze(obj: any, deep: boolean): void {
-	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return
+/**
+ * Freezes draftable objects. Returns the original object.
+ * By default freezes shallowly, but if the second argument is `true` it will freeze recursively.
+ *
+ * @param obj
+ * @param deep
+ */
+export function freeze<T>(obj: T, deep?: boolean): T
+export function freeze<T>(obj: any, deep: boolean = false): T {
+	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
 	if (deep) each(obj, (key, value) => freeze(value, true), true)
+	return obj
 }
 
 function dontMutateFrozenCollections() {

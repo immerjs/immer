@@ -109,3 +109,5 @@ declare export function enableES5(): void
 declare export function enableMapSet(): void
 declare export function enablePatches(): void
 declare export function enableAllPlugins(): void
+
+declare export function freeze<T>(obj: T, freeze?: boolean): T

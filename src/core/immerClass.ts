@@ -17,7 +17,6 @@ import {
 	getPlugin,
 	die,
 	hasProxies,
-	isMinified,
 	enterScope,
 	revokeScope,
 	leaveScope,
@@ -36,7 +35,7 @@ interface ProducersFns {
 export class Immer implements ProducersFns {
 	useProxies_: boolean = hasProxies
 
-	autoFreeze_: boolean = __DEV__ ? true /* istanbul ignore next */ : !isMinified
+	autoFreeze_: boolean = true
 
 	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
 		if (typeof config?.useProxies === "boolean")
