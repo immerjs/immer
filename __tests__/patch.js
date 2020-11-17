@@ -1147,3 +1147,24 @@ test("#676 patching Date objects", () => {
 	)
 	expect(rebuilt.date).toEqual(new Date(2020, 10, 10, 8, 8, 8, 3))
 })
+
+test("#648 assigning object to itself should not change patches", () => {
+	const input = {
+		obj: {
+			value: 200
+		}
+	}
+
+	const [nextState, patches] = produceWithPatches(input, draft => {
+		draft.obj.value = 1
+		draft.obj = draft.obj
+	})
+
+	expect(patches).toEqual([
+		{
+			op: "replace",
+			path: ["obj", "value"],
+			value: 1
+		}
+	])
+})
