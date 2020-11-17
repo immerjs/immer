@@ -10,6 +10,8 @@ import {
 
 enableAllPlugins()
 
+const isProd = process.env.NODE_ENV === "production"
+
 runTests("proxy", true)
 runTests("es5", false)
 
@@ -41,16 +43,17 @@ function runTests(name, useProxies) {
 			expect(state).toEqual([{}, {}, {}])
 		})
 
-		it("cannot modify after finish", () => {
-			const state = {a: 1}
+		if (!isProd)
+			it("cannot modify after finish", () => {
+				const state = {a: 1}
 
-			const draft = createDraft(state)
-			draft.a = 2
-			expect(finishDraft(draft)).toEqual({a: 2})
-			expect(() => {
-				draft.a = 3
-			}).toThrowErrorMatchingSnapshot()
-		})
+				const draft = createDraft(state)
+				draft.a = 2
+				expect(finishDraft(draft)).toEqual({a: 2})
+				expect(() => {
+					draft.a = 3
+				}).toThrowErrorMatchingSnapshot()
+			})
 
 		it("should support patches drafts", () => {
 			const state = {a: 1}

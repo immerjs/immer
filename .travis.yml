@@ -13,7 +13,7 @@ before_script:
 script:
   - yarn build || travis_terminate 1
   - yarn test || travis_terminate 1
-  - yarn coveralls  || travis_terminate 1
+  - yarn coveralls  || travis_terminate 0
 jobs:
   include:
     - stage: deploy
