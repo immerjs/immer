@@ -44,7 +44,7 @@ Most important observation:
 
 ### Pre-freeze data
 
-When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to call `Object.freeze(json)` on the root of the data to be added first. This will allow Immer to add the new data to the tree faster, as it will skip freezing it, or searching the tree for any changes (drafts) that might be made.
+When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to call `freeze(json)` on the root of the data to be added first. This will allow Immer to add the new data to the tree faster, as it will skip _recursively_ freezing it, or searching the new data for any changes (drafts) that might be made.
 
 ### You can always opt-out
 
