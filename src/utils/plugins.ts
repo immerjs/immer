@@ -62,7 +62,7 @@ export function loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,
 	implementation: Plugins[K]
 ): void {
-	plugins[pluginKey] = implementation
+	if (!plugins[pluginKey]) plugins[pluginKey] = implementation
 }
 
 /** ES5 Plugin */

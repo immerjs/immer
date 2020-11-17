@@ -5,7 +5,8 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins
+	enableAllPlugins,
+	enableMapSet
 } from "../src/immer"
 import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
 
@@ -279,6 +280,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				draft.clear()
 			})
 			expect(result).toBe(set)
+		})
+
+		test("#692 - idempotent plugin loading", () => {
+			let mapType1
+			produce(new Map(), draft => {
+				mapType1 = draft.constructor
+			})
+
+			enableMapSet()
+			let mapType2
+			produce(new Map(), draft => {
+				mapType2 = draft.constructor
+			})
+			expect(mapType1).toBe(mapType2)
 		})
 	})
 }
