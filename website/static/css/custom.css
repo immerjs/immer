@@ -22,16 +22,3 @@ a {
 a:hover {
 	text-decoration: underline;
 }
-
-/* BLM */
-.slidingNav::before {
-	content: "Black Lives Matter";
-	position: fixed;
-	left: 0;
-	width: 100vw;
-	top: 13px;
-	text-align: center;
-	pointer-events: none;
-	text-transform: uppercase;
-	font-weight: bold;
-}
