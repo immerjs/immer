@@ -21,6 +21,7 @@ title: API overview
 | `enableMapSet()` | Enables support for `Map` and `Set` collections. | [Installation](installation#pick-your-immer-version) |
 | `enablePatches()` | Enables support for JSON patches. | [Installation](installation#pick-your-immer-version) |
 | `finishDraft` | Given an draft created using `createDraft`, seals the draft and produces and returns the next immutable state that captures all the changes | [Async](async.md) |
+| `freeze(obj, deep?)` | Freezes draftable objects. Returns the original object. By default freezes shallowly, but if the second argument is `true` it will freeze recursively. |
 | `Immer` | constructor that can be used to create a second "immer" instance (exposing all APIs listed in this instance), that doesn't share its settings with global instance. |
 | `immerable` | Symbol that can be added to a constructor or prototype, to indicate that Immer should treat the class as something that can be safely drafted | [Classes](complex-objects.md) |
 | `Immutable<T>` | Exposed TypeScript type to convert mutable types to immutable types |  |
@@ -31,7 +32,7 @@ title: API overview
 | `Patch` | Exposed TypeScript type, describes the shape of an (inverse) patch object | [Patches](patches.md) |
 | `produce` | The core API of Immer, also exposed as the `default` export | [Produce](produce.md) |
 | `produceWithPatches` | Works the same as `produce`, but instead of just returning the produced object, it returns a tuple, consisting of `[result, patches, inversePatches]`. | [Patches](patches.md) |
-| `setAutoFreeze` | Enables / disables automatic freezing of the trees produces. By default enabled in development builds | [Freezing](freezing.md) |
+| `setAutoFreeze` | Enables / disables automatic freezing of the trees produces. By default enabled. | [Freezing](freezing.md) |
 | `setUseProxies` | Can be used to disable or force the use of `Proxy` objects. Useful when filing bug reports. |  |
 
 ## Importing immer

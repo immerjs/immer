@@ -56,10 +56,14 @@ describe("original", () => {
 
 	it("should return undefined for an object that is not proxied", () => {
 		expect(() => original({})).toThrowErrorMatchingInlineSnapshot(
-			`"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
+			isProd
+				? `"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
+				: `"[Immer] 'original' expects a draft, got: [object Object]"`
 		)
 		expect(() => original(3)).toThrowErrorMatchingInlineSnapshot(
-			`"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
+			isProd
+				? `"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
+				: `"[Immer] 'original' expects a draft, got: 3"`
 		)
 	})
 })

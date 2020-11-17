@@ -2,7 +2,8 @@
 import produce, {
 	setUseProxies,
 	setAutoFreeze,
-	enableAllPlugins
+	enableAllPlugins,
+	freeze
 } from "../src/immer"
 
 enableAllPlugins()
@@ -246,3 +247,21 @@ function runTests(name, useProxies) {
 		})
 	})
 }
+
+test("freeze - shallow", () => {
+	const obj1 = {hello: {world: true}}
+	const res = freeze(obj1)
+
+	expect(res).toBe(obj1)
+	expect(Object.isFrozen(res)).toBe(true)
+	expect(Object.isFrozen(res.hello)).toBe(false)
+})
+
+test("freeze - deep", () => {
+	const obj1 = {hello: {world: true}}
+	const res = freeze(obj1, true)
+
+	expect(res).toBe(obj1)
+	expect(Object.isFrozen(res)).toBe(true)
+	expect(Object.isFrozen(res.hello)).toBe(true)
+})
