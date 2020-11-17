@@ -19,5 +19,5 @@ jobs:
     - stage: deploy
       if: branch == master && !fork
       script:
-        - NODE_ENV= yarn build
+        - NODE_ENV= yarn build || travis_terminate 1
         - yarn semantic-release
