@@ -14,6 +14,8 @@ enableAllPlugins()
 runTests("proxy", true)
 runTests("es5", false)
 
+const isProd = process.env.NODE_ENV === "production"
+
 function runTests(name, useProxies) {
 	describe("current - " + name, () => {
 		beforeAll(() => {
@@ -24,7 +26,11 @@ function runTests(name, useProxies) {
 		it("must be called on draft", () => {
 			expect(() => {
 				current({})
-			}).toThrowError("[Immer] 'current' expects a draft, got: [object Object]")
+			}).toThrowError(
+				isProd
+					? "[Immer] minified error nr: 22 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"
+					: "[Immer] 'current' expects a draft, got: [object Object]"
+			)
 		})
 
 		it("can handle simple arrays", () => {

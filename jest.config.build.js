@@ -14,5 +14,6 @@ module.exports = {
 	preset: "ts-jest/presets/js-with-ts",
 	testEnvironment: "node",
 	testMatch: ["**/__tests__/**/*.[jt]s?(x)"],
-	snapshotResolver: "<rootDir>/jest.config.build.snapshots.js"
+	snapshotResolver: "<rootDir>/jest.config.build.snapshots.js",
+	testResultsProcessor: "<rootDir>/ignoreObseleteSnapshots.js"
 }

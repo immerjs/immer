@@ -10,7 +10,7 @@ Winner of the "Breakthrough of the year" [React open source award](https://osawa
 
 ## Contribute using one-click online setup
 
-You can use Gitpod(a free online VS Code like IDE) for contributing online. With a single click it will launch a workspace and automatically:
+You can use Gitpod (a free online VS Code like IDE) for contributing online. With a single click it will launch a workspace and automatically:
 
 - clone the immer repo.
 - install the dependencies.
