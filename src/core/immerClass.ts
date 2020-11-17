@@ -17,7 +17,6 @@ import {
 	getPlugin,
 	die,
 	hasProxies,
-	isMinified,
 	enterScope,
 	revokeScope,
 	leaveScope,

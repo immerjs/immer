@@ -12,10 +12,6 @@ export const hasProxies =
 	typeof Proxy.revocable !== "undefined" &&
 	typeof Reflect !== "undefined"
 
-/* istanbul ignore next */
-function mini() {}
-export const isMinified = mini.name !== "mini"
-
 /**
  * The sentinel value returned by producers to replace the draft with undefined.
  */
