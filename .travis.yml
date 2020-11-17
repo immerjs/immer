@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - "10.18.1"
-  # - "node"
+  # - "10.18.1"
+  - "node"
 env:
   - NODE_ENV=TEST
 cache:
