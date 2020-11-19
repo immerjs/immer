@@ -164,7 +164,7 @@ export class Immer implements ProducersFns {
 	/**
 	 * Pass true to automatically freeze all copies created by Immer.
 	 *
-	 * By default, auto-freezing is disabled in production.
+	 * By default, auto-freezing is enabled.
 	 */
 	setAutoFreeze(value: boolean) {
 		this.autoFreeze_ = value
