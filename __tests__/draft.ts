@@ -211,6 +211,13 @@ test("draft.ts", () => {
 		assert(toDraft(val), draft)
 	}
 
+	// Uint16Array
+	{
+		let val: Uint16Array = _
+		assert(toDraft(val), val)
+		assert(fromDraft(toDraft(val)), val)
+	}
+
 	// Promise object
 	{
 		let val: Promise<any> = _

@@ -13,6 +13,7 @@ import {
 	isDraft,
 	isMap,
 	isSet,
+	isTypedArray,
 	createProxyProxy,
 	getPlugin,
 	die,
@@ -217,6 +218,8 @@ export function createProxy<T extends Objectish>(
 		? getPlugin("MapSet").proxyMap_(value, parent)
 		: isSet(value)
 		? getPlugin("MapSet").proxySet_(value, parent)
+		: isTypedArray(value)
+		? getPlugin("TypedArrays").proxyTypedArray_(value, parent)
 		: immer.useProxies_
 		? createProxyProxy(value, parent)
 		: getPlugin("ES5").createES5Proxy_(value, parent)

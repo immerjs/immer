@@ -11,7 +11,9 @@ import {
 	ProxyTypeES5Object,
 	ProxyTypeMap,
 	ProxyTypeSet,
-	die
+	die,
+	ProxyTypeTypedArray,
+	AnyTypedArray
 } from "../internal"
 
 /** Plugin utilities */
@@ -42,6 +44,9 @@ const plugins: {
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
 		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
+	}
+	TypedArrays?: {
+		proxyTypedArray_<T extends AnyTypedArray>(target: T, parent?: ImmerState): T
 	}
 } = {}
 
@@ -105,6 +110,18 @@ export interface SetState extends ImmerBaseState {
 	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set
 	revoked_: boolean
 	draft_: Drafted<AnySet, SetState>
+}
+
+/** Typed Arrays plugin */
+export interface TypedArrayState<T extends AnyTypedArray>
+	extends ImmerBaseState {
+	type_: typeof ProxyTypeTypedArray
+	assigned_: Record<number | string, boolean>
+	copy_: T | undefined
+	base_: T
+	revoked_: boolean
+	draft_: Drafted<T, TypedArrayState<T>>
+	revoke_(): void
 }
 
 /** Patches plugin */

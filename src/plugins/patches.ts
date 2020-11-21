@@ -24,6 +24,7 @@ import {
 	ArchtypeMap,
 	ArchtypeSet,
 	ArchtypeArray,
+	ArchtypeTypedArray,
 	die,
 	isDraft,
 	isDraftable
@@ -226,6 +227,8 @@ export function enablePatches() {
 						/* istanbul ignore next */
 						case ArchtypeSet:
 							die(16)
+						case ArchtypeTypedArray:
+							die(24)
 						default:
 							// if value is an object, then it's assigned by reference
 							// in the following add or remove ops, the value field inside the patch will also be modifyed
@@ -241,6 +244,8 @@ export function enablePatches() {
 							return base.set(key, value)
 						case ArchtypeSet:
 							return base.add(value)
+						case ArchtypeTypedArray:
+							die(24)
 						default:
 							return (base[key] = value)
 					}
@@ -252,6 +257,8 @@ export function enablePatches() {
 							return base.delete(key)
 						case ArchtypeSet:
 							return base.delete(patch.value)
+						case ArchtypeTypedArray:
+							die(24)
 						default:
 							return delete base[key]
 					}

@@ -1,4 +1,4 @@
-import {Nothing} from "../internal"
+import {Nothing, AnyTypedArray} from "../internal"
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
@@ -50,6 +50,8 @@ export type Draft<T> = T extends AtomicObject
 	? Set<Draft<V>>
 	: T extends WeakReferences
 	? T
+	: T extends AnyTypedArray
+	? T
 	: T extends object
 	? WritableDraft<T>
 	: T
@@ -62,6 +64,8 @@ export type Immutable<T> = T extends AtomicObject
 	: T extends IfAvailable<ReadonlySet<infer V>> // Set extends ReadonlySet
 	? ReadonlySet<Immutable<V>>
 	: T extends WeakReferences
+	? T
+	: T extends AnyTypedArray
 	? T
 	: T extends object
 	? {readonly [K in keyof T]: Immutable<T[K]>}

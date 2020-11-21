@@ -82,6 +82,12 @@ test("types are ok", () => {
 		assert(val, _ as ReadonlySet<string>)
 	}
 
+	// Uint16Array
+	{
+		let val = _ as Immutable<Uint16Array>
+		assert(val, _ as Uint16Array)
+	}
+
 	// Already immutable Set
 	{
 		let val = _ as Immutable<ReadonlySet<string>>

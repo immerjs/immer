@@ -13,8 +13,10 @@ import {
 	ArchtypeArray,
 	ArchtypeMap,
 	ArchtypeSet,
-	die
+	die,
+	AnyTypedArray
 } from "../internal"
+import {ProxyTypeES5Object, ArchtypeTypedArray} from "../types/types-internal"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
@@ -32,7 +34,8 @@ export function isDraftable(value: any): boolean {
 		!!value[DRAFTABLE] ||
 		!!value.constructor[DRAFTABLE] ||
 		isMap(value) ||
-		isSet(value)
+		isSet(value) ||
+		isTypedArray(value)
 	)
 }
 
@@ -89,12 +92,12 @@ export function each(obj: any, iter: any, enumerableOnly = false) {
 }
 
 /*#__PURE__*/
-export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
+export function getArchtype(thing: any): 0 | 1 | 2 | 3 | 4 {
 	/* istanbul ignore next */
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
-		? state.type_ > 3
-			? state.type_ - 4 // cause Object and Array map back from 4 and 5
+		? state.type_ >= ProxyTypeES5Object
+			? state.type_ - ProxyTypeES5Object // cause Object and Array map back from 4 and 5
 			: (state.type_ as any) // others are the same
 		: Array.isArray(thing)
 		? ArchtypeArray
@@ -102,6 +105,8 @@ export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
 		? ArchtypeMap
 		: isSet(thing)
 		? ArchtypeSet
+		: isTypedArray(thing)
+		? ArchtypeTypedArray
 		: ArchtypeObject
 }
 
@@ -147,6 +152,16 @@ export function isMap(target: any): target is AnyMap {
 export function isSet(target: any): target is AnySet {
 	return hasSet && target instanceof Set
 }
+
+/*#__PURE__*/
+export function isTypedArray(value: unknown): value is AnyTypedArray {
+	return (
+		ArrayBuffer.isView(value) &&
+		value.constructor !== DataView &&
+		value.constructor !== Buffer
+	)
+}
+
 /*#__PURE__*/
 export function latest(state: ImmerState): any {
 	return state.copy_ || state.base_
@@ -189,10 +204,10 @@ export function shallowCopy(base: any) {
 export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
-	if (getArchtype(obj) > 1 /* Map or Set */) {
+	if ([ArchtypeMap, ArchtypeSet].includes(getArchtype(obj))) {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
-	Object.freeze(obj)
+	if (!isTypedArray(obj)) Object.freeze(obj)
 	if (deep) each(obj, (key, value) => freeze(value, true), true)
 	return obj
 }

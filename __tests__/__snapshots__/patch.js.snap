@@ -5,3 +5,9 @@ exports[`applyPatches throws when \`op\` is not "add", "replace", nor "remove" 1
 exports[`applyPatches throws when \`path\` cannot be resolved 1`] = `"[Immer] Cannot apply patch, path doesn't resolve: a/b"`;
 
 exports[`applyPatches throws when \`path\` cannot be resolved 2`] = `"[Immer] Cannot apply patch, path doesn't resolve: a/b/c"`;
+
+exports[`typed arrays - patch throws for all \`op\`s 1`] = `"[Immer] TypedArrays cannot have patches."`;
+
+exports[`typed arrays - patch throws for all \`op\`s 2`] = `"[Immer] TypedArrays cannot have patches."`;
+
+exports[`typed arrays - patch throws for all \`op\`s 3`] = `"[Immer] TypedArrays cannot have patches."`;

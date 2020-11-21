@@ -38,7 +38,8 @@ const errors = {
 	},
 	23(thing: string) {
 		return `'original' expects a draft, got: ${thing}`
-	}
+	},
+	24: "TypedArrays cannot have patches."
 } as const
 
 export function die(error: keyof typeof errors, ...args: any[]): never {

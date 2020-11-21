@@ -11,7 +11,8 @@ import {
 	ArchtypeMap,
 	ArchtypeSet,
 	getArchtype,
-	getPlugin
+	getPlugin,
+	ProxyTypeES5Object
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
@@ -29,7 +30,8 @@ function currentImpl(value: any): any {
 	if (state) {
 		if (
 			!state.modified_ &&
-			(state.type_ < 4 || !getPlugin("ES5").hasChanges_(state as any))
+			(state.type_ < ProxyTypeES5Object ||
+				!getPlugin("ES5").hasChanges_(state as any))
 		)
 			return state.base_
 		// Optimization: avoid generating new drafts during copying
