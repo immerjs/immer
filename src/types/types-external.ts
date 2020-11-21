@@ -18,9 +18,9 @@ type AtomicObject =
 	| String
 
 /**
- * If the lib "ES2105.collections" is not included in tsconfig.json,
+ * If the lib "ES2015.collections" is not included in tsconfig.json,
  * types like ReadonlyArray, WeakMap etc. fall back to `any` (specified nowhere)
- * or `{}` (from the node types), in both cases entering an infite recursion in
+ * or `{}` (from the node types), in both cases entering an infinite recursion in
  * pattern matching type mappings
  * This type can be used to cast these types to `void` in these cases.
  */
