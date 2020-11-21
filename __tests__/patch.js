@@ -1131,7 +1131,7 @@ test("#676 patching Date objects", () => {
 	}
 
 	const [nextState, patches] = produceWithPatches({}, function(draft) {
-		draft.date = new Date(2020, 10, 10, 8, 8, 8, 3)
+		draft.date = new Date("2020-11-10T08:08:08.003Z")
 		draft.test = new Test()
 	})
 
@@ -1145,5 +1145,5 @@ test("#676 patching Date objects", () => {
 	expect(rebuilt.date.toJSON()).toMatchInlineSnapshot(
 		`"2020-11-10T08:08:08.003Z"`
 	)
-	expect(rebuilt.date).toEqual(new Date(2020, 10, 10, 8, 8, 8, 3))
+	expect(rebuilt.date).toEqual(new Date("2020-11-10T08:08:08.003Z"))
 })
