@@ -72,7 +72,28 @@ describe("typed arrays", () => {
 		})
 	})
 
-	it.todo("should return correct patches")
+	it("should return correct patches", () => {
+		const baseState = new Uint16Array(4)
+
+		const [nextState, patches] = produceWithPatches(baseState, draftState => {
+			draftState[0] = 50
+			draftState[1] = 20
+		})
+
+		expect(nextState).toEqual(new Uint16Array([50, 20, 0, 0]))
+		expect(patches).toEqual([
+			{
+				op: "replace",
+				path: [0],
+				value: 50
+			},
+			{
+				op: "replace",
+				path: [1],
+				value: 20
+			}
+		])
+	})
 
 	it("should work when using a slice of an ArrayBuffer", () => {
 		const arrayBuffer = new ArrayBuffer(8)
