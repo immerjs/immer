@@ -139,4 +139,16 @@ describe("typed arrays", () => {
 			expect(draftState.length).toBe(baseState.length)
 		})
 	})
+
+	it("should have a draft that behaves like a TypedArray", () => {
+		expect.hasAssertions()
+
+		const baseState = new Uint16Array(1)
+
+		produce(baseState, draftState => {
+			console.log(draftState)
+			expect(ArrayBuffer.isView(draftState)).toBe(true)
+			expect(draftState instanceof Uint16Array).toBe(true)
+		})
+	})
 })
