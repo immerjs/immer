@@ -16,11 +16,15 @@ import {
 	die,
 	AnyTypedArray
 } from "../internal"
-import {ProxyTypeES5Object, ArchtypeTypedArray} from "../types/types-internal"
+import {
+	ProxyTypeES5Object,
+	ArchtypeTypedArray,
+	ProxyTypeTypedArray
+} from "../types/types-internal"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
-export function isDraft(value: any): boolean {
+export function isDraft(value: any): value is Drafted<unknown> {
 	return !!value && !!value[DRAFT_STATE]
 }
 
@@ -156,9 +160,11 @@ export function isSet(target: any): target is AnySet {
 /*#__PURE__*/
 export function isTypedArray(value: unknown): value is AnyTypedArray {
 	return (
-		ArrayBuffer.isView(value) &&
-		value.constructor !== DataView &&
-		value.constructor !== Buffer
+		(ArrayBuffer.isView(value) &&
+			value.constructor !== DataView &&
+			value.constructor !== Buffer) ||
+		// Proxies for TypedArrays do not pass `ArrayBuffer.isView`
+		(isDraft(value) && value[DRAFT_STATE].type_ === ProxyTypeTypedArray)
 	)
 }
 

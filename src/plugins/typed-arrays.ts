@@ -8,7 +8,8 @@ import {
 	latest,
 	ProxyTypeTypedArray,
 	markChanged,
-	AnyTypedArray
+	AnyTypedArray,
+	Drafted
 } from "../internal"
 
 export function enableTypedArrays() {
@@ -18,26 +19,36 @@ export function enableTypedArrays() {
 	 */
 	const arrayBufferCopiesMap = new WeakMap<ArrayBuffer, ArrayBuffer>()
 
-	class TypedArrayProxy<T extends AnyTypedArray> {
-		[DRAFT_STATE]: TypedArrayState<T>
+	type TypedArrayProxy<T extends AnyTypedArray> = Drafted<T, TypedArrayState<T>>
 
-		constructor(target: T, parent?: ImmerState) {
-			this[DRAFT_STATE] = {
-				type_: ProxyTypeTypedArray,
-				parent_: parent,
-				scope_: parent ? parent.scope_ : getCurrentScope(),
-				assigned_: {},
-				modified_: false,
-				finalized_: false,
-				isManual_: false,
-				base_: target,
-				copy_: undefined,
-				revoked_: false,
-				draft_: null as any, // set below
-				revoke_() {} // set below
-			}
+	function createTypedArrayProxy<T extends AnyTypedArray>(
+		target: T,
+		parent?: ImmerState
+	) {
+		// Preserve TypedArray kind with the same length
+		const proxy: TypedArrayProxy<T> = new (Object.getPrototypeOf(
+			target
+		).constructor)(target.buffer)
+
+		proxy[DRAFT_STATE] = {
+			type_: ProxyTypeTypedArray,
+			parent_: parent,
+			scope_: parent ? parent.scope_ : getCurrentScope(),
+			assigned_: {},
+			modified_: false,
+			finalized_: false,
+			isManual_: false,
+			base_: target,
+			copy_: undefined,
+			revoked_: false,
+			draft_: null as any, // set below
+			revoke_() {} // set below
 		}
+
+		return proxy
 	}
+
+	const typedArrayMethods: Record<any, any> = {}
 
 	const mutatingTypedArrayMethodNames: (keyof AnyTypedArray)[] = [
 		"copyWithin",
@@ -47,9 +58,8 @@ export function enableTypedArrays() {
 		"sort"
 	]
 	mutatingTypedArrayMethodNames.forEach(methodName => {
-		// @ts-ignore
-		TypedArrayProxy.prototype[methodName] = function(
-			this: TypedArrayProxy<any>,
+		typedArrayMethods[methodName] = function(
+			this: TypedArrayProxy<AnyTypedArray>,
 			...args: any[]
 		) {
 			assertUnrevoked(this[DRAFT_STATE])
@@ -61,7 +71,11 @@ export function enableTypedArrays() {
 		}
 	})
 
-	const nonMutatingTypedArrayMethodNames = [
+	const nonMutatingTypedArrayMethodNames: (
+		| keyof AnyTypedArray
+		| symbol
+		| "toLocaleString"
+	)[] = [
 		"entries",
 		"every",
 		"filter",
@@ -84,9 +98,9 @@ export function enableTypedArrays() {
 		Symbol.iterator
 	]
 	nonMutatingTypedArrayMethodNames.forEach(methodName => {
-		// @ts-ignore
-		TypedArrayProxy.prototype[methodName] = function(
-			this: TypedArrayProxy<any>,
+		// Type assertion to get around indexing via symbol
+		typedArrayMethods[(methodName as unknown) as string] = function(
+			this: TypedArrayProxy<AnyTypedArray>,
 			...args: any[]
 		) {
 			const arr = latest(this[DRAFT_STATE])
@@ -119,7 +133,9 @@ export function enableTypedArrays() {
 
 	const typedArrayProxyTraps: ProxyHandler<TypedArrayProxy<any>> = {
 		get(target, prop) {
-			if (prop in target) {
+			if (prop in typedArrayMethods) {
+				return typedArrayMethods[(prop as unknown) as string]
+			} else if (prop === DRAFT_STATE) {
 				// @ts-ignore
 				return target[prop]
 			}
@@ -131,12 +147,18 @@ export function enableTypedArrays() {
 			target[DRAFT_STATE].assigned_[prop as number] = true
 
 			return Reflect.set(latest(target[DRAFT_STATE]), prop, value)
+		},
+		has(target, prop) {
+			return prop in latest(target[DRAFT_STATE])
+		},
+		ownKeys(target) {
+			return Reflect.ownKeys(latest(target[DRAFT_STATE]))
 		}
 	}
 
 	loadPlugin("TypedArrays", {
 		proxyTypedArray_(target, parent) {
-			const proxyWithoutArrayTraps = new TypedArrayProxy(target, parent)
+			const proxyWithoutArrayTraps = createTypedArrayProxy(target, parent)
 			const {revoke, proxy} = Proxy.revocable(
 				proxyWithoutArrayTraps,
 				typedArrayProxyTraps
