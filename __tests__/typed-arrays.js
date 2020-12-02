@@ -140,15 +140,46 @@ describe("typed arrays", () => {
 		})
 	})
 
-	it("should have a draft that behaves like a TypedArray", () => {
+	it("should have a draft that has the same prototype as the target", () => {
 		expect.hasAssertions()
 
 		const baseState = new Uint16Array(1)
 
 		produce(baseState, draftState => {
-			console.log(draftState)
-			expect(ArrayBuffer.isView(draftState)).toBe(true)
 			expect(draftState instanceof Uint16Array).toBe(true)
 		})
+	})
+
+	it("should not be an ArrayBuffer view due to spec behavior", () => {
+		expect.hasAssertions()
+
+		const baseState = new Uint16Array(1)
+
+		produce(baseState, draftState => {
+			// Proxies for TypedArrays do not pass `ArrayBuffer.isView`
+			expect(ArrayBuffer.isView(draftState)).toBe(false)
+		})
+	})
+
+	it("should have a draft with the same own properties", () => {
+		expect.hasAssertions()
+
+		const baseState = new Uint16Array(5)
+
+		produce(baseState, draftState => {
+			expect(Object.keys(draftState)).toEqual(Object.keys(baseState))
+		})
+	})
+
+	it("should behave correctly with nested produce calls", () => {
+		const baseState = new Uint16Array(3)
+
+		const nextState = produce(baseState, draftState => {
+			return produce(draftState, secondLevelDraft => {
+				secondLevelDraft[1] = 2
+			})
+		})
+
+		expect(nextState).toEqual(new Uint16Array([0, 2, 0]))
 	})
 })

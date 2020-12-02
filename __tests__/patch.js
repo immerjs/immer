@@ -801,6 +801,17 @@ describe("typed arrays - patch", () => {
 			applyPatches(arr, [{op: "replace", path: [0], value: 1}])
 		).toThrowErrorMatchingSnapshot()
 	})
+
+	it("should be empty", () => {
+		const arr = new Uint16Array(1)
+
+		const [_, patches, inversePatches] = produceWithPatches(arr, draft => {
+			draft[0] = 5
+		})
+
+		expect(patches).toEqual([])
+		expect(inversePatches).toEqual([])
+	})
 })
 
 describe("arrays - splice should should result in remove op.", () => {
