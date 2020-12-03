@@ -31,7 +31,9 @@ export function enableES5() {
 	) {
 		if (!isReplaced) {
 			if (scope.patches_) {
+				scope.unsafeNonDraftabledAllowed_ = true
 				markChangesRecursively(scope.drafts_![0])
+				scope.unsafeNonDraftabledAllowed_ = false
 			}
 			// This is faster when we don't care about which attributes changed.
 			markChangesSweep(scope.drafts_)
