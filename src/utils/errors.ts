@@ -38,7 +38,8 @@ const errors = {
 	},
 	23(thing: string) {
 		return `'original' expects a draft, got: ${thing}`
-	}
+	},
+	24: "Cannot get a non-draftable reference in strict mode. Use the `unsafe` function, add the `immerable` symbol, or disable strict mode"
 } as const
 
 export function die(error: keyof typeof errors, ...args: any[]): never {
