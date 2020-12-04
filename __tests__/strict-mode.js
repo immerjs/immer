@@ -13,11 +13,13 @@ describe("Strict Mode", () => {
 
 	describe("by default", () => {
 		it("should not throw an error when accessing a non-draftable class instance", () => {
-			expect(() =>
-				produce({instance: new Foo()}, draft => {
+			expect.hasAssertions()
+
+			produce({instance: new Foo()}, draft => {
+				expect(() => {
 					draft.instance.value = 5
-				})
-			).not.toThrow()
+				}).not.toThrow()
+			})
 		})
 	})
 
@@ -31,21 +33,25 @@ describe("Strict Mode", () => {
 		})
 
 		it("should allow accessing a non-draftable class instance", () => {
-			expect(() =>
-				produce({instance: new Foo()}, draft => {
+			expect.hasAssertions()
+
+			produce({instance: new Foo()}, draft => {
+				expect(() => {
 					draft.instance.value = 5
-				})
-			).not.toThrow()
+				}).not.toThrow()
+			})
 		})
 
 		it("should not throw errors when using the `unsafe` function", () => {
-			expect(() =>
-				produce({instance: new Foo()}, draft => {
-					unsafe(() => {
+			expect.hasAssertions()
+
+			produce({instance: new Foo()}, draft => {
+				unsafe(() => {
+					expect(() => {
 						draft.instance.value = 5
-					})
+					}).not.toThrow()
 				})
-			).not.toThrow()
+			})
 		})
 	})
 
@@ -55,21 +61,23 @@ describe("Strict Mode", () => {
 		})
 
 		it("should throw an error when accessing a non-draftable class instance", () => {
-			expect(() =>
-				produce({instance: new Foo()}, draft => {
-					draft.instance
-				})
-			).toThrow()
+			expect.hasAssertions()
+
+			produce({instance: new Foo()}, draft => {
+				expect(() => draft.instance).toThrow()
+			})
 		})
 
 		it("should allow accessing a non-draftable using the `unsafe` function", () => {
-			expect(() =>
-				produce({instance: new Foo()}, draft => {
-					unsafe(() => {
+			expect.hasAssertions()
+
+			produce({instance: new Foo()}, draft => {
+				unsafe(() => {
+					expect(() => {
 						draft.instance.value = 5
-					})
+					}).not.toThrow()
 				})
-			).not.toThrow()
+			})
 		})
 
 		it("should require using unsafe for non-draftables in a different scope", () => {
@@ -98,11 +106,13 @@ describe("Strict Mode", () => {
 			})
 
 			it("should allow accessing the class instance", () => {
-				expect(() =>
-					produce({instance: new Foo()}, draft => {
+				expect.hasAssertions()
+
+				produce({instance: new Foo()}, draft => {
+					expect(() => {
 						draft.instance.value = 5
-					})
-				).not.toThrow()
+					}).not.toThrow()
+				})
 			})
 		})
 
