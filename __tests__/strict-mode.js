@@ -72,6 +72,22 @@ describe("Strict Mode", () => {
 			).not.toThrow()
 		})
 
+		it("should require using unsafe for non-draftables in a different scope", () => {
+			expect.assertions(2)
+
+			produce({instance: new Foo()}, () => {
+				unsafe(() => {
+					produce({nested: new Foo()}, nestedDraft => {
+						expect(() => nestedDraft.nested).toThrow()
+
+						unsafe(() => {
+							expect(() => nestedDraft.nested).not.toThrow()
+						})
+					})
+				})
+			})
+		})
+
 		describe("with an immerable class", () => {
 			beforeAll(() => {
 				Foo[immerable] = true
