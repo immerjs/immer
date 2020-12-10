@@ -1,3 +1,4 @@
+import {markChanged} from "../core/proxyObjectTraps"
 import {
 	ImmerState,
 	Drafted,
@@ -15,8 +16,6 @@ import {
 	ProxyTypeES5Object,
 	getCurrentScope,
 	die,
-	markChanged,
-	objectTraps,
 	ownKeys,
 	getOwnPropertyDescriptors
 } from "../internal"

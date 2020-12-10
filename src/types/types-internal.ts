@@ -1,8 +1,7 @@
+import {ProxyObjectState, ProxyArrayState} from "../core/proxyStateTypes"
 import {
 	SetState,
 	ImmerScope,
-	ProxyObjectState,
-	ProxyArrayState,
 	ES5ObjectState,
 	ES5ArrayState,
 	MapState,

@@ -1,4 +1,5 @@
 // types only!
+import {markChanged} from "../core/proxyObjectTraps"
 import {
 	ImmerState,
 	AnyMap,
@@ -12,7 +13,6 @@ import {
 	isDraftable,
 	createProxy,
 	loadPlugin,
-	markChanged,
 	ProxyTypeMap,
 	ProxyTypeSet,
 	die,

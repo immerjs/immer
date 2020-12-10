@@ -1,12 +1,11 @@
+import {ProxyArrayState, ProxyObjectState} from "../core/proxyStateTypes"
 import {
 	ImmerState,
 	Patch,
 	SetState,
 	ES5ArrayState,
-	ProxyArrayState,
 	MapState,
 	ES5ObjectState,
-	ProxyObjectState,
 	PatchPath,
 	get,
 	each,
