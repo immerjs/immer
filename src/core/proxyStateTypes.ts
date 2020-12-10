@@ -31,3 +31,7 @@ export interface ProxyArrayState extends ProxyBaseState {
 	copy_: AnyArray | null
 	draft_: Drafted<AnyArray, ProxyArrayState>
 }
+
+// build will omit this file if no value is exported.
+// tsdk bug?
+export const withoutActualValueSymbolThisFileIsGoneInTypesDonooWhy = {}

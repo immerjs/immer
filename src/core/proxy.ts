@@ -9,7 +9,13 @@ import {
 	ProxyTypeProxyArray
 } from "../internal"
 import {objectTraps} from "./proxyObjectTraps"
-import {ProxyState, ProxyArrayState} from "./proxyStateTypes"
+import {
+	ProxyState,
+	ProxyArrayState,
+	withoutActualValueSymbolThisFileIsGoneInTypesDonooWhy
+} from "./proxyStateTypes"
+
+withoutActualValueSymbolThisFileIsGoneInTypesDonooWhy.toString()
 
 /**
  * Returns a new draft of the `base` object.
