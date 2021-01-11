@@ -13,6 +13,7 @@ title: Built with Immer
 - [redux-box](https://github.com/anish000kumar/redux-box) _Modular and easy-to-grasp redux based state management, with least boilerplate_
 - [quick-redux](https://github.com/jeffreyyoung/quick-redux) _tools to make redux development quicker and easier_
 - [bey](https://github.com/jamiebuilds/bey) _Simple immutable state for React using Immer_
+- [cool-store](https://github.com/Maxvien/cool-store) _CoolStore is an immutable state store built on top of ImmerJS and RxJS_
 - [immer-wieder](https://github.com/drcmda/immer-wieder#readme) _State management lib that combines React 16 Context and immer for Redux semantics_
 - [robodux](https://github.com/neurosnap/robodux) _flexible way to reduce redux boilerplate_
 - [immer-reducer](https://github.com/epeli/immer-reducer) _Type-safe and terse React (useReducer()) and Redux reducers with Typescript_
