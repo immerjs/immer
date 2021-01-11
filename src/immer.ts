@@ -55,7 +55,7 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
 /**
  * Pass true to automatically freeze all copies created by Immer.
  *
- * By default, auto-freezing is disabled in production.
+ * Always freeze by default, even in production mode
  */
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 
