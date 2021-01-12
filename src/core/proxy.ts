@@ -108,7 +108,19 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			return readPropFromProto(state, source, prop)
 		}
 		const value = source[prop]
-		if (state.finalized_ || !isDraftable(value)) {
+		if (state.finalized_) {
+			return value
+		}
+		if (!isDraftable(value)) {
+			if (
+				state.scope_.immer_.strictModeEnabled_ &&
+				!state.scope_.unsafeNonDraftabledAllowed_ &&
+				typeof value === "object" &&
+				value !== null
+			) {
+				die(24)
+			}
+
 			return value
 		}
 		// Check for existing draft in modified state.

@@ -68,6 +68,18 @@ export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 export const setUseProxies = immer.setUseProxies.bind(immer)
 
 /**
+ * Pass true to throw errors when attempting to access a non-draftable reference.
+ *
+ * By default, strict mode is disabled.
+ */
+export const setStrictMode = immer.setStrictMode.bind(immer)
+
+/**
+ * Allow accessing non-draftable references in strict mode inside the callback.
+ */
+export const unsafe = immer.unsafe.bind(immer)
+
+/**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.

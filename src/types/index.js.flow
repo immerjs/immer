@@ -84,6 +84,18 @@ declare export function setAutoFreeze(autoFreeze: boolean): void
  */
 declare export function setUseProxies(useProxies: boolean): void
 
+/**
+ * Pass true to throw errors when attempting to access a non-draftable reference.
+ *
+ * By default, strict mode is disabled.
+ */
+declare export function setStrictMode(strictMode: boolean): void
+
+/**
+ * Allow accessing non-draftable references in strict mode inside the callback.
+ */
+declare export function unsafe(callback: () => void): void
+
 declare export function applyPatches<S>(state: S, patches: Patch[]): S
 
 declare export function original<S>(value: S): S

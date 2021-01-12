@@ -37,11 +37,19 @@ export class Immer implements ProducersFns {
 
 	autoFreeze_: boolean = true
 
-	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
+	strictModeEnabled_: boolean = false
+
+	constructor(config?: {
+		useProxies?: boolean
+		autoFreeze?: boolean
+		strictMode?: boolean
+	}) {
 		if (typeof config?.useProxies === "boolean")
 			this.setUseProxies(config!.useProxies)
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
+		if (typeof config?.strictMode === "boolean")
+			this.setStrictMode(config!.strictMode)
 		this.produce = this.produce.bind(this)
 		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
@@ -181,6 +189,23 @@ export class Immer implements ProducersFns {
 			die(20)
 		}
 		this.useProxies_ = value
+	}
+
+	/**
+	 * Pass true to throw errors when attempting to access a non-draftable reference.
+	 *
+	 * By default, strict mode is disabled.
+	 */
+	setStrictMode(value: boolean) {
+		this.strictModeEnabled_ = value
+	}
+
+	unsafe(callback: () => void) {
+		const scope = getCurrentScope()
+
+		scope.unsafeNonDraftabledAllowed_ = true
+		callback()
+		scope.unsafeNonDraftabledAllowed_ = false
 	}
 
 	applyPatches(base: Objectish, patches: Patch[]) {
