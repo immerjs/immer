@@ -23,7 +23,7 @@ function runTests(name, useProxies) {
 
 		it("should check arguments", () => {
 			expect(() => createDraft(3)).toThrowErrorMatchingSnapshot()
-			const buf = new Buffer([])
+			const buf = Buffer.from([])
 			expect(() => createDraft(buf)).toThrowErrorMatchingSnapshot()
 			expect(() => finishDraft({})).toThrowErrorMatchingSnapshot()
 		})
