@@ -26,7 +26,8 @@ import {
 	ArchtypeArray,
 	die,
 	isDraft,
-	isDraftable
+	isDraftable,
+	ArchtypeObject
 } from "../internal"
 
 export function enablePatches() {
@@ -211,7 +212,16 @@ export function enablePatches() {
 
 			let base: any = draft
 			for (let i = 0; i < path.length - 1; i++) {
-				base = get(base, path[i])
+				const parentType = getArchtype(base)
+				const p = path[i]
+				// See #738, avoid prototype pollution
+				if (
+					(parentType === ArchtypeObject || parentType === ArchtypeArray) &&
+					(p === "__proto__" || p === "constructor")
+				)
+					die(24)
+				if (typeof base === "function" && p === "prototype") die(24)
+				base = get(base, p)
 				if (typeof base !== "object") die(15, path.join("/"))
 			}
 
