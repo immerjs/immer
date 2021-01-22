@@ -20,9 +20,9 @@ Here is a simple example of the difference that Immer could make in practice.
 
 ```javascript
 // Reducer with inital state
-const INITAL_STATE = {};
+const INITIAL_STATE = {};
 // Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
-const byId = (state = INITAL_STATE, action) => {
+const byId = (state = INITIAL_STATE, action) => {
 	switch (action.type) {
 		case RECEIVE_PRODUCTS:
 			return {
@@ -44,7 +44,7 @@ After using Immer, our reducer can be expressed as:
 import produce from "immer"
 
 // Reducer with inital state
-const INITAL_STATE = {};
+const INITIAL_STATE = {};
 
 const byId = produce((draft, action) => {
 	switch (action.type) {
@@ -53,7 +53,7 @@ const byId = produce((draft, action) => {
 				draft[product.id] = product
 			})
 	}
-}, INITAL_STATE)
+}, INITIAL_STATE)
 ```
 
 Notice that it is not necessary to handle the default case, a producer that doesn't do anything will return the original state.
