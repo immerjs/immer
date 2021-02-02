@@ -26,7 +26,7 @@ The basic idea is that you will apply all your changes to a temporary _draftStat
 
 ![immer-hd.png](/immer/img/immer.png)
 
-Using Immer is like having a personal assistant; he takes a letter (the current state) and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
+Using Immer is like having a personal assistant. The assistant takes a letter (the current state) and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 
 ## Quick Example
 
