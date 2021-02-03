@@ -77,9 +77,9 @@ Draft objects in Immer are wrapped in `Proxy`, so you cannot use `==` or `===` t
 
 ```javascript
 const remove = produce((list, element) => {
-  const index = list.indexOf(element) // this won't work!
-  const index = original(list).indexOf(element) // do this instead
-  if (index > -1) list.splice(index, 1)
+	const index = list.indexOf(element) // this won't work!
+	const index = original(list).indexOf(element) // do this instead
+	if (index > -1) list.splice(index, 1)
 })
 
 const values = [a, b, c]
@@ -87,5 +87,3 @@ remove(values, a)
 ```
 
 If possible, it's recommended to perform the comparison outside the `produce` function, or to use a unique identifier property like `.id` instead, to avoid needing to use `original`.
-
-

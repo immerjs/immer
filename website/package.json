@@ -1,14 +1,21 @@
 {
+  "name": "immer-website",
+  "license": "MIT",
+  "private": true,
   "scripts": {
     "examples": "docusaurus-examples",
-    "start": "docusaurus-start",
-    "build": "docusaurus-build",
-    "publish-gh-pages": "docusaurus-publish",
-    "write-translations": "docusaurus-write-translations",
-    "version": "docusaurus-version",
-    "rename-version": "docusaurus-rename-version"
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "publish-gh-pages": "docusaurus publish",
+    "write-translations": "docusaurus write-translations"
   },
-  "devDependencies": {
-    "docusaurus": "^1.12.0"
+  "dependencies": {
+    "@docusaurus/core": "2.0.0-alpha.70",
+    "@docusaurus/plugin-content-docs": "2.0.0-alpha.70",
+    "@docusaurus/plugin-google-analytics": "2.0.0-alpha.70",
+    "@docusaurus/plugin-sitemap": "2.0.0-alpha.70",
+    "@docusaurus/theme-classic": "2.0.0-alpha.70",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4"
   }
 }

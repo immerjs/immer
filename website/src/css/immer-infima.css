@@ -1,0 +1,31 @@
+/*
+:root {
+    --ifm-color-primary: #000;
+}
+*/
+
+a {
+	color: #c200c2;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.egghead-summary {
+	color: white;
+	background: #c200c2;
+	padding: 5px;
+	margin: 5px;
+	border-radius: 2px;
+}
+
+.egghead-link {
+	font-style: italic;
+	padding: 5px;
+	margin: 5px;
+}
+
+iframe {
+	border: none;
+}

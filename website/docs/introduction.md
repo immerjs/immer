@@ -2,6 +2,7 @@
 id: introduction
 title: Introduction to Immer
 sidebar_label: Introduction
+slug: /
 ---
 
 <center>
@@ -24,7 +25,7 @@ Immer (German for: always) is a tiny package that allows you to work with immuta
 
 The basic idea is that you will apply all your changes to a temporary _draftState_, which is a proxy of the _currentState_. Once all your mutations are completed, Immer will produce the _nextState_ based on the mutations to the draft state. This means that you can interact with your data by simply modifying it while keeping all the benefits of immutable data.
 
-![immer-hd.png](/immer/img/immer.png)
+![immer-hd.png](/img/immer.png)
 
 Using Immer is like having a personal assistant. The assistant takes a letter (the current state) and gives you a copy (draft) to jot changes onto. Once you are done, the assistant will take your draft and produce the real immutable, final letter for you (the next state).
 

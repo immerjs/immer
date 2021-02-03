@@ -4,16 +4,31 @@ title: Curried producers
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
 </center>
-
 <details>
-    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 6: Simplify code by using curried _reduce_</summary>
-    <br>
-    <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying/embed" ></iframe>
-    </div>
-    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying">Hosted on egghead.io</a>
+	<summary className="egghead-summary">
+		egghead.io lesson 6: Simplify code by using curried _reduce_
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying"
+	>
+		Hosted on egghead.io
+	</a>
 </details>
 
 Passing a function as the first argument to `produce` is intended to be used for currying. This means that you get a pre-bound producer that only needs a state to produce the value from. The producer function gets passed in the draft and any further arguments that were passed to the curried function.
