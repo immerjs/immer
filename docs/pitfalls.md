@@ -7,7 +7,7 @@ title: Pitfalls
 <div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
 </center>
 
-### Performance tipes
+### Performance tips
 
 For performance tips, see [Performance Tips](https://immerjs.github.io/immer/docs/performance/#performance-tips).
 
