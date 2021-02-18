@@ -13,9 +13,9 @@ type AtomicObject =
 	| Promise<any>
 	| Date
 	| RegExp
-	| Boolean
-	| Number
-	| String
+	| boolean
+	| number
+	| string
 
 /**
  * If the lib "ES2105.collections" is not included in tsconfig.json,
