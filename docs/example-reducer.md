@@ -19,7 +19,7 @@ title: Example Reducer
 Here is a simple example of the difference that Immer could make in practice.
 
 ```javascript
-// Reducer with inital state
+// Reducer with initial state
 const INITIAL_STATE = {};
 // Shortened, based on: https://github.com/reactjs/redux/blob/master/examples/shopping-cart/src/reducers/products.js
 const byId = (state = INITIAL_STATE, action) => {
@@ -43,7 +43,7 @@ After using Immer, our reducer can be expressed as:
 ```javascript
 import produce from "immer"
 
-// Reducer with inital state
+// Reducer with initial state
 const INITIAL_STATE = {};
 
 const byId = produce((draft, action) => {
