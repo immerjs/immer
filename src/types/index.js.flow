@@ -28,12 +28,12 @@ interface IProduce {
 		recipe: (draftState: S) => S | void,
 		patchListener?: PatchListener
 	): S;
-	// curried invocations with inital state
+	// curried invocations with initial state
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void,
 		initialState: S
 	): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => S;
-	// curried invocations without inital state
+	// curried invocations without initial state
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
 	): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S;
@@ -50,12 +50,12 @@ interface IProduceWithPatches {
 		currentState: S,
 		recipe: (draftState: S) => S | void
 	): [S, Patch[], Patch[]];
-	// curried invocations with inital state
+	// curried invocations with initial state
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void,
 		initialState: S
 	): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
-	// curried invocations without inital state
+	// curried invocations without initial state
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
 	): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
