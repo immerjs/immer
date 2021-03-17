@@ -4,7 +4,11 @@ title: Installation
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
 </center>
 
 Immer can be installed as a direct dependency, and will work in any ES5 environment:
@@ -27,8 +31,8 @@ The following features can be opt-in to:
 | Feature | Description | Method to call |
 | --- | --- | --- |
 | ES 5 support | If your application needs to be able to run on older JavaScript environments, such as Internet Explorer or React Native, enable this feature. | `enableES5()` |
-| [ES2015 Map and Set support](complex-objects.md) | To enable Immer to operate on the native `Map` and `Set` collections, enable this feature | `enableMapSet()` |
-| [JSON Patch support](patches.md) | Immer can keep track of all the changes you make to draft objects. This can be useful for communicating changes using JSON patches | `enablePatches()` |
+| [ES2015 Map and Set support](complex-objects) | To enable Immer to operate on the native `Map` and `Set` collections, enable this feature | `enableMapSet()` |
+| [JSON Patch support](patches) | Immer can keep track of all the changes you make to draft objects. This can be useful for communicating changes using JSON patches | `enablePatches()` |
 | **All of the above** | Unsure what features you need? We recommend to enable all of the features above by default on new projects. Premature optimization of a few KB might not be worth the initial trouble. Also, enabling or disabling features doesn't impact the performance of Immer itself | `enableAllPlugins()` |
 
 For example, if you want to use `produce` on a `Map`, you need to enable this feature once during the start of your application:
@@ -75,4 +79,4 @@ Import size report for immer:
 
 By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native (if < v0.59 or when using the Hermes engine) on Android. In such cases, Immer will fallback to an ES5 compatible implementation which works identically, but is a bit slower.
 
-Since version 6, support for the fallback implementation has to be explicitly enabled by calling `enableES5()`
+Since version 6, support for the fallback implementation has to be explicitly enabled by calling `enableES5()`.
