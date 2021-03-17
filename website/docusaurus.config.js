@@ -25,13 +25,19 @@ module.exports = {
 				{
 					type: "doc",
 					docId: "introduction",
-					label: "Documentation"
+					label: "Documentation",
+					position: "right"
 				},
-				{href: "https://github.com/immerjs/immer", label: "GitHub"},
+				{
+					href: "https://github.com/immerjs/immer",
+					label: "GitHub",
+					position: "right"
+				},
 				{
 					type: "doc",
 					docId: "support",
-					label: "Support Immer"
+					label: "Support Immer",
+					position: "right"
 				}
 			]
 		},

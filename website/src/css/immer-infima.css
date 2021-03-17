@@ -12,12 +12,47 @@ a:hover {
 	text-decoration: underline;
 }
 
+.navbar--fixed-top {
+	color: white;
+	background: black;
+	font-weight: bold;
+}
+
+.navbar--fixed-top a {
+	color: white;
+}
+
+:root {
+	--ifm-link-color: #c200c2;
+}
+
+details {
+	margin-bottom: 20px;
+	background: #e2e2e2;
+}
+
+details[open] {
+	border-bottom: 2px solid #c200c2;
+}
+
+details iframe {
+	padding: 0 20px;
+}
+
+details a {
+	display: block;
+	text-align: right;
+	font-size: 0.8em;
+	color: #666;
+}
+
 .egghead-summary {
 	color: white;
 	background: #c200c2;
 	padding: 5px;
-	margin: 5px;
+	margin: 0px;
 	border-radius: 2px;
+	cursor: pointer;
 }
 
 .egghead-link {
