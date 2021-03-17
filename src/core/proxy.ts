@@ -157,6 +157,9 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			prepareCopy(state)
 			markChanged(state)
 		}
+
+		if (state.copy_![prop] === value && typeof value !== "number") return true
+
 		// @ts-ignore
 		state.copy_![prop] = value
 		state.assigned_[prop] = true
