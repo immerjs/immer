@@ -7,15 +7,10 @@ type Tail<T extends any[]> = ((...t: T) => any) extends (
 	? TT
 	: []
 
+type PrimitiveType = number | string | boolean
+
 /** Object types that should never be mapped */
-type AtomicObject =
-	| Function
-	| Promise<any>
-	| Date
-	| RegExp
-	| Boolean
-	| Number
-	| String
+type AtomicObject = Function | Promise<any> | Date | RegExp
 
 /**
  * If the lib "ES2105.collections" is not included in tsconfig.json,
@@ -42,7 +37,9 @@ type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
 export type WritableDraft<T> = {-readonly [K in keyof T]: Draft<T[K]>}
 
-export type Draft<T> = T extends AtomicObject
+export type Draft<T> = T extends PrimitiveType
+	? T
+	: T extends AtomicObject
 	? T
 	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
 	? Map<Draft<K>, Draft<V>>
@@ -55,7 +52,9 @@ export type Draft<T> = T extends AtomicObject
 	: T
 
 /** Convert a mutable type into a readonly type */
-export type Immutable<T> = T extends AtomicObject
+export type Immutable<T> = T extends PrimitiveType
+	? T
+	: T extends AtomicObject
 	? T
 	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
 	? ReadonlyMap<Immutable<K>, Immutable<V>>

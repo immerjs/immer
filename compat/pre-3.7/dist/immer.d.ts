@@ -5,6 +5,8 @@ type Tail<T extends any[]> = ((...t: T) => any) extends (
 	? TT
 	: []
 
+type PrimitiveType = number | string | boolean
+
 /** Object types that should never be mapped */
 type AtomicObject =
 	| Function
@@ -13,11 +15,10 @@ type AtomicObject =
 	| Promise<any>
 	| Date
 	| RegExp
-	| Boolean
-	| Number
-	| String
 
-export type Draft<T> = T extends AtomicObject
+export type Draft<T> = T extends PrimitiveType
+	? T
+	: T extends AtomicObject
 	? T
 	: T extends Map<infer K, infer V>
 	? DraftMap<K, V>
@@ -34,7 +35,9 @@ interface DraftMap<K, V> extends Map<Draft<K>, Draft<V>> {}
 interface DraftSet<V> extends Set<Draft<V>> {}
 
 /** Convert a mutable type into a readonly type */
-export type Immutable<T> = T extends AtomicObject
+export type Immutable<T> = T extends PrimitiveType
+	? T
+	: T extends AtomicObject
 	? T
 	: T extends Map<infer K, infer V> // Ideally, but wait for TS 3.7:    ? Omit<ImmutableMap<K, V>, "set" | "delete" | "clear">
 	? ImmutableMap<K, V>
