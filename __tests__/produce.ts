@@ -6,7 +6,8 @@ import produce, {
 	nothing,
 	Draft,
 	Immutable,
-	enableAllPlugins
+	enableAllPlugins,
+	Immer
 } from "../src/immer"
 
 enableAllPlugins()
@@ -476,4 +477,20 @@ it("shows error in production if called incorrectly", () => {
 			? "[Immer] minified error nr: 6"
 			: "[Immer] The first or second argument to `produce` must be a function"
 	)
+})
+
+it("#749 types Immer", () => {
+	const t = {
+		x: 3
+	}
+
+	const immer = new Immer()
+	const z = immer.produce(t, d => {
+		d.x++
+		// @ts-expect-error
+		d.y = 0
+	})
+	expect(z.x).toBe(4)
+	// @ts-expect-error
+	expect(z.z).toBeUndefined()
 })

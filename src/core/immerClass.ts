@@ -42,8 +42,6 @@ export class Immer implements ProducersFns {
 			this.setUseProxies(config!.useProxies)
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
-		this.produce = this.produce.bind(this)
-		this.produceWithPatches = this.produceWithPatches.bind(this)
 	}
 
 	/**
@@ -65,7 +63,7 @@ export class Immer implements ProducersFns {
 	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
 	 * @returns {any} a new state, or the initial state if nothing was modified
 	 */
-	produce(base: any, recipe?: any, patchListener?: any) {
+	produce: IProduce = (base: any, recipe?: any, patchListener?: any) => {
 		// curried invocation
 		if (typeof base === "function" && typeof recipe !== "function") {
 			const defaultBase = recipe
@@ -123,7 +121,11 @@ export class Immer implements ProducersFns {
 		} else die(21, base)
 	}
 
-	produceWithPatches(arg1: any, arg2?: any, arg3?: any): any {
+	produceWithPatches: IProduceWithPatches = (
+		arg1: any,
+		arg2?: any,
+		arg3?: any
+	): any => {
 		if (typeof arg1 === "function") {
 			return (state: any, ...args: any[]) =>
 				this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
