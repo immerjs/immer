@@ -34,7 +34,7 @@
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && yarn build:flow",
     "build:flow": "cpx 'src/types/index.js.flow' dist -v",
-    "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn run publish-gh-pages",
+    "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
     "test:size": "yarn build && yarn import-size --report . produce enableES5 enableMapSet enablePatches enableAllPlugins",
     "test:sizequick": "tsdx build --name immer --format esm && yarn import-size . produce"
