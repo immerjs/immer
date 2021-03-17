@@ -4,25 +4,49 @@ title: Patches
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
-</center>
-
-<details>
-    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 14: Capture patches using _produceWithPatches_</summary>
-    <br>
-    <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed" ></iframe>
-    </div>
-    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches">Hosted on egghead.io</a>
-</details>
-
-<details>
-    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 16: Apply Patches using _applyPatches_</summary>
-    <br>
-    <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed" ></iframe>
-    </div>
-    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients">Hosted on egghead.io</a>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center> <details>
+	<summary className="egghead-summary">
+		egghead.io lesson 14: Capture patches using _produceWithPatches_
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches"
+	>
+		Hosted on egghead.io
+	</a>
+</details> <details>
+	<summary className="egghead-summary">
+		egghead.io lesson 16: Apply Patches using _applyPatches_
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients"
+	>
+		Hosted on egghead.io
+	</a>
 </details>
 
 _⚠ Since version 6 support for Patches has to be enabled explicitly by calling [`enablePatches()`](installation#pick-your-immer-version) once when starting your application._
@@ -117,21 +141,43 @@ The generated patches are similar (but not the same) to the [RFC-6902 JSON patch
 ### `produceWithPatches`
 
 <details>
-    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 19: Using inverse patches to build undo functionality</summary>
-    <br>
-    <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed" ></iframe>
-    </div>
-    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality">Hosted on egghead.io</a>
-</details>
-
-<details>
-    <summary style="color: white; background:#c200c2;padding:5px;margin:5px;border-radius:2px">egghead.io lesson 20: Use patches to build redo functionality</summary>
-    <br>
-    <div style="padding:5px;">
-        <iframe style="border: none;" width=760 height=427 scrolling="no" src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed" ></iframe>
-    </div>
-    <a style="font-style:italic;padding:5px;margin:5px;"  href="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality">Hosted on egghead.io</a>
+	<summary className="egghead-summary">
+		egghead.io lesson 19: Using inverse patches to build undo functionality
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality"
+	>
+		Hosted on egghead.io
+	</a>
+</details> <details>
+	<summary className="egghead-summary">
+		egghead.io lesson 20: Use patches to build redo functionality
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality"
+	>
+		Hosted on egghead.io
+	</a>
 </details>
 
 Instead of setting up a patch listener, an easier way to obtain the patches is to use `produceWithPatches`, which has the same signature as `produce`, except that it doesn't return just the next state, but a tuple consisting of `[nextState, patches, inversePatches]`. Like `produce`, `produceWithPatches` supports currying as well.

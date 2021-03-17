@@ -60,4 +60,5 @@ typings/
 .idea
 /dist/
 website/build
+website/.docusaurus
 .rts2*
