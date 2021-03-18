@@ -59,7 +59,7 @@ it("can update readonly state via standard api", () => {
 		draft.arr2[0].value = "foo"
 		draft.arr2.push({value: "asf"})
 	})
-	assert(newState, _ as Immutable<State>)
+	assert(newState, _ as State)
 })
 
 // NOTE: only when the function type is inferred
@@ -229,7 +229,7 @@ it("works with return type of: number", () => {
 	}
 	{
 		let result = produce(base, draft => void draft.a++)
-		assert(result, _ as {readonly a: number})
+		assert(result, _ as {a: number})
 	}
 })
 
@@ -238,7 +238,7 @@ it("can return an object type that is identical to the base type", () => {
 	let result = produce(base, draft => {
 		return draft.a < 0 ? {a: 0} : undefined
 	})
-	assert(result, _ as {readonly a: number})
+	assert(result, _ as {a: number})
 })
 
 it("can NOT return an object type that is _not_ assignable to the base type", () => {
@@ -253,7 +253,7 @@ it("does not enforce immutability at the type level", () => {
 	let result = produce([] as any[], draft => {
 		draft.push(1)
 	})
-	assert(result, _ as readonly any[])
+	assert(result, _ as any[])
 })
 
 it("can produce an undefined value", () => {
@@ -327,13 +327,14 @@ it("can work with non-readonly base types", () => {
 	}
 	type State = typeof state
 
-	const newState: Immutable<State> = produce(state, draft => {
+	const newState = produce(state, draft => {
 		draft.price += 5
 		draft.todos.push({
 			title: "hi",
 			done: true
 		})
 	})
+	assert(newState, _ as State)
 
 	const reducer = (draft: State) => {
 		draft.price += 5
@@ -345,13 +346,13 @@ it("can work with non-readonly base types", () => {
 
 	// base case for with-initial-state
 	const newState4 = produce(reducer, state)(state)
-	assert(newState4, _ as Immutable<State>)
+	assert(newState4, _ as State)
 	// no argument case, in that case, immutable version recipe first arg will be inferred
 	const newState5 = produce(reducer, state)()
-	assert(newState5, _ as Immutable<State>)
+	assert(newState5, _ as State)
 	// we can force the return type of the reducer by casting the initial state
 	const newState3 = produce(reducer, state as State)()
-	assert(newState3, _ as Immutable<State>)
+	assert(newState3, _ as State)
 })
 
 it("can work with readonly base types", () => {
@@ -373,13 +374,15 @@ it("can work with readonly base types", () => {
 		]
 	}
 
-	const newState: State = produce(state, draft => {
+	const newState = produce(state, draft => {
 		draft.price + 5
 		draft.todos.push({
 			title: "hi",
 			done: true
 		})
 	})
+	assert(newState, _ as State)
+	assert(newState, _ as Immutable<State>) // cause that is the same!
 
 	const reducer = (draft: Draft<State>) => {
 		draft.price += 5
@@ -396,7 +399,7 @@ it("can work with readonly base types", () => {
 	assert(newState4, _ as State)
 	// no argument case, in that case, immutable version recipe first arg will be inferred
 	const newState5 = produce(reducer, state)()
-	assert(newState5, _ as Immutable<State>)
+	assert(newState5, _ as State)
 	// we can force the return type of the reducer by casting initial argument
 	const newState3 = produce(reducer, state as State)()
 	assert(newState3, _ as State)
@@ -424,18 +427,18 @@ it("works with Map and Set", () => {
 	const res1 = produce(m, draft => {
 		assert(draft, _ as Map<string, {x: number}>)
 	})
-	assert(res1, _ as ReadonlyMap<string, {readonly x: number}>)
+	assert(res1, _ as Map<string, {x: number}>)
 
 	const res2 = produce(s, draft => {
 		assert(draft, _ as Set<{x: number}>)
 	})
-	assert(res2, _ as ReadonlySet<{readonly x: number}>)
+	assert(res2, _ as Set<{x: number}>)
 })
 
 it("works with readonly Map and Set", () => {
 	type S = {readonly x: number}
-	const m = new Map<string, S>([["a", {x: 1}]])
-	const s = new Set<S>([{x: 2}])
+	const m: ReadonlyMap<string, S> = new Map([["a", {x: 1}]])
+	const s: ReadonlySet<S> = new Set([{x: 2}])
 
 	const res1 = produce(m, (draft: Draft<Map<string, S>>) => {
 		assert(draft, _ as Map<string, {x: number}>)
@@ -529,6 +532,7 @@ it("infers draft, #720 - 2", () => {
 		produce(draft => {
 			// @ts-expect-error
 			draft.y = 4
+			draft.x = 5
 			return draft
 		})
 	)
@@ -537,8 +541,52 @@ it("infers draft, #720 - 2", () => {
 		produce(draft => {
 			// @ts-expect-error
 			draft.y = 4
+			draft.x = 5
 			// return draft + 1;
 			return undefined
+		})
+	)
+
+	setN(
+		produce(draft => {
+			return {y: 3} as const
+		})
+	)
+})
+
+it("infers draft, #720 - 3", () => {
+	function useState<S>(
+		initialState: S | (() => S)
+	): [S, Dispatch<SetStateAction<S>>] {
+		return [initialState, function() {}] as any
+	}
+	type Dispatch<A> = (value: A) => void
+	type SetStateAction<S> = S | ((prevState: S) => S)
+
+	const [n, setN] = useState({x: 3} as {readonly x: number})
+
+	setN(
+		produce(draft => {
+			// @ts-expect-error
+			draft.y = 4
+			draft.x = 5
+			return draft
+		})
+	)
+
+	setN(
+		produce(draft => {
+			// @ts-expect-error
+			draft.y = 4
+			draft.x = 5
+			// return draft + 1;
+			return undefined
+		})
+	)
+
+	setN(
+		produce(draft => {
+			return {y: 3} as const
 		})
 	)
 })

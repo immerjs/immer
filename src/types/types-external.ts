@@ -99,14 +99,10 @@ type PromisifyReturnIfNeeded<
 	Recipe extends AnyFunc,
 	UsePatches extends boolean
 > = ReturnType<Recipe> extends Promise<any>
-	? Promise<
-			UsePatches extends true
-				? PatchesTuple<Immutable<State>>
-				: Immutable<State>
-	  >
+	? Promise<UsePatches extends true ? PatchesTuple<State> : State>
 	: UsePatches extends true
-	? PatchesTuple<Immutable<State>>
-	: Immutable<State>
+	? PatchesTuple<State>
+	: State
 
 /**
  * Core Producer inference
@@ -116,7 +112,10 @@ type InferRecipeFromCurried<Curried> = Curried extends (
 	...rest: infer Args
 ) => any // extra assertion to make sure this is a proper curried function (state, args) => state
 	? ReturnType<Curried> extends State
-		? (draft: Draft<State>, ...rest: Args) => ValidRecipeReturnType<State>
+		? (
+				draft: Draft<State>,
+				...rest: Args
+		  ) => ValidRecipeReturnType<Draft<State>>
 		: never
 	: never
 
@@ -128,7 +127,7 @@ type InferCurriedFromRecipe<
 		? (
 				base: Immutable<DraftState>,
 				...args: RestArgs
-		  ) => PromisifyReturnIfNeeded<DraftState, Recipe, UsePatches>
+		  ) => PromisifyReturnIfNeeded<Immutable<DraftState>, Recipe, UsePatches>
 		: never // incorrect return type
 	: never // not a function
 
@@ -141,7 +140,7 @@ type InferCurriedFromInitialStateAndRecipe<
 	...rest: infer RestArgs
 ) => ValidRecipeReturnTypePossiblyPromise<State>
 	? (
-			base?: Immutable<State> | undefined,
+			base?: State | undefined,
 			...args: RestArgs
 	  ) => PromisifyReturnIfNeeded<State, Recipe, UsePatches>
 	: never // recipe doesn't match initial state
@@ -181,19 +180,19 @@ export interface IProduce {
 		initialState: State
 	): InferCurriedFromInitialStateAndRecipe<State, Recipe, false>
 
-	/** Normal producer */
-	<Base, D = Draft<Base>>( // By using a default inferred D, rather than Draft<Base> in the recipe, we can override it.
-		base: Base,
-		recipe: (draft: D) => ValidRecipeReturnType<Base>,
-		listener?: PatchListener
-	): Immutable<Base>
-
 	/** Promisified dormal producer */
 	<Base, D = Draft<Base>>(
 		base: Base,
-		recipe: (draft: D) => Promise<ValidRecipeReturnType<Base>>,
+		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
 		listener?: PatchListener
-	): Promise<Immutable<Base>>
+	): Promise<Base>
+
+	/** Normal producer */
+	<Base, D = Draft<Base>>( // By using a default inferred D, rather than Draft<Base> in the recipe, we can override it.
+		base: Base,
+		recipe: (draft: D) => ValidRecipeReturnType<D>,
+		listener?: PatchListener
+	): Base
 }
 
 /**
