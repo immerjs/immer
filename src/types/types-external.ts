@@ -119,6 +119,13 @@ type InferRecipeFromCurried<Curried> = Curried extends (
 		: never
 	: never
 
+type InferInitialStateFromCurried<Curried> = Curried extends (
+	base: infer State,
+	...rest: any[]
+) => any // extra assertion to make sure this is a proper curried function (state, args) => state
+	? State
+	: never
+
 type InferCurriedFromRecipe<
 	Recipe,
 	UsePatches extends boolean
@@ -166,7 +173,10 @@ type InferCurriedFromInitialStateAndRecipe<
  */
 export interface IProduce {
 	/** Curried producer that infers the recipe from the curried output function (e.g. when passing to setState) */
-	<Curried>(recipe: InferRecipeFromCurried<Curried>): Curried
+	<Curried>(
+		recipe: InferRecipeFromCurried<Curried>,
+		initialState?: InferInitialStateFromCurried<Curried>
+	): Curried
 
 	/** Curried producer that infers curried from the recipe  */
 	<Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<

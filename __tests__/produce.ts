@@ -638,3 +638,82 @@ it("infers async curried", async () => {
 		assert(res, _ as Immutable<Todo>)
 	}
 })
+
+{
+	type State = {count: number}
+	type ROState = Immutable<State>
+	const base: any = {count: 0}
+	{
+		// basic
+		const res = produce(base as State, draft => {
+			draft.count++
+		})
+		assert(res, _ as State)
+	}
+	{
+		// basic
+		const res = produce<State>(base, draft => {
+			draft.count++
+		})
+		assert(res, _ as State)
+	}
+	{
+		// basic
+		const res = produce(base as ROState, draft => {
+			draft.count++
+		})
+		assert(res, _ as ROState)
+	}
+	{
+		// curried
+		const f = produce((state: State) => {
+			state.count++
+		})
+		assert(f, _ as (state: Immutable<State>) => Immutable<State>)
+	}
+	{
+		// curried
+		const f = produce((state: Draft<ROState>) => {
+			state.count++
+		})
+		assert(f, _ as (state: Immutable<State>) => Immutable<State>)
+	}
+	{
+		// curried
+		const f: (value: State) => State = produce(state => {
+			state.count++
+		})
+	}
+	{
+		// curried
+		const f: (value: ROState) => ROState = produce(state => {
+			state.count++
+		})
+	}
+	{
+		// curried initial
+		const f = produce((state: State) => {
+			state.count++
+		}, _ as State)
+		assert(f, _ as (state?: State) => State)
+	}
+	{
+		// curried initial
+		const f = produce((state: State) => {
+			state.count++
+		}, _ as ROState)
+		assert(f, _ as (state?: ROState) => ROState)
+	}
+	{
+		// curried
+		const f: (value: State) => State = produce(state => {
+			state.count++
+		}, base as ROState)
+	}
+	{
+		// curried
+		const f: (value: ROState) => ROState = produce(state => {
+			state.count++
+		}, base as ROState)
+	}
+}

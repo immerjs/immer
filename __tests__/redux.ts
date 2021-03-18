@@ -178,7 +178,7 @@ it("works with inferred curried reducer", () => {
 	}
 
 	const store = redux.createStore(
-		produce((state, action: Action) => {
+		produce((state: State, action: Action) => {
 			if (action.type === "inc") state.count += action.count
 			// @ts-expect-error
 			state.count2
@@ -208,12 +208,12 @@ it("works with inferred curried reducer - readonly", () => {
 		readonly count: number
 	}
 
-	const defaultState = {
+	const defaultState: State = {
 		count: 3
 	}
 
 	const store = redux.createStore(
-		produce((state, action: Action) => {
+		produce((state: Draft<State>, action: Action) => {
 			if (action.type === "inc") state.count += action.count
 			// @ts-expect-error
 			state.count2
