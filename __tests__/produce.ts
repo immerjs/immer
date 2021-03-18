@@ -48,7 +48,7 @@ const expectedState: State = {
 }
 
 it("can update readonly state via standard api", () => {
-	const newState = produce<State>(state, draft => {
+	const newState = produce(state, draft => {
 		draft.num++
 		draft.foo = "bar"
 		draft.bar = "foo"
@@ -59,7 +59,7 @@ it("can update readonly state via standard api", () => {
 		draft.arr2[0].value = "foo"
 		draft.arr2.push({value: "asf"})
 	})
-	assert(newState, state)
+	assert(newState, _ as Immutable<State>)
 })
 
 // NOTE: only when the function type is inferred
@@ -220,17 +220,17 @@ describe("curried producer", () => {
 })
 
 it("works with return type of: number", () => {
-	let base = _ as {a: number}
-	let result = produce(base, () => 1)
-	assert(result, _ as number)
-})
-
-it("works with return type of: number | undefined", () => {
 	let base = {a: 0} as {a: number}
-	let result = produce(base, draft => {
-		return draft.a < 0 ? 0 : undefined
-	})
-	assert(result, _ as {a: number} | number)
+	{
+		if (Math.random() === 100) {
+			// @ts-expect-error, this return accidentally a number, this is probably a dev error!
+			let result = produce(base, draft => draft.a++)
+		}
+	}
+	{
+		let result = produce(base, draft => void draft.a++)
+		assert(result, _ as {readonly a: number})
+	}
 })
 
 it("can return an object type that is identical to the base type", () => {
@@ -238,45 +238,44 @@ it("can return an object type that is identical to the base type", () => {
 	let result = produce(base, draft => {
 		return draft.a < 0 ? {a: 0} : undefined
 	})
-	// TODO: Can we resolve the weird union of identical object types?
-	assert(result, _ as {a: number} | {a: number})
+	assert(result, _ as {readonly a: number})
 })
 
-it("can return an object type that is _not_ assignable to the base type", () => {
+it("can NOT return an object type that is _not_ assignable to the base type", () => {
 	let base = {a: 0} as {a: number}
+	// @ts-expect-error
 	let result = produce(base, draft => {
 		return draft.a < 0 ? {a: true} : undefined
 	})
-	assert(result, _ as {a: number} | {a: boolean})
 })
 
 it("does not enforce immutability at the type level", () => {
 	let result = produce([] as any[], draft => {
 		draft.push(1)
 	})
-	assert(result, _ as any[])
+	assert(result, _ as readonly any[])
 })
 
 it("can produce an undefined value", () => {
-	let base = {a: 0} as {readonly a: number}
+	type State = {readonly a: number} | undefined
+	const base = {a: 0} as State
 
 	// Return only nothing.
 	let result = produce(base, _ => nothing)
-	assert(result, undefined)
+	assert(result, _ as State)
 
 	// Return maybe nothing.
 	let result2 = produce(base, draft => {
-		if (draft.a > 0) return nothing
+		if (draft?.a ?? 0 > 0) return nothing
 	})
-	assert(result2, _ as typeof base | undefined)
+	assert(result2, _ as State)
 })
 
 it("can return the draft itself", () => {
 	let base = _ as {readonly a: number}
 	let result = produce(base, draft => draft)
 
-	// Currently, the `readonly` modifier is lost.
-	assert(result, _ as {a: number})
+	assert(result, _ as {readonly a: number})
 })
 
 it("can return a promise", () => {
@@ -285,15 +284,15 @@ it("can return a promise", () => {
 
 	// Return a promise only.
 	let res1 = produce(base, draft => {
-		return Promise.resolve(draft.a > 0 ? null : undefined)
+		return Promise.resolve(draft)
 	})
-	assert(res1, _ as Promise<Base | null>)
+	assert(res1, _ as Promise<Base>)
 
 	// Return a promise or undefined.
 	let res2 = produce(base, draft => {
-		if (draft.a > 0) return Promise.resolve()
+		return Promise.resolve()
 	})
-	assert(res2, _ as Base | Promise<Base>)
+	assert(res2, _ as Promise<Base>)
 })
 
 it("works with `void` hack", () => {
@@ -328,7 +327,7 @@ it("can work with non-readonly base types", () => {
 	}
 	type State = typeof state
 
-	const newState: State = produce(state, draft => {
+	const newState: Immutable<State> = produce(state, draft => {
 		draft.price += 5
 		draft.todos.push({
 			title: "hi",
@@ -425,12 +424,12 @@ it("works with Map and Set", () => {
 	const res1 = produce(m, draft => {
 		assert(draft, _ as Map<string, {x: number}>)
 	})
-	assert(res1, _ as Map<string, {x: number}>)
+	assert(res1, _ as ReadonlyMap<string, {readonly x: number}>)
 
 	const res2 = produce(s, draft => {
 		assert(draft, _ as Set<{x: number}>)
 	})
-	assert(res2, _ as Set<{x: number}>)
+	assert(res2, _ as ReadonlySet<{readonly x: number}>)
 })
 
 it("works with readonly Map and Set", () => {
@@ -441,12 +440,12 @@ it("works with readonly Map and Set", () => {
 	const res1 = produce(m, (draft: Draft<Map<string, S>>) => {
 		assert(draft, _ as Map<string, {x: number}>)
 	})
-	assert(res1, _ as Map<string, {readonly x: number}>)
+	assert(res1, _ as ReadonlyMap<string, {readonly x: number}>)
 
 	const res2 = produce(s, (draft: Draft<Set<S>>) => {
 		assert(draft, _ as Set<{x: number}>)
 	})
-	assert(res2, _ as Set<{readonly x: number}>)
+	assert(res2, _ as ReadonlySet<{readonly x: number}>)
 })
 
 it("works with ReadonlyMap and ReadonlySet", () => {
@@ -515,6 +514,35 @@ it("infers draft, #720", () => {
 	)
 })
 
+it("infers draft, #720 - 2", () => {
+	function useState<S>(
+		initialState: S | (() => S)
+	): [S, Dispatch<SetStateAction<S>>] {
+		return [initialState, function() {}] as any
+	}
+	type Dispatch<A> = (value: A) => void
+	type SetStateAction<S> = S | ((prevState: S) => S)
+
+	const [n, setN] = useState({x: 3})
+
+	setN(
+		produce(draft => {
+			// @ts-expect-error
+			draft.y = 4
+			return draft
+		})
+	)
+
+	setN(
+		produce(draft => {
+			// @ts-expect-error
+			draft.y = 4
+			// return draft + 1;
+			return undefined
+		})
+	)
+})
+
 it("infers curried", () => {
 	type Todo = {title: string}
 	{
@@ -561,33 +589,4 @@ it("infers async curried", async () => {
 		fn(3)
 		assert(res, _ as Immutable<Todo>)
 	}
-})
-
-it("infers draft, #720 - 2", () => {
-	function useState<S>(
-		initialState: S | (() => S)
-	): [S, Dispatch<SetStateAction<S>>] {
-		return null as any
-	}
-	type Dispatch<A> = (value: A) => void
-	type SetStateAction<S> = S | ((prevState: S) => S)
-
-	const [n, setN] = useState({x: 3})
-
-	setN(
-		produce(draft => {
-			// @ts-expect-error
-			draft.y = 4
-			return draft
-		})
-	)
-
-	setN(
-		produce(draft => {
-			// @ts-expect-error
-			draft.y = 4
-			// return draft + 1;
-			return undefined
-		})
-	)
 })

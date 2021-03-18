@@ -89,7 +89,7 @@ it("#470 works with Redux combine reducers", () => {
 	assert(
 		store.getState().counterReducer,
 		_ as {
-			counter: number
+			readonly counter: number
 		}
 	)
 	assert(
