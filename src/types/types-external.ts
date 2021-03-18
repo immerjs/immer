@@ -1,4 +1,5 @@
 import {Nothing} from "../internal"
+import {DRAFT_STATE} from "../utils/env"
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
@@ -84,6 +85,44 @@ export type Produced<Base, Return> = Return extends void
 	? Promise<Result extends void ? Base : FromNothing<Result>>
 	: FromNothing<Return>
 
+type InferRecipe<FN> = FN extends (
+	base: infer STATE,
+	...rest: infer ARGS
+) => any
+	? (draft: Draft<STATE>, ...rest: ARGS) => ReturnType<FN> | undefined // TODO: or STATE | undefined?
+	: never
+
+type ValidRecipeReturnType<State> =
+	| State
+	| void
+	| undefined
+	| Promise<State | void | undefined>
+
+type InferProducerReturnFromRecipe<State, Recipe> = Recipe extends (
+	...args: any[]
+) => Promise<any>
+	? Promise<Immutable<State>>
+	: Immutable<State>
+
+type InferCurriedFromRecipe<Recipe> = Recipe extends (
+	draft: infer DraftState,
+	...args: infer RestArgs
+) => any // verify return type
+	? Recipe extends (...args: any[]) => ValidRecipeReturnType<DraftState>
+		? (
+				base: Immutable<DraftState>,
+				...args: RestArgs
+		  ) => InferProducerReturnFromRecipe<DraftState, Recipe>
+		: never // incorrect return type
+	: never // not a function
+
+type InferCurriedFromStateAndRecipe<State, Recipe> = Recipe extends (
+	draft: Draft<State>,
+	...rest: infer RestArgs
+) => Draft<State> | void | undefined | Nothing
+	? (base?: Immutable<State> | undefined, ...args: RestArgs) => Immutable<State>
+	: never // recipe doesn't match initial state
+
 /**
  * The `produce` function takes a value and a "recipe function" (whose
  * return value often depends on the base state). The recipe function is
@@ -104,33 +143,17 @@ export type Produced<Base, Return> = Return extends void
  * @returns {any} a new state, or the initial state if nothing was modified
  */
 export interface IProduce {
-	/** Curried producer */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
-		recipe: Recipe
-	): <Base extends Immutable<T>>(
-		base: Base,
-		...rest: Tail<Params>
-	) => Produced<Base, ReturnType<Recipe>>
-	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
-	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
-	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+	/** Curried producer that infers the recipe from the curried output function (e.g. when passing to setState) */
+	<Curried>(recipe: InferRecipe<Curried>): Curried
 
-	/** Curried producer with initial state */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
+	/** Curried producer that infers curried from the recipe  */
+	<Recipe>(recipe: Recipe): InferCurriedFromRecipe<Recipe>
+
+	/** Curried producer with initial state, infers recipe from initial state */
+	<State, Recipe extends Function>(
 		recipe: Recipe,
-		initialState: Immutable<T>
-	): <Base extends Immutable<T>>(
-		base?: Base,
-		...rest: Tail<Params>
-	) => Produced<Base, ReturnType<Recipe>>
+		initialState: State
+	): InferCurriedFromStateAndRecipe<State, Recipe>
 
 	/** Normal producer */
 	<Base, D = Draft<Base>, Return = void>(
