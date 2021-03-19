@@ -72,10 +72,18 @@ it("can infer state type from default state", () => {
 })
 
 it("can infer state type from recipe function", () => {
-	type State = {readonly a: string} | {readonly b: string}
+	type A = {readonly a: string}
+	type B = {readonly b: string}
+	type State = A | B
 	type Recipe = (state: State) => State
 
-	let foo = produce((_: Draft<State>) => {})
+	let foo = produce((draft: State) => {
+		assert(draft, _ as State)
+		if (Math.random() > 0.5) return {a: "test"}
+		else return {b: "boe"}
+	})
+	const x = foo({a: ""})
+	const y = foo({b: ""})
 	assert(foo, _ as Recipe)
 })
 
@@ -83,7 +91,10 @@ it("can infer state type from recipe function with arguments", () => {
 	type State = {readonly a: string} | {readonly b: string}
 	type Recipe = (state: State, x: number) => State
 
-	let foo = produce((draft: Draft<State>, x: number) => {})
+	let foo = produce<State, [number]>((draft, x) => {
+		assert(draft, _ as Draft<State>)
+		assert(x, _ as number)
+	})
 	assert(foo, _ as Recipe)
 })
 
@@ -163,7 +174,7 @@ describe("curried producer", () => {
 
 		// Using argument parameters:
 		{
-			type Recipe = (state: State, ...rest: number[]) => State
+			type Recipe = (state: Immutable<State>, ...rest: number[]) => Draft<State>
 			let woo = produce((state: Draft<State>, ...args: number[]) => {})
 			assert(woo, _ as Recipe)
 			woo(_ as State, 1, 2)
@@ -201,7 +212,7 @@ describe("curried producer", () => {
 		// No initial state:
 		{
 			let foo = produce((state: string[]) => {})
-			assert(foo, _ as (state: readonly string[]) => readonly string[])
+			assert(foo, _ as (state: readonly string[]) => string[])
 			foo([] as ReadonlyArray<string>)
 		}
 
@@ -624,7 +635,7 @@ it("infers async curried", async () => {
 		const res = await fn({title: "test"})
 		// @ts-expect-error
 		fn(3)
-		assert(res, _ as Immutable<Todo>)
+		assert(res, _ as Todo)
 	}
 	{
 		const fn = produce(async (draft: Todo) => {
@@ -635,7 +646,7 @@ it("infers async curried", async () => {
 		const res = await fn({title: "test"})
 		// @ts-expect-error
 		fn(3)
-		assert(res, _ as Immutable<Todo>)
+		assert(res, _ as Todo)
 	}
 })
 
@@ -669,14 +680,14 @@ it("infers async curried", async () => {
 		const f = produce((state: State) => {
 			state.count++
 		})
-		assert(f, _ as (state: Immutable<State>) => Immutable<State>)
+		assert(f, _ as (state: Immutable<State>) => State)
 	}
 	{
 		// curried
 		const f = produce((state: Draft<ROState>) => {
 			state.count++
 		})
-		assert(f, _ as (state: Immutable<State>) => Immutable<State>)
+		assert(f, _ as (state: ROState) => State)
 	}
 	{
 		// curried
@@ -692,14 +703,14 @@ it("infers async curried", async () => {
 	}
 	{
 		// curried initial
-		const f = produce((state: State) => {
+		const f = produce(state => {
 			state.count++
 		}, _ as State)
 		assert(f, _ as (state?: State) => State)
 	}
 	{
 		// curried initial
-		const f = produce((state: State) => {
+		const f = produce(state => {
 			state.count++
 		}, _ as ROState)
 		assert(f, _ as (state?: ROState) => ROState)
@@ -715,5 +726,39 @@ it("infers async curried", async () => {
 		const f: (value: ROState) => ROState = produce(state => {
 			state.count++
 		}, base as ROState)
+	}
+	{
+		// nothing allowed
+		const res = produce(base as State | undefined, draft => {
+			return nothing
+		})
+		assert(res, _ as State | undefined)
+	}
+	{
+		// nothing not allowed
+		// @ts-expect-error
+		produce(base as State, draft => {
+			return nothing
+		})
+	}
+	{
+		const f = produce((draft: State) => {})
+		const n = f(base as State)
+		assert(n, _ as State)
+	}
+	{
+		const f = produce((draft: Draft<ROState>) => {
+			draft.count++
+		})
+		const n = f(base as ROState)
+		assert(n, _ as State)
+	}
+	{
+		// explictly use generic
+		const f = produce<ROState>(draft => {
+			draft.count++
+		})
+		const n = f(base as ROState)
+		assert(n, _ as ROState) // yay!
 	}
 }

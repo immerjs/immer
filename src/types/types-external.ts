@@ -134,7 +134,7 @@ type InferCurriedFromRecipe<
 		? (
 				base: Immutable<DraftState>,
 				...args: RestArgs
-		  ) => PromisifyReturnIfNeeded<Immutable<DraftState>, Recipe, UsePatches>
+		  ) => PromisifyReturnIfNeeded<DraftState, Recipe, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
 		: never // incorrect return type
 	: never // not a function
 
@@ -183,6 +183,27 @@ export interface IProduce {
 		Recipe,
 		false
 	>
+
+	/** Curried producer that infers curried from the State generic, which is explicitly passed in.  */
+	<State>(
+		recipe: (
+			state: Draft<State>,
+			initialState: State
+		) => ValidRecipeReturnType<State>
+	): (state?: State) => State
+	<State, Args extends any[]>(
+		recipe: (
+			state: Draft<State>,
+			...args: Args
+		) => ValidRecipeReturnType<State>,
+		initialState: State
+	): (state?: State, ...args: Args) => State
+	<State>(recipe: (state: Draft<State>) => ValidRecipeReturnType<State>): (
+		state: State
+	) => State
+	<State, Args extends any[]>(
+		recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
+	): (state: State, ...args: Args) => State
 
 	/** Curried producer with initial state, infers recipe from initial state */
 	<State, Recipe extends Function>(
