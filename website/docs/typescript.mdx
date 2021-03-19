@@ -10,7 +10,8 @@ sidebar_label: TypeScript / Flow
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 12: Immer + TypeScript
 	</summary>
@@ -55,32 +56,96 @@ const newState = produce(state, draft => {
 // `newState.x` cannot be modified here
 ```
 
-This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`!
+This ensures that the only place you can modify your state is in your produce callbacks. It even works recursively and with `ReadonlyArray`.
 
-For curried reducers, the type is inferred from the first argument of recipe function, so make sure to type it. The `Draft` utility type can be used if the state argument type is immutable:
+## Best practices
 
-```ts
-import produce, {Draft} from "immer"
+1. Always define your states as `readonly` as much as possible. This best reflects the mental model and reality, since Immer will freeze all its returned values.
+2. You can use the utility type `Immutable` to recursively make an entire type tree read-only, e.g.: `type ReadonlyState = Immutable<State>`.
+3. Immer won't automatically wrap all returned types in `Immutable` if the original type of the input state wasn't immutable. This is to make sure it doesn't break code bases that don't use immutable types.
 
-interface State {
-	readonly x: number
-}
+## Tips for curried producers
 
-// `x` cannot be modified here
-const state: State = {
-	x: 0
-}
+We try to inference as much as possible. So if a curried producer is created and directly passed to another function, we can infer the type from there. This works will with for example React:
 
-const increment = produce((draft: Draft<State>, inc: number) => {
-	// `x` can be modified here
-	draft.x += inc
+```typescript
+import {Immutable, produce} from "immer"
+
+type Todo = Immutable<{
+	title: string
+	done: boolean
+}>
+
+// later...
+
+const [todo, setTodo] = useState<Todo>({
+	title: "test",
+	done: true
 })
 
-const newState = increment(state, 2)
-// `newState.x` cannot be modified here
+// later...
+
+setTodo(
+	produce(draft => {
+		// draft will be strongly typed and mutable!
+		draft.done = !draft.done
+	})
+)
 ```
 
-_Note: Since TypeScript support for recursive types is limited, and there is no co- contravariance, it might the easiest to not type your state as `readonly` (Immer will still protect against accidental mutations)_
+When a curried producer isn't passed directly somewhere else, Immer can infer the state type from the draft argument. For example when doing the following:
+
+```typescript
+// See below for a better solution!
+
+const toggler = produce((draft: Draft<Todo>) => {
+	draft.done = !draft.done
+})
+
+// typeof toggler = (state: Immutable<Todo>) => Writable<Todo>
+```
+
+Note that we did wrap the `Todo` type of the `draft` argument with `Draft`, because `Todo` is a readonly type. For non-readonly types this isn't needed.
+
+For the returned curried function, `toggler`, We will _narrow_ the _input_ type to `Immutable<Todo>`, so that even though `Todo` is a mutable type, we will still accept an immutable todo as input argument to `toggler`.
+
+In contrast, Immer will _widen_ the _output_ type of the curried function to `Writable<Todo>`, to make sure it's output state is also assignable to variables that are not explictly typed to be immutable.
+
+This type narrowing / widening behavior might be unwelcome, maybe even for the simpe reason that it results in quite noisy types. So we recommend to specify the generic state type for curried producers instead, in cases where it cannot be inferred directly, like `toggler` above. By doing so the automatic output widening / input narrowing will be skipped. However, the `draft` argument itself will still be inferred to be a writable `Draft<Todo>`:
+
+```typescript
+const toggler = produce<Todo>(draft => {
+	draft.done = !draft.done
+})
+
+// typeof toggler = (state: Todo) => Todo
+```
+
+However, in case the curried producer is defined with an initial state, Immer can infer the state type from the initial state, so in that case the generic doesn't need to be specified either:
+
+```typescript
+const state0: Todo = {
+	title: "test",
+	done: false
+}
+
+// No type annotations needed, since we can infer from state0.
+const toggler = produce(draft => {
+	draft.done = !draft.done
+}, state0)
+
+// typeof toggler = (state: Todo) => Todo
+```
+
+In case the toggler has no initial state, and it has curried arguments, and you set the state generic explicitly, then type of any additional arguments should be defined explicitly as a tuple type as well:
+
+```typescript
+const toggler = produce<Todo, [boolean]>((draft, newState) => {
+	draft.done = newState
+})
+
+// typeof toggler = (state: Todo, newState: boolean) => Todo
+```
 
 ## Cast utilities
 

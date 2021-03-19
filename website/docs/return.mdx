@@ -9,7 +9,8 @@ title: Returning new data from producers
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 9: Returning completely new state
 	</summary>
@@ -110,6 +111,8 @@ produce(state, draft => nothing)
 ```
 
 N.B. Note that this problem is specific for the `undefined` value, any other value, including `null`, doesn't suffer from this issue.
+
+Tip: to be able to return `nothing` from a recipe when using TypeScript, the `state`'s type must accept `undefined` as value.
 
 ## Inline shortcuts using `void`
 

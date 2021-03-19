@@ -1,11 +1,6 @@
 import {Nothing} from "../internal"
 
-type Tail<T extends any[]> = ((...t: T) => any) extends (
-	_: any,
-	...tail: infer TT
-) => any
-	? TT
-	: []
+type AnyFunc = (...args: any[]) => any
 
 type PrimitiveType = number | string | boolean
 
@@ -85,6 +80,79 @@ export type Produced<Base, Return> = Return extends void
 	: FromNothing<Return>
 
 /**
+ * Utility types
+ */
+type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
+
+type ValidRecipeReturnType<State> =
+	| State
+	| void
+	| undefined
+	| (State extends undefined ? Nothing : never)
+
+type ValidRecipeReturnTypePossiblyPromise<State> =
+	| ValidRecipeReturnType<State>
+	| Promise<ValidRecipeReturnType<State>>
+
+type PromisifyReturnIfNeeded<
+	State,
+	Recipe extends AnyFunc,
+	UsePatches extends boolean
+> = ReturnType<Recipe> extends Promise<any>
+	? Promise<UsePatches extends true ? PatchesTuple<State> : State>
+	: UsePatches extends true
+	? PatchesTuple<State>
+	: State
+
+/**
+ * Core Producer inference
+ */
+type InferRecipeFromCurried<Curried> = Curried extends (
+	base: infer State,
+	...rest: infer Args
+) => any // extra assertion to make sure this is a proper curried function (state, args) => state
+	? ReturnType<Curried> extends State
+		? (
+				draft: Draft<State>,
+				...rest: Args
+		  ) => ValidRecipeReturnType<Draft<State>>
+		: never
+	: never
+
+type InferInitialStateFromCurried<Curried> = Curried extends (
+	base: infer State,
+	...rest: any[]
+) => any // extra assertion to make sure this is a proper curried function (state, args) => state
+	? State
+	: never
+
+type InferCurriedFromRecipe<
+	Recipe,
+	UsePatches extends boolean
+> = Recipe extends (draft: infer DraftState, ...args: infer RestArgs) => any // verify return type
+	? ReturnType<Recipe> extends ValidRecipeReturnTypePossiblyPromise<DraftState>
+		? (
+				base: Immutable<DraftState>,
+				...args: RestArgs
+		  ) => PromisifyReturnIfNeeded<DraftState, Recipe, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
+		: never // incorrect return type
+	: never // not a function
+
+type InferCurriedFromInitialStateAndRecipe<
+	State,
+	Recipe,
+	UsePatches extends boolean
+> = Recipe extends (
+	draft: Draft<State>,
+	...rest: infer RestArgs
+) => ValidRecipeReturnTypePossiblyPromise<State>
+	? (
+			base?: State | undefined,
+			...args: RestArgs
+	  ) => PromisifyReturnIfNeeded<State, Recipe, UsePatches>
+	: never // recipe doesn't match initial state
+
+/**
  * The `produce` function takes a value and a "recipe function" (whose
  * return value often depends on the base state). The recipe function is
  * free to mutate its first argument however it wants. All mutations are
@@ -104,40 +172,58 @@ export type Produced<Base, Return> = Return extends void
  * @returns {any} a new state, or the initial state if nothing was modified
  */
 export interface IProduce {
-	/** Curried producer */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
-		recipe: Recipe
-	): <Base extends Immutable<T>>(
-		base: Base,
-		...rest: Tail<Params>
-	) => Produced<Base, ReturnType<Recipe>>
-	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
-	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
-	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
+	/** Curried producer that infers the recipe from the curried output function (e.g. when passing to setState) */
+	<Curried>(
+		recipe: InferRecipeFromCurried<Curried>,
+		initialState?: InferInitialStateFromCurried<Curried>
+	): Curried
 
-	/** Curried producer with initial state */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
+	/** Curried producer that infers curried from the recipe  */
+	<Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<
+		Recipe,
+		false
+	>
+
+	/** Curried producer that infers curried from the State generic, which is explicitly passed in.  */
+	<State>(
+		recipe: (
+			state: Draft<State>,
+			initialState: State
+		) => ValidRecipeReturnType<State>
+	): (state?: State) => State
+	<State, Args extends any[]>(
+		recipe: (
+			state: Draft<State>,
+			...args: Args
+		) => ValidRecipeReturnType<State>,
+		initialState: State
+	): (state?: State, ...args: Args) => State
+	<State>(recipe: (state: Draft<State>) => ValidRecipeReturnType<State>): (
+		state: State
+	) => State
+	<State, Args extends any[]>(
+		recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
+	): (state: State, ...args: Args) => State
+
+	/** Curried producer with initial state, infers recipe from initial state */
+	<State, Recipe extends Function>(
 		recipe: Recipe,
-		initialState: Immutable<T>
-	): <Base extends Immutable<T>>(
-		base?: Base,
-		...rest: Tail<Params>
-	) => Produced<Base, ReturnType<Recipe>>
+		initialState: State
+	): InferCurriedFromInitialStateAndRecipe<State, Recipe, false>
+
+	/** Promisified dormal producer */
+	<Base, D = Draft<Base>>(
+		base: Base,
+		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
+		listener?: PatchListener
+	): Promise<Base>
 
 	/** Normal producer */
-	<Base, D = Draft<Base>, Return = void>(
+	<Base, D = Draft<Base>>( // By using a default inferred D, rather than Draft<Base> in the recipe, we can override it.
 		base: Base,
-		recipe: (draft: D) => Return,
+		recipe: (draft: D) => ValidRecipeReturnType<D>,
 		listener?: PatchListener
-	): Produced<Base, Return>
+	): Base
 }
 
 /**
@@ -147,39 +233,22 @@ export interface IProduce {
  * Like produce, this function supports currying
  */
 export interface IProduceWithPatches {
-	/** Curried producer */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
-		recipe: Recipe
-	): <Base extends Immutable<T>>(
-		base: Base,
-		...rest: Tail<Params>
-	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
-	//   ^ by making the returned type generic, the actual type of the passed in object is preferred
-	//     over the type used in the recipe. However, it does have to satisfy the immutable version used in the recipe
-	//     Note: the type of S is the widened version of T, so it can have more props than T, but that is technically actually correct!
-
-	/** Curried producer with initial state */
-	<
-		Recipe extends (...args: any[]) => any,
-		Params extends any[] = Parameters<Recipe>,
-		T = Params[0]
-	>(
+	// Types copied from IProduce, wrapped with PatchesTuple
+	<Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<Recipe, true>
+	<State, Recipe extends Function>(
 		recipe: Recipe,
-		initialState: Immutable<T>
-	): <Base extends Immutable<T>>(
-		base?: Base,
-		...rest: Tail<Params>
-	) => [Produced<Base, ReturnType<Recipe>>, Patch[], Patch[]]
-
-	/** Normal producer */
-	<Base, D = Draft<Base>, Return = void>(
+		initialState: State
+	): InferCurriedFromInitialStateAndRecipe<State, Recipe, true>
+	<Base, D = Draft<Base>>(
 		base: Base,
-		recipe: (draft: D) => Return
-	): [Produced<Base, Return>, Patch[], Patch[]]
+		recipe: (draft: D) => ValidRecipeReturnType<Base>,
+		listener?: PatchListener
+	): PatchesTuple<Immutable<Base>>
+	<Base, D = Draft<Base>>(
+		base: Base,
+		recipe: (draft: D) => Promise<ValidRecipeReturnType<Base>>,
+		listener?: PatchListener
+	): PatchesTuple<Promise<Immutable<Base>>>
 }
 
 // Fixes #507: bili doesn't export the types of this file if there is no actual source in it..
