@@ -36,11 +36,20 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
+const objectCtorString = Object.prototype.constructor.toString()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	const proto = Object.getPrototypeOf(value)
-	return !proto || proto === Object.prototype
+	if (proto === null) {
+		return true
+	}
+	const Ctor =
+		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	return (
+		typeof Ctor == "function" &&
+		Function.toString.call(Ctor) === objectCtorString
+	)
 }
 
 /** Get the underlying object that is represented by the given draft */
