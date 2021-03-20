@@ -1,3 +1,4 @@
+import {immerable} from "../immer"
 import {
 	ImmerState,
 	Patch,
@@ -287,6 +288,7 @@ export function enablePatches() {
 		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
 		const cloned = Object.create(Object.getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
+		if (has(obj, immerable)) cloned[immerable] = obj[immerable]
 		return cloned
 	}
 
