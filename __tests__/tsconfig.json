@@ -3,6 +3,7 @@
   "compilerOptions": {
     "lib": ["es2015"],
     "strict": true,
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "target": "ES5"
   }
 }

@@ -2,9 +2,11 @@ import {
 	produce,
 	produceWithPatches,
 	setUseProxies,
-	enableAllPlugins
+	enableAllPlugins,
+	immerable,
+	applyPatches
 } from "../src/immer"
-import {DRAFT_STATE} from "../src/internal"
+import {DRAFT_STATE, Patch} from "../src/internal"
 
 enableAllPlugins()
 
@@ -149,3 +151,53 @@ function createBaseState() {
 	}
 	return data
 }
+
+describe("#768", () => {
+	class Stock {
+		[immerable] = true
+
+		constructor(public price: number) {}
+
+		pushPrice(price: number) {
+			this.price = price
+		}
+	}
+
+	type State = {
+		stock: Stock
+	}
+
+	test("bla", () => {
+		// Set up conditions to produce the error
+		const errorProducingPatch = [
+			{
+				op: "replace",
+				path: ["stock"],
+				value: new Stock(200)
+			}
+		] as Patch[]
+
+		// Start with modified state
+		const state = {
+			stock: new Stock(100)
+		}
+
+		expect(state.stock.price).toEqual(100)
+		expect(state.stock[immerable]).toBeTruthy()
+		// Use patch to "replace" stocks
+		debugger
+		const resetState: State = applyPatches(state, errorProducingPatch)
+		expect(state.stock.price).toEqual(100)
+		expect(resetState.stock.price).toEqual(200)
+		expect(resetState.stock[immerable]).toBeTruthy()
+
+		// Problems come in when resetState is modified
+		const updatedState = produce(resetState, draft => {
+			draft.stock.pushPrice(300)
+		})
+		expect(state.stock.price).toEqual(100)
+		expect(updatedState.stock.price).toEqual(300)
+		expect(updatedState.stock[immerable]).toBeTruthy()
+		expect(resetState.stock.price).toEqual(200)
+	})
+})
