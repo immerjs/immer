@@ -66,6 +66,14 @@ module.exports = {
 				routeBasePath: "/"
 			}
 		],
-		"@docusaurus/plugin-google-analytics"
+		"@docusaurus/plugin-google-analytics",
+		[
+			"@docusaurus/plugin-client-redirects",
+			{
+				createRedirects: function(existingPath) {
+					return ["/docs" + existingPath]
+				}
+			}
+		]
 	]
 }
