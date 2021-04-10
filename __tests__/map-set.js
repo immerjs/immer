@@ -295,5 +295,22 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(mapType1).toBe(mapType2)
 		})
+
+		test("#tbd - map subclass support", () => {
+			class FooMap extends Map {
+				[immerable] = true
+				foo() {
+					return "Hello from foo"
+				}
+			}
+
+			const fooMap = new FooMap()
+			expect(fooMap.foo()).toBe("Hello from foo")
+
+			const result = produce(fooMap, draft => {
+				draft.set("x", 123)
+			})
+			expect(result.foo()).toBe("Hello from foo")
+		})
 	})
 }
