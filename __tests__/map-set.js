@@ -296,7 +296,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(mapType1).toBe(mapType2)
 		})
 
-		test("#tbd - map subclass support", () => {
+		test("#781 - map subclass support", () => {
 			class FooMap extends Map {
 				[immerable] = true
 				foo() {
