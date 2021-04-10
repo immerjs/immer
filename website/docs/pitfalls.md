@@ -9,11 +9,11 @@ title: Pitfalls
 
 ### Performance tips
 
-For performance tips, see [Performance Tips](https://immerjs.github.io/immer/docs/performance/#performance-tips).
+For performance tips, see [Performance Tips](./performance.mdx#performance-tips).
 
 ### Don't reassign the recipe argument
 
-Never reassign the `draft` argument (example: `draft = myCoolNewState`). Instead, either modify the `draft` or return a new state. See [Returning data from producers](https://immerjs.github.io/immer/docs/return).
+Never reassign the `draft` argument (example: `draft = myCoolNewState`). Instead, either modify the `draft` or return a new state. See [Returning data from producers](./return.mdx).
 
 ### Immer only supports unidirectional trees
 
@@ -29,7 +29,7 @@ Immer [does not support exotic objects](https://github.com/immerjs/immer/issues/
 
 ### Classes should be made draftable or not mutated
 
-You will need to enable your own classes to work properly with Immer. For docs on the topic, check out the section on [working with complex objects](https://immerjs.github.io/immer/docs/complex-objects).
+You will need to enable your own classes to work properly with Immer. For docs on the topic, check out the section on [working with complex objects](./complex-objects.md).
 
 ### Only valid indices and length can be mutated on Arrays
 

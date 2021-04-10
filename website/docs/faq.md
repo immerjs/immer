@@ -22,7 +22,7 @@ A: Yes
 
 ## Q: I can't rely on Proxies being present on my target environments. Can I use Immer?
 
-A: Yes - [view details](installation#immer-on-older-javascript-environments)
+A: Yes - [view details](./installation.mdx#immer-on-older-javascript-environments)
 
 ## Q: Can I typecheck my data structures when using Immer?
 

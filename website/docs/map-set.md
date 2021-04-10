@@ -7,7 +7,7 @@ title: Map and Set
 <div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
 </center>
 
-_⚠ Since version 6 support for `Map`s and `Set`s has to be enabled explicitly by calling [`enableMapSet()`](installation#pick-your-immer-version) once when starting your application._
+_⚠ Since version 6 support for `Map`s and `Set`s has to be enabled explicitly by calling [`enableMapSet()`](./installation.mdx#pick-your-immer-version) once when starting your application._
 
 Plain objects, arrays, `Map`s and `Set`s are always drafted by Immer. An example of using Maps with immer:
 
