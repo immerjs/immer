@@ -142,7 +142,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			return true
 		}
 		if (!state.modified_) {
-			// the last check is because we need to be able to distinguish setting a non-existig to undefined (which is a change)
+			// the last check is because we need to be able to distinguish setting a non-existing to undefined (which is a change)
 			// from setting an existing property with value undefined to undefined (which is not a change)
 			const current = peek(latest(state), prop)
 			// special case, if we assigning the original value to a draft, we can ignore the assignment
