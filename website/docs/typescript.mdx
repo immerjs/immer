@@ -10,8 +10,7 @@ sidebar_label: TypeScript / Flow
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 12: Immer + TypeScript
 	</summary>
@@ -66,7 +65,7 @@ This ensures that the only place you can modify your state is in your produce ca
 
 ## Tips for curried producers
 
-We try to inference as much as possible. So if a curried producer is created and directly passed to another function, we can infer the type from there. This works will with for example React:
+We try to inference as much as possible. So if a curried producer is created and directly passed to another function, we can infer the type from there. This works well with for example React:
 
 ```typescript
 import {Immutable, produce} from "immer"
