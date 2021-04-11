@@ -68,6 +68,6 @@ The semantics on how classes are drafted are as follows:
 
 Because Immer will dereference own getters of objects into normal properties, it is possible to use objects that use getter/setter traps on their fields, like MobX and Vue do.
 
-Immer does not support exotic objects such as DOM Nodes or Buffers.
+Immer does not support exotic / engine native objects such as DOM Nodes or Buffers, nor is subclassing Map, Set or arrays supported and the `immerable` symbol can't be used on them.
 
 So when working for example with `Date` objects, you should always create a new `Date` instance instead of mutating an existing `Date` object.
