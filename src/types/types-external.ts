@@ -211,19 +211,19 @@ export interface IProduce {
 		initialState: State
 	): InferCurriedFromInitialStateAndRecipe<State, Recipe, false>
 
-	/** Promisified dormal producer */
-	<Base, D = Draft<Base>>(
-		base: Base,
-		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
-		listener?: PatchListener
-	): Promise<Base>
-
 	/** Normal producer */
 	<Base, D = Draft<Base>>( // By using a default inferred D, rather than Draft<Base> in the recipe, we can override it.
 		base: Base,
 		recipe: (draft: D) => ValidRecipeReturnType<D>,
 		listener?: PatchListener
 	): Base
+
+	/** Promisified dormal producer */
+	<Base, D = Draft<Base>>(
+		base: Base,
+		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
+		listener?: PatchListener
+	): Promise<Base>
 }
 
 /**

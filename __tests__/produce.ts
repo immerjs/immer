@@ -735,6 +735,13 @@ it("infers async curried", async () => {
 		assert(res, _ as State | undefined)
 	}
 	{
+		// as any
+		const res = produce(base as State, draft => {
+			return nothing as any
+		})
+		assert(res, _ as State)
+	}
+	{
 		// nothing not allowed
 		// @ts-expect-error
 		produce(base as State, draft => {
