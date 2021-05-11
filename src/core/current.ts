@@ -1,18 +1,16 @@
+import {ArchtypeMap, ArchtypeSet, ImmerState} from "../types/types-internal"
 import {
-	die,
-	isDraft,
-	shallowCopy,
 	each,
-	DRAFT_STATE,
 	get,
-	set,
-	ImmerState,
-	isDraftable,
-	ArchtypeMap,
-	ArchtypeSet,
 	getArchtype,
-	getPlugin
-} from "../internal"
+	isDraft,
+	isDraftable,
+	set,
+	shallowCopy
+} from "../utils/common"
+import {DRAFT_STATE} from "../utils/env"
+import {die} from "../utils/errors"
+import {getPlugin} from "../utils/plugins"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
 export function current<T>(value: T): T

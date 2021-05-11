@@ -1,20 +1,17 @@
 import {
-	DRAFT_STATE,
-	DRAFTABLE,
-	hasSet,
-	Objectish,
-	Drafted,
-	AnyObject,
 	AnyMap,
+	AnyObject,
 	AnySet,
-	ImmerState,
-	hasMap,
-	ArchtypeObject,
 	ArchtypeArray,
 	ArchtypeMap,
+	ArchtypeObject,
 	ArchtypeSet,
-	die
-} from "../internal"
+	Drafted,
+	ImmerState,
+	Objectish
+} from "../types/types-internal"
+import {DRAFTABLE, DRAFT_STATE, hasMap, hasSet} from "../utils/env"
+import {die} from "../utils/errors"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
@@ -46,10 +43,7 @@ export function isPlainObject(value: any): boolean {
 	}
 	const Ctor =
 		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
-	return (
-		typeof Ctor == "function" &&
-		Function.toString.call(Ctor) === objectCtorString
-	)
+	return typeof Ctor == "function" && Ctor.toString() === objectCtorString
 }
 
 /** Get the underlying object that is represented by the given draft */

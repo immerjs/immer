@@ -1,31 +1,24 @@
+import {current} from "../core/current"
+import {processResult} from "../core/finalize"
+import {createProxy} from "../core/proxy"
 import {
-	IProduceWithPatches,
-	IProduce,
-	ImmerState,
-	Drafted,
-	isDraftable,
-	processResult,
-	Patch,
-	Objectish,
-	DRAFT_STATE,
-	Draft,
-	PatchListener,
-	isDraft,
-	isMap,
-	isSet,
-	createProxyProxy,
-	getPlugin,
-	die,
-	hasProxies,
 	enterScope,
-	revokeScope,
 	leaveScope,
-	usePatchesInScope,
-	getCurrentScope,
-	NOTHING,
-	freeze,
-	current
-} from "../internal"
+	revokeScope,
+	usePatchesInScope
+} from "../core/scope"
+import {
+	Draft,
+	IProduce,
+	IProduceWithPatches,
+	Patch,
+	PatchListener
+} from "../types/types-external"
+import {Drafted, ImmerState, Objectish} from "../types/types-internal"
+import {freeze, isDraft, isDraftable} from "../utils/common"
+import {DRAFT_STATE, hasProxies, NOTHING} from "../utils/env"
+import {die} from "../utils/errors"
+import {getPlugin} from "../utils/plugins"
 
 interface ProducersFns {
 	produce: IProduce
@@ -207,23 +200,4 @@ export class Immer implements ProducersFns {
 			applyPatchesImpl(draft, patches.slice(i + 1))
 		) as any
 	}
-}
-
-export function createProxy<T extends Objectish>(
-	immer: Immer,
-	value: T,
-	parent?: ImmerState
-): Drafted<T, ImmerState> {
-	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
-	const draft: Drafted = isMap(value)
-		? getPlugin("MapSet").proxyMap_(value, parent)
-		: isSet(value)
-		? getPlugin("MapSet").proxySet_(value, parent)
-		: immer.useProxies_
-		? createProxyProxy(value, parent)
-		: getPlugin("ES5").createES5Proxy_(value, parent)
-
-	const scope = parent ? parent.scope_ : getCurrentScope()
-	scope.drafts_.push(draft)
-	return draft
 }

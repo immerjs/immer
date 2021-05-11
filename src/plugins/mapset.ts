@@ -1,23 +1,17 @@
 // types only!
+import {createProxy, markChanged} from "../core/proxy"
+import {getCurrentScope} from "../core/scope"
 import {
-	ImmerState,
 	AnyMap,
 	AnySet,
-	MapState,
-	SetState,
-	DRAFT_STATE,
-	getCurrentScope,
-	latest,
-	iteratorSymbol,
-	isDraftable,
-	createProxy,
-	loadPlugin,
-	markChanged,
+	ImmerState,
 	ProxyTypeMap,
-	ProxyTypeSet,
-	die,
-	each
-} from "../internal"
+	ProxyTypeSet
+} from "../types/types-internal"
+import {each, isDraftable, latest} from "../utils/common"
+import {DRAFT_STATE, iteratorSymbol} from "../utils/env"
+import {die} from "../utils/errors"
+import {loadPlugin, MapState, SetState} from "../utils/plugins"
 
 export function enableMapSet() {
 	/* istanbul ignore next */

@@ -1,23 +1,27 @@
+import {getCurrentScope} from "../core/scope"
+import {
+	AnyArray,
+	AnyObject,
+	Drafted,
+	ImmerBaseState,
+	ImmerState,
+	Objectish,
+	ProxyTypeProxyArray,
+	ProxyTypeProxyObject
+} from "../types/types-internal"
 import {
 	each,
 	has,
 	is,
 	isDraftable,
-	shallowCopy,
+	isMap,
+	isSet,
 	latest,
-	ImmerBaseState,
-	ImmerState,
-	Drafted,
-	AnyObject,
-	AnyArray,
-	Objectish,
-	getCurrentScope,
-	DRAFT_STATE,
-	die,
-	createProxy,
-	ProxyTypeProxyObject,
-	ProxyTypeProxyArray
-} from "../internal"
+	shallowCopy
+} from "../utils/common"
+import {DRAFT_STATE} from "../utils/env"
+import {die} from "../utils/errors"
+import {getPlugin} from "../utils/plugins"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -42,6 +46,24 @@ export interface ProxyArrayState extends ProxyBaseState {
 }
 
 type ProxyState = ProxyObjectState | ProxyArrayState
+
+export function createProxy<
+	I extends {useProxies_: boolean},
+	T extends Objectish
+>(immer: I, value: T, parent?: ImmerState): Drafted<T, ImmerState> {
+	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
+	const draft: Drafted = isMap(value)
+		? getPlugin("MapSet").proxyMap_(value, parent)
+		: isSet(value)
+		? getPlugin("MapSet").proxySet_(value, parent)
+		: immer.useProxies_
+		? createProxyProxy(value, parent)
+		: getPlugin("ES5").createES5Proxy_(value, parent)
+
+	const scope = parent ? parent.scope_ : getCurrentScope()
+	scope.drafts_.push(draft)
+	return draft
+}
 
 /**
  * Returns a new draft of the `base` object.

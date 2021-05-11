@@ -1,13 +1,12 @@
+import {ProxyArrayState, ProxyObjectState} from "../core/proxy"
+import {ImmerScope} from "../core/scope"
+import {DRAFT_STATE} from "../utils/env"
 import {
-	SetState,
-	ImmerScope,
-	ProxyObjectState,
-	ProxyArrayState,
-	ES5ObjectState,
 	ES5ArrayState,
+	ES5ObjectState,
 	MapState,
-	DRAFT_STATE
-} from "../internal"
+	SetState
+} from "../utils/plugins"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap

@@ -1,25 +1,23 @@
+import {markChanged, objectTraps} from "../core/proxy"
+import {getCurrentScope, ImmerScope} from "../core/scope"
 import {
-	ImmerState,
 	Drafted,
-	ES5ArrayState,
-	ES5ObjectState,
+	ImmerState,
+	ProxyTypeES5Array,
+	ProxyTypeES5Object
+} from "../types/types-internal"
+import {
 	each,
+	getOwnPropertyDescriptors,
 	has,
+	is,
 	isDraft,
 	latest,
-	DRAFT_STATE,
-	is,
-	loadPlugin,
-	ImmerScope,
-	ProxyTypeES5Array,
-	ProxyTypeES5Object,
-	getCurrentScope,
-	die,
-	markChanged,
-	objectTraps,
-	ownKeys,
-	getOwnPropertyDescriptors
-} from "../internal"
+	ownKeys
+} from "../utils/common"
+import {DRAFT_STATE} from "../utils/env"
+import {die} from "../utils/errors"
+import {ES5ArrayState, ES5ObjectState, loadPlugin} from "../utils/plugins"
 
 type ES5State = ES5ArrayState | ES5ObjectState
 
@@ -185,14 +183,16 @@ export function enableES5() {
 				assigned_.length = true
 			}
 
-			if (draft_.length < base_.length) {
-				for (let i = draft_.length; i < base_.length; i++) assigned_[i] = false
+			if (draft_["length"] < base_.length) {
+				for (let i = draft_["length"]; i < base_.length; i++)
+					assigned_[i] = false
 			} else {
-				for (let i = base_.length; i < draft_.length; i++) assigned_[i] = true
+				for (let i = base_.length; i < draft_["length"]; i++)
+					assigned_[i] = true
 			}
 
 			// Minimum count is enough, the other parts has been processed.
-			const min = Math.min(draft_.length, base_.length)
+			const min = Math.min(draft_["length"], base_.length)
 
 			for (let i = 0; i < min; i++) {
 				// Only untouched indices trigger recursion.
@@ -234,7 +234,7 @@ export function enableES5() {
 
 	function hasArrayChanges(state: ES5ArrayState) {
 		const {draft_} = state
-		if (draft_.length !== state.base_.length) return true
+		if (draft_["length"] !== state.base_.length) return true
 		// See #116
 		// If we first shorten the length, our array interceptors will be removed.
 		// If after that new items are added, result in the same original length,
@@ -244,7 +244,7 @@ export function enableES5() {
 		// the last one
 		const descriptor = Object.getOwnPropertyDescriptor(
 			draft_,
-			draft_.length - 1
+			draft_["length"] - 1
 		)
 		// descriptor can be null, but only for newly created sparse arrays, eg. new Array(10)
 		if (descriptor && !descriptor.get) return true
