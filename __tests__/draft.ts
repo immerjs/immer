@@ -333,3 +333,32 @@ test("#512 createDraft creates a draft", () => {
 	const x = {y: 1}
 	assert(x, _ as Draft<{y: number}>)
 })
+
+/**
+ * from react types
+ */
+type SetStateAction<S> = S | ((prevState: S) => S)
+type Dispatch<A> = (value: A) => void
+declare function useState<S>(
+	initialState: S | (() => S)
+): [S, Dispatch<SetStateAction<S>>]
+
+test(
+	"#802 it shouldn't be possible(typescript-wise)" +
+		" to return nothing / undefined from a recipe if it's not assignable to the target state.",
+	() => {
+		const [_, setState] = useState<{a: number}>({a: 1})
+
+		// @ts-expect-error
+		setState(() => {
+			return
+		})
+
+		// @ts-expect-error this should error as the above plain setState call
+		setState(
+			produce(() => {
+				return
+			})
+		)
+	}
+)
