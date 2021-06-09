@@ -77,6 +77,6 @@ Import size report for immer:
 
 ## Immer on older JavaScript environments?
 
-By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native (if < v0.59 or when using the Hermes engine) on Android. In such cases, Immer will fallback to an ES5 compatible implementation which works identically, but is a bit slower.
+By default `produce` tries to use proxies for optimal performance. However, on older JavaScript engines `Proxy` is not available. For example, when running Microsoft Internet Explorer or React Native (if < v0.59 or when using the Hermes engine on React Native < 0.64) on Android. In such cases, Immer will fallback to an ES5 compatible implementation which works identically, but is a bit slower.
 
 Since version 6, support for the fallback implementation has to be explicitly enabled by calling `enableES5()`.
