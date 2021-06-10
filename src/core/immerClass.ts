@@ -185,7 +185,7 @@ export class Immer implements ProducersFns {
 		this.useProxies_ = value
 	}
 
-	applyPatches<T extends Objectish>(base: Objectish, patches: Patch[]): T {
+	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
 		// If a patch replaces the entire state, take that replacement as base
 		// before applying patches
 		let i: number
