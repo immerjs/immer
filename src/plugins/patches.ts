@@ -16,19 +16,11 @@ import {
 	isSet,
 	isMap,
 	loadPlugin,
-	ProxyTypeProxyObject,
-	ProxyTypeES5Object,
-	ProxyTypeMap,
-	ProxyTypeES5Array,
-	ProxyTypeProxyArray,
-	ProxyTypeSet,
-	ArchtypeMap,
-	ArchtypeSet,
-	ArchtypeArray,
+	ProxyType,
+	Archtype,
 	die,
 	isDraft,
-	isDraftable,
-	ArchtypeObject
+	isDraftable
 } from "../internal"
 
 export function enablePatches() {
@@ -43,19 +35,19 @@ export function enablePatches() {
 		inversePatches: Patch[]
 	): void {
 		switch (state.type_) {
-			case ProxyTypeProxyObject:
-			case ProxyTypeES5Object:
-			case ProxyTypeMap:
+			case ProxyType.ProxyObject:
+			case ProxyType.ES5Object:
+			case ProxyType.Map:
 				return generatePatchesFromAssigned(
 					state,
 					basePath,
 					patches,
 					inversePatches
 				)
-			case ProxyTypeES5Array:
-			case ProxyTypeProxyArray:
+			case ProxyType.ES5Array:
+			case ProxyType.ProxyArray:
 				return generateArrayPatches(state, basePath, patches, inversePatches)
-			case ProxyTypeSet:
+			case ProxyType.Set:
 				return generateSetPatches(
 					(state as any) as SetState,
 					basePath,
@@ -217,7 +209,7 @@ export function enablePatches() {
 				const p = path[i]
 				// See #738, avoid prototype pollution
 				if (
-					(parentType === ArchtypeObject || parentType === ArchtypeArray) &&
+					(parentType === Archtype.Object || parentType === Archtype.Array) &&
 					(p === "__proto__" || p === "constructor")
 				)
 					die(24)
@@ -232,10 +224,10 @@ export function enablePatches() {
 			switch (op) {
 				case REPLACE:
 					switch (type) {
-						case ArchtypeMap:
+						case Archtype.Map:
 							return base.set(key, value)
 						/* istanbul ignore next */
-						case ArchtypeSet:
+						case Archtype.Set:
 							die(16)
 						default:
 							// if value is an object, then it's assigned by reference
@@ -246,22 +238,22 @@ export function enablePatches() {
 					}
 				case ADD:
 					switch (type) {
-						case ArchtypeArray:
+						case Archtype.Array:
 							return base.splice(key as any, 0, value)
-						case ArchtypeMap:
+						case Archtype.Map:
 							return base.set(key, value)
-						case ArchtypeSet:
+						case Archtype.Set:
 							return base.add(value)
 						default:
 							return (base[key] = value)
 					}
 				case REMOVE:
 					switch (type) {
-						case ArchtypeArray:
+						case Archtype.Array:
 							return base.splice(key as any, 1)
-						case ArchtypeMap:
+						case Archtype.Map:
 							return base.delete(key)
-						case ArchtypeSet:
+						case Archtype.Set:
 							return base.delete(patch.value)
 						default:
 							return delete base[key]

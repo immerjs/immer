@@ -9,10 +9,7 @@ import {
 	AnySet,
 	ImmerState,
 	hasMap,
-	ArchtypeObject,
-	ArchtypeArray,
-	ArchtypeMap,
-	ArchtypeSet,
+	Archtype,
 	die
 } from "../internal"
 
@@ -47,8 +44,7 @@ export function isPlainObject(value: any): boolean {
 	const Ctor =
 		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
 
-	if (Ctor === Object)
-		return true
+	if (Ctor === Object) return true
 
 	return (
 		typeof Ctor == "function" &&
@@ -92,7 +88,7 @@ export function each<T extends Objectish>(
 	enumerableOnly?: boolean
 ): void
 export function each(obj: any, iter: any, enumerableOnly = false) {
-	if (getArchtype(obj) === ArchtypeObject) {
+	if (getArchtype(obj) === Archtype.Object) {
 		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
 			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
 		})
@@ -102,7 +98,7 @@ export function each(obj: any, iter: any, enumerableOnly = false) {
 }
 
 /*#__PURE__*/
-export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
+export function getArchtype(thing: any): Archtype {
 	/* istanbul ignore next */
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
@@ -110,17 +106,17 @@ export function getArchtype(thing: any): 0 | 1 | 2 | 3 {
 			? state.type_ - 4 // cause Object and Array map back from 4 and 5
 			: (state.type_ as any) // others are the same
 		: Array.isArray(thing)
-		? ArchtypeArray
+		? Archtype.Array
 		: isMap(thing)
-		? ArchtypeMap
+		? Archtype.Map
 		: isSet(thing)
-		? ArchtypeSet
-		: ArchtypeObject
+		? Archtype.Set
+		: Archtype.Object
 }
 
 /*#__PURE__*/
 export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === ArchtypeMap
+	return getArchtype(thing) === Archtype.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
@@ -128,14 +124,14 @@ export function has(thing: any, prop: PropertyKey): boolean {
 /*#__PURE__*/
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 	// @ts-ignore
-	return getArchtype(thing) === ArchtypeMap ? thing.get(prop) : thing[prop]
+	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	const t = getArchtype(thing)
-	if (t === ArchtypeMap) thing.set(propOrOldValue, value)
-	else if (t === ArchtypeSet) {
+	if (t === Archtype.Map) thing.set(propOrOldValue, value)
+	else if (t === Archtype.Set) {
 		thing.delete(propOrOldValue)
 		thing.add(value)
 	} else thing[propOrOldValue] = value

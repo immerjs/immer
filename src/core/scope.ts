@@ -5,8 +5,7 @@ import {
 	Immer,
 	DRAFT_STATE,
 	ImmerState,
-	ProxyTypeProxyObject,
-	ProxyTypeProxyArray,
+	ProxyType,
 	getPlugin
 } from "../internal"
 import {die} from "../utils/errors"
@@ -78,8 +77,8 @@ export function enterScope(immer: Immer) {
 function revokeDraft(draft: Drafted) {
 	const state: ImmerState = draft[DRAFT_STATE]
 	if (
-		state.type_ === ProxyTypeProxyObject ||
-		state.type_ === ProxyTypeProxyArray
+		state.type_ === ProxyType.ProxyObject ||
+		state.type_ === ProxyType.ProxyArray
 	)
 		state.revoke_()
 	else state.revoked_ = true
