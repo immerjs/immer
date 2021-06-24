@@ -239,5 +239,17 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				bar: {x: 3}
 			})
 		})
+
+		test("#807 new undefined member not stored", () => {
+			const state = {}
+			const newState = produce(state, draft => {
+				draft.baz = undefined
+			})
+			expect(state).not.toBe(newState)
+			expect(Object.hasOwnProperty.call(newState, "baz")).toBe(true)
+			expect(newState).toEqual({
+				baz: undefined
+			})
+		})
 	})
 }
