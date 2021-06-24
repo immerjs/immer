@@ -13,8 +13,7 @@ import {
 	createProxy,
 	loadPlugin,
 	markChanged,
-	ProxyTypeMap,
-	ProxyTypeSet,
+	ProxyType,
 	die,
 	each
 } from "../internal"
@@ -50,7 +49,7 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
 			this[DRAFT_STATE] = {
-				type_: ProxyTypeMap,
+				type_: ProxyType.Map,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,
@@ -208,7 +207,7 @@ export function enableMapSet() {
 		// Create class manually, cause #502
 		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
 			this[DRAFT_STATE] = {
-				type_: ProxyTypeSet,
+				type_: ProxyType.Set,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,

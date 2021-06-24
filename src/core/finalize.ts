@@ -11,9 +11,7 @@ import {
 	isDraft,
 	SetState,
 	set,
-	ProxyTypeES5Object,
-	ProxyTypeES5Array,
-	ProxyTypeSet,
+	ProxyType,
 	getPlugin,
 	die,
 	revokeScope,
@@ -84,7 +82,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		state.scope_.unfinalizedDrafts_--
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
-			state.type_ === ProxyTypeES5Object || state.type_ === ProxyTypeES5Array
+			state.type_ === ProxyType.ES5Object || state.type_ === ProxyType.ES5Array
 				? (state.copy_ = shallowCopy(state.draft_))
 				: state.copy_
 		// Finalize all children of the copy
@@ -92,7 +90,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		// Although the original test case doesn't seem valid anyway, so if this in the way we can turn the next line
 		// back to each(result, ....)
 		each(
-			state.type_ === ProxyTypeSet ? new Set(result) : result,
+			state.type_ === ProxyType.Set ? new Set(result) : result,
 			(key, childValue) =>
 				finalizeProperty(rootScope, state, result, key, childValue, path)
 		)
@@ -124,7 +122,7 @@ function finalizeProperty(
 		const path =
 			rootPath &&
 			parentState &&
-			parentState!.type_ !== ProxyTypeSet && // Set objects are atomic since they have no keys.
+			parentState!.type_ !== ProxyType.Set && // Set objects are atomic since they have no keys.
 			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined

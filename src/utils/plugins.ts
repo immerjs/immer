@@ -7,10 +7,7 @@ import {
 	ImmerBaseState,
 	AnyMap,
 	AnySet,
-	ProxyTypeES5Array,
-	ProxyTypeES5Object,
-	ProxyTypeMap,
-	ProxyTypeSet,
+	ProxyType,
 	die
 } from "../internal"
 
@@ -74,14 +71,14 @@ interface ES5BaseState extends ImmerBaseState {
 }
 
 export interface ES5ObjectState extends ES5BaseState {
-	type_: typeof ProxyTypeES5Object
+	type_: ProxyType.ES5Object
 	draft_: Drafted<AnyObject, ES5ObjectState>
 	base_: AnyObject
 	copy_: AnyObject | null
 }
 
 export interface ES5ArrayState extends ES5BaseState {
-	type_: typeof ProxyTypeES5Array
+	type_: ProxyType.ES5Array
 	draft_: Drafted<AnyObject, ES5ArrayState>
 	base_: any
 	copy_: any
@@ -90,7 +87,7 @@ export interface ES5ArrayState extends ES5BaseState {
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
-	type_: typeof ProxyTypeMap
+	type_: ProxyType.Map
 	copy_: AnyMap | undefined
 	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
@@ -99,7 +96,7 @@ export interface MapState extends ImmerBaseState {
 }
 
 export interface SetState extends ImmerBaseState {
-	type_: typeof ProxyTypeSet
+	type_: ProxyType.Set
 	copy_: AnySet | undefined
 	base_: AnySet
 	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set

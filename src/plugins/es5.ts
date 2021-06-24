@@ -11,8 +11,7 @@ import {
 	is,
 	loadPlugin,
 	ImmerScope,
-	ProxyTypeES5Array,
-	ProxyTypeES5Object,
+	ProxyType,
 	getCurrentScope,
 	die,
 	markChanged,
@@ -74,7 +73,7 @@ export function enableES5() {
 		const draft = createES5Draft(isArray, base)
 
 		const state: ES5ObjectState | ES5ArrayState = {
-			type_: isArray ? ProxyTypeES5Array : (ProxyTypeES5Object as any),
+			type_: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
 			scope_: parent ? parent.scope_ : getCurrentScope(),
 			modified_: false,
 			finalized_: false,
@@ -139,10 +138,10 @@ export function enableES5() {
 			const state: ES5State = drafts[i][DRAFT_STATE]
 			if (!state.modified_) {
 				switch (state.type_) {
-					case ProxyTypeES5Array:
+					case ProxyType.ES5Array:
 						if (hasArrayChanges(state)) markChanged(state)
 						break
-					case ProxyTypeES5Object:
+					case ProxyType.ES5Object:
 						if (hasObjectChanges(state)) markChanged(state)
 						break
 				}
@@ -155,7 +154,7 @@ export function enableES5() {
 		const state: ES5State | undefined = object[DRAFT_STATE]
 		if (!state) return
 		const {base_, draft_, assigned_, type_} = state
-		if (type_ === ProxyTypeES5Object) {
+		if (type_ === ProxyType.ES5Object) {
 			// Look for added keys.
 			// probably there is a faster way to detect changes, as sweep + recurse seems to do some
 			// unnecessary work.
@@ -179,7 +178,7 @@ export function enableES5() {
 					markChanged(state)
 				}
 			})
-		} else if (type_ === ProxyTypeES5Array) {
+		} else if (type_ === ProxyType.ES5Array) {
 			if (hasArrayChanges(state as ES5ArrayState)) {
 				markChanged(state)
 				assigned_.length = true
@@ -253,7 +252,7 @@ export function enableES5() {
 	}
 
 	function hasChanges_(state: ES5State) {
-		return state.type_ === ProxyTypeES5Object
+		return state.type_ === ProxyType.ES5Object
 			? hasObjectChanges(state)
 			: hasArrayChanges(state)
 	}
