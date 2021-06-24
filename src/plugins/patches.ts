@@ -20,7 +20,8 @@ import {
 	Archtype,
 	die,
 	isDraft,
-	isDraftable
+	isDraftable,
+	NOTHING
 } from "../internal"
 
 export function enablePatches() {
@@ -190,7 +191,7 @@ export function enablePatches() {
 		patches.push({
 			op: REPLACE,
 			path: [],
-			value: replacement
+			value: replacement === NOTHING ? undefined : replacement
 		})
 		inversePatches.push({
 			op: REPLACE,
