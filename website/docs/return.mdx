@@ -46,7 +46,7 @@ const userReducer = produce((draft, action) => {
 			// OK: we return an entirely new state
 			return action.payload
 		case "adduser-1":
-			// NOT OK: This doesn't do change the draft nor return a new state!
+			// NOT OK: This doesn't do change the draft not return a new state!
 			// It doesn't modify the draft (it just redeclares it)
 			// In fact, this just doesn't do anything at all
 			draft = {users: [...draft.users, action.payload]}
