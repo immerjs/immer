@@ -883,24 +883,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					expect(d instanceof Set).toBeTruthy()
 				})
 			})
-
-			it("maintains order when adding", () => {
-				const objs = [
-					{
-						id: "a"
-					},
-					{
-						id: "b"
-					}
-				]
-
-				const set = new Set([objs[0]])
-				const newSet = produce(set, draft => {
-					draft.add(objs[1])
-				})
-
-				expect(Array.from(newSet)).toEqual([objs[0], objs[1]])
-			})
 		})
 
 		it("supports `immerable` symbol on constructor", () => {
