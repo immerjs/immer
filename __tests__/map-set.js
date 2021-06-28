@@ -296,8 +296,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(mapType1).toBe(mapType2)
 		})
 
-		test("#819 - Set maintains order when adding", () => {
-			const objs = [
+		test("#819 - Set with object maintains order when adding object", () => {
+			const items = [
 				{
 					id: "a"
 				},
@@ -306,12 +306,29 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				}
 			]
 
-			const set = new Set([objs[0]])
+			const set = new Set([items[0]])
 			const newSet = produce(set, draft => {
-				draft.add(objs[1])
+				draft.add(items[1])
 			})
 
-			expect(Array.from(newSet)).toEqual([objs[0], objs[1]])
+			expect(Array.from(newSet)).toEqual([items[0], items[1]])
+		})
+
+		// More specific varaint of above test covering case of adding non-object item
+		test("#819 - Set with object maintains order when adding string", () => {
+			const items = [
+				{
+					id: "a"
+				},
+				"b"
+			]
+
+			const set = new Set([items[0]])
+			const newSet = produce(set, draft => {
+				draft.add(items[1])
+			})
+
+			expect(Array.from(newSet)).toEqual([items[0], items[1]])
 		})
 	})
 }
