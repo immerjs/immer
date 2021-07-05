@@ -73,6 +73,7 @@
     "@babel/node": "^7.8.4",
     "@types/jest": "^25.1.2",
     "coveralls": "^3.0.0",
+    "cpx2": "^3.0.0",
     "deep-freeze": "^0.0.1",
     "flow-bin": "^0.123.0",
     "husky": "^1.2.0",
