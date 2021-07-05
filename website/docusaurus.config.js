@@ -4,7 +4,7 @@ module.exports = {
 	title: "Immer",
 	tagline: "Create the next immutable state by mutating the current one.",
 	url: "https://immerjs.github.io/",
-	baseUrl: "/immer/",
+	baseUrl: process.env.NETLIFY_PREVIEW ? "/" : "/immer/",
 	projectName: "immer",
 	organizationName: "immerjs",
 	onBrokenLinks: "throw",
