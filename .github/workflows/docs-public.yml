@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build website
         run: cd website && yarn && yarn build
-      - uses: appleboy/gh-pages-action@v0.0.2
-        with:
-          pages_directory: website/docs
+      - name: Deploy website
+        run: cd website && yarn && yarn docusaurus deploy
+
          
