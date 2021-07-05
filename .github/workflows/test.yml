@@ -22,7 +22,9 @@ jobs:
     - name: yarn install
       run: yarn --frozen-lockfile
     - name: test
-      run: yarn test --coverage
+      run: yarn test
+    - name: coverage test
+      run: yarn jest --coverage
     - uses: coverallsapp/github-action@v1.1.2
       with:
          github-token: ${{ secrets.GITHUB_TOKEN }}
