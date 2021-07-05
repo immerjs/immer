@@ -22,7 +22,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build website
         run: cd website && yarn && yarn build
-      - name: Deploy website
-        run: cd website && yarn && yarn docusaurus deploy
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          target_branch: gh-pages
+          build_dir: website/build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
          
