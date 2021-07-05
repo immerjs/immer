@@ -1,6 +1,6 @@
 ---
 id: example-setstate
-title: React setState example
+title: React & Immer
 ---
 
 <center>
@@ -9,7 +9,8 @@ title: React setState example
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 8: Using Immer with _useState_. Or: _useImmer_
 	</summary>
@@ -30,30 +31,209 @@ title: React setState example
 	</a>
 </details>
 
-Deep updates in the state of React components can be greatly simplified as well by using immer. Take for example the following onClick handlers (Try in [codesandbox](https://codesandbox.io/s/m4yp57632j)):
+## useState + Immer
+
+The `useState` hook assumes any state that is stored inside it is treated as immutable. Deep updates in the state of React components can be greatly simplified as by using Immer. To following example shows how to use `produce` in combination with `useState`, and can be tried on [CodeSandbox](https://codesandbox.io/s/immer-usestate-ujkgg?file=/src/index.js).
 
 ```javascript
-/**
- * Classic React.setState with a deep merge
- */
-onBirthDayClick1 = () => {
-	this.setState(prevState => ({
-		user: {
-			...prevState.user,
-			age: prevState.user.age + 1
-		}
-	}))
-}
+import React, { useCallback, useState } from "react";
+import produce from "immer";
 
-/**
- * ...But, since setState accepts functions,
- * we can just create a curried producer and further simplify!
- */
-onBirthDayClick2 = () => {
-	this.setState(
-		produce(draft => {
-			draft.user.age += 1
-		})
-	)
+const TodoList = () => {
+  const [todos, setTodos] = useState([
+    {
+      id: "React",
+      title: "Learn React",
+      done: true
+    },
+    {
+      id: "Immer",
+      title: "Try Immer",
+      done: false
+    }
+  ]);
+
+  const handleToggle = useCallback((id) => {
+    setTodos(
+      produce((draft) => {
+        const todo = draft.find((todo) => todo.id === id);
+        todo.done = !todo.done;
+      })
+    );
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setTodos(
+      produce((draft) => {
+        draft.push({
+          id: "todo_" + Math.random(),
+          title: "A new todo",
+          done: false
+        });
+      })
+    );
+  }, []);
+
+  return (<div>{*/ See CodeSandbox */}</div>)
 }
+```
+
+## useImmer
+
+Since all state updaters follow the same pattern where the update function is wrapped in `produce`, it is also possible to simply the above by leveraging the [use-immer](https://www.npmjs.com/package/use-immer) package that will wrap updater functions in `produce` automatically:
+
+```javascript
+import React, { useCallback } from "react";
+import { useImmer } from "use-immer";
+
+const TodoList = () => {
+  const [todos, setTodos] = useImmer([
+    {
+      id: "React",
+      title: "Learn React",
+      done: true
+    },
+    {
+      id: "Immer",
+      title: "Try Immer",
+      done: false
+    }
+  ]);
+
+  const handleToggle = useCallback((id) => {
+    setTodos((draft) => {
+      const todo = draft.find((todo) => todo.id === id);
+      todo.done = !todo.done;
+    });
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setTodos((draft) => {
+      draft.push({
+        id: "todo_" + Math.random(),
+        title: "A new todo",
+        done: false
+      });
+    });
+  }, []);
+
+  // etc
+```
+
+For the full demo see [CodeSandbox](https://codesandbox.io/s/use-immer-bvd5v?file=/src/index.js).
+
+## useReducer + Immer
+
+Similarly to `useState`, `useReducer` combines neatly with Immer as well, as demonstrated in this [CodeSandbox](https://codesandbox.io/s/immer-usereducer-bqpzn?file=/src/index.js:0-1018):
+
+```javascript
+import React, {useCallback, useReducer} from "react"
+import produce from "immer"
+
+const TodoList = () => {
+	const [todos, dispatch] = useReducer(
+		produce((draft, action) => {
+			switch (action.type) {
+				case "toggle":
+					const todo = draft.find(todo => todo.id === action.id)
+					todo.done = !todo.done
+					break
+				case "add":
+					draft.push({
+						id: "todo_" + Math.random(),
+						title: "A new todo",
+						done: false
+					})
+					break
+				default:
+					break
+			}
+		}),
+		[
+			/* initial todos */
+		]
+	)
+
+	const handleToggle = useCallback(id => {
+		dispatch({
+			type: "toggle",
+			id
+		})
+	}, [])
+
+	const handleAdd = useCallback(() => {
+		dispatch({
+			type: "add"
+		})
+	}, [])
+
+	// etc
+}
+```
+
+## useImmerReducer
+
+...which again, can be slightly shorted by `useImmerReducer` from the `use-immer` package ([demo](https://codesandbox.io/s/useimmerreducer-sycpb?file=/src/index.js)):
+
+```javascript
+import React, { useCallback } from "react";
+import { useImmerReducer } from "use-immer";
+
+const TodoList = () => {
+  const [todos, dispatch] = useImmerReducer(
+    (draft, action) => {
+      switch (action.type) {
+        case "toggle":
+          const todo = draft.find((todo) => todo.id === action.id);
+          todo.done = !todo.done;
+          break;
+        case "add":
+          draft.push({
+            id: "todo_" + Math.random(),
+            title: "A new todo",
+            done: false
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [ /* initial todos */ ]
+  );
+
+  //etc
+
+```
+
+## Redux + Immer
+
+Redux + Immer is extensively covered in the documentation of [Redux Toolkit](https://redux-toolkit.js.org/usage/immer-reducers). For Redux without Redux Toolkit, the same trick as applied to `useReducer` above can be applied: wrap the reducer function with `produce`, and you can safely mutate the draft!
+
+For example:
+
+```javascript
+import produce from "immer"
+
+// Reducer with initial state
+const INITIAL_STATE = [
+	/* bunch of todos */
+]
+
+const todosReducer = produce((draft, action) => {
+	switch (action.type) {
+		case "toggle":
+			const todo = draft.find(todo => todo.id === action.id)
+			todo.done = !todo.done
+			break
+		case "add":
+			draft.push({
+				id: "todo_" + Math.random(),
+				title: "A new todo",
+				done: false
+			})
+			break
+		default:
+			break
+	}
+})
 ```

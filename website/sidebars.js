@@ -5,7 +5,6 @@ module.exports = {
 			"installation",
 			"produce",
 			"curried-produce",
-			"example-reducer",
 			"example-setstate",
 			"update-patterns"
 		],
