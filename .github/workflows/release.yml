@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - master
-      
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -18,6 +18,8 @@ jobs:
           node-version: 14
       - name: install
         run: yarn
+      - name: build
+        run: yarn build
       - name: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
