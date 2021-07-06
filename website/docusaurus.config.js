@@ -1,4 +1,4 @@
-// See https://v2.docusaurus.io/docs/configuration for more information
+// See https://v2.docusaurus.io/docs/configuration for more information.
 
 module.exports = {
 	title: "Immer",
