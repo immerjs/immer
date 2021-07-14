@@ -33,7 +33,7 @@ title: React & Immer
 
 ## useState + Immer
 
-The `useState` hook assumes any state that is stored inside it is treated as immutable. Deep updates in the state of React components can be greatly simplified as by using Immer. To following example shows how to use `produce` in combination with `useState`, and can be tried on [CodeSandbox](https://codesandbox.io/s/immer-usestate-ujkgg?file=/src/index.js).
+The `useState` hook assumes any state that is stored inside it is treated as immutable. Deep updates in the state of React components can be greatly simplified as by using Immer. The following example shows how to use `produce` in combination with `useState`, and can be tried on [CodeSandbox](https://codesandbox.io/s/immer-usestate-ujkgg?file=/src/index.js).
 
 ```javascript
 import React, { useCallback, useState } from "react";
@@ -80,7 +80,7 @@ const TodoList = () => {
 
 ## useImmer
 
-Since all state updaters follow the same pattern where the update function is wrapped in `produce`, it is also possible to simply the above by leveraging the [use-immer](https://www.npmjs.com/package/use-immer) package that will wrap updater functions in `produce` automatically:
+Since all state updaters follow the same pattern where the update function is wrapped in `produce`, it is also possible to simplify the above by leveraging the [use-immer](https://www.npmjs.com/package/use-immer) package that will wrap updater functions in `produce` automatically:
 
 ```javascript
 import React, { useCallback } from "react";
