@@ -140,7 +140,7 @@ const TodoList = () => {
 					break
 				case "add":
 					draft.push({
-						id: "todo_" + Math.random(),
+						id: action.id,
 						title: "A new todo",
 						done: false
 					})
@@ -163,7 +163,8 @@ const TodoList = () => {
 
 	const handleAdd = useCallback(() => {
 		dispatch({
-			type: "add"
+			type: "add",
+			id: "todo_" + Math.random()
 		})
 	}, [])
 
@@ -189,7 +190,7 @@ const TodoList = () => {
           break;
         case "add":
           draft.push({
-            id: "todo_" + Math.random(),
+            id: action.id,
             title: "A new todo",
             done: false
           });
@@ -227,7 +228,7 @@ const todosReducer = produce((draft, action) => {
 			break
 		case "add":
 			draft.push({
-				id: "todo_" + Math.random(),
+				id: action.id,
 				title: "A new todo",
 				done: false
 			})
