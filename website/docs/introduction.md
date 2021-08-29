@@ -31,7 +31,7 @@ Generally speaking, these benefits can be achieved by making sure you never chan
 
 1. Immer will detect accidental mutations and throw an error.
 2. Immer will remove the need for the typical boilerplate code that is needed when creating deep updates to immutable objects: Without Immer, object copies need to be made by hand at every level. Typically by using a lot of `...` spread operations. When using Immer, changes are made to a `draft` object, that records the changes and takes care of creating the necessary copies, without ever affecting the original object.
-3. When using Immer, you don't need to learn dedicated APIs or data structures to benefit from the paradigm. With Immer you'll use plain JavaScript data structures, and use the well know mutable JavaScript APIs, but safely.
+3. When using Immer, you don't need to learn dedicated APIs or data structures to benefit from the paradigm. With Immer you'll use plain JavaScript data structures, and use the well-known mutable JavaScript APIs, but safely.
 
 ### A quick example for comparison
 
