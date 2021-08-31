@@ -207,7 +207,7 @@ export function enablePatches() {
 			let base: any = draft
 			for (let i = 0; i < path.length - 1; i++) {
 				const parentType = getArchtype(base)
-				const p = path[i]
+				const p = "" + path[i]
 				// See #738, avoid prototype pollution
 				if (
 					(parentType === Archtype.Object || parentType === Archtype.Array) &&

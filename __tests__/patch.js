@@ -1258,6 +1258,24 @@ test("maps can store __proto__, prototype and constructor props", () => {
 	expect(obj.polluted).toBe(undefined)
 })
 
+test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () => {
+	const obj = {}
+
+	// @ts-ignore
+	expect(obj.polluted).toBe(undefined)
+	expect(() => {
+		applyPatches({}, [
+			{op: "add", path: [["__proto__"], "polluted"], value: "yes"}
+		])
+	}).toThrow(
+		isProd
+			? "24"
+			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
+	)
+	// @ts-ignore
+	expect(obj.polluted).toBe(undefined)
+})
+
 test("#648 assigning object to itself should not change patches", () => {
 	const input = {
 		obj: {
