@@ -65,7 +65,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 			value,
 			(key, childValue) =>
 				finalizeProperty(rootScope, state, value, key, childValue, path),
-			true // See #590, don't recurse into non-enumarable of non drafted objects
+			true // See #590, don't recurse into non-enumerable of non drafted objects
 		)
 		return value
 	}
