@@ -132,11 +132,15 @@ export class Immer implements ProducersFns {
 		}
 
 		let patches: Patch[], inversePatches: Patch[]
-		const nextState = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
+		const result = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
 			patches = p
 			inversePatches = ip
 		})
-		return [nextState, patches!, inversePatches!]
+
+		if (typeof Promise !== "undefined" && result instanceof Promise) {
+			return result.then(nextState => [nextState, patches!, inversePatches!])
+		}
+		return [result, patches!, inversePatches!]
 	}
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
