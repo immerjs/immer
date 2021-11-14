@@ -17,6 +17,7 @@ module.exports = {
 		},
 		navbar: {
 			title: "Immer",
+			style: "dark",
 			logo: {
 				src: "/img/immer-logo.svg",
 				alt: "Immer Logo"
