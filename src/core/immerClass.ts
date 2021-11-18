@@ -196,6 +196,11 @@ export class Immer implements ProducersFns {
 				break
 			}
 		}
+		// If there was a patch that replaced the entire state, start from the
+		// patch after that.
+		if (i > -1) {
+			patches = patches.slice(i + 1)
+		}
 
 		const applyPatchesImpl = getPlugin("Patches").applyPatches_
 		if (isDraft(base)) {
@@ -204,7 +209,7 @@ export class Immer implements ProducersFns {
 		}
 		// Otherwise, produce a copy of the base state.
 		return this.produce(base, (draft: Drafted) =>
-			applyPatchesImpl(draft, patches.slice(i + 1))
+			applyPatchesImpl(draft, patches)
 		)
 	}
 }
