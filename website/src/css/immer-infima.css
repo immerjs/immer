@@ -12,9 +12,14 @@ a:hover {
 	text-decoration: underline;
 }
 
+.navbar--dark {
+	--ifm-navbar-background-color: black;
+	--ifm-menu-color: white;
+	--ifm-menu-color-background-hover: rgba(255, 255, 255, 0.1);
+}
+
 .navbar--fixed-top {
 	color: white;
-	background: black;
 	font-weight: bold;
 }
 
