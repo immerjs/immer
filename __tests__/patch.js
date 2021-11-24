@@ -720,6 +720,22 @@ describe("arrays - delete", () => {
 	)
 })
 
+describe("arrays - append", () => {
+	test("appends to array when last part of path is '-'", () => {
+		const state = {
+			list: [1, 2, 3]
+		}
+		const patch = {
+			op: "add",
+			value: 4,
+			path: ["list", "-"]
+		}
+		expect(applyPatches(state, [patch])).toEqual({
+			list: [1, 2, 3, 4]
+		})
+	})
+})
+
 describe("sets - add - 1", () => {
 	runPatchTest(
 		new Set([1]),
