@@ -99,7 +99,11 @@ export function enableMapSet() {
 			assertUnrevoked(state)
 			prepareMapCopy(state)
 			markChanged(state)
-			state.assigned_!.set(key, false)
+			if (state.base_.has(key)) {
+				state.assigned_!.set(key, false)
+			} else {
+				state.assigned_!.delete(key)
+			}
 			state.copy_!.delete(key)
 			return true
 		}
