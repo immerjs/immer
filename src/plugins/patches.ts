@@ -211,7 +211,7 @@ export function enablePatches() {
 				// See #738, avoid prototype pollution
 				if (
 					(parentType === Archtype.Object || parentType === Archtype.Array) &&
-					(p === "__proto__" || p === "constructor")
+					(p === "__proto__" || p === "constructor" || p === "toString" || p === "valueOf" || p === "toLocaleString" || p === "hasOwnProperty" || p === "isPrototypeOf")
 				)
 					die(24)
 				if (typeof base === "function" && p === "prototype") die(24)
