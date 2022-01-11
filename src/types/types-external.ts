@@ -243,12 +243,12 @@ export interface IProduceWithPatches {
 		base: Base,
 		recipe: (draft: D) => ValidRecipeReturnType<Base>,
 		listener?: PatchListener
-	): PatchesTuple<Immutable<Base>>
+	): PatchesTuple<Base>
 	<Base, D = Draft<Base>>(
 		base: Base,
 		recipe: (draft: D) => Promise<ValidRecipeReturnType<Base>>,
 		listener?: PatchListener
-	): PatchesTuple<Promise<Immutable<Base>>>
+	): PatchesTuple<Promise<Base>>
 }
 
 // Fixes #507: bili doesn't export the types of this file if there is no actual source in it..
