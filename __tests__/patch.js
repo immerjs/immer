@@ -1353,7 +1353,6 @@ test("#888 patch to a primitive produces the primitive", () => {
 		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
 	}
 	{
-		debugger
 		const [res, patches] = produceWithPatches(null, draft => nothing)
 		expect(res).toEqual(undefined)
 		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
