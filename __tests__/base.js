@@ -1728,6 +1728,18 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					})
 				})
 			})
+
+			it("works with patches", () =>
+				produceWithPatches({a: 0}, async d => {
+					await Promise.resolve()
+					d.a = 1
+				}).then(([nextState, patches, inversePathes]) => {
+					expect(nextState).toEqual({a: 1})
+					expect(patches).toEqual([{op: "replace", path: ["a"], value: 1}])
+					expect(inversePathes).toEqual([
+						{op: "replace", path: ["a"], value: 0}
+					])
+				}))
 		})
 
 		it("throws when the draft is modified and another object is returned", () => {
