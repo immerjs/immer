@@ -1340,3 +1340,52 @@ test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
 		expect(patches).toEqual([])
 	}
 })
+
+test("#888 patch to a primitive produces the primitive", () => {
+	{
+		const [res, patches] = produceWithPatches({abc: 123}, draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		debugger
+		const [res, patches] = produceWithPatches(null, draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		const [res, patches] = produceWithPatches(0, draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		const [res, patches] = produceWithPatches("foobar", draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		const [res, patches] = produceWithPatches([], draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		const [res, patches] = produceWithPatches(false, draft => nothing)
+		expect(res).toEqual(undefined)
+		expect(patches).toEqual([{op: "replace", path: [], value: undefined}])
+	}
+	{
+		const [res, patches] = produceWithPatches(
+			"foobar",
+			draft => "something else"
+		)
+		expect(res).toEqual("something else")
+		expect(patches).toEqual([
+			{op: "replace", path: [], value: "something else"}
+		])
+	}
+	{
+		const [res, patches] = produceWithPatches(false, draft => true)
+		expect(res).toEqual(true)
+		expect(patches).toEqual([{op: "replace", path: [], value: true}])
+	}
+})

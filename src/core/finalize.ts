@@ -37,7 +37,7 @@ export function processResult(result: any, scope: ImmerScope) {
 		}
 		if (scope.patches_) {
 			getPlugin("Patches").generateReplacementPatches_(
-				baseDraft[DRAFT_STATE],
+				baseDraft[DRAFT_STATE].base_,
 				result,
 				scope.patches_,
 				scope.inversePatches_!

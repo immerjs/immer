@@ -183,7 +183,7 @@ export function enablePatches() {
 	}
 
 	function generateReplacementPatches_(
-		rootState: ImmerState,
+		baseValue: any,
 		replacement: any,
 		patches: Patch[],
 		inversePatches: Patch[]
@@ -196,7 +196,7 @@ export function enablePatches() {
 		inversePatches.push({
 			op: REPLACE,
 			path: [],
-			value: rootState.base_
+			value: baseValue
 		})
 	}
 

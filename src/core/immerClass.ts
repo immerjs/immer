@@ -114,9 +114,15 @@ export class Immer implements ProducersFns {
 			return processResult(result, scope)
 		} else if (!base || typeof base !== "object") {
 			result = recipe(base)
-			if (result === NOTHING) return undefined
 			if (result === undefined) result = base
+			if (result === NOTHING) result = undefined
 			if (this.autoFreeze_) freeze(result, true)
+			if (patchListener) {
+				const p: Patch[] = []
+				const ip: Patch[] = []
+				getPlugin("Patches").generateReplacementPatches_(base, result, p, ip)
+				patchListener(p, ip)
+			}
 			return result
 		} else die(21, base)
 	}
