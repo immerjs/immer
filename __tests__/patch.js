@@ -1319,3 +1319,24 @@ test("#791 patch for  nothing is stored as undefined", () => {
 
 	expect(applyPatches({}, patches)).toEqual(undefined)
 })
+
+test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
+	{
+		const [newState, patches] = produceWithPatches(
+			new Map([["foo", "baz"]]),
+			draft => {
+				draft.set("foo", "bar")
+				draft.delete("foo")
+			}
+		)
+		expect(patches).toEqual([{op: "remove", path: ["foo"]}])
+	}
+
+	{
+		const [newState, patches] = produceWithPatches(new Map(), draft => {
+			draft.set("foo", "bar")
+			draft.delete("foo")
+		})
+		expect(patches).toEqual([])
+	}
+})
