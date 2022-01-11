@@ -195,6 +195,9 @@ export function enableES5() {
 
 			for (let i = 0; i < min; i++) {
 				// Only untouched indices trigger recursion.
+				if (!draft_.hasOwnProperty(i)) {
+					assigned_[i] = true
+				}
 				if (assigned_[i] === undefined) markChangesRecursively(draft_[i])
 			}
 		}
@@ -241,12 +244,17 @@ export function enableES5() {
 		// So if there is no own descriptor on the last position, we know that items were removed and added
 		// N.B.: splice, unshift, etc only shift values around, but not prop descriptors, so we only have to check
 		// the last one
+		// last descriptor can be not a trap, if the array was extended
 		const descriptor = Object.getOwnPropertyDescriptor(
 			draft_,
 			draft_.length - 1
 		)
 		// descriptor can be null, but only for newly created sparse arrays, eg. new Array(10)
 		if (descriptor && !descriptor.get) return true
+		// if we miss a property, it has been deleted, so array probobaly changed
+		for (let i = 0; i < draft_.length; i++) {
+			if (!draft_.hasOwnProperty(i)) return true
+		}
 		// For all other cases, we don't have to compare, as they would have been picked up by the index setters
 		return false
 	}

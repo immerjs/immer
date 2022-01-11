@@ -15,7 +15,7 @@ jest.setTimeout(1000)
 
 const isProd = process.env.NODE_ENV === "production"
 
-function runPatchTest(base, producer, patches, inversePathes) {
+function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
 	let resultProxies, resultEs5
 
 	function runPatchTestHelper() {
@@ -25,6 +25,11 @@ function runPatchTest(base, producer, patches, inversePathes) {
 			recordedPatches = p
 			recordedInversePatches = i
 		})
+
+		if (expectedResult !== undefined)
+			test("produced the correct result", () => {
+				expect(res).toEqual(expectedResult)
+			})
 
 		test("produces the correct patches", () => {
 			expect(recordedPatches).toEqual(patches)
@@ -1388,4 +1393,28 @@ test("#888 patch to a primitive produces the primitive", () => {
 		expect(res).toEqual(true)
 		expect(patches).toEqual([{op: "replace", path: [], value: true}])
 	}
+})
+
+describe("#879 delete item from array", () => {
+	runPatchTest(
+		[1, 2, 3],
+		draft => {
+			delete draft[1]
+		},
+		[{op: "replace", path: [1], value: undefined}],
+		[{op: "replace", path: [1], value: 2}],
+		[1, undefined, 3]
+	)
+})
+
+describe("#879 delete item from array - 2", () => {
+	runPatchTest(
+		[1, 2, 3],
+		draft => {
+			delete draft[2]
+		},
+		[{op: "replace", path: [2], value: undefined}],
+		[{op: "replace", path: [2], value: 3}],
+		[1, 2, undefined]
+	)
 })
