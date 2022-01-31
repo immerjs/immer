@@ -1417,3 +1417,13 @@ describe("#879 delete item from array - 2", () => {
 		[1, 2, undefined]
 	)
 })
+
+test("#897 appendPatch", () => {
+	const state0 = {a: []}
+	const state1 = applyPatches(state0, [{op: "add", path: ["a", "-"], value: 1}])
+	const state2 = applyPatches(state1, [{op: "add", path: ["a", "-"], value: 2}])
+	const state3 = applyPatches(state2, [{op: "add", path: ["a", "-"], value: 3}])
+	expect(state3).toEqual({
+		a: [1, 2, 3]
+	})
+})
