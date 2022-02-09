@@ -1,0 +1,241 @@
+---
+id: example-setstate
+title: React & Immer
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center>
+<details>
+	<summary className="egghead-summary">
+    egghead.io 第八课: 使用 Immer 和 useState，或者 useImmer。
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-immutable-update-state-inside-react-components-with-useimmer/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-immutable-update-state-inside-react-components-with-useimmer"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+## useState + Immer
+
+`useState` hook 假定存储在其中的任何 state 都被视为不可变的。使用 Immer 可以大大简化 React 组件状态的深度更新。下面的例子展示了如何使用 `produce` 和 `useState` ，可以在 [CodeSandbox](https://codesandbox.io/s/immer-usestate-ujkgg?file=/src/index.js) 试试。
+
+```javascript
+import React, { useCallback, useState } from "react";
+import produce from "immer";
+
+const TodoList = () => {
+  const [todos, setTodos] = useState([
+    {
+      id: "React",
+      title: "Learn React",
+      done: true
+    },
+    {
+      id: "Immer",
+      title: "Try Immer",
+      done: false
+    }
+  ]);
+
+  const handleToggle = useCallback((id) => {
+    setTodos(
+      produce((draft) => {
+        const todo = draft.find((todo) => todo.id === id);
+        todo.done = !todo.done;
+      })
+    );
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setTodos(
+      produce((draft) => {
+        draft.push({
+          id: "todo_" + Math.random(),
+          title: "A new todo",
+          done: false
+        });
+      })
+    );
+  }, []);
+
+  return (<div>{*/ See CodeSandbox */}</div>)
+}
+```
+
+## useImmer
+
+由于所有 state 的更新都使用 `produce` 包装的更新模式，所以我们可以通过将更新模式包装在 [use-immer](https://www.npmjs.com/package/use-immer) 包中来简化上述操作
+
+```javascript
+import React, { useCallback } from "react";
+import { useImmer } from "use-immer";
+
+const TodoList = () => {
+  const [todos, setTodos] = useImmer([
+    {
+      id: "React",
+      title: "Learn React",
+      done: true
+    },
+    {
+      id: "Immer",
+      title: "Try Immer",
+      done: false
+    }
+  ]);
+
+  const handleToggle = useCallback((id) => {
+    setTodos((draft) => {
+      const todo = draft.find((todo) => todo.id === id);
+      todo.done = !todo.done;
+    });
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setTodos((draft) => {
+      draft.push({
+        id: "todo_" + Math.random(),
+        title: "A new todo",
+        done: false
+      });
+    });
+  }, []);
+
+  // etc
+```
+
+完整的 demo 请参阅 [CodeSandbox](https://codesandbox.io/s/use-immer-bvd5v?file=/src/index.js)
+
+## useReducer + Immer
+
+与 `useState` 类似，`useReducer` 也与 Immer 巧妙结合，如 [CodeSandbox](https://codesandbox.io/s/immer-usereducer-bqpzn?file=/src/index.js:0-1018) 所示：
+
+```javascript
+import React, {useCallback, useReducer} from "react"
+import produce from "immer"
+
+const TodoList = () => {
+	const [todos, dispatch] = useReducer(
+		produce((draft, action) => {
+			switch (action.type) {
+				case "toggle":
+					const todo = draft.find(todo => todo.id === action.id)
+					todo.done = !todo.done
+					break
+				case "add":
+					draft.push({
+						id: action.id,
+						title: "A new todo",
+						done: false
+					})
+					break
+				default:
+					break
+			}
+		}),
+		[
+			/* initial todos */
+		]
+	)
+
+	const handleToggle = useCallback(id => {
+		dispatch({
+			type: "toggle",
+			id
+		})
+	}, [])
+
+	const handleAdd = useCallback(() => {
+		dispatch({
+			type: "add",
+			id: "todo_" + Math.random()
+		})
+	}, [])
+
+	// etc
+}
+```
+
+## useImmerReducer
+
+同上，可以通过  `use-immer` 包中的 `useImmerReducer` 简化 ([demo](https://codesandbox.io/s/useimmerreducer-sycpb?file=/src/index.js))
+
+```javascript
+import React, { useCallback } from "react";
+import { useImmerReducer } from "use-immer";
+
+const TodoList = () => {
+  const [todos, dispatch] = useImmerReducer(
+    (draft, action) => {
+      switch (action.type) {
+        case "toggle":
+          const todo = draft.find((todo) => todo.id === action.id);
+          todo.done = !todo.done;
+          break;
+        case "add":
+          draft.push({
+            id: action.id,
+            title: "A new todo",
+            done: false
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [ /* initial todos */ ]
+  );
+
+  //etc
+
+```
+
+
+## Redux + Immer
+
+Redux + Immer 在 [Redux Toolkit](https://redux-toolkit.js.org/usage/immer-reducers) 的文档中被广泛介绍。对于没有 Redux Toolkit 的 Redux，可以应用与上面应用于 `useReducer` 相同的技巧：使用 `produce` 包装 reducer 函数，您可以安全地修改 draft！
+
+例子:
+
+```javascript
+import produce from "immer"
+
+// 初始 state
+const INITIAL_STATE = [
+	/* 一系列 todos */
+]
+
+const todosReducer = produce((draft, action) => {
+	switch (action.type) {
+		case "toggle":
+			const todo = draft.find(todo => todo.id === action.id)
+			todo.done = !todo.done
+			break
+		case "add":
+			draft.push({
+				id: action.id,
+				title: "A new todo",
+				done: false
+			})
+			break
+		default:
+			break
+	}
+})
+```

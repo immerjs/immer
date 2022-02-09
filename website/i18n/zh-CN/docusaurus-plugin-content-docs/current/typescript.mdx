@@ -1,0 +1,210 @@
+---
+id: typescript
+title: Using TypeScript or Flow
+sidebar_label: TypeScript / Flow
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center> <details>
+	<summary className="egghead-summary">
+		egghead.io 第12课: Immer + TypeScript
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-type-immutable-immer-data-with-typescript/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-type-immutable-immer-data-with-typescript"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+Immer 包附带了类型定义，TypeScript 和 Flow 开箱即可获取这些定义，无需进一步配置
+
+TypeScript 类型会自动从 draft 类型中删除 `readonly` 修饰符，并返回与原始类型匹配的值。看这个实际的例子:
+
+```ts
+import produce from "immer"
+
+interface State {
+	readonly x: number
+}
+
+// `x` 不能被修改
+const state: State = {
+	x: 0
+}
+
+const newState = produce(state, draft => {
+	// `x` 可以被修改
+	draft.x++
+})
+
+// `newState.x` 不能在这里被修改
+```
+这确保了您可以修改状态的唯一位置是在您的 produce 回调中。它甚至可以递归地和 `ReadonlyArray` 一起工作。
+
+## 最佳实践
+
+1. 始终尽可能将您的 state 定义为只读。这最好地反映了心智模型和现实，因为 Immer 将冻结其所有返回值。
+2. 您可以使用实用类型 `Immutable` 递归地使整个类型树成为只读的，例如：`type ReadonlyState = Immutable<State>`
+3. 如果输入状态的原始类型不是不可变的，则 Immer 不会自动将所有返回的类型包装在 `Immutable` 中。这是为了确保它不会破坏不使用不可变类型的代码库。
+
+## 柯里化 producers 的提示
+
+我们尝试尽可能多地推断。因此，如果创建了一个柯里化 producer 并直接传递给另一个函数，我们可以从那里推断出类型。这适用于例如 React：
+```typescript
+import {Immutable, produce} from "immer"
+
+type Todo = Immutable<{
+	title: string
+	done: boolean
+}>
+
+// 然后...
+
+const [todo, setTodo] = useState<Todo>({
+	title: "test",
+	done: true
+})
+
+// 然后...
+
+setTodo(
+	produce(draft => {
+		// draft 将是强类型和可变的！
+		draft.done = !draft.done
+	})
+)
+```
+
+当柯里化 producers 没有直接传递到其他地方时，Immer 可以从 draft 参数推断状态类型。例如在执行以下操作时：
+
+```typescript
+// 请参阅下文以获得更好的解决方案
+
+const toggler = produce((draft: Draft<Todo>) => {
+	draft.done = !draft.done
+})
+
+// typeof toggler = (state: Immutable<Todo>) => Writable<Todo>
+```
+
+请注意，我们确实用 `Draft` 包装了 `draft` 参数的 `Todo` 类型，因为 `Todo` 是只读类型。对于非只读类型，这不是必需的
+
+对于返回的柯里化函数 `toggler`，我们将输入类型缩小为 `Immutable<Todo>`，这样即使 `Todo` 是可变类型，我们仍将接受不可变的 todo 作为切换器的输入参数。
+
+与之相反，Immer 会将柯里化函数的输出类型_扩展_为 `Writable<Todo>`，以确保它的输出状态也可分配给未明确键入为不可变的变量。
+
+这种类型的缩小/扩大行为可能不受欢迎，甚至可能因为它会导致类型非常多的噪音。因此，我们建议为柯里化 produces 指定 state 泛型 ，以防它无法直接推断，例如上面的 `toggler`。通过这样做，将跳过自动输出扩大/输入缩小。然而，`draft` 参数本身仍将被推断为可写 `Draft<Todo>`：
+
+
+```typescript
+const toggler = produce<Todo>(draft => {
+	draft.done = !draft.done
+})
+
+// typeof toggler = (state: Todo) => Todo
+```
+
+但是，如果柯里化 producer 定义了初始状态，Immer 可以从初始状态推断状态类型，因此在这种情况下也不需要指定泛型：
+
+```typescript
+const state0: Todo = {
+	title: "test",
+	done: false
+}
+
+// 不需要类型注释，因为我们可以从 state0 推断。
+const toggler = produce(draft => {
+	draft.done = !draft.done
+}, state0)
+
+// typeof toggler = (state: Todo) => Todo
+```
+
+如果 toggler 没有初始状态，并且它有柯里化参数，并且您显式设置 state 泛型，则任何附加参数的类型也应显式定义为元组类型：
+
+```typescript
+const toggler = produce<Todo, [boolean]>((draft, newState) => {
+	draft.done = newState
+})
+
+// typeof toggler = (state: Todo, newState: boolean) => Todo
+```
+
+## 类型转换
+
+`produce` 内部和外部的类型在概念上可以相同，但从实际角度来看是不同的。例如，上面示例中的 `State` 应被视为在 `produce` 外部不可变，但在 `produce` 内部是可变的。
+
+有时这会导致实际冲突。举个例子：
+
+```typescript
+type Todo = {readonly done: boolean}
+
+type State = {
+	readonly finishedTodos: readonly Todo[]
+	readonly unfinishedTodos: readonly Todo[]
+}
+
+function markAllFinished(state: State) {
+	produce(state, draft => {
+		draft.finishedTodos = state.unfinishedTodos
+	})
+}
+```
+
+这将产生错误：
+
+```
+The type 'readonly Todo[]' is 'readonly' and cannot be assigned to the mutable type '{ done: boolean; }[]'
+```
+
+这个错误的原因是我们将只读的、不可变的数组分配给我们的 draft，draft 需要一个可变的类型，并带有 .push 等方法。就 TS 而言，这些并没有从我们的原始 `State` 中暴露出来。为了提示 TypeScript 我们希望将此处的集合向上转换为可变数组以用于 draft，我们可以使用函数 `castDraft`：
+
+
+`draft.finishedTodos = castDraft(state.unfinishedTodos)` 将使错误消失。
+
+还有函数 `castImmutable`，以防您需要实现相反的效果。请注意，这些函数出于所有实际目的都是无操作的，它们只会返回其原始值。
+
+提示：您可以将 `castImmutable` 与 `produce` 结合起来，将 `produce` 的返回类型定义为不可变的内容，即使原始 state 是可变的
+
+```typescript
+// 一个可变数据结构
+const baseState = {
+	todos: [{
+		done: false
+	}]
+}
+
+const nextState = castImmutable(produce(baseState, _draft => {}))
+
+// nextState 的推断类型现在是：
+{
+	readonly todos: ReadonlyArray<{
+		readonly done: boolean
+	}>
+})
+```
+
+## 兼容性
+
+**注意：** Immer v5.3+ 仅支持 TypeScript v3.7+
+
+**注意：** Immer v3.0+ 仅支持 TypeScript v3.4+
+
+**注意：** Immer v1.9+ 仅支持 TypeScript v3.1+
+
+**注意：** 在未来的版本中可能会删除 flow 支持，我们建议使用 TypeScript

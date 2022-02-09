@@ -1,0 +1,91 @@
+---
+id: produce
+title: 使用 produce
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center>
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第 3 课：使用 produce 简化深度更新
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/javascript-simplify-deep-state-updates-using-immer-produce/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/javascript-simplify-deep-state-updates-using-immer-produce"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+Immer 包暴露了一个完成所有工作的默认函数。
+
+`produce(currentState, recipe: (draftState) => void): nextState`
+
+`produce` 需要一个 `baseState`，以及一个可用于对传入的 `draft` 进行所有所需更改的 `recipe`。关于 Immer 的有趣之处在于 baseState 将保持不变，但 nextState 将反映对 DraftState 所做的所有更改.
+
+在 `recipe` 中，所有标准的 JavaScript API 都可以在 `draft` 对象上使用，包括属性字段分配、删除操作和修改数组、Map 和 Set 操作，如 push、pop、splice、set、sort、remove 等。
+
+这些 `mutations` 中的任何一个都不必发生在初始对象上，但它可以修改 `draft` 深处的任何内容：`draft.todos[0].tags["urgent"].author.age = 56`
+
+请注意，`recipe` 函数通常不会返回任何内容。但是，如果您想用另一个对象完全替换 `draft`，则可以返回，有关更多详细信息，请参阅返回[新数据](return)。
+
+## 例子
+
+```javascript
+import produce from "immer"
+
+const baseState = [
+	{
+		title: "Learn TypeScript",
+		done: true
+	},
+	{
+		title: "Try Immer",
+		done: false
+	}
+]
+
+const nextState = produce(baseState, draftState => {
+	draftState.push({title: "Tweet about it"})
+	draftState[1].done = true
+})
+```
+
+```javascript
+// 新的 item 仅仅被添加到了 next state
+// base state 没有被修改
+expect(baseState.length).toBe(2)
+expect(nextState.length).toBe(3)
+
+// 同上
+expect(baseState[1].done).toBe(false)
+expect(nextState[1].done).toBe(true)
+
+// 未修改的数据结构共享
+expect(nextState[0]).toBe(baseState[0])
+// 改变的数据不是
+expect(nextState[1]).not.toBe(baseState[1])
+```
+
+### 术语
+
+- `(base)state`， 传递给 `produce` 的不可变状态
+- `recipe`: `produce` 的第二个参数，它捕获了 base state 应该如何 `mutated`。
+- `draft`: 任何 `recipe` 的第一个参数，它是可以安全 `mutate` 的原始状态的代理。
+- `producer`. 一个使用 `produce` 的函数，通常形式为 `(baseState, ...arguments) => resultState`
+
+请注意，命名 `recipe` 的第一个参数 `draft` 并不是绝对必要的。您可以将其命名为任何您想要的名称，例如 `user`。使用 `draft` 作为名称只是一个约定，以表明：“这里的 `mutation` 是可以的”。
