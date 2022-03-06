@@ -67,169 +67,160 @@ export function enableMapSet() {
 		}
 		const p = DraftMap.prototype
 
-		Object.defineProperty(p, "size", {
-			get: function() {
-				return latest(this[DRAFT_STATE]).size
+		Object.defineProperties(p, {
+			size: {
+				get: function() {
+					return latest(this[DRAFT_STATE]).size
+				},
+				configurable: true
 			},
-			// enumerable: false,
-			configurable: true
-		})
+			has: {
+				configurable: true,
+				writable: true,
+				value: function(key: any): boolean {
+					return latest(this[DRAFT_STATE]).has(key)
+				}
+			},
+			set: {
+				configurable: true,
+				writable: true,
+				value: function(key: any, value: any) {
+					const state: MapState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					if (!latest(state).has(key) || latest(state).get(key) !== value) {
+						prepareMapCopy(state)
+						markChanged(state)
+						state.assigned_!.set(key, true)
+						state.copy_!.set(key, value)
+						state.assigned_!.set(key, true)
+					}
+					return this
+				}
+			},
+			delete: {
+				configurable: true,
+				writable: true,
+				value: function(key: any): boolean {
+					if (!this.has(key)) {
+						return false
+					}
 
-		Object.defineProperty(p, "has", {
-			configurable: true,
-			writable: true,
-			value: function(key: any): boolean {
-				return latest(this[DRAFT_STATE]).has(key)
-			}
-		})
-
-		Object.defineProperty(p, "set", {
-			configurable: true,
-			writable: true,
-			value: function(key: any, value: any) {
-				const state: MapState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				if (!latest(state).has(key) || latest(state).get(key) !== value) {
+					const state: MapState = this[DRAFT_STATE]
+					assertUnrevoked(state)
 					prepareMapCopy(state)
 					markChanged(state)
-					state.assigned_!.set(key, true)
-					state.copy_!.set(key, value)
-					state.assigned_!.set(key, true)
-				}
-				return this
-			}
-		})
-
-		Object.defineProperty(p, "delete", {
-			configurable: true,
-			writable: true,
-			value: function(key: any): boolean {
-				if (!this.has(key)) {
-					return false
-				}
-
-				const state: MapState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				prepareMapCopy(state)
-				markChanged(state)
-				if (state.base_.has(key)) {
-					state.assigned_!.set(key, false)
-				} else {
-					state.assigned_!.delete(key)
-				}
-				state.copy_!.delete(key)
-				return true
-			}
-		})
-
-		Object.defineProperty(p, "clear", {
-			configurable: true,
-			writable: true,
-			value: function() {
-				const state: MapState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				if (latest(state).size) {
-					prepareMapCopy(state)
-					markChanged(state)
-					state.assigned_ = new Map()
-					each(state.base_, key => {
+					if (state.base_.has(key)) {
 						state.assigned_!.set(key, false)
+					} else {
+						state.assigned_!.delete(key)
+					}
+					state.copy_!.delete(key)
+					return true
+				}
+			},
+			clear: {
+				configurable: true,
+				writable: true,
+				value: function() {
+					const state: MapState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					if (latest(state).size) {
+						prepareMapCopy(state)
+						markChanged(state)
+						state.assigned_ = new Map()
+						each(state.base_, key => {
+							state.assigned_!.set(key, false)
+						})
+						state.copy_!.clear()
+					}
+				}
+			},
+			forEach: {
+				configurable: true,
+				writable: true,
+				value: function(
+					cb: (value: any, key: any, self: any) => void,
+					thisArg?: any
+				) {
+					const state: MapState = this[DRAFT_STATE]
+					latest(state).forEach((_value: any, key: any, _map: any) => {
+						cb.call(thisArg, this.get(key), key, this)
 					})
-					state.copy_!.clear()
 				}
-			}
-		})
-
-		Object.defineProperty(p, "forEach", {
-			configurable: true,
-			writable: true,
-			value: function(
-				cb: (value: any, key: any, self: any) => void,
-				thisArg?: any
-			) {
-				const state: MapState = this[DRAFT_STATE]
-				latest(state).forEach((_value: any, key: any, _map: any) => {
-					cb.call(thisArg, this.get(key), key, this)
-				})
-			}
-		})
-
-		Object.defineProperty(p, "get", {
-			configurable: true,
-			writable: true,
-			value: function(key: any): any {
-				const state: MapState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				const value = latest(state).get(key)
-				if (state.finalized_ || !isDraftable(value)) {
-					return value
-				}
-				if (value !== state.base_.get(key)) {
-					return value // either already drafted or reassigned
-				}
-				// despite what it looks, this creates a draft only once, see above condition
-				const draft = createProxy(state.scope_.immer_, value, state)
-				prepareMapCopy(state)
-				state.copy_!.set(key, draft)
-				return draft
-			}
-		})
-
-		Object.defineProperty(p, "keys", {
-			configurable: true,
-			writable: true,
-			value: function(): IterableIterator<any> {
-				return latest(this[DRAFT_STATE]).keys()
-			}
-		})
-
-		Object.defineProperty(p, "values", {
-			configurable: true,
-			writable: true,
-			value: function(): IterableIterator<any> {
-				const iterator = this.keys()
-				return {
-					[iteratorSymbol]: () => this.values(),
-					next: () => {
-						const r = iterator.next()
-						/* istanbul ignore next */
-						if (r.done) return r
-						const value = this.get(r.value)
-						return {
-							done: false,
-							value
-						}
+			},
+			get: {
+				configurable: true,
+				writable: true,
+				value: function(key: any): any {
+					const state: MapState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					const value = latest(state).get(key)
+					if (state.finalized_ || !isDraftable(value)) {
+						return value
 					}
-				} as any
-			}
-		})
-
-		Object.defineProperty(p, "entries", {
-			configurable: true,
-			writable: true,
-			value: function(): IterableIterator<[any, any]> {
-				const iterator = this.keys()
-				return {
-					[iteratorSymbol]: () => this.entries(),
-					next: () => {
-						const r = iterator.next()
-						/* istanbul ignore next */
-						if (r.done) return r
-						const value = this.get(r.value)
-						return {
-							done: false,
-							value: [r.value, value]
-						}
+					if (value !== state.base_.get(key)) {
+						return value // either already drafted or reassigned
 					}
-				} as any
-			}
-		})
-
-		Object.defineProperty(p, iteratorSymbol, {
-			configurable: true,
-			writable: true,
-			value: function() {
-				return this.entries()
+					// despite what it looks, this creates a draft only once, see above condition
+					const draft = createProxy(state.scope_.immer_, value, state)
+					prepareMapCopy(state)
+					state.copy_!.set(key, draft)
+					return draft
+				}
+			},
+			keys: {
+				configurable: true,
+				writable: true,
+				value: function(): IterableIterator<any> {
+					return latest(this[DRAFT_STATE]).keys()
+				}
+			},
+			values: {
+				configurable: true,
+				writable: true,
+				value: function(): IterableIterator<any> {
+					const iterator = this.keys()
+					return {
+						[iteratorSymbol]: () => this.values(),
+						next: () => {
+							const r = iterator.next()
+							/* istanbul ignore next */
+							if (r.done) return r
+							const value = this.get(r.value)
+							return {
+								done: false,
+								value
+							}
+						}
+					} as any
+				}
+			},
+			entries: {
+				configurable: true,
+				writable: true,
+				value: function(): IterableIterator<[any, any]> {
+					const iterator = this.keys()
+					return {
+						[iteratorSymbol]: () => this.entries(),
+						next: () => {
+							const r = iterator.next()
+							/* istanbul ignore next */
+							if (r.done) return r
+							const value = this.get(r.value)
+							return {
+								done: false,
+								value: [r.value, value]
+							}
+						}
+					} as any
+				}
+			},
+			[iteratorSymbol]: {
+				configurable: true,
+				writable: true,
+				value: function() {
+					return this.entries()
+				}
 			}
 		})
 
@@ -269,124 +260,123 @@ export function enableMapSet() {
 		}
 		const p = DraftSet.prototype
 
-		Object.defineProperty(p, "size", {
-			get: function() {
-				return latest(this[DRAFT_STATE]).size
-			}
-			// enumerable: true,
-		})
-
-		Object.defineProperty(p, "has", {
-			configurable: true,
-			writable: true,
-			value: function(value: any): boolean {
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				// bit of trickery here, to be able to recognize both the value, and the draft of its value
-				if (!state.copy_) {
-					return state.base_.has(value)
-				}
-				if (state.copy_.has(value)) return true
-				if (
-					state.drafts_.has(value) &&
-					state.copy_.has(state.drafts_.get(value))
-				)
-					return true
-				return false
-			}
-		})
-		Object.defineProperty(p, "add", {
-			configurable: true,
-			writable: true,
-			value: function(value: any): any {
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				if (!this.has(value)) {
-					prepareSetCopy(state)
-					markChanged(state)
-					state.copy_!.add(value)
-				}
-				return this
-			}
-		})
-		Object.defineProperty(p, "delete", {
-			configurable: true,
-			writable: true,
-			value: function(value: any): any {
-				if (!this.has(value)) {
+		Object.defineProperties(p, {
+			size: {
+				get: function() {
+					return latest(this[DRAFT_STATE]).size
+				},
+				configurable: true
+			},
+			has: {
+				configurable: true,
+				writable: true,
+				value: function(value: any): boolean {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					// bit of trickery here, to be able to recognize both the value, and the draft of its value
+					if (!state.copy_) {
+						return state.base_.has(value)
+					}
+					if (state.copy_.has(value)) return true
+					if (
+						state.drafts_.has(value) &&
+						state.copy_.has(state.drafts_.get(value))
+					)
+						return true
 					return false
 				}
+			},
+			add: {
+				configurable: true,
+				writable: true,
+				value: function(value: any): any {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					if (!this.has(value)) {
+						prepareSetCopy(state)
+						markChanged(state)
+						state.copy_!.add(value)
+					}
+					return this
+				}
+			},
+			delete: {
+				configurable: true,
+				writable: true,
+				value: function(value: any): any {
+					if (!this.has(value)) {
+						return false
+					}
 
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				prepareSetCopy(state)
-				markChanged(state)
-				return (
-					state.copy_!.delete(value) ||
-					(state.drafts_.has(value)
-						? state.copy_!.delete(state.drafts_.get(value))
-						: /* istanbul ignore next */ false)
-				)
-			}
-		})
-		Object.defineProperty(p, "clear", {
-			configurable: true,
-			writable: true,
-			value: function() {
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				if (latest(state).size) {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
 					prepareSetCopy(state)
 					markChanged(state)
-					state.copy_!.clear()
+					return (
+						state.copy_!.delete(value) ||
+						(state.drafts_.has(value)
+							? state.copy_!.delete(state.drafts_.get(value))
+							: /* istanbul ignore next */ false)
+					)
 				}
-			}
-		})
-		Object.defineProperty(p, "values", {
-			configurable: true,
-			writable: true,
-			value: function(): IterableIterator<any> {
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				prepareSetCopy(state)
-				return state.copy_!.values()
-			}
-		})
-		Object.defineProperty(p, "entries", {
-			configurable: true,
-			writable: true,
-			value: function entries(): IterableIterator<[any, any]> {
-				const state: SetState = this[DRAFT_STATE]
-				assertUnrevoked(state)
-				prepareSetCopy(state)
-				return state.copy_!.entries()
-			}
-		})
-		Object.defineProperty(p, "keys", {
-			configurable: true,
-			writable: true,
-			value: function(): IterableIterator<any> {
-				return this.values()
-			}
-		})
-
-		Object.defineProperty(p, iteratorSymbol, {
-			configurable: true,
-			writable: true,
-			value: function() {
-				return this.values()
-			}
-		})
-
-		Object.defineProperty(p, "forEach", {
-			configurable: true,
-			writable: true,
-			value: function forEach(cb: any, thisArg?: any) {
-				const iterator = this.values()
-				let result = iterator.next()
-				while (!result.done) {
-					cb.call(thisArg, result.value, result.value, this)
-					result = iterator.next()
+			},
+			clear: {
+				configurable: true,
+				writable: true,
+				value: function() {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					if (latest(state).size) {
+						prepareSetCopy(state)
+						markChanged(state)
+						state.copy_!.clear()
+					}
+				}
+			},
+			values: {
+				configurable: true,
+				writable: true,
+				value: function(): IterableIterator<any> {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					prepareSetCopy(state)
+					return state.copy_!.values()
+				}
+			},
+			entries: {
+				configurable: true,
+				writable: true,
+				value: function entries(): IterableIterator<[any, any]> {
+					const state: SetState = this[DRAFT_STATE]
+					assertUnrevoked(state)
+					prepareSetCopy(state)
+					return state.copy_!.entries()
+				}
+			},
+			keys: {
+				configurable: true,
+				writable: true,
+				value: function(): IterableIterator<any> {
+					return this.values()
+				}
+			},
+			[iteratorSymbol]: {
+				configurable: true,
+				writable: true,
+				value: function() {
+					return this.values()
+				}
+			},
+			forEach: {
+				configurable: true,
+				writable: true,
+				value: function forEach(cb: any, thisArg?: any) {
+					const iterator = this.values()
+					let result = iterator.next()
+					while (!result.done) {
+						cb.call(thisArg, result.value, result.value, this)
+						result = iterator.next()
+					}
 				}
 			}
 		})

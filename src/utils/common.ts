@@ -199,7 +199,17 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
+		const desc: PropertyDescriptor = {
+			configurable: true,
+			writable: true,
+			value: dontMutateFrozenCollections,
+		}
+		Object.defineProperties(obj, {
+			set: desc,
+			add: desc,
+			clear: desc,
+			delete: desc,
+		});
 	}
 	Object.freeze(obj)
 	if (deep) each(obj, (key, value) => freeze(value, true), true)
