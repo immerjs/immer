@@ -202,14 +202,14 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 		const desc: PropertyDescriptor = {
 			configurable: true,
 			writable: true,
-			value: dontMutateFrozenCollections,
+			value: dontMutateFrozenCollections
 		}
 		Object.defineProperties(obj, {
 			set: desc,
 			add: desc,
 			clear: desc,
-			delete: desc,
-		});
+			delete: desc
+		})
 	}
 	Object.freeze(obj)
 	if (deep) each(obj, (key, value) => freeze(value, true), true)
