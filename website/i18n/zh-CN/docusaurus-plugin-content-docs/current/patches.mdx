@@ -1,0 +1,230 @@
+---
+id: patches
+title: Patches
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center>
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第14课: 使用 produceWithPatches 捕获 Patches
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-capture-patches-to-distribute-changes-in-app-state-with-immer-producewithpatches"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第16课: 使用 applyPatches 应用 Patches
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-apply-patches-using-immer-applypatches-to-synchronize-state-across-clients"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+_⚠ 在版本6之后，必须在启动应用程序调用一次 [`enablePatches()`](./installation.mdx#pick-your-immer-version) 来启用对 Patches 的支持。_
+
+在 producer 运行期间，Immer 可以记录所有的补丁来回溯 reducer造成的更改 。这是一个非常强大的工具，如果您想暂时 fork 您的状态并回溯对原始状态的更改。
+
+Patches 在下面场景很有用:
+
+- 与其他方交换增量更新，例如通过
+- 对于调试/跟踪，准确查看状态如何随时间变化
+- 作为撤消/重做的基础或作为在稍微不同的状态树上回溯更改的方法。
+
+为了帮助回溯补丁，`applyPatches` 派上用场了。这是一个如何使用 Patches 来记录增量更新并（反向）应用它们的示例：
+
+```javascript
+import produce, {applyPatches} from "immer"
+
+// 版本 6
+import {enablePatches} from "immer"
+enablePatches()
+
+let state = {
+	name: "Micheal",
+	age: 32
+}
+
+// 假设用户在向导中
+// 他的更改 应该以最终是否为基本状态结束...
+
+his changes should end up in the base state ultimately or not...
+let fork = state
+// 用户在向导中所作的所有更改
+let changes = []
+// 与向导中所做的所有更改相反
+let inverseChanges = []
+
+fork = produce(
+	fork,
+	draft => {
+		draft.age = 33
+	},
+	// 产生的第三个参数是一个回调，patches 将从这里产生
+	(patches, inversePatches) => {
+		changes.push(...patches)
+		inverseChanges.push(...inversePatches)
+	}
+)
+
+// 同时，我们的原始状态被替换，例如
+// 从服务器收到了一些更改
+state = produce(state, draft => {
+	draft.name = "Michel"
+})
+
+// 当向导完成（成功）后，我们可以将 fork 中的更改重播到新的状态！
+state = applyPatches(state, changes)
+
+// state 现在包含来自两个代码路径的更改！
+expect(state).toEqual({
+	name: "Michel", // 服务器更改
+	age: 33 // 向导更改
+})
+
+// 最后，即使在完成向导之后，用户也可能会改变主意并撤消他的更改......
+state = applyPatches(state, inverseChanges)
+expect(state).toEqual({
+	name: "Michel", // 没有还原
+	age: 32 // 还原了
+})
+```
+
+生成的 patches 与 [RFC-6902 JSON patch standard](https://datatracker.ietf.org/doc/html/rfc6902/#section-4.1) 类似（但并不相同），除了 path 属性是一个数组，而不是一个字符串。这使得处理 patches 更加容易。如果你想规范化到官方格式，`patch.path = patch.path.join("/")`应该可以解决这个问题。无论如何，下面就是一堆 patches 和它们回溯的样子。
+
+```json
+[
+	{
+		"op": "replace",
+		"path": ["profile"],
+		"value": {"name": "Veria", "age": 5}
+	},
+	{"op": "remove", "path": ["tags", 3]}
+]
+```
+
+```json
+[
+	{"op": "replace", "path": ["profile"], "value": {"name": "Noa", "age": 6}},
+	{"op": "add", "path": ["tags", 3], "value": "kiddo"}
+]
+```
+
+⚠ 注意: Immer 生成的补丁集应该是正确的，也就是说，将它们应用于相同的基础对象应该会导致相同的最终状态。然而，Immer 不保证生成的补丁集是最优的，即可能的最小补丁集。它通常取决于被认为是“最佳”的用例，并且生成最佳补丁集在计算上可能非常昂贵。因此，在某些情况下，您可能想要对生成的补丁进行后处理，或者按照下面的说明压缩它们。
+
+### `produceWithPatches`
+
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第19课: 使用回溯 patches 构建撤销功能
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-use-immer-inversepatches-to-build-undo-functionality"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第20课: 使用 patches 构建重做功能
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-use-immer-patches-to-build-redo-functionality"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+除了设置 patch 监听器之外，获取 patches 的更简单方法是使用 `produceWithPatches`，它与 `produce` 具有相同的签名，不过它
+不止返回 next state，而是一个包含 `[nextState, patches, inversePatches]` 的元组，和 `produce` 一样，`produceWithPatches` 也支持柯里化。
+
+```javascript
+import {produceWithPatches} from "immer"
+
+const [nextState, patches, inversePatches] = produceWithPatches(
+	{
+		age: 33
+	},
+	draft => {
+		draft.age++
+	}
+)
+```
+
+将返回:
+
+```javascript
+;[
+	{
+		age: 34
+	},
+	[
+		{
+			op: "replace",
+			path: ["age"],
+			value: 34
+		}
+	],
+	[
+		{
+			op: "replace",
+			path: ["age"],
+			value: 33
+		}
+	]
+]
+```
+
+有关更深入的研究，请参阅使用  [Distributing patches and rebasing actions using Immer](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988)
+
+提示：使用此技巧可以 [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69)

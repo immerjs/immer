@@ -69,3 +69,7 @@ details a {
 iframe {
 	border: none;
 }
+
+.dropdown__link {
+	color: black !important;
+}

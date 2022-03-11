@@ -1,0 +1,18 @@
+{
+  "title": {
+    "message": "Immer",
+    "description": "The title in the navbar"
+  },
+  "item.label.Documentation": {
+    "message": "文档",
+    "description": "Navbar item with label Documentation"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  },
+  "item.label.Support Immer": {
+    "message": "赞助 Immer",
+    "description": "Navbar item with label Support Immer"
+  }
+}

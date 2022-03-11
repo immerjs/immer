@@ -10,6 +10,10 @@ module.exports = {
 	onBrokenLinks: "throw",
 	onBrokenMarkdownLinks: "warn",
 	favicon: "img/favicon.ico",
+	i18n: {
+		defaultLocale: 'en',
+		locales: ['en', 'zh-CN'],
+	},
 	themeConfig: {
 		googleAnalytics: {
 			trackingID: "UA-65632006-3",
@@ -39,7 +43,11 @@ module.exports = {
 					docId: "support",
 					label: "Support Immer",
 					position: "right"
-				}
+				},
+				{
+					type: 'localeDropdown',
+					position: 'left',
+				},
 			]
 		},
 		footer: {

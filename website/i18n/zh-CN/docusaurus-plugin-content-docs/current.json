@@ -1,0 +1,18 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.Immer.category.Basics": {
+    "message": "基础",
+    "description": "The label for category Basics in sidebar Immer"
+  },
+  "sidebar.Immer.category.Advanced Features": {
+    "message": "高级",
+    "description": "The label for category Advanced Features in sidebar Immer"
+  },
+  "sidebar.Immer.category.Resources": {
+    "message": "资源",
+    "description": "The label for category Resources in sidebar Immer"
+  }
+}

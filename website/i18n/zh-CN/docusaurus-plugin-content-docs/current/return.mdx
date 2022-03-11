@@ -1,0 +1,152 @@
+---
+id: return
+title: 从 producers 返回新数据
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center>
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第9课: 返回全新 state
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-return-completely-new-state-from-an-immer-producer"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+不需要从 producer 那里返回任何东西，因为 Immer 无论如何都会返回 `draft` 的（最终）版本。但是，也允许仅仅 `return draft`。
+
+也允许从 producer 函数中任意返回其他数据。但_前提_是你没有修改 `draft`。这对于产生一个全新的 state 很有用。一些例子：
+
+```javascript
+const userReducer = produce((draft, action) => {
+	switch (action.type) {
+		case "renameUser":
+		    //可以： 我们修改了当前的 state
+			draft.users[action.payload.id].name = action.payload.name
+			return draft // 与仅仅 'return' 相同
+		case "loadUsers":
+			// 可以: 我们返回了一个全新的 state
+			return action.payload
+		case "adduser-1":
+			// 不行: 这不会改变 draft ，也不会返回新的状态
+			// 它不会修改 draft（它只是重新声明它）
+			// 事实上，这根本没有做任何事情
+			draft = {users: [...draft.users, action.payload]}
+			return
+		case "adduser-2":
+			// 不行: 修改 draft 的同时返回了一个新的状态
+			draft.userCount += 1
+			return {users: [...draft.users, action.payload]}
+		case "adduser-3":
+			// 可以: 返回一个新的状态。但是，不必要的复杂和昂贵
+			return {
+				userCount: draft.userCount + 1,
+				users: [...draft.users, action.payload]
+			}
+		case "adduser-4":
+			// 可以: immer 的方式
+			draft.userCount += 1
+			draft.users.push(action.payload)
+			return
+	}
+})
+```
+
+_注意：无法以这种方式返回 `undefined` ，因为它与不更新 draft 没有区别！继续阅读......_
+
+## 使用 `nothing` 产生 `undefined` 
+
+因此，一般来说，可以通过从 producer 返回一个新值来替换当前 state，而不是修改 draft。然而，有一个微妙的边缘情况：如果您尝试编写一个想要用 undefined 替换当前状态的 producer：
+
+```javascript
+produce({}, draft => {
+	// 什么也不干
+})
+```
+
+或者:
+
+```javascript
+produce({}, draft => {
+	// 尝试从 producer 中返回 undefined
+	return undefined
+})
+```
+
+问题在于，在 JavaScript 中，一个不返回任何内容的函数也会返回 `undefined`！所以 immer 无法区分这些不同的情况。因此，默认情况下，Immer 会假设任何返回 `undefined` 的 producer 只是试图修改 draft。
+
+但是，为了让 Immer 清楚您有意生成 `undefined` 值，您可以返回内置标记 `nothing`：
+
+```javascript
+import produce, {nothing} from "immer"
+
+const state = {
+	hello: "world"
+}
+
+produce(state, draft => {})
+produce(state, draft => undefined)
+// 都会返回最初的状态: { hello: "world"} 
+
+produce(state, draft => nothing)
+// 产生一个新的状态, 'undefined'
+```
+
+注：请注意，此问题特定于 `undefined` 值，任何其他值（包括 `null`）都不会受到此问题的影响
+
+提示：为了能够在使用 TypeScript 时从 recipe 中返回 `nothing`，`state` 的类型必须接受 undefined 值。
+
+## 使用 `void` 的内联快捷方式
+
+<details>
+	<summary className="egghead-summary">
+		egghead.io 第10课: 使用 _void_ 避免意外的返回 
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-avoid-accidental-returns-of-new-state-by-using-the-void-keyword"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+Immer 中的 draft 修改通常需要一段代码块，因为返回表示覆盖。有时候你可能觉得这么多的样板代码很糟心。
+
+在这种情况下，您可以使用 javascripts [`void`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) 运算符，它计算表达式并返回 `undefined`。
+
+```javascript
+// 单次修改
+produce(draft => void (draft.user.age += 1))
+
+// 多次修改
+produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
+```
+
+代码风格是高度个人化的，但对于要被许多人理解的代码库，我们建议坚持经典的  `draft => { draft.user.age += 1}` 以避免认知开销。

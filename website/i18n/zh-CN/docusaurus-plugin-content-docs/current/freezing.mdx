@@ -1,0 +1,39 @@
+---
+id: freezing
+title: 自动冻结
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center> <details>
+	<summary className="egghead-summary">
+		egghead.io 第7课: Immer 自动冻结数据
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+Immer 自动冻结所有使用 `produce` 修改的任何 state。这可以防止在 producer 之外意外修改 state。在大多数情况下，这是最佳实践，但你可以通过 `setAutoFreeze(true / false)` 显式打开或关闭此功能。
+
+Immer 永远不会冻结不可枚举、非自己或符号属性的（内容），除非它们的内容是可以被 `draft` 的。
+
+_⚠️ Immer 以递归方式冻结所有内容，对于将来不会更改的大型数据对象，这可能会矫枉过正，在这种情况下，使用 `freeze` 函数 浅层冻结数据会更有效。⚠️_
+
+_⚠️ 如果启用了自动冻结，recipe 函数并非完全没有副作用：任何最终出现在 produce 结果中的普通对象或数组都将被冻结，即使这些对象在 producer 开始之前没有被冻结！⚠️_
