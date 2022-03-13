@@ -1282,6 +1282,23 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState).not.toEqual(baseState)
 		})
 
+		it("should handle equality correctly - 3", () => {
+			const baseState = {
+				x: "s1",
+				y: 1,
+				z: NaN
+			}
+			const nextState = produce(baseState, draft => {
+				draft.x = "s2"
+				draft.y = 1
+				draft.z = NaN
+				expect(draft[DRAFT_STATE].assigned_.x).toBe(true)
+				expect(draft[DRAFT_STATE].assigned_.y).toBe(undefined)
+				expect(draft[DRAFT_STATE].assigned_.z).toBe(undefined)
+			})
+			expect(nextState.x).toBe("s2")
+		})
+
 		// AKA: recursive produce calls
 		describe("nested producers", () => {
 			describe("when base state is not a draft", () => {
