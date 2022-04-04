@@ -3,12 +3,19 @@
   "version": "9.0.0-beta.1",
   "description": "Create your next immutable state by mutating the current one",
   "main": "dist/index.js",
-  "module": "dist/immer.esm.js",
+  "module": "dist/immer.esm.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/immer.esm.mjs",
+      "require": "./dist/index.js"
+    },
+    "./*": "./*"
+  },
   "umd:main": "dist/immer.umd.production.min.js",
   "unpkg": "dist/immer.umd.production.min.js",
   "jsdelivr": "dist/immer.umd.production.min.js",
-  "jsnext:main": "dist/immer.esm.js",
-  "react-native": "dist/immer.esm.js",
+  "jsnext:main": "dist/immer.esm.mjs",
+  "react-native": "dist/immer.esm.mjs",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
   "typesVersions": {
@@ -32,7 +39,7 @@
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && yarn build:flow",
+    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && cp dist/immer.esm.js dist/immer.esm.mjs && yarn build:flow",
     "build:flow": "cpx 'src/types/index.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
