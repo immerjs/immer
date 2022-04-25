@@ -16,4 +16,4 @@ title: External resources
 - [Talk: Immer, Immutability and the Wonderful World of Proxies](https://www.youtube.com/watch?v=4Nb9Gwp2L24) + [slides](https://jsnation-proxies.surge.sh/), JSNation 2019, Michel Weststrate
 - Blog: [Distributing state changes using snapshots, patches and actions](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-1-2811a2fcd65f)
 - Blog: [Implementing Undo-Redo Functionality in Redux](https://techinscribed.com/implementing-undo-redo-functionality-in-redux-using-immer/), Sep 2019
-- Blog: [Synchronized immutable state with time travel](https://dev.to/oleg008/synchronized-immutable-state-with-time-travel-2c6o), Apr 2022
+- Blog: [Synchronized immutable state with time travel](https://dev.to/oleg008/synchronized-immutable-state-with-time-travel-2c6o), Apr 2022, by [Oleg Isonen](https://twitter.com/oleg008)
