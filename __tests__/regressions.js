@@ -256,13 +256,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			const state = {
 				foo: {
 					bar: {
-						baz: 1
+						baz: "banana"
 					}
 				}
 			}
 			const newState = produce(state, draft => {
 				draft.foo = produce(draft.foo, fooDraft => {
-					fooDraft.baz = fooDraft.bar.baz
+					fooDraft.baz = fooDraft.bar.baz.replace("banana", "apple")
 				})
 				draft.foo = produce(draft.foo, fooDraft => {
 					/* another produce call makes this fail */
