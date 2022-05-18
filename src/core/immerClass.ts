@@ -37,11 +37,19 @@ export class Immer implements ProducersFns {
 
 	autoFreeze_: boolean = true
 
-	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
+	useStrictShallowCopy_: boolean = true
+
+	constructor(config?: {
+		useProxies?: boolean
+		autoFreeze?: boolean
+		useStrictShallowCopy?: boolean
+	}) {
 		if (typeof config?.useProxies === "boolean")
 			this.setUseProxies(config!.useProxies)
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
+		if (typeof config?.useStrictShallowCopy === "boolean")
+			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
 	}
 
 	/**
@@ -193,6 +201,15 @@ export class Immer implements ProducersFns {
 			die(20)
 		}
 		this.useProxies_ = value
+	}
+
+	/**
+	 * Pass false to disable strict shallow copy.
+	 *
+	 * By default, immer copies the object descriptors on creating new object.
+	 */
+	setUseStrictShallowCopy(value: boolean) {
+		this.useStrictShallowCopy_ = value
 	}
 
 	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {

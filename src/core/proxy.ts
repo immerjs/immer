@@ -17,6 +17,7 @@ import {
 	createProxy,
 	ProxyType
 } from "../internal"
+import {ImmerScope} from "./scope"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {
@@ -273,8 +274,15 @@ export function markChanged(state: ImmerState) {
 	}
 }
 
-export function prepareCopy(state: {base_: any; copy_: any}) {
+export function prepareCopy(state: {
+	base_: any
+	copy_: any
+	scope_: ImmerScope
+}) {
 	if (!state.copy_) {
-		state.copy_ = shallowCopy(state.base_)
+		state.copy_ = shallowCopy(
+			state.base_,
+			state.scope_.immer_.useStrictShallowCopy_
+		)
 	}
 }

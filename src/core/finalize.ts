@@ -83,7 +83,10 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		const result =
 			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
 			state.type_ === ProxyType.ES5Object || state.type_ === ProxyType.ES5Array
-				? (state.copy_ = shallowCopy(state.draft_))
+				? (state.copy_ = shallowCopy(
+						state.draft_,
+						rootScope.immer_.useStrictShallowCopy_
+				  ))
 				: state.copy_
 		// Finalize all children of the copy
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628

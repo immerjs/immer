@@ -84,6 +84,13 @@ declare export function setAutoFreeze(autoFreeze: boolean): void
  */
 declare export function setUseProxies(useProxies: boolean): void
 
+/**
+ * Pass false to disable strict shallow copy.
+ *
+ * By default, immer copies the object descriptors on creating new object.
+ */
+declare export function setUseStrictShallowCopy(useStrictShallowCopy: boolean): void
+
 declare export function applyPatches<S>(state: S, patches: Patch[]): S
 
 declare export function original<S>(value: S): S
