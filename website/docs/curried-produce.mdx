@@ -31,7 +31,7 @@ title: Curried producers
 	</a>
 </details>
 
-Passing a function as the first argument to `produce` creates a function that doesn't apply `produce` yet to a specific state, but rather creates a function that will apply `produce` to any state that is passed to it in the future. This generally is called _currying_. Take for example the following example:
+Passing a function as the second argument to `produce` creates a function that doesn't apply `produce` yet to a specific state, but rather creates a function that will apply `produce` to any state that is passed to it in the future. This generally is called _currying_. Take for example the following example:
 
 ```javascript
 import produce from "immer"
