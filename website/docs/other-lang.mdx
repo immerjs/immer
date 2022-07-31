@@ -1,0 +1,142 @@
+---
+id: other-lang
+title: Porting to other languages
+---
+
+import Tabs from '@theme/Tabs'; 
+import TabItem from '@theme/TabItem';
+
+## Java/Kotlin
+
+Link: https://babyfish-ct.github.io/jimmer
+
+<details>
+<summary>Quick view</summary>
+<Tabs groupId="language">
+<TabItem value="java" label="Java">
+
+```java
+// Step 1, create data from scratch
+TreeNode treeNode = TreeNodeDraft.$.produce(root -> {
+    root.setName("Root").addIntoChildNodes(food -> {
+        food
+            .setName("Food")
+            .addIntoChildNodes(drink -> {
+                drink
+                    .setName("Drink")
+                    .addIntoChildNodes(cococola -> {
+                        cococola.setName("Cococola");
+                    })
+                    .addIntoChildNodes(fanta -> {
+                        fanta.setName("Fanta");
+                    });
+                ;
+            });
+        ;
+    });
+});
+
+// Step 2, make some "changes" based on the 
+// existing data to create new data.
+TreeNode newTreeNode = TreeNodeDraft.$.produce(
+        // highlight-next-line
+        treeNode, // existing data
+        root -> {
+            root
+                .childNodes(false).get(0) // Food
+                .childNodes(false).get(0) // Drink
+                .childNodes(false).get(0) // Cococola
+                .setName("Cococola plus");
+        }
+);
+
+System.out.println("treeNode:" + treeNode);
+System.out.println("newTreeNode:" + newTreeNode);
+```
+
+</TabItem>
+<TabItem value="kotlin" label="Kotlin">
+
+```kotlin
+// Step 1, create data from scratch
+val treeNode = new(TreeNode::class).by {
+    name = "Root"
+    childNodes().addBy {
+        name = "Food"
+        childNodes().addBy {
+            name = "Drinks"
+            childNodes().addBy {
+                name = "Cococola"
+            }
+            childNodes().addBy {
+                name = "Fanta"
+            }
+        }
+    }
+}
+
+// Step 2, make some "changes" based on the 
+// existing data to create new data.
+val newTreeNode = new(TreeNode::class).by(
+    // highlight-next-line
+    treeNode // existing data
+) {
+    childNodes()[0] // Food
+        .childNodes()[0] // Drinks
+        .childNodes()[0] // Cococola
+        .name += " plus"
+}
+
+println("treeNode: $treeNode")
+println("newTreeNode: $newTreeNode")
+```
+
+</TabItem>
+
+</Tabs>
+
+<details>
+<summary>Output</summary>
+
+```javascript
+treeNode: {
+    "name":"Root",
+    "childNodes":[
+        {
+            "name":"Food",
+            "childNodes":[
+                {
+                    "name":"Drink",
+                    "childNodes":[
+                        // highlight-next-line
+                        {"name":"Cococola"},
+                        {"name":"Fanta"}
+                    ]
+                }
+            ]
+        }
+    ]
+}
+newTreeNode: {
+    "name":"Root",
+    "childNodes":[
+        {
+            "name":"Food",
+            "childNodes":[
+                {
+                    "name":"Drink",
+                    "childNodes":[
+                        // highlight-next-line
+                        {"name":"Cococola plus"},
+                        {"name":"Fanta"}
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+</details>
+
+</details>
