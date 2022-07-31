@@ -104,11 +104,11 @@ export function enablePatches() {
 				value: clonePatchValueIfNeeded(copy_[i])
 			})
 		}
-		if (base_.length < copy_.length) {
+		for (let i = copy_.length - 1; base_.length <= i; --i) {
+			const path = basePath.concat([i])
 			inversePatches.push({
-				op: REPLACE,
-				path: basePath.concat(["length"]),
-				value: base_.length
+				op: REMOVE,
+				path
 			})
 		}
 	}
