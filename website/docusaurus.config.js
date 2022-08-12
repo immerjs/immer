@@ -11,10 +11,18 @@ module.exports = {
 	onBrokenMarkdownLinks: "warn",
 	favicon: "img/favicon.ico",
 	i18n: {
-		defaultLocale: 'en',
-		locales: ['en', 'zh-CN'],
+		defaultLocale: "en",
+		locales: ["en", "zh-CN"]
 	},
 	themeConfig: {
+		announcementBar: {
+			id: "support_ukraine",
+			content:
+				'Support Ukraine 🇺🇦 <a target="_blank" rel="noopener noreferrer" href="https://opensource.fb.com/support-ukraine">Help Provide Humanitarian Aid to Ukraine</a>.',
+			backgroundColor: "#20232a",
+			textColor: "#fff",
+			isCloseable: false
+		},
 		googleAnalytics: {
 			trackingID: "UA-65632006-3",
 			anonymizeIP: true
@@ -45,9 +53,9 @@ module.exports = {
 					position: "right"
 				},
 				{
-					type: 'localeDropdown',
-					position: 'left',
-				},
+					type: "localeDropdown",
+					position: "left"
+				}
 			]
 		},
 		footer: {
