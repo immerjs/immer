@@ -13,15 +13,19 @@ slug: /
 
 # Immer
 
+Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
+
+> Immer is life-changing as a JS dev, and I'm not even exaggerating :) Like, it's right up there with Prettier in terms of "wow this package is amazing, how did I ever live without it?" --Mark Erikson, (the) Redux Maintainer, @replayio
+
 Winner of the "Breakthrough of the year" [React open source award](https://osawards.com/react/) and "Most impactful contribution" [JavaScript open source award](https://osawards.com/javascript/) in 2019.
+
+---
 
 - Introduction blogpost: [Immer: Immutability the easy way](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
 - Short Egghead.io lesson covering the Immer essentials: [Simplify creating immutable data trees with Immer (7m)](https://egghead.io/lessons/redux-simplify-creating-immutable-data-trees-with-immer)
 - Free in-depth Egghead.io course: [Immutable JavaScript Data Structures with Immer (58m)](https://egghead.io/courses/immutable-javascript-data-structures-with-immer)
 
 ---
-
-Immer (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 
 ### Immer simplifies handling immutable data structures
 
