@@ -132,7 +132,6 @@ export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	const t = getArchtype(thing)
 	if (t === Archtype.Map) thing.set(propOrOldValue, value)
 	else if (t === Archtype.Set) {
-		thing.delete(propOrOldValue)
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }

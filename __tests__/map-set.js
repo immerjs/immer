@@ -296,4 +296,38 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(mapType1).toBe(mapType2)
 		})
 	})
+	describe("set issues " + name, () => {
+		test("#819.A - maintains order when adding", () => {
+			const objs = [
+				"a",
+				{
+					id: "b"
+				}
+			]
+
+			const set = new Set([objs[0]])
+			const newSet = produce(set, draft => {
+				draft.add(objs[1])
+			})
+
+			// passes
+			expect(Array.from(newSet)).toEqual([objs[0], objs[1]])
+		})
+
+		test("#819.B - maintains order when adding", () => {
+			const objs = [
+				{
+					id: "a"
+				},
+				"b"
+			]
+
+			const set = new Set([objs[0]])
+			const newSet = produce(set, draft => {
+				draft.add(objs[1])
+			})
+
+			expect(Array.from(newSet)).toEqual([objs[0], objs[1]])
+		})
+	})
 }
