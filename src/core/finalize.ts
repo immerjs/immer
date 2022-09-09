@@ -89,8 +89,6 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
 		// To preserve insertion order in all cases we then clear the set
 		// And we let finalizeProperty know it needs to re-add non-draft children back to the target
-		// Although the original test case doesn't seem valid anyway, so if this in the way we can turn the next line
-		// back to each(result, ....)
 		let resultEach = result
 		let isSet = false
 		if (state.type_ === ProxyType.Set) {
