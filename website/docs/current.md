@@ -38,7 +38,7 @@ const next = produce(base, draft => {
 	console.log(copy.x)
 
 	setTimeout(() => {
-		// this will execute after the produce has finised!
+		// this will execute after the produce has finished!
 		console.log(orig.x)
 		console.log(copy.x)
 	}, 100)
