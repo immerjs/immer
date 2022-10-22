@@ -8,9 +8,9 @@ type PrimitiveType = number | string | boolean
 type AtomicObject = Function | Promise<any> | Date | RegExp
 
 /**
- * If the lib "ES2105.collections" is not included in tsconfig.json,
+ * If the lib "ES2015.Collection" is not included in tsconfig.json,
  * types like ReadonlyArray, WeakMap etc. fall back to `any` (specified nowhere)
- * or `{}` (from the node types), in both cases entering an infite recursion in
+ * or `{}` (from the node types), in both cases entering an infinite recursion in
  * pattern matching type mappings
  * This type can be used to cast these types to `void` in these cases.
  */
@@ -32,6 +32,7 @@ type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
 export type WritableDraft<T> = {-readonly [K in keyof T]: Draft<T[K]>}
 
+/** Convert a readonly type into a mutable type, if possible */
 export type Draft<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
@@ -241,14 +242,14 @@ export interface IProduceWithPatches {
 	): InferCurriedFromInitialStateAndRecipe<State, Recipe, true>
 	<Base, D = Draft<Base>>(
 		base: Base,
-		recipe: (draft: D) => ValidRecipeReturnType<Base>,
+		recipe: (draft: D) => ValidRecipeReturnType<D>,
 		listener?: PatchListener
 	): PatchesTuple<Base>
 	<Base, D = Draft<Base>>(
 		base: Base,
-		recipe: (draft: D) => Promise<ValidRecipeReturnType<Base>>,
+		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
 		listener?: PatchListener
-	): PatchesTuple<Promise<Base>>
+	): Promise<PatchesTuple<Base>>
 }
 
 // Fixes #507: bili doesn't export the types of this file if there is no actual source in it..

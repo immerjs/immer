@@ -26,7 +26,8 @@ module.exports = {
 			"faq",
 			"pitfalls",
 			"built-with",
-			"support"
+			"support",
+			"other-lang"
 		]
 	}
 }

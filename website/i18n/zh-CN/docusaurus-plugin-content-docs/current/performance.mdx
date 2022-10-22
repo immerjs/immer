@@ -1,0 +1,83 @@
+---
+id: performance
+title: Immer 性能
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center> <details>
+	<summary className="egghead-summary">
+		egghead.io 第5课: 在 React 中利用 Immer 的结构共享
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/react-profile-react-rendering-and-optimize-with-memo-to-leverage-structural-sharing/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/react-profile-react-rendering-and-optimize-with-memo-to-leverage-structural-sharing"
+	>
+		Hosted on egghead.io
+	</a>
+</details> <details>
+	<summary className="egghead-summary">
+		egghead.io 第7课: 如果没有语义变化，Immer 会使用原先的数据
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/javascript-produces-immutable-data-and-avoid-unnecessary-creation-of-new-data-trees-with-immer"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+这是一个关于 Immer 性能的 [简单 benchmark](https://github.com/immerjs/immer/blob/master/__performance_tests__/todo.js) 。该测试需要 50,000 个待办事项并更新其中的 5,000 个。 _Freeze_ 表示状态树在生成后已被冻结。这是一种开发最佳实践，因为它可以防止开发人员意外修改状态树。
+
+上面的数字没有反映一些东西，但实际上，Immer 有时比手写的 reducer _快_ 得多。这样做的原因是，Immer 会检测“无操作”状态变化，如果实际上没有任何变化，则返回原始状态，这可以避免很多重新渲染。众所周知，只需应用 immer 即可解决关键性能问题。
+
+这些测试在 Node 10.16.3 上执行。使用 `yarn test:perf` 在本地重现它们。
+
+![performance.png](/img/performance.png)
+
+最重要的结论:
+
+- Immer with proxies 大约比手写 reducer 慢 2 到 3 倍（上面的测试用例是最坏的情况，请参阅 `yarn test:perf` 了解更多测试情况）。这在实践中可以忽略不计。
+- Immer 的速度大致与 ImmutableJS 一样快。但是，_immutableJS + toJS_ 明确了后期往往需要付出的代价；将 immutableJS 对象转换回普通对象，以便将它们传递给组件或者进行序列化操作在网络中传输......（还有将从服务器接收到的数据转换为不可变 JS 的前期成本）
+- 生成 patches 不会显著减慢 immer
+- ES5 后备实现的速度大约比代理实现慢两倍，在某些情况下更糟。
+
+## 性能提示
+
+### 预冻结数据
+
+当向 Immer producer 中的状态树添加大型数据集时（例如从 JSON 端点接收的数据），可以在首先添加的数据的根上调用 `freeze(json)` ，来_浅冻结_它。这将允许 Immer 更快地将新数据添加到树中，因为它将避免_递归_扫描和冻结新数据的需要。
+
+### 您可以随时选择退出
+
+immer 在任何地方都是可选的，因此手动编写性能非常苛刻的 reducers ，并将 immer 用于所有普通的的 reducers 是非常好的。即使在 producer 内部，您也可以通过使用 `original` 或 `current` 函数来选择退出 Immer 的某些部分逻辑，并对纯 JavaScript 对象执行一些操作。
+
+### 对于昂贵的搜索操作，从原始 state 读取，而不是 draft
+
+Immer 会将您在 draft 中读取的任何内容也递归地转换为 draft。如果您对涉及大量读取操作的 draft 进行昂贵的无副作用操作，例如在非常大的数组中使用 `find(Index)` 查找索引，您可以通过首先进行搜索，并且只在知道索引后调用 `produce` 来加快速度。这样可以阻止 Immer 将在 draft 中搜索到的所有内容都进行转换。或者，使用 `original(someDraft)` 对 draft 的原始值执行搜索，这归结为同样的事情。
+
+### 将 produce 拉到尽可能远的地方
+
+始终尝试将 produce “向上”拉动，例如 `for (let x of y) produce(base, d => d.push(x))` 比 `produce(base, d => { for (let x of y) ) d.push(x)})` 慢得多

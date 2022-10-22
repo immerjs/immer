@@ -32,7 +32,7 @@ title: Using produce
 
 The Immer package exposes a default function that does all the work.
 
-`produce(currentState, recipe: (draftState) => void): nextState`
+`produce(baseState, recipe: (draftState) => void): nextState`
 
 `produce` takes a base state, and a _recipe_ that can be used to perform all the desired mutations on the `draft` that is passed in. The interesting thing about Immer is that the `baseState` will be untouched, but the `nextState` will reflect all changes made to `draftState`.
 
@@ -40,7 +40,7 @@ Inside the recipe, all standard JavaScript APIs can be used on the `draft` objec
 
 Any of those mutations don't have to happen at the root, but it is allowed to modify anything anywhere deep inside the draft: `draft.todos[0].tags["urgent"].author.age = 56`
 
-Note that the recipe function itself normally doesn't return anything. However, it is possible to return in case you want to replace the `draft` object in its entirety with another object, for more details see [returning new data](return).
+Note that the recipe function itself normally doesn't return anything. However, it is possible to return in case you want to replace the `draft` object in its entirety with another object, for more details see [returning new data](./return.mdx).
 
 ## Example
 

@@ -1,0 +1,79 @@
+---
+id: curried-produce
+title: 柯里化 producers
+---
+
+<center>
+	<div
+		data-ea-publisher="immerjs"
+		data-ea-type="image"
+		className="horizontal bordered"
+	></div>
+</center> <details>
+	<summary className="egghead-summary">
+		egghead.io 第六课： 使用柯里化简化代码
+	</summary>
+	<br />
+	<div>
+		<iframe
+			width="760"
+			height="427"
+			scrolling="no"
+			src="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying/embed"
+		></iframe>
+	</div>
+	<a
+		className="egghead-link"
+		href="https://egghead.io/lessons/javascript-simplify-immer-producer-functions-using-currying"
+	>
+		Hosted on egghead.io
+	</a>
+</details>
+
+将函数作为第一个参数传递给 `produce` 会创建一个函数，该函数尚未将 `produce` 应用于特定 state，而是创建一个函数，该函数将应用于将来传递给它的任何 state。这通常称为柯里化。举个例子：
+
+```javascript
+import produce from "immer"
+
+function toggleTodo(state, id) {
+	return produce(state, draft => {
+		const todo = draft.find(todo => todo.id === id)
+		todo.done = !todo.done
+	})
+}
+
+const baseState = [
+	{
+		id: "JavaScript",
+		title: "Learn TypeScript",
+		done: true
+	},
+	{
+		id: "Immer",
+		title: "Try Immer",
+		done: false
+	}
+]
+
+const nextState = toggleTodo(baseState, "Immer")
+```
+
+上面的 `toggleTodo` 模式非常典型；传递一个现有的 state 来 `produce`，修改 `draft`，然后返回结果。由于 `state` 除了将其传递给 `produce` 之外没有其他任何用途，因此可以通过使用 `produce` 的柯里化形式来简化上面的示例，其中您只传递 `produce` recipe 函数，并且 `produce` 将返回一个应用 recipe 到基础状态的新函数。这允许我们缩短上述 `toggleTodo` 定义。
+
+```javascript
+import produce from "immer"
+
+// curried producer:
+const toggleTodo = produce((draft, id) => {
+	const todo = draft.find(todo => todo.id === id)
+	todo.done = !todo.done
+})
+
+const baseState = [
+	/* as is */
+]
+
+const nextState = toggleTodo(baseState, "Immer")
+```
+
+请注意，`id` 参数现在已成为 recipe 函数的一部分！这种拥有 curried producers 的模式与 React 中的 `useState` Hook 非常巧妙地结合在一起，我们将在下一页看到。

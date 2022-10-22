@@ -27,7 +27,7 @@ export function isDraftable(value: any): boolean {
 		isPlainObject(value) ||
 		Array.isArray(value) ||
 		!!value[DRAFTABLE] ||
-		!!value.constructor[DRAFTABLE] ||
+		!!value.constructor?.[DRAFTABLE] ||
 		isMap(value) ||
 		isSet(value)
 	)
