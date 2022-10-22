@@ -21,5 +21,6 @@ title: Built with Immer
 - [react-state-tree](https://github.com/suchipi/react-state-tree) _Drop-in replacement for useState that persists your state into a redux-like state tree_
 - [redux-immer](https://github.com/salvoravida/redux-immer) _is used to create an equivalent function of Redux combineReducers that works with `immer` state. Like `redux-immutable` but for `immer`_
 - [ngrx-wieder](https://github.com/nilsmehlhorn/ngrx-wieder) _Lightweight yet configurable solution for implementing undo-redo in Angular apps on top of NgRx and Immer_
+- [immer-yjs](https://github.com/sep2/immer-yjs) _Combine `immer` with CRDT library `y.js` for easy json data manipulation_
 - [immerhin](https://github.com/webstudio-is/immerhin) Sync state with undo/redo
 - ... and [many more](https://www.npmjs.com/browse/depended/immer)
