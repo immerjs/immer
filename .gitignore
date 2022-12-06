@@ -62,3 +62,4 @@ typings/
 website/build
 website/.docusaurus
 .rts2*
+.gitpod.yml
