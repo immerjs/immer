@@ -1304,9 +1304,11 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				draft.x = "s2"
 				draft.y = 1
 				draft.z = NaN
-				expect(draft[DRAFT_STATE].assigned_.x).toBe(true)
-				expect(draft[DRAFT_STATE].assigned_.y).toBe(undefined)
-				expect(draft[DRAFT_STATE].assigned_.z).toBe(undefined)
+				if (!isProd) {
+					expect(draft[DRAFT_STATE].assigned_.x).toBe(true)
+					expect(draft[DRAFT_STATE].assigned_.y).toBe(undefined)
+					expect(draft[DRAFT_STATE].assigned_.z).toBe(undefined)
+				}
 			})
 			expect(nextState.x).toBe("s2")
 		})
