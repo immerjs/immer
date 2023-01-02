@@ -254,7 +254,7 @@ export interface IProduceWithPatches {
 /**
  * The type for `recipe function`
  */
-export type IProducer<T> = (draft: Draft<T>) => ValidRecipeReturnType<Draft<T>> | Promise<ValidRecipeReturnType<Draft<T>>>
+export type Producer<T> = (draft: Draft<T>) => ValidRecipeReturnType<Draft<T>> | Promise<ValidRecipeReturnType<Draft<T>>>
 
 // Fixes #507: bili doesn't export the types of this file if there is no actual source in it..
 // hopefully it get's tree-shaken away for everyone :)
