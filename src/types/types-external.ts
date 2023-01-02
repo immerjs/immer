@@ -219,7 +219,7 @@ export interface IProduce {
 		listener?: PatchListener
 	): Base
 
-	/** Promisified dormal producer */
+	/** Promisified normal producer */
 	<Base, D = Draft<Base>>(
 		base: Base,
 		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
