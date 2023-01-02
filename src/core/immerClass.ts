@@ -59,7 +59,7 @@ export class Immer implements ProducersFns {
 	 * Note: This function is __bound__ to its `Immer` instance.
 	 *
 	 * @param {any} base - the initial state
-	 * @param {Function} producer - function that receives a proxy of the base state as first argument and which can be freely modified
+	 * @param {Function} recipe - function that receives a proxy of the base state as first argument and which can be freely modified
 	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
 	 * @returns {any} a new state, or the initial state if nothing was modified
 	 */
@@ -127,10 +127,7 @@ export class Immer implements ProducersFns {
 		} else die(21, base)
 	}
 
-	produceWithPatches: IProduceWithPatches = (
-		base: any,
-		recipe?: any,
-	): any => {
+	produceWithPatches: IProduceWithPatches = (base: any, recipe?: any): any => {
 		// curried invocation
 		if (typeof base === "function") {
 			return (state: any, ...args: any[]) =>
