@@ -1278,8 +1278,20 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			const nextState = produce(baseState, draft => {
 				draft.x = +0
 			})
+			// 0 === -0 // true
+			// Object.is(0, -0) // false
+			//
+			// MWE:
+			// Immer preserves the difference between -0 and +0,
+			// so a new state is created.
+			// This isn't defined anywhere explicitly, so could be changed
+			// in the future to follow === behavior, rather than Object.is.
+			// But I think this is fine as is.
 			expect(nextState).not.toBe(baseState)
-			expect(nextState).not.toEqual(baseState)
+			expect(nextState.x).toBe(-0)
+			expect(nextState.x).not.toBe(+0)
+			// however, toEqual treats -0 === +0 (which is true!)
+			expect(nextState).toEqual(baseState)
 		})
 
 		it("should handle equality correctly - 3", () => {
