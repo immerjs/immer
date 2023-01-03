@@ -23,10 +23,6 @@ module.exports = {
 			textColor: "#fff",
 			isCloseable: false
 		},
-		googleAnalytics: {
-			trackingID: "UA-65632006-3",
-			anonymizeIP: true
-		},
 		navbar: {
 			title: "Immer",
 			style: "dark",
@@ -90,7 +86,13 @@ module.exports = {
 				anonymizeIP: true
 			}
 		],
-		"@docusaurus/plugin-google-analytics",
+		[
+			"@docusaurus/plugin-google-analytics",
+			{
+				trackingID: "UA-65632006-3",
+				anonymizeIP: true
+			}
+		],
 		[
 			"@docusaurus/plugin-client-redirects",
 			{
