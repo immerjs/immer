@@ -1,31 +1,25 @@
 import {
-	IProduceWithPatches,
-	IProduce,
-	ImmerState,
-	Drafted,
-	isDraftable,
-	processResult,
-	Patch,
-	Objectish,
-	DRAFT_STATE,
 	Draft,
-	PatchListener,
-	isDraft,
-	isMap,
-	isSet,
-	createProxyProxy,
-	getPlugin,
-	die,
-	hasProxies,
+	IProduce,
+	IProduceWithPatches,
+	Patch,
+	PatchListener
+} from "../types/types-external"
+import {Drafted, ImmerState, Objectish} from "../types/types-internal"
+import {freeze, isDraft, isDraftable, isMap, isSet} from "../utils/common"
+import {DRAFT_STATE, hasProxies, NOTHING} from "../utils/env"
+import {die} from "../utils/errors"
+import {getPlugin} from "../utils/plugins"
+import {current} from "./current"
+import {processResult} from "./finalize"
+import {createProxyProxy} from "./proxy"
+import {
 	enterScope,
-	revokeScope,
-	leaveScope,
-	usePatchesInScope,
 	getCurrentScope,
-	NOTHING,
-	freeze,
-	current
-} from "../internal"
+	leaveScope,
+	revokeScope,
+	usePatchesInScope
+} from "./scope"
 
 interface ProducersFns {
 	produce: IProduce

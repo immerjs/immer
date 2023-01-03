@@ -1,14 +1,9 @@
-import {
-	Patch,
-	PatchListener,
-	Drafted,
-	Immer,
-	DRAFT_STATE,
-	ImmerState,
-	ProxyType,
-	getPlugin
-} from "../internal"
+import {Patch, PatchListener} from "../types/types-external"
+import {Drafted, ImmerState, ProxyType} from "../types/types-internal"
+import {DRAFT_STATE} from "../utils/env"
 import {die} from "../utils/errors"
+import {getPlugin} from "../utils/plugins"
+import {Immer} from "./immerClass"
 
 /** Each scope represents a `produce` call. */
 

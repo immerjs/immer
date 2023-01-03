@@ -1,17 +1,14 @@
 import {
-	DRAFT_STATE,
-	DRAFTABLE,
-	hasSet,
-	Objectish,
-	Drafted,
-	AnyObject,
 	AnyMap,
+	AnyObject,
 	AnySet,
-	ImmerState,
-	hasMap,
 	Archtype,
-	die
-} from "../internal"
+	Drafted,
+	ImmerState,
+	Objectish
+} from "../types/types-internal"
+import {DRAFTABLE, DRAFT_STATE, hasMap, hasSet} from "./env"
+import {die} from "./errors"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/

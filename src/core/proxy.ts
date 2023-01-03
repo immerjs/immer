@@ -1,22 +1,17 @@
 import {
-	each,
-	has,
-	is,
-	isDraftable,
-	shallowCopy,
-	latest,
+	AnyArray,
+	AnyObject,
+	Drafted,
 	ImmerBaseState,
 	ImmerState,
-	Drafted,
-	AnyObject,
-	AnyArray,
 	Objectish,
-	getCurrentScope,
-	DRAFT_STATE,
-	die,
-	createProxy,
 	ProxyType
-} from "../internal"
+} from "../types/types-internal"
+import {each, has, is, isDraftable, latest, shallowCopy} from "../utils/common"
+import {DRAFT_STATE} from "../utils/env"
+import {die} from "../utils/errors"
+import {createProxy} from "./immerClass"
+import {getCurrentScope} from "./scope"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {

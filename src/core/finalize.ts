@@ -1,23 +1,18 @@
+import {ImmerState, ProxyType} from "../types/types-internal"
 import {
-	ImmerScope,
-	DRAFT_STATE,
-	isDraftable,
-	NOTHING,
-	PatchPath,
 	each,
-	has,
 	freeze,
-	ImmerState,
+	has,
 	isDraft,
-	SetState,
-	set,
-	ProxyType,
-	getPlugin,
-	die,
-	revokeScope,
+	isDraftable,
 	isFrozen,
+	set,
 	shallowCopy
-} from "../internal"
+} from "../utils/common"
+import {DRAFT_STATE, NOTHING} from "../utils/env"
+import {die} from "../utils/errors"
+import {getPlugin, PatchPath, SetState} from "../utils/plugins"
+import {ImmerScope, revokeScope} from "./scope"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length

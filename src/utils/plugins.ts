@@ -1,15 +1,15 @@
+import {ImmerScope} from "../core/scope"
+import {Patch} from "../types/types-external"
 import {
-	ImmerState,
-	Patch,
-	ImmerScope,
-	Drafted,
-	AnyObject,
-	ImmerBaseState,
 	AnyMap,
+	AnyObject,
 	AnySet,
-	ProxyType,
-	die
-} from "../internal"
+	Drafted,
+	ImmerBaseState,
+	ImmerState,
+	ProxyType
+} from "../types/types-internal"
+import {die} from "./errors"
 
 /** Plugin utilities */
 const plugins: {

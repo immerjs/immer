@@ -1,28 +1,27 @@
+import {ProxyArrayState, ProxyObjectState} from "../core/proxy"
 import {immerable} from "../immer"
+import {Patch} from "../types/types-external"
+import {Archtype, ImmerState, ProxyType} from "../types/types-internal"
 import {
-	ImmerState,
-	Patch,
-	SetState,
-	ES5ArrayState,
-	ProxyArrayState,
-	MapState,
-	ES5ObjectState,
-	ProxyObjectState,
-	PatchPath,
-	get,
 	each,
-	has,
+	get,
 	getArchtype,
-	isSet,
-	isMap,
-	loadPlugin,
-	ProxyType,
-	Archtype,
-	die,
+	has,
 	isDraft,
 	isDraftable,
-	NOTHING
-} from "../internal"
+	isMap,
+	isSet
+} from "../utils/common"
+import {NOTHING} from "../utils/env"
+import {die} from "../utils/errors"
+import {
+	ES5ArrayState,
+	ES5ObjectState,
+	loadPlugin,
+	MapState,
+	PatchPath,
+	SetState
+} from "../utils/plugins"
 
 export function enablePatches() {
 	const REPLACE = "replace"
