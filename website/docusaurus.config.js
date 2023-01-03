@@ -86,7 +86,7 @@ module.exports = {
 		[
 			"@docusaurus/plugin-google-gtag",
 			{
-				trackingID: "G-347997629",
+				trackingID: "G-X43066885W",
 				anonymizeIP: true
 			}
 		],
