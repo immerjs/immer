@@ -83,6 +83,13 @@ module.exports = {
 				routeBasePath: "/"
 			}
 		],
+		[
+			"@docusaurus/plugin-google-gtag",
+			{
+				trackingID: "G-347997629",
+				anonymizeIP: true
+			}
+		],
 		"@docusaurus/plugin-google-analytics",
 		[
 			"@docusaurus/plugin-client-redirects",

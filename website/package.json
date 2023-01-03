@@ -14,6 +14,7 @@
     "@docusaurus/plugin-client-redirects": "2.0.0-alpha.70",
     "@docusaurus/plugin-content-docs": "2.0.0-alpha.70",
     "@docusaurus/plugin-google-analytics": "2.0.0-alpha.70",
+    "@docusaurus/plugin-google-gtag": "^2.2.0",
     "@docusaurus/plugin-sitemap": "2.0.0-alpha.70",
     "@docusaurus/theme-classic": "2.0.0-alpha.70",
     "react": "^16.8.4",
