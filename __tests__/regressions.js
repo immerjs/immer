@@ -251,5 +251,25 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				baz: undefined
 			})
 		})
+
+		test("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
+			const state = {
+				foo: {
+					bar: {
+						baz: "banana"
+					}
+				}
+			}
+			const newState = produce(state, draft => {
+				draft.foo = produce(draft.foo, fooDraft => {
+					fooDraft.baz = fooDraft.bar.baz.replace("banana", "apple")
+				})
+				draft.foo = produce(draft.foo, fooDraft => {
+					/* another produce call makes this fail */
+					/* no actual mutation necessary to make this happen */
+				})
+			})
+			JSON.stringify(newState)
+		})
 	})
 }
