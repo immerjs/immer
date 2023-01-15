@@ -87,12 +87,17 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 				: state.copy_
 		// Finalize all children of the copy
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
-		// Although the original test case doesn't seem valid anyway, so if this in the way we can turn the next line
-		// back to each(result, ....)
-		each(
-			state.type_ === ProxyType.Set ? new Set(result) : result,
-			(key, childValue) =>
-				finalizeProperty(rootScope, state, result, key, childValue, path)
+		// To preserve insertion order in all cases we then clear the set
+		// And we let finalizeProperty know it needs to re-add non-draft children back to the target
+		let resultEach = result
+		let isSet = false
+		if (state.type_ === ProxyType.Set) {
+			resultEach = new Set(result)
+			result.clear()
+			isSet = true
+		}
+		each(resultEach, (key, childValue) =>
+			finalizeProperty(rootScope, state, result, key, childValue, path, isSet)
 		)
 		// everything inside is frozen, we can freeze here
 		maybeFreeze(rootScope, result, false)
@@ -115,7 +120,8 @@ function finalizeProperty(
 	targetObject: any,
 	prop: string | number,
 	childValue: any,
-	rootPath?: PatchPath
+	rootPath?: PatchPath,
+	targetIsSet?: boolean
 ) {
 	if (__DEV__ && childValue === targetObject) die(5)
 	if (isDraft(childValue)) {
@@ -134,6 +140,8 @@ function finalizeProperty(
 		if (isDraft(res)) {
 			rootScope.canAutoFreeze_ = false
 		} else return
+	} else if (targetIsSet) {
+		targetObject.add(childValue)
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
 	if (isDraftable(childValue) && !isFrozen(childValue)) {
