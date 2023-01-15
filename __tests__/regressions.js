@@ -252,7 +252,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		test("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
+		test.only("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
 			const state = {
 				foo: {
 					bar: {
@@ -267,9 +267,15 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				draft.foo = produce(draft.foo, fooDraft => {
 					/* another produce call makes this fail */
 					/* no actual mutation necessary to make this happen */
+					// This happened before becouse the outer object is not modified,
+					// so assumed to be safely freezable by Immer, while it actually still
+					// contains a draft of bar, which wasn't retracted since we don't do that in nested
+					// producers, as it can still be modified outside a produce
 				})
 			})
-			JSON.stringify(newState)
+			expect(newState).toEqual({
+				foo: {baz: "apple", bar: {baz: "banana"}}
+			})
 		})
 	})
 }

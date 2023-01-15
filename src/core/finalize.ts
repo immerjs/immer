@@ -161,7 +161,8 @@ function finalizeProperty(
 }
 
 function maybeFreeze(scope: ImmerScope, value: any, deep = false) {
-	if (scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
+	// we never freeze for a non-root scope; as it would prevent pruning for drafts inside wrapping objects
+	if (!scope.parent_ && scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
 		freeze(value, deep)
 	}
 }
