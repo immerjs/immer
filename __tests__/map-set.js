@@ -295,6 +295,41 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 			expect(mapType1).toBe(mapType2)
 		})
+
+		test("#819 - Set with object maintains order when adding object", () => {
+			const items = [
+				{
+					id: "a"
+				},
+				{
+					id: "b"
+				}
+			]
+
+			const set = new Set([items[0]])
+			const newSet = produce(set, draft => {
+				draft.add(items[1])
+			})
+
+			expect(Array.from(newSet)).toEqual([items[0], items[1]])
+		})
+
+		// More specific varaint of above test covering case of adding non-object item
+		test("#819 - Set with object maintains order when adding string", () => {
+			const items = [
+				{
+					id: "a"
+				},
+				"b"
+			]
+
+			const set = new Set([items[0]])
+			const newSet = produce(set, draft => {
+				draft.add(items[1])
+			})
+
+			expect(Array.from(newSet)).toEqual([items[0], items[1]])
+		})
 	})
 	describe("set issues " + name, () => {
 		test("#819.A - maintains order when adding", () => {
