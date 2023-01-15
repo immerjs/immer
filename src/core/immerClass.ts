@@ -88,6 +88,8 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
+			//when base is a draft,can't freeze
+			scope.canAutoFreeze_ = !isDraft(base)
 			const proxy = createProxy(this, base, undefined)
 			let hasError = true
 			try {
