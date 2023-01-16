@@ -30,9 +30,7 @@ export type IfAvailable<T, Fallback = void> =
  */
 type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
-export type WritableDraft<T> = {
-	-readonly [K in keyof T]: T[K] extends object ? Draft<T[K]> : T[K]
-}
+export type WritableDraft<T> = {-readonly [K in keyof T]: Draft<T[K]>}
 
 /** Convert a readonly type into a mutable type, if possible */
 export type Draft<T> = T extends PrimitiveType

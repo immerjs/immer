@@ -769,3 +769,17 @@ it("infers async curried", async () => {
 		assert(n, _ as ROState) // yay!
 	}
 }
+
+it("allows for mixed property value types", () => {
+	type TestReadonlyObject = {
+		readonly testObjectOrNull: {readonly testProperty: number} | null
+	}
+
+	const input: TestReadonlyObject = {testObjectOrNull: null}
+
+	produce(input, draft => {
+		if (draft.testObjectOrNull) {
+			draft.testObjectOrNull.testProperty = 5
+		}
+	})
+})
