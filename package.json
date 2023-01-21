@@ -85,7 +85,6 @@
     "deep-freeze": "^0.0.1",
     "flow-bin": "^0.123.0",
     "husky": "^1.2.0",
-    "immutability-helper": "^3.1.1",
     "immutable": "^3.8.2",
     "import-size": "^1.0.2",
     "jest": "^25.1.0",
