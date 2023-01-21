@@ -7,6 +7,7 @@ import produce, {
 } from "../dist/immer.cjs.production.min.js"
 import cloneDeep from "lodash.clonedeep"
 import * as Immutable from "immutable"
+import update from "immutability-helper"
 
 enableAllPlugins()
 
@@ -69,6 +70,25 @@ measure(
 				map: state.map.set(i, createTestObject())
 			}
 		}
+	}
+)
+
+measure(
+	"immutability-helper",
+	() => cloneDeep(baseState),
+	state => {
+		const idsToPush = []
+		const objectsToMerge = {}
+
+		for (let i = 0; i < MAX; i++) {
+			idsToPush.push(i)
+			objectsToMerge[i] = createTestObject()
+		}
+
+		update(state, {
+			ids: {$push: idsToPush},
+			map: {$merge: objectsToMerge}
+		})
 	}
 )
 
