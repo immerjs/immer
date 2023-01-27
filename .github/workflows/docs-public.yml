@@ -4,7 +4,7 @@ name: Public docs
 
 on:
   push:
-    branches: [ master ]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,5 +30,3 @@ jobs:
           build_dir: website/build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-         

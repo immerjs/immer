@@ -75,7 +75,7 @@ module.exports = {
 			"@docusaurus/plugin-content-docs",
 			{
 				sidebarPath: require.resolve("./sidebars.js"),
-				editUrl: "https://github.com/immerjs/immer/edit/master/website/",
+				editUrl: "https://github.com/immerjs/immer/edit/main/website/",
 				routeBasePath: "/"
 			}
 		],

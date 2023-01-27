@@ -9,7 +9,8 @@ title: Immer 性能
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io 第5课: 在 React 中利用 Immer 的结构共享
 	</summary>
@@ -28,7 +29,8 @@ title: Immer 性能
 	>
 		Hosted on egghead.io
 	</a>
-</details> <details>
+</details>
+<details>
 	<summary className="egghead-summary">
 		egghead.io 第7课: 如果没有语义变化，Immer 会使用原先的数据
 	</summary>
@@ -49,7 +51,7 @@ title: Immer 性能
 	</a>
 </details>
 
-这是一个关于 Immer 性能的 [简单 benchmark](https://github.com/immerjs/immer/blob/master/__performance_tests__/todo.js) 。该测试需要 50,000 个待办事项并更新其中的 5,000 个。 _Freeze_ 表示状态树在生成后已被冻结。这是一种开发最佳实践，因为它可以防止开发人员意外修改状态树。
+这是一个关于 Immer 性能的 [简单 benchmark](https://github.com/immerjs/immer/blob/main/__performance_tests__/todo.js) 。该测试需要 50,000 个待办事项并更新其中的 5,000 个。 _Freeze_ 表示状态树在生成后已被冻结。这是一种开发最佳实践，因为它可以防止开发人员意外修改状态树。
 
 上面的数字没有反映一些东西，但实际上，Immer 有时比手写的 reducer _快_ 得多。这样做的原因是，Immer 会检测“无操作”状态变化，如果实际上没有任何变化，则返回原始状态，这可以避免很多重新渲染。众所周知，只需应用 immer 即可解决关键性能问题。
 
@@ -68,7 +70,7 @@ title: Immer 性能
 
 ### 预冻结数据
 
-当向 Immer producer 中的状态树添加大型数据集时（例如从 JSON 端点接收的数据），可以在首先添加的数据的根上调用 `freeze(json)` ，来_浅冻结_它。这将允许 Immer 更快地将新数据添加到树中，因为它将避免_递归_扫描和冻结新数据的需要。
+当向 Immer producer 中的状态树添加大型数据集时（例如从 JSON 端点接收的数据），可以在首先添加的数据的根上调用 `freeze(json)` ，来*浅冻结*它。这将允许 Immer 更快地将新数据添加到树中，因为它将避免*递归*扫描和冻结新数据的需要。
 
 ### 您可以随时选择退出
 
