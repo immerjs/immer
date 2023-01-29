@@ -58,13 +58,14 @@ console.log(clock2 instanceof Clock) // true
 
 The semantics on how classes are drafted are as follows:
 
+0. This description is valid only if strict shallow copy is enabled via `setUseStrictShallowCopy(true)`.
 1. A draft of a class is a fresh object but with the same prototype as the original object.
-2. When creating a draft, Immer will copy all _own_ properties from the base to the draft.This includes non-enumerable and symbolic properties.
-3. _Own_ getters will be invoked during the copy process, just like `Object.assign` would.
-4. Inherited getters and methods will remain as is and be inherited by the draft.
-5. Immer will not invoke constructor functions.
-6. The final instance will be constructed with the same mechanism as the draft was created.
-7. Only getters that have a setter as well will be writable in the draft, as otherwise the value can't be copied back.
+1. When creating a draft, Immer will copy all _own_ properties from the base to the draft.This includes non-enumerable and symbolic properties.
+1. _Own_ getters will be invoked during the copy process, just like `Object.assign` would.
+1. Inherited getters and methods will remain as is and be inherited by the draft.
+1. Immer will not invoke constructor functions.
+1. The final instance will be constructed with the same mechanism as the draft was created.
+1. Only getters that have a setter as well will be writable in the draft, as otherwise the value can't be copied back.
 
 Because Immer will dereference own getters of objects into normal properties, it is possible to use objects that use getter/setter traps on their fields, like MobX and Vue do.
 
