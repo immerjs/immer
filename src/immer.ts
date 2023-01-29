@@ -68,9 +68,9 @@ export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 export const setUseProxies = immer.setUseProxies.bind(immer)
 
 /**
- * Pass false to disable strict shallow copy.
+ * Pass true to enable strict shallow copy.
  *
- * By default, immer copies the object descriptors on creating new object.
+ * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
 export const setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer)
 

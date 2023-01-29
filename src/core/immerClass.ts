@@ -37,7 +37,7 @@ export class Immer implements ProducersFns {
 
 	autoFreeze_: boolean = true
 
-	useStrictShallowCopy_: boolean = true
+	useStrictShallowCopy_: boolean = false
 
 	constructor(config?: {
 		useProxies?: boolean
@@ -204,9 +204,9 @@ export class Immer implements ProducersFns {
 	}
 
 	/**
-	 * Pass false to disable strict shallow copy.
+	 * Pass true to enable strict shallow copy.
 	 *
-	 * By default, immer copies the object descriptors on creating new object.
+	 * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
 	 */
 	setUseStrictShallowCopy(value: boolean) {
 		this.useStrictShallowCopy_ = value
