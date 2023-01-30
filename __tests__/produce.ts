@@ -289,23 +289,6 @@ it("can return the draft itself", () => {
 	assert(result, _ as {readonly a: number})
 })
 
-it("can return a promise", () => {
-	type Base = {readonly a: number}
-	let base = {a: 0} as Base
-
-	// Return a promise only.
-	let res1 = produce(base, draft => {
-		return Promise.resolve(draft)
-	})
-	assert(res1, _ as Promise<Base>)
-
-	// Return a promise or undefined.
-	let res2 = produce(base, draft => {
-		return Promise.resolve()
-	})
-	assert(res2, _ as Promise<Base>)
-})
-
 it("works with `void` hack", () => {
 	let base = {a: 0} as {readonly a: number}
 	let copy = produce(base, s => void s.a++)
@@ -622,31 +605,6 @@ it("infers curried", () => {
 		fn({title: "test"})
 		// @ts-expect-error
 		fn(3)
-	}
-})
-
-it("infers async curried", async () => {
-	type Todo = {title: string}
-	{
-		const fn = produce(async (draft: Todo) => {
-			let x: string = draft.title
-		})
-
-		const res = await fn({title: "test"})
-		// @ts-expect-error
-		fn(3)
-		assert(res, _ as Todo)
-	}
-	{
-		const fn = produce(async (draft: Todo) => {
-			let x: string = draft.title
-			return draft
-		})
-
-		const res = await fn({title: "test"})
-		// @ts-expect-error
-		fn(3)
-		assert(res, _ as Todo)
 	}
 })
 

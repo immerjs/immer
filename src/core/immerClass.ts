@@ -98,18 +98,6 @@ export class Immer implements ProducersFns {
 				if (hasError) revokeScope(scope)
 				else leaveScope(scope)
 			}
-			if (typeof Promise !== "undefined" && result instanceof Promise) {
-				return result.then(
-					result => {
-						usePatchesInScope(scope, patchListener)
-						return processResult(result, scope)
-					},
-					error => {
-						revokeScope(scope)
-						throw error
-					}
-				)
-			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
 		} else if (!base || typeof base !== "object") {
@@ -139,10 +127,6 @@ export class Immer implements ProducersFns {
 			patches = p
 			inversePatches = ip
 		})
-
-		if (typeof Promise !== "undefined" && result instanceof Promise) {
-			return result.then(nextState => [nextState, patches!, inversePatches!])
-		}
 		return [result, patches!, inversePatches!]
 	}
 
