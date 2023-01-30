@@ -8,7 +8,7 @@ import {
 	set,
 	ImmerState,
 	isDraftable,
-	Archtype,
+	ArchType,
 	getArchtype
 } from "../internal"
 
@@ -39,15 +39,15 @@ function currentImpl(value: any): any {
 		set(copy, key, currentImpl(childValue))
 	})
 	// In the future, we might consider freezing here, based on the current settings
-	return archType === Archtype.Set ? new Set(copy) : copy
+	return archType === ArchType.Set ? new Set(copy) : copy
 }
 
 function copyHelper(value: any, archType: number): any {
 	// creates a shallow copy, even if it is a map or set
 	switch (archType) {
-		case Archtype.Map:
+		case ArchType.Map:
 			return new Map(value)
-		case Archtype.Set:
+		case ArchType.Set:
 			// Set will be cloned as array temporarily, so that we can replace individual items
 			return Array.from(value)
 	}

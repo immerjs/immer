@@ -7,7 +7,7 @@ import {
 	AnyMap,
 	AnySet,
 	ImmerState,
-	Archtype,
+	ArchType,
 	die
 } from "../internal"
 
@@ -69,7 +69,7 @@ export function each<T extends Objectish>(
 	enumerableOnly?: boolean
 ): void
 export function each(obj: any, iter: any, enumerableOnly = false) {
-	if (getArchtype(obj) === Archtype.Object) {
+	if (getArchtype(obj) === ArchType.Object) {
 		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
 			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
 		})
@@ -79,25 +79,22 @@ export function each(obj: any, iter: any, enumerableOnly = false) {
 }
 
 /*#__PURE__*/
-export function getArchtype(thing: any): Archtype {
-	/* istanbul ignore next */
+export function getArchtype(thing: any): ArchType {
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
-		? state.type_ > 3
-			? state.type_ - 4 // cause Object and Array map back from 4 and 5
-			: (state.type_ as any) // others are the same
+		? state.type_
 		: Array.isArray(thing)
-		? Archtype.Array
+		? ArchType.Array
 		: isMap(thing)
-		? Archtype.Map
+		? ArchType.Map
 		: isSet(thing)
-		? Archtype.Set
-		: Archtype.Object
+		? ArchType.Set
+		: ArchType.Object
 }
 
 /*#__PURE__*/
 export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === Archtype.Map
+	return getArchtype(thing) === ArchType.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
@@ -105,14 +102,14 @@ export function has(thing: any, prop: PropertyKey): boolean {
 /*#__PURE__*/
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 	// @ts-ignore
-	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
+	return getArchtype(thing) === ArchType.Map ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	const t = getArchtype(thing)
-	if (t === Archtype.Map) thing.set(propOrOldValue, value)
-	else if (t === Archtype.Set) {
+	if (t === ArchType.Map) thing.set(propOrOldValue, value)
+	else if (t === ArchType.Set) {
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }

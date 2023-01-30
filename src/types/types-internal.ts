@@ -15,14 +15,7 @@ export type AnyArray = Array<any>
 export type AnySet = Set<any>
 export type AnyMap = Map<any, any>
 
-export const enum Archtype {
-	Object,
-	Array,
-	Map,
-	Set
-}
-
-export const enum ProxyType {
+export const enum ArchType {
 	Object,
 	Array,
 	Map,

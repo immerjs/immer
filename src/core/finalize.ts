@@ -11,7 +11,7 @@ import {
 	isDraft,
 	SetState,
 	set,
-	ProxyType,
+	ArchType,
 	getPlugin,
 	die,
 	revokeScope,
@@ -84,7 +84,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 		// And we let finalizeProperty know it needs to re-add non-draft children back to the target
 		let resultEach = result
 		let isSet = false
-		if (state.type_ === ProxyType.Set) {
+		if (state.type_ === ArchType.Set) {
 			resultEach = new Set(result)
 			result.clear()
 			isSet = true
@@ -121,7 +121,7 @@ function finalizeProperty(
 		const path =
 			rootPath &&
 			parentState &&
-			parentState!.type_ !== ProxyType.Set && // Set objects are atomic since they have no keys.
+			parentState!.type_ !== ArchType.Set && // Set objects are atomic since they have no keys.
 			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined

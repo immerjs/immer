@@ -5,7 +5,7 @@ import {
 	ImmerBaseState,
 	AnyMap,
 	AnySet,
-	ProxyType,
+	ArchType,
 	die
 } from "../internal"
 
@@ -54,7 +54,7 @@ export function loadPlugin<K extends keyof Plugins>(
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
-	type_: ProxyType.Map
+	type_: ArchType.Map
 	copy_: AnyMap | undefined
 	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
@@ -63,7 +63,7 @@ export interface MapState extends ImmerBaseState {
 }
 
 export interface SetState extends ImmerBaseState {
-	type_: ProxyType.Set
+	type_: ArchType.Set
 	copy_: AnySet | undefined
 	base_: AnySet
 	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set
