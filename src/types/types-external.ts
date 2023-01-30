@@ -1,4 +1,4 @@
-import {Nothing} from "../internal"
+import {NOTHING} from "../internal"
 
 type AnyFunc = (...args: any[]) => any
 
@@ -71,7 +71,7 @@ export interface Patch {
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
 /** Converts `nothing` into `undefined` */
-type FromNothing<T> = T extends Nothing ? undefined : T
+type FromNothing<T> = T extends typeof NOTHING ? undefined : T
 
 /** The inferred return type of `produce` */
 export type Produced<Base, Return> = Return extends void
@@ -87,11 +87,10 @@ type ValidRecipeReturnType<State> =
 	| State
 	| void
 	| undefined
-	| (State extends undefined ? Nothing : never)
+	| (State extends undefined ? typeof NOTHING : never)
 
 type ReturnTypeWithPatchesIfNeeded<
 	State,
-	Recipe extends AnyFunc,
 	UsePatches extends boolean
 > = UsePatches extends true ? PatchesTuple<State> : State
 
@@ -125,7 +124,7 @@ type InferCurriedFromRecipe<
 		? (
 				base: Immutable<DraftState>,
 				...args: RestArgs
-		  ) => ReturnTypeWithPatchesIfNeeded<DraftState, Recipe, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
+		  ) => ReturnTypeWithPatchesIfNeeded<DraftState, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
 		: never // incorrect return type
 	: never // not a function
 
@@ -140,7 +139,7 @@ type InferCurriedFromInitialStateAndRecipe<
 	? (
 			base?: State | undefined,
 			...args: RestArgs
-	  ) => ReturnTypeWithPatchesIfNeeded<State, Recipe, UsePatches>
+	  ) => ReturnTypeWithPatchesIfNeeded<State, UsePatches>
 	: never // recipe doesn't match initial state
 
 /**

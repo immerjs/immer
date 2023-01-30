@@ -13,14 +13,9 @@ enableAllPlugins()
 const isProd = process.env.NODE_ENV === "production"
 
 runTests("proxy", true)
-runTests("es5", false)
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("manual - " + name, () => {
-		beforeAll(() => {
-			setUseProxies(useProxies)
-		})
-
 		it("should check arguments", () => {
 			expect(() => createDraft(3)).toThrowErrorMatchingSnapshot()
 			const buf = Buffer.from([])

@@ -1,9 +1,7 @@
 import {
 	ImmerState,
 	Patch,
-	ImmerScope,
 	Drafted,
-	AnyObject,
 	ImmerBaseState,
 	AnyMap,
 	AnySet,
@@ -27,14 +25,6 @@ const plugins: {
 			inversePatches: Patch[]
 		): void
 		applyPatches_<T>(draft: T, patches: Patch[]): T
-	}
-	ES5?: {
-		willFinalizeES5_(scope: ImmerScope, result: any, isReplaced: boolean): void
-		createES5Proxy_<T>(
-			base: T,
-			parent?: ImmerState
-		): Drafted<T, ES5ObjectState | ES5ArrayState>
-		hasChanges_(state: ES5ArrayState | ES5ObjectState): boolean
 	}
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
@@ -61,29 +51,6 @@ export function loadPlugin<K extends keyof Plugins>(
 ): void {
 	if (!plugins[pluginKey]) plugins[pluginKey] = implementation
 }
-
-/** ES5 Plugin */
-
-interface ES5BaseState extends ImmerBaseState {
-	assigned_: {[key: string]: any}
-	parent_?: ImmerState
-	revoked_: boolean
-}
-
-export interface ES5ObjectState extends ES5BaseState {
-	type_: ProxyType.ES5Object
-	draft_: Drafted<AnyObject, ES5ObjectState>
-	base_: AnyObject
-	copy_: AnyObject | null
-}
-
-export interface ES5ArrayState extends ES5BaseState {
-	type_: ProxyType.ES5Array
-	draft_: Drafted<AnyObject, ES5ArrayState>
-	base_: any
-	copy_: any
-}
-
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {

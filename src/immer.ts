@@ -60,14 +60,6 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 
 /**
- * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
- * always faster than using ES5 proxies.
- *
- * By default, feature detection is used, so calling this is rarely necessary.
- */
-export const setUseProxies = immer.setUseProxies.bind(immer)
-
-/**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
@@ -111,7 +103,6 @@ export function castImmutable<T>(value: T): Immutable<T> {
 
 export {Immer}
 
-export {enableES5} from "./plugins/es5"
 export {enablePatches} from "./plugins/patches"
 export {enableMapSet} from "./plugins/mapset"
 export {enableAllPlugins} from "./plugins/all"

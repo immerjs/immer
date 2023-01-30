@@ -1,14 +1,12 @@
 import {
 	DRAFT_STATE,
 	DRAFTABLE,
-	hasSet,
 	Objectish,
 	Drafted,
 	AnyObject,
 	AnyMap,
 	AnySet,
 	ImmerState,
-	hasMap,
 	Archtype,
 	die
 } from "../internal"
@@ -61,26 +59,9 @@ export function original(value: Drafted<any>): any {
 }
 
 /*#__PURE__*/
-export const ownKeys: (target: AnyObject) => PropertyKey[] =
-	typeof Reflect !== "undefined" && Reflect.ownKeys
-		? Reflect.ownKeys
-		: typeof Object.getOwnPropertySymbols !== "undefined"
-		? obj =>
-				Object.getOwnPropertyNames(obj).concat(
-					Object.getOwnPropertySymbols(obj) as any
-				)
-		: /* istanbul ignore next */ Object.getOwnPropertyNames
+export const ownKeys: (target: AnyObject) => PropertyKey[] = Reflect.ownKeys
 
-export const getOwnPropertyDescriptors =
-	Object.getOwnPropertyDescriptors ||
-	function getOwnPropertyDescriptors(target: any) {
-		// Polyfill needed for Hermes and IE, see https://github.com/facebook/hermes/issues/274
-		const res: any = {}
-		ownKeys(target).forEach(key => {
-			res[key] = Object.getOwnPropertyDescriptor(target, key)
-		})
-		return res
-	}
+export const getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors
 
 export function each<T extends Objectish>(
 	obj: T,
@@ -148,12 +129,12 @@ export function is(x: any, y: any): boolean {
 
 /*#__PURE__*/
 export function isMap(target: any): target is AnyMap {
-	return hasMap && target instanceof Map
+	return target instanceof Map
 }
 
 /*#__PURE__*/
 export function isSet(target: any): target is AnySet {
-	return hasSet && target instanceof Set
+	return target instanceof Set
 }
 /*#__PURE__*/
 export function latest(state: ImmerState): any {

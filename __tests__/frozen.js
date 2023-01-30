@@ -11,12 +11,10 @@ enableAllPlugins()
 const {isFrozen} = Object
 
 runTests("proxy", true)
-runTests("es5", false)
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("auto freeze - " + name, () => {
 		beforeAll(() => {
-			setUseProxies(useProxies)
 			setAutoFreeze(true)
 		})
 

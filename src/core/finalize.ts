@@ -15,16 +15,13 @@ import {
 	getPlugin,
 	die,
 	revokeScope,
-	isFrozen,
-	shallowCopy
+	isFrozen
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
-	if (!scope.immer_.useProxies_)
-		getPlugin("ES5").willFinalizeES5_(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			revokeScope(scope)
@@ -80,11 +77,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	if (!state.finalized_) {
 		state.finalized_ = true
 		state.scope_.unfinalizedDrafts_--
-		const result =
-			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
-			state.type_ === ProxyType.ES5Object || state.type_ === ProxyType.ES5Array
-				? (state.copy_ = shallowCopy(state.draft_))
-				: state.copy_
+		const result = state.copy_
 		// Finalize all children of the copy
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
 		// To preserve insertion order in all cases we then clear the set

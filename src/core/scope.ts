@@ -76,10 +76,7 @@ export function enterScope(immer: Immer) {
 
 function revokeDraft(draft: Drafted) {
 	const state: ImmerState = draft[DRAFT_STATE]
-	if (
-		state.type_ === ProxyType.ProxyObject ||
-		state.type_ === ProxyType.ProxyArray
-	)
+	if (state.type_ === ProxyType.Object || state.type_ === ProxyType.Array)
 		state.revoke_()
 	else state.revoked_ = true
 }

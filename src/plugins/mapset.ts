@@ -8,7 +8,6 @@ import {
 	DRAFT_STATE,
 	getCurrentScope,
 	latest,
-	iteratorSymbol,
 	isDraftable,
 	createProxy,
 	loadPlugin,
@@ -143,7 +142,7 @@ export function enableMapSet() {
 				return value // either already drafted or reassigned
 			}
 			// despite what it looks, this creates a draft only once, see above condition
-			const draft = createProxy(state.scope_.immer_, value, state)
+			const draft = createProxy(value, state)
 			prepareMapCopy(state)
 			state.copy_!.set(key, draft)
 			return draft
@@ -156,7 +155,7 @@ export function enableMapSet() {
 		p.values = function(): IterableIterator<any> {
 			const iterator = this.keys()
 			return {
-				[iteratorSymbol]: () => this.values(),
+				[Symbol.iterator]: () => this.values(),
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -173,7 +172,7 @@ export function enableMapSet() {
 		p.entries = function(): IterableIterator<[any, any]> {
 			const iterator = this.keys()
 			return {
-				[iteratorSymbol]: () => this.entries(),
+				[Symbol.iterator]: () => this.entries(),
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -187,7 +186,7 @@ export function enableMapSet() {
 			} as any
 		}
 
-		p[iteratorSymbol] = function() {
+		p[Symbol.iterator] = function() {
 			return this.entries()
 		}
 
@@ -303,7 +302,7 @@ export function enableMapSet() {
 			return this.values()
 		}
 
-		p[iteratorSymbol] = function() {
+		p[Symbol.iterator] = function() {
 			return this.values()
 		}
 
@@ -330,7 +329,7 @@ export function enableMapSet() {
 			state.copy_ = new Set()
 			state.base_.forEach(value => {
 				if (isDraftable(value)) {
-					const draft = createProxy(state.scope_.immer_, value, state)
+					const draft = createProxy(value, state)
 					state.drafts_.set(value, draft)
 					state.copy_!.add(draft)
 				} else {

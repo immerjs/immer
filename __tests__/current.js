@@ -1,5 +1,4 @@
 import {
-	setUseProxies,
 	setAutoFreeze,
 	enableAllPlugins,
 	current,
@@ -12,15 +11,13 @@ import {
 enableAllPlugins()
 
 runTests("proxy", true)
-runTests("es5", false)
 
 const isProd = process.env.NODE_ENV === "production"
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("current - " + name, () => {
 		beforeAll(() => {
 			setAutoFreeze(true)
-			setUseProxies(useProxies)
 		})
 
 		it("must be called on draft", () => {

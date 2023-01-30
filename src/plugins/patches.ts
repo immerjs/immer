@@ -3,10 +3,8 @@ import {
 	ImmerState,
 	Patch,
 	SetState,
-	ES5ArrayState,
 	ProxyArrayState,
 	MapState,
-	ES5ObjectState,
 	ProxyObjectState,
 	PatchPath,
 	get,
@@ -36,8 +34,7 @@ export function enablePatches() {
 		inversePatches: Patch[]
 	): void {
 		switch (state.type_) {
-			case ProxyType.ProxyObject:
-			case ProxyType.ES5Object:
+			case ProxyType.Object:
 			case ProxyType.Map:
 				return generatePatchesFromAssigned(
 					state,
@@ -45,8 +42,7 @@ export function enablePatches() {
 					patches,
 					inversePatches
 				)
-			case ProxyType.ES5Array:
-			case ProxyType.ProxyArray:
+			case ProxyType.Array:
 				return generateArrayPatches(state, basePath, patches, inversePatches)
 			case ProxyType.Set:
 				return generateSetPatches(
@@ -59,7 +55,7 @@ export function enablePatches() {
 	}
 
 	function generateArrayPatches(
-		state: ES5ArrayState | ProxyArrayState,
+		state: ProxyArrayState,
 		basePath: PatchPath,
 		patches: Patch[],
 		inversePatches: Patch[]
@@ -115,7 +111,7 @@ export function enablePatches() {
 
 	// This is used for both Map objects and normal objects.
 	function generatePatchesFromAssigned(
-		state: MapState | ES5ObjectState | ProxyObjectState,
+		state: MapState | ProxyObjectState,
 		basePath: PatchPath,
 		patches: Patch[],
 		inversePatches: Patch[]

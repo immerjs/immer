@@ -22,20 +22,16 @@ test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
 
-runBaseTest("proxy (no freeze)", true, false)
-runBaseTest("proxy (autofreeze)", true, true)
-runBaseTest("proxy (patch listener)", true, false, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+runBaseTest("proxy (no freeze)", false)
+runBaseTest("proxy (autofreeze)", true)
+runBaseTest("proxy (patch listener)", false, true)
+runBaseTest("proxy (autofreeze)(patch listener)", true, true)
 
-runBaseTest("es5 (no freeze)", false, false)
-runBaseTest("es5 (autofreeze)", false, true)
-runBaseTest("es5 (patch listener)", false, false, true)
-runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+class Foo {}
 
-function runBaseTest(name, useProxies, autoFreeze, useListener) {
+function runBaseTest(name, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
-		useProxies,
 		autoFreeze
 	})
 
@@ -116,13 +112,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				s.anObject.test = true
 				delete s.anObject.test
 			})
-			if (useProxies) {
-				expect(nextState).not.toBe(baseState)
-				expect(nextState).toEqual(baseState)
-			} else {
-				// The copy is avoided in ES5.
-				expect(nextState).toBe(baseState)
-			}
+			expect(nextState).not.toBe(baseState)
+			expect(nextState).toEqual(baseState)
 		})
 
 		// Found by: https://github.com/mweststrate/immer/issues/328
@@ -142,13 +133,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				delete s.a
 				s.a = a
 			})
-			if (useProxies) {
-				expect(nextState).not.toBe(baseState)
-				expect(nextState).toEqual(baseState)
-			} else {
-				// The copy is avoided in ES5.
-				expect(nextState).toBe(baseState)
-			}
+			expect(nextState).not.toBe(baseState)
+			expect(nextState).toEqual(baseState)
 		})
 
 		it("can get property descriptors", () => {
@@ -159,7 +145,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const desc = {
 					configurable: true,
 					enumerable: true,
-					...(useProxies && {writable: true})
+					writable: true
 				}
 
 				// Known property
@@ -296,7 +282,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect("x" in nextState).toBeFalsy()
 			})
 
-			if (useProxies && !global.USES_BUILD) {
+			if (!global.USES_BUILD) {
 				it("throws when a non-numeric property is added", () => {
 					expect(() => {
 						produce([], d => {
@@ -1149,9 +1135,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		// NOTE: ES5 drafts only protect existing properties when revoked.
 		if (!isProd)
 			it("revokes the draft once produce returns", () => {
-				const expectRevoked = (fn, shouldThrow = true) => {
-					if (shouldThrow) expect(fn).toThrowErrorMatchingSnapshot()
-					else expect(fn).not.toThrow()
+				const expectRevoked = fn => {
+					expect(fn).toThrowErrorMatchingSnapshot()
 				}
 
 				// Test object drafts:
@@ -1174,12 +1159,12 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				// Access unknown property on object draft.
 				expectRevoked(() => {
 					draft.z
-				}, useProxies)
+				})
 
 				// Assign unknown property on object draft.
 				expectRevoked(() => {
 					draft.z = true
-				}, useProxies)
+				})
 
 				// Test array drafts:
 				produce([1, 2], s => {
@@ -1200,12 +1185,12 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				// Access unknown index of an array draft.
 				expectRevoked(() => {
 					draft[1]
-				}, useProxies)
+				})
 
 				// Assign unknown index of an array draft.
 				expectRevoked(() => {
 					draft[1] = true
-				}, useProxies)
+				})
 			})
 
 		it("can access a child draft that was created before the draft was modified", () => {
@@ -1233,18 +1218,17 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		if (useProxies)
-			it("throws when Object.defineProperty() is used on drafts", () => {
-				expect(() => {
-					produce({}, draft => {
-						Object.defineProperty(draft, "xx", {
-							enumerable: true,
-							writeable: true,
-							value: 2
-						})
+		it("throws when Object.defineProperty() is used on drafts", () => {
+			expect(() => {
+				produce({}, draft => {
+					Object.defineProperty(draft, "xx", {
+						enumerable: true,
+						writeable: true,
+						value: 2
 					})
-				}).toThrowErrorMatchingSnapshot()
-			})
+				})
+			}).toThrowErrorMatchingSnapshot()
+		})
 
 		it("should handle constructor correctly", () => {
 			const baseState = {
@@ -1431,7 +1415,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("works with interweaved Immer instances", () => {
-				const options = {useProxies, autoFreeze}
+				const options = {autoFreeze}
 				const one = createPatchedImmer(options)
 				const two = createPatchedImmer(options)
 
@@ -1452,14 +1436,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		if (useProxies)
-			it("throws when Object.setPrototypeOf() is used on a draft", () => {
-				produce({}, draft => {
-					expect(() =>
-						Object.setPrototypeOf(draft, Array)
-					).toThrowErrorMatchingSnapshot()
-				})
+		it("throws when Object.setPrototypeOf() is used on a draft", () => {
+			produce({}, draft => {
+				expect(() =>
+					Object.setPrototypeOf(draft, Array)
+				).toThrowErrorMatchingSnapshot()
 			})
+		})
 
 		it("supports the 'in' operator", () => {
 			produce(baseState, draft => {
@@ -1826,8 +1809,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState).toEqual({})
 			expect(patches).toEqual([])
 			// This differs between ES5 and proxy, and ES5 does it better :(
-			if (useProxies) expect(nextState).not.toBe(baseState)
-			else expect(nextState).toBe(baseState)
+			expect(nextState).not.toBe(baseState)
 		})
 
 		it("cannot produce undefined by returning undefined", () => {
@@ -1857,7 +1839,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(baseState).toEqual(createBaseState())
 		})
 
-		class Foo {}
 		function createBaseState() {
 			const data = {
 				anInstance: new Foo(),

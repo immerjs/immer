@@ -3,8 +3,6 @@ import {
 	ImmerScope,
 	ProxyObjectState,
 	ProxyArrayState,
-	ES5ObjectState,
-	ES5ArrayState,
 	MapState,
 	DRAFT_STATE
 } from "../internal"
@@ -25,12 +23,10 @@ export const enum Archtype {
 }
 
 export const enum ProxyType {
-	ProxyObject,
-	ProxyArray,
+	Object,
+	Array,
 	Map,
-	Set,
-	ES5Object,
-	ES5Array
+	Set
 }
 
 export interface ImmerBaseState {
@@ -44,8 +40,6 @@ export interface ImmerBaseState {
 export type ImmerState =
 	| ProxyObjectState
 	| ProxyArrayState
-	| ES5ObjectState
-	| ES5ArrayState
 	| MapState
 	| SetState
 

@@ -8,14 +8,9 @@ import produce, {
 enableAllPlugins()
 
 runTests("proxy", true)
-runTests("es5", false)
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("curry - " + name, () => {
-		beforeAll(() => {
-			setUseProxies(useProxies)
-		})
-
 		it("should check arguments", () => {
 			expect(() => produce()).toThrowErrorMatchingSnapshot()
 			expect(() => produce({})).toThrowErrorMatchingSnapshot()

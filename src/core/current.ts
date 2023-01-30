@@ -9,8 +9,7 @@ import {
 	ImmerState,
 	isDraftable,
 	Archtype,
-	getArchtype,
-	getPlugin
+	getArchtype
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
@@ -26,11 +25,7 @@ function currentImpl(value: any): any {
 	let copy: any
 	const archType = getArchtype(value)
 	if (state) {
-		if (
-			!state.modified_ &&
-			(state.type_ < 4 || !getPlugin("ES5").hasChanges_(state as any))
-		)
-			return state.base_
+		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
 		copy = copyHelper(value, archType)

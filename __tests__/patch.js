@@ -1,6 +1,5 @@
 "use strict"
 import produce, {
-	setUseProxies,
 	applyPatches,
 	produceWithPatches,
 	enableAllPlugins,
@@ -48,16 +47,7 @@ function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
 	}
 
 	describe(`proxy`, () => {
-		setUseProxies(true)
 		resultProxies = runPatchTestHelper()
-	})
-
-	describe(`es5`, () => {
-		setUseProxies(false)
-		resultEs5 = runPatchTestHelper()
-		test("ES5 and Proxy implementation yield same result", () => {
-			expect(resultEs5).toEqual(resultProxies)
-		})
 	})
 
 	return resultProxies
@@ -1056,13 +1046,7 @@ describe("#468", () => {
 		expect(final).toEqual(nextState)
 	}
 
-	test("es5", () => {
-		setUseProxies(false)
-		run()
-	})
-
 	test("proxy", () => {
-		setUseProxies(true)
 		run()
 	})
 })
@@ -1087,8 +1071,6 @@ test("#521", () => {
 })
 
 test("#559 patches works in a nested reducer with proxies", () => {
-	setUseProxies(true)
-
 	const state = {
 		x: 1,
 		sub: {

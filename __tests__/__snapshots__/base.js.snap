@@ -1,106 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`base functionality - es5 (autofreeze) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (autofreeze) recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
-
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 3`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (autofreeze) revokes the draft once produce returns 4`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (autofreeze) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 3`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) revokes the draft once produce returns 4`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (autofreeze)(patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (no freeze) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
-
-exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (no freeze) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (no freeze) recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (no freeze) recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
-
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 3`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (no freeze) revokes the draft once produce returns 4`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (no freeze) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (no freeze) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (no freeze) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (patch listener) async recipe function works with rejected promises 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":0,\\"b\\":1}"`;
-
-exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (patch listener) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (patch listener) recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
-exports[`base functionality - es5 (patch listener) recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
-
-exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {\\"a\\":1}"`;
-
-exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 3`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (patch listener) revokes the draft once produce returns 4`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? [1]"`;
-
-exports[`base functionality - es5 (patch listener) set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (patch listener) set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
-
-exports[`base functionality - es5 (patch listener) throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
-
 exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - proxy (autofreeze) array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
-
-exports[`base functionality - proxy (autofreeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
 exports[`base functionality - proxy (autofreeze) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
@@ -140,8 +42,6 @@ exports[`base functionality - proxy (autofreeze)(patch listener) array drafts th
 
 exports[`base functionality - proxy (autofreeze)(patch listener) array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
 
-exports[`base functionality - proxy (autofreeze)(patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
-
 exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - proxy (autofreeze)(patch listener) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
@@ -180,8 +80,6 @@ exports[`base functionality - proxy (no freeze) array drafts throws when a non-n
 
 exports[`base functionality - proxy (no freeze) array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
 
-exports[`base functionality - proxy (no freeze) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
-
 exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
 exports[`base functionality - proxy (no freeze) map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
@@ -219,8 +117,6 @@ exports[`base functionality - proxy (no freeze) throws when the draft is modifie
 exports[`base functionality - proxy (patch listener) array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - proxy (patch listener) array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
-
-exports[`base functionality - proxy (patch listener) async recipe function works with rejected promises 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
 exports[`base functionality - proxy (patch listener) map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
 
@@ -418,194 +314,6 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 8`] = `
-Array [
-  Object {
-    "op": "remove",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 1,
-    },
-  },
-  Object {
-    "op": "add",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 2,
-    },
-  },
-]
-`;
-
-exports[`complex nesting map / set / object modify deep object 9`] = `
-Object {
-  "map": Map {
-    "set1" => Set {
-      Object {
-        "a": 2,
-      },
-      Object {
-        "b": 2,
-      },
-    },
-    "set2" => Set {
-      Object {
-        "c": 3,
-      },
-    },
-  },
-}
-`;
-
-exports[`complex nesting map / set / object modify deep object 10`] = `
-Array [
-  Object {
-    "op": "remove",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 1,
-    },
-  },
-  Object {
-    "op": "add",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 2,
-    },
-  },
-]
-`;
-
-exports[`complex nesting map / set / object modify deep object 11`] = `
-Object {
-  "map": Map {
-    "set1" => Set {
-      Object {
-        "a": 2,
-      },
-      Object {
-        "b": 2,
-      },
-    },
-    "set2" => Set {
-      Object {
-        "c": 3,
-      },
-    },
-  },
-}
-`;
-
-exports[`complex nesting map / set / object modify deep object 12`] = `
-Array [
-  Object {
-    "op": "remove",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 1,
-    },
-  },
-  Object {
-    "op": "add",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 2,
-    },
-  },
-]
-`;
-
-exports[`complex nesting map / set / object modify deep object 13`] = `
-Object {
-  "map": Map {
-    "set1" => Set {
-      Object {
-        "a": 2,
-      },
-      Object {
-        "b": 2,
-      },
-    },
-    "set2" => Set {
-      Object {
-        "c": 3,
-      },
-    },
-  },
-}
-`;
-
-exports[`complex nesting map / set / object modify deep object 14`] = `
-Array [
-  Object {
-    "op": "remove",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 1,
-    },
-  },
-  Object {
-    "op": "add",
-    "path": Array [
-      "map",
-      "set1",
-      0,
-    ],
-    "value": Object {
-      "a": 2,
-    },
-  },
-]
-`;
-
-exports[`complex nesting map / set / object modify deep object 15`] = `
-Object {
-  "map": Map {
-    "set1" => Set {
-      Object {
-        "a": 2,
-      },
-      Object {
-        "b": 2,
-      },
-    },
-    "set2" => Set {
-      Object {
-        "c": 3,
-      },
-    },
-  },
-}
-`;
-
-exports[`complex nesting map / set / object modify deep object 16`] = `
 Array [
   Object {
     "op": "remove",

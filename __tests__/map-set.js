@@ -15,16 +15,12 @@ enableAllPlugins()
 jest.setTimeout(1000)
 
 runBaseTest("proxy (no freeze)", true, false)
-// runBaseTest("proxy (autofreeze)", true, true)
-// runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
-// runBaseTest("es5 (no freeze)", false, false)
-// runBaseTest("es5 (autofreeze)", false, true)
-// runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+runBaseTest("proxy (autofreeze)", true, true)
+runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
 
-function runBaseTest(name, useProxies, autoFreeze, useListener) {
+function runBaseTest(name, autoFreeze, useListener) {
 	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
-		useProxies,
 		autoFreeze
 	})
 

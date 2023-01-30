@@ -16,7 +16,6 @@ import {
 	createProxyProxy,
 	getPlugin,
 	die,
-	hasProxies,
 	enterScope,
 	revokeScope,
 	leaveScope,
@@ -33,13 +32,9 @@ interface ProducersFns {
 }
 
 export class Immer implements ProducersFns {
-	useProxies_: boolean = hasProxies
-
 	autoFreeze_: boolean = true
 
-	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
-		if (typeof config?.useProxies === "boolean")
-			this.setUseProxies(config!.useProxies)
+	constructor(config?: {autoFreeze?: boolean}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
 	}
@@ -88,7 +83,7 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
-			const proxy = createProxy(this, base, undefined)
+			const proxy = createProxy(base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -134,7 +129,7 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) die(8)
 		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
-		const proxy = createProxy(this, base, undefined)
+		const proxy = createProxy(base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
 		return proxy as any
@@ -161,19 +156,6 @@ export class Immer implements ProducersFns {
 	 */
 	setAutoFreeze(value: boolean) {
 		this.autoFreeze_ = value
-	}
-
-	/**
-	 * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
-	 * always faster than using ES5 proxies.
-	 *
-	 * By default, feature detection is used, so calling this is rarely necessary.
-	 */
-	setUseProxies(value: boolean) {
-		if (value && !hasProxies) {
-			die(20)
-		}
-		this.useProxies_ = value
 	}
 
 	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
@@ -206,7 +188,6 @@ export class Immer implements ProducersFns {
 }
 
 export function createProxy<T extends Objectish>(
-	immer: Immer,
 	value: T,
 	parent?: ImmerState
 ): Drafted<T, ImmerState> {
@@ -215,9 +196,7 @@ export function createProxy<T extends Objectish>(
 		? getPlugin("MapSet").proxyMap_(value, parent)
 		: isSet(value)
 		? getPlugin("MapSet").proxySet_(value, parent)
-		: immer.useProxies_
-		? createProxyProxy(value, parent)
-		: getPlugin("ES5").createES5Proxy_(value, parent)
+		: createProxyProxy(value, parent)
 
 	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)

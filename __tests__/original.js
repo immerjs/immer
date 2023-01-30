@@ -1,5 +1,5 @@
 "use strict"
-import produce, {original, setUseProxies, enableAllPlugins} from "../src/immer"
+import produce, {original, enableAllPlugins} from "../src/immer"
 
 enableAllPlugins()
 
@@ -12,16 +12,6 @@ describe("original", () => {
 	}
 
 	it("should return the original from the draft", () => {
-		setUseProxies(true)
-
-		produce(baseState, draftState => {
-			expect(original(draftState)).toBe(baseState)
-			expect(original(draftState.a)).toBe(baseState.a)
-			expect(original(draftState.b)).toBe(baseState.b)
-		})
-
-		setUseProxies(false)
-
 		produce(baseState, draftState => {
 			expect(original(draftState)).toBe(baseState)
 			expect(original(draftState.a)).toBe(baseState.a)
