@@ -952,6 +952,7 @@ function runBaseTest(
 					enumerable: false
 				})
 
+				// TODO: Should I change the implementation to make the behavior unambiguous?
 				const canReferNonEnumerableProperty = useProxies || useStrictShallowCopy
 				const nextState = produce(baseState, s => {
 					if (canReferNonEnumerableProperty) expect(s.foo).toBeTruthy()
