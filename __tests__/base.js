@@ -946,7 +946,7 @@ function runBaseTest(
 					value: 1,
 					enumerable: false
 				})
-				// Non-enumerable primitive property that don't refer
+				// Non-enumerable primitive property that won't modified.
 				Object.defineProperty(baseState, "baz", {
 					value: 1,
 					enumerable: false
