@@ -952,7 +952,7 @@ function runBaseTest(
 					enumerable: false
 				})
 
-				// TODO: Should I change the implementation to make the behavior unambiguous?
+				// When using Proxy, even non-enumerable keys will be copied if it's changed.
 				const canReferNonEnumerableProperty = useProxies || useStrictShallowCopy
 				const nextState = produce(baseState, s => {
 					if (canReferNonEnumerableProperty) expect(s.foo).toBeTruthy()
