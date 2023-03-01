@@ -223,8 +223,7 @@ each(objectTraps, (key, fn) => {
 })
 arrayTraps.deleteProperty = function(state, prop) {
 	if (__DEV__ && isNaN(parseInt(prop as any))) die(13)
-	// @ts-ignore
-	return arrayTraps.set!.call(this, state, prop, undefined)
+	return objectTraps.deleteProperty!.call(this, state[0], prop)
 }
 arrayTraps.set = function(state, prop, value) {
 	if (__DEV__ && prop !== "length" && isNaN(parseInt(prop as any))) die(14)

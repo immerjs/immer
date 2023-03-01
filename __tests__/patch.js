@@ -710,7 +710,7 @@ describe("arrays - splice (shrink)", () => {
 	)
 })
 
-describe("arrays - delete", () => {
+describe("arrays - delete property at index", () => {
 	runPatchTest(
 		{
 			x: [
@@ -1394,27 +1394,27 @@ test("#888 patch to a primitive produces the primitive", () => {
 	}
 })
 
-describe("#879 delete item from array", () => {
+describe("#879, #1019 delete item from array", () => {
 	runPatchTest(
 		[1, 2, 3],
 		draft => {
 			delete draft[1]
 		},
-		[{op: "replace", path: [1], value: undefined}],
+		[{op: "remove", path: [1]}],
 		[{op: "replace", path: [1], value: 2}],
-		[1, undefined, 3]
+		[1, , 3]
 	)
 })
 
-describe("#879 delete item from array - 2", () => {
+describe("#879, #1019 delete item from array - 2", () => {
 	runPatchTest(
 		[1, 2, 3],
 		draft => {
 			delete draft[2]
 		},
-		[{op: "replace", path: [2], value: undefined}],
+		[{op: "remove", path: [2]}],
 		[{op: "replace", path: [2], value: 3}],
-		[1, 2, undefined]
+		[1, 2, ,]
 	)
 })
 

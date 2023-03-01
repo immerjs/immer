@@ -90,6 +90,21 @@ export function enablePatches() {
 					path,
 					value: clonePatchValueIfNeeded(base_[i])
 				})
+			} else if (
+				// detecting `delete` ¡¡¡Use strict `false` check, NOT falsey!!!
+				assigned_[i] === false &&
+				// getting a hole returns undefined, use `hasOwnProperty` to detect holes
+				!copy_.hasOwnProperty(i) &&
+				// transitive assertion that `base_.hasOwnProperty(i)`
+				copy_[i] !== base_[i]
+			) {
+				const path = basePath.concat([i])
+				patches.push({op: REMOVE, path})
+				inversePatches.push({
+					op: REPLACE,
+					path,
+					value: clonePatchValueIfNeeded(base_[i])
+				})
 			}
 		}
 
@@ -253,7 +268,7 @@ export function enablePatches() {
 				case REMOVE:
 					switch (type) {
 						case Archtype.Array:
-							return base.splice(key as any, 1)
+							return delete base[key]
 						case Archtype.Map:
 							return base.delete(key)
 						case Archtype.Set:
