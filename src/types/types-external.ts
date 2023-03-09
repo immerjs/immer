@@ -43,9 +43,7 @@ export type Draft<T> = T extends PrimitiveType
 	? Set<Draft<V>>
 	: T extends WeakReferences
 	? T
-	: T extends object
-	? WritableDraft<T>
-	: T
+	: WritableDraft<T>
 
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends PrimitiveType
@@ -58,9 +56,7 @@ export type Immutable<T> = T extends PrimitiveType
 	? ReadonlySet<Immutable<V>>
 	: T extends WeakReferences
 	? T
-	: T extends object
-	? {readonly [K in keyof T]: Immutable<T[K]>}
-	: T
+	: {readonly [K in keyof T]: Immutable<T[K]>}
 
 export interface Patch {
 	op: "replace" | "remove" | "add"
