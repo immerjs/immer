@@ -214,6 +214,24 @@ describe("simple assignment - 7", () => {
 	)
 })
 
+describe("simple assignment - 8", () => {
+	runPatchTest(
+		new Map([[0, new Map([[1, 4]])]]),
+		d => {
+			d.get(0).set(1, 5)
+			d.get(0).set(2, 6)
+		},
+		[
+			{op: "replace", path: [0, 1], value: 5},
+			{op: "add", path: [0, 2], value: 6}
+		],
+		[
+			{op: "replace", path: [0, 1], value: 4},
+			{op: "remove", path: [0, 2]}
+		]
+	)
+})
+
 describe("delete 1", () => {
 	runPatchTest(
 		{x: {y: 4}},
