@@ -4,7 +4,7 @@ title: Built with Immer
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 - [react-copy-write](https://github.com/aweary/react-copy-write) _Immutable state with a mutable API_

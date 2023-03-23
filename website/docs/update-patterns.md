@@ -4,7 +4,7 @@ title: Update patterns
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 Working with immutable data, before Immer, used to mean learning all the immutable update patterns.
