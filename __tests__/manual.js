@@ -4,11 +4,8 @@ import {
 	createDraft,
 	finishDraft,
 	produce,
-	isDraft,
-	enableAllPlugins
+	isDraft
 } from "../src/immer"
-
-enableAllPlugins()
 
 const isProd = process.env.NODE_ENV === "production"
 

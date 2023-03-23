@@ -1,7 +1,5 @@
 "use strict"
-import {produce, original, enableAllPlugins} from "../src/immer"
-
-enableAllPlugins()
+import {produce, original} from "../src/immer"
 
 const isProd = process.env.NODE_ENV === "production"
 

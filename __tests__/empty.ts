@@ -1,13 +1,10 @@
 import {
 	produce,
 	produceWithPatches,
-	enableAllPlugins,
 	immerable,
 	applyPatches
 } from "../src/immer"
 import {DRAFT_STATE, Patch} from "../src/internal"
-
-enableAllPlugins()
 
 test("empty stub test", () => {
 	expect(true).toBe(true)

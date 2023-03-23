@@ -3,13 +3,10 @@ import {
 	produce,
 	applyPatches,
 	produceWithPatches,
-	enableAllPlugins,
 	isDraft,
 	immerable,
 	nothing
 } from "../src/immer"
-
-enableAllPlugins()
 
 jest.setTimeout(1000)
 

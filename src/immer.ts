@@ -104,4 +104,3 @@ export {Immer}
 
 export {enablePatches} from "./plugins/patches"
 export {enableMapSet} from "./plugins/mapset"
-export {enableAllPlugins} from "./plugins/all"

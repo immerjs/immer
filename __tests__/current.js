@@ -1,14 +1,11 @@
 import {
 	setAutoFreeze,
-	enableAllPlugins,
 	current,
 	immerable,
 	isDraft,
 	produce,
 	original
 } from "../src/immer"
-
-enableAllPlugins()
 
 runTests("proxy", true)
 

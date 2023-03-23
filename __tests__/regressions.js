@@ -1,14 +1,5 @@
 "use strict"
-import {
-	Immer,
-	nothing,
-	original,
-	isDraft,
-	immerable,
-	enableAllPlugins
-} from "../src/immer"
-
-enableAllPlugins()
+import {Immer, nothing, original, isDraft, immerable} from "../src/immer"
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)

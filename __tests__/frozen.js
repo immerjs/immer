@@ -1,13 +1,5 @@
 "use strict"
-import {
-	produce,
-	setUseProxies,
-	setAutoFreeze,
-	enableAllPlugins,
-	freeze
-} from "../src/immer"
-
-enableAllPlugins()
+import {produce, setUseProxies, setAutoFreeze, freeze} from "../src/immer"
 
 const {isFrozen} = Object
 

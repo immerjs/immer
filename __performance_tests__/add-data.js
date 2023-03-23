@@ -4,15 +4,12 @@ import {measure} from "./measure"
 import {
 	produce,
 	setAutoFreeze,
-	setUseProxies,
-	enableAllPlugins
+	setUseProxies
 } from "../dist/immer.cjs.production.min.js"
 import cloneDeep from "lodash.clonedeep"
 import {fromJS} from "immutable"
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
-
-enableAllPlugins()
 
 console.log("\n# add-data - loading large set of data\n")
 

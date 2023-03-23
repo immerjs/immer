@@ -5,12 +5,9 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins,
 	enableMapSet
 } from "../src/immer"
 import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
-
-enableAllPlugins()
 
 jest.setTimeout(1000)
 

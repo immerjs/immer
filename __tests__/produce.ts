@@ -6,11 +6,8 @@ import {
 	nothing,
 	Draft,
 	Immutable,
-	enableAllPlugins,
 	Immer
 } from "../src/immer"
-
-enableAllPlugins()
 
 interface State {
 	readonly num: number

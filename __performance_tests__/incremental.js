@@ -3,13 +3,10 @@ import {measure} from "./measure"
 import {
 	produce,
 	setAutoFreeze,
-	setUseProxies,
-	enableAllPlugins
+	setUseProxies
 } from "../dist/immer.cjs.production.min.js"
 import cloneDeep from "lodash.clonedeep"
 import * as Immutable from "immutable"
-
-enableAllPlugins()
 
 console.log("\n# incremental - lot of small incremental changes\n")
 

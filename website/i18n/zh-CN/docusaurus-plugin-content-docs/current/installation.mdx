@@ -33,7 +33,6 @@ _本节仅适用于版本 6 及更高版本_
 | ES 5 支持 | 如果您的应用程序需要能够在较旧的 JavaScript 环境（例如 Internet Explorer 或 React Native）上运行，请启用此功能。 | `enableES5()` |
 | [ES2015 Map and Set 支持](./complex-objects.md) | 要使 Immer 能够对原生 Map 和 Set 集合进行操作，请启用此功能 | `enableMapSet()` |
 | [JSON 补丁 支持](./patches.mdx) | Immer 可以跟踪您对 draft 对象所做的所有更改。这对于使用 JSON 补丁时传达更改很有用 | `enablePatches()` |
-| **All of the above** | 不确定您需要哪些功能？我们建议在新项目上默认启用上述所有功能。几个 KB 的过早优化可能不值得一开始的麻烦。此外，启用或禁用功能不会影响 Immer 本身的性能 | `enableAllPlugins()` |
 
 例如，如果您想在 `Map` 上使用 `produce` ，则需要在应用程序启动期间启用此功能一次：
 

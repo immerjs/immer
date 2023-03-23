@@ -32,7 +32,6 @@ The following features can be opt-in to:
 | --- | --- | --- |
 | [ES2015 Map and Set support](./complex-objects.md) | To enable Immer to operate on the native `Map` and `Set` collections, enable this feature | `enableMapSet()` |
 | [JSON Patch support](./patches.mdx) | Immer can keep track of all the changes you make to draft objects. This can be useful for communicating changes using JSON patches | `enablePatches()` |
-| **All of the above** | Unsure what features you need? We recommend to enable all of the features above by default on new projects. Premature optimization of a few KB might not be worth the initial trouble. Also, enabling or disabling features doesn't impact the performance of Immer itself | `enableAllPlugins()` |
 
 For example, if you want to use `produce` on a `Map`, you need to enable this feature once during the start of your application:
 
