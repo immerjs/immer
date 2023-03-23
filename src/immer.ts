@@ -42,7 +42,6 @@ const immer = new Immer()
  * @returns {any} a new state, or the initial state if nothing was modified
  */
 export const produce: IProduce = immer.produce
-export default produce
 
 /**
  * Like `produce`, but `produceWithPatches` always returns a tuple

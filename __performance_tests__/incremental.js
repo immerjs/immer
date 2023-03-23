@@ -1,6 +1,7 @@
 "use strict"
 import {measure} from "./measure"
-import produce, {
+import {
+	produce,
 	setAutoFreeze,
 	setUseProxies,
 	enableAllPlugins

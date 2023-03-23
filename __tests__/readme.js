@@ -1,5 +1,6 @@
 "use strict"
-import produce, {
+import {
+	produce,
 	applyPatches,
 	immerable,
 	produceWithPatches,

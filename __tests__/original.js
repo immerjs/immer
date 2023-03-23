@@ -1,5 +1,5 @@
 "use strict"
-import produce, {original, enableAllPlugins} from "../src/immer"
+import {produce, original, enableAllPlugins} from "../src/immer"
 
 enableAllPlugins()
 

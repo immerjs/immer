@@ -9,8 +9,7 @@ title: 从 producers 返回新数据
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io 第9课: 返回全新 state
 	</summary>
@@ -33,13 +32,13 @@ title: 从 producers 返回新数据
 
 不需要从 producer 那里返回任何东西，因为 Immer 无论如何都会返回 `draft` 的（最终）版本。但是，也允许仅仅 `return draft`。
 
-也允许从 producer 函数中任意返回其他数据。但_前提_是你没有修改 `draft`。这对于产生一个全新的 state 很有用。一些例子：
+也允许从 producer 函数中任意返回其他数据。但*前提*是你没有修改 `draft`。这对于产生一个全新的 state 很有用。一些例子：
 
 ```javascript
 const userReducer = produce((draft, action) => {
 	switch (action.type) {
 		case "renameUser":
-		    //可以： 我们修改了当前的 state
+			//可以： 我们修改了当前的 state
 			draft.users[action.payload.id].name = action.payload.name
 			return draft // 与仅仅 'return' 相同
 		case "loadUsers":
@@ -72,7 +71,7 @@ const userReducer = produce((draft, action) => {
 
 _注意：无法以这种方式返回 `undefined` ，因为它与不更新 draft 没有区别！继续阅读......_
 
-## 使用 `nothing` 产生 `undefined` 
+## 使用 `nothing` 产生 `undefined`
 
 因此，一般来说，可以通过从 producer 返回一个新值来替换当前 state，而不是修改 draft。然而，有一个微妙的边缘情况：如果您尝试编写一个想要用 undefined 替换当前状态的 producer：
 
@@ -96,7 +95,7 @@ produce({}, draft => {
 但是，为了让 Immer 清楚您有意生成 `undefined` 值，您可以返回内置标记 `nothing`：
 
 ```javascript
-import produce, {nothing} from "immer"
+import {produce, nothing} from "immer"
 
 const state = {
 	hello: "world"
@@ -104,7 +103,7 @@ const state = {
 
 produce(state, draft => {})
 produce(state, draft => undefined)
-// 都会返回最初的状态: { hello: "world"} 
+// 都会返回最初的状态: { hello: "world"}
 
 produce(state, draft => nothing)
 // 产生一个新的状态, 'undefined'
@@ -118,7 +117,7 @@ produce(state, draft => nothing)
 
 <details>
 	<summary className="egghead-summary">
-		egghead.io 第10课: 使用 _void_ 避免意外的返回 
+		egghead.io 第10课: 使用 _void_ 避免意外的返回
 	</summary>
 	<br />
 	<div>
@@ -149,4 +148,4 @@ produce(draft => void (draft.user.age += 1))
 produce(draft => void ((draft.user.age += 1), (draft.user.height = 186)))
 ```
 
-代码风格是高度个人化的，但对于要被许多人理解的代码库，我们建议坚持经典的  `draft => { draft.user.age += 1}` 以避免认知开销。
+代码风格是高度个人化的，但对于要被许多人理解的代码库，我们建议坚持经典的 `draft => { draft.user.age += 1}` 以避免认知开销。

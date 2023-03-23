@@ -76,7 +76,7 @@ nextState.push({title: "Tweet about it"})
 With Immer, this process is more straightforward. We can leverage the `produce` function, which takes as first argument the state we want to start from, and as second argument we pass a function, called the _recipe_, that is passed a `draft` to which we can apply straightforward mutations. Those mutations are recorded and used to produce the next state once the recipe is done. `produce` will take care of all the necessary copying, and protect against future accidental modifications as well by freezing the data.
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const nextState = produce(baseState, draft => {
 	draft[1].done = true

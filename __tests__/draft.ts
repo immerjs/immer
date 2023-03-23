@@ -1,5 +1,6 @@
 import {assert, _} from "spec.ts"
-import produce, {
+import {
+	produce,
 	Draft,
 	castDraft,
 	original,

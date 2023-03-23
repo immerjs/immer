@@ -1,5 +1,6 @@
 // @flow
-import produce, {
+import {
+    produce,
     enableMapSet,
     setAutoFreeze,
     setUseProxies,

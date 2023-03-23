@@ -10,7 +10,8 @@ sidebar_label: Async produce / createDraft
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 11: Creating <b>async</b> producers (and why you
 		shouldn’t)
@@ -35,7 +36,7 @@ sidebar_label: Async produce / createDraft
 It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const user = {
 	name: "michel",

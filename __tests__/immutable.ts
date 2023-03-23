@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import produce, {Immutable, castImmutable, enableAllPlugins} from "../src/immer"
+import {produce, Immutable, castImmutable, enableAllPlugins} from "../src/immer"
 
 enableAllPlugins()
 

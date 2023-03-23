@@ -1,6 +1,6 @@
 import {assert, _} from "spec.ts"
-import produce, {
-	produce as produce2,
+import {
+	produce,
 	applyPatches,
 	Patch,
 	nothing,
@@ -130,7 +130,7 @@ it("can update readonly state via curried api", () => {
 })
 
 it("can update use the non-default export", () => {
-	const newState = produce2((draft: Draft<State>) => {
+	const newState = produce((draft: Draft<State>) => {
 		draft.num++
 		draft.foo = "bar"
 		draft.bar = "foo"

@@ -9,8 +9,7 @@ title: Curried producers
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 6: Simplify code by using curried _reduce_
 	</summary>
@@ -34,7 +33,7 @@ title: Curried producers
 Passing a function as the first argument to `produce` creates a function that doesn't apply `produce` yet to a specific state, but rather creates a function that will apply `produce` to any state that is passed to it in the future. This generally is called _currying_. Take for example the following example:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 function toggleTodo(state, id) {
 	return produce(state, draft => {
@@ -62,7 +61,7 @@ const nextState = toggleTodo(baseState, "Immer")
 The above pattern of `toggleTodo` is quite typical; pass an existing state to `produce`, modify the `draft`, and then return the result. Since `state` isn't used for anything else than passing it on to `produce`, the above example can be simplified by using the _curried_ form of `produce`, where you pass `produce` only the recipe function, and `produce` will return a new function that will apply recipe to the base state. This allows us to shorten the above `toggleTodo` definition.
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // curried producer:
 const toggleTodo = produce((draft, id) => {

@@ -9,10 +9,9 @@ title: React & Immer
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
-    egghead.io 第八课: 使用 Immer 和 useState，或者 useImmer。
+		egghead.io 第八课: 使用 Immer 和 useState，或者 useImmer。
 	</summary>
 	<br />
 	<div>
@@ -37,7 +36,7 @@ title: React & Immer
 
 ```javascript
 import React, { useCallback, useState } from "react";
-import produce from "immer";
+import {produce} from "immer";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([
@@ -128,7 +127,7 @@ const TodoList = () => {
 
 ```javascript
 import React, {useCallback, useReducer} from "react"
-import produce from "immer"
+import {produce} from "immer"
 
 const TodoList = () => {
 	const [todos, dispatch] = useReducer(
@@ -174,7 +173,7 @@ const TodoList = () => {
 
 ## useImmerReducer
 
-同上，可以通过  `use-immer` 包中的 `useImmerReducer` 简化 ([demo](https://codesandbox.io/s/useimmerreducer-sycpb?file=/src/index.js))
+同上，可以通过 `use-immer` 包中的 `useImmerReducer` 简化 ([demo](https://codesandbox.io/s/useimmerreducer-sycpb?file=/src/index.js))
 
 ```javascript
 import React, { useCallback } from "react";
@@ -206,7 +205,6 @@ const TodoList = () => {
 
 ```
 
-
 ## Redux + Immer
 
 Redux + Immer 在 [Redux Toolkit](https://redux-toolkit.js.org/usage/immer-reducers) 的文档中被广泛介绍。对于没有 Redux Toolkit 的 Redux，可以应用与上面应用于 `useReducer` 相同的技巧：使用 `produce` 包装 reducer 函数，您可以安全地修改 draft！
@@ -214,7 +212,7 @@ Redux + Immer 在 [Redux Toolkit](https://redux-toolkit.js.org/usage/immer-reduc
 例子:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // 初始 state
 const INITIAL_STATE = [

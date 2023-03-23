@@ -10,7 +10,8 @@ sidebar_label: 异步 produce / createDraft
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io 第11课: 创建<b>异步</b> producers（以及为什么不应该这样做）
 	</summary>
@@ -34,7 +35,7 @@ sidebar_label: 异步 produce / createDraft
 允许从 recipe 返回 Promise 对象。或者，换句话说，使用 `async / await`。这对于长时间运行的进程非常有用，只有在 Promise 链解析后才生成新对象。请注意，如果 producer 是异步的，`produce` 本身（即使是柯里化形式）也会返回一个 promise。例子:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const user = {
 	name: "michel",
@@ -51,7 +52,6 @@ _警告：请注意，draft 不应从异步程序中“泄露”并存储在其�
 ## `createDraft` and `finishDraft`
 
 `createDraft` 和 `finishDraft` 是两个底层函数，它们对于在 immer 之上构建抽象的库非常有用。它避免了为了使用 draft 始终创建函数。相反，人们可以创建一个 draft，对其进行修改，并在未来的某个时间完成该 draft，在这种情况下，将产生下一个不可变状态。例如，我们可以将上面的示例重写为：
-
 
 ```javascript
 import {createDraft, finishDraft} from "immer"

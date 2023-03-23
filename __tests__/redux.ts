@@ -1,5 +1,5 @@
 import {assert, _} from "spec.ts"
-import produce, {Draft, Immutable} from "../src/immer"
+import {produce, Draft} from "../src/immer"
 import * as redux from "redux"
 
 // Mutable Redux

@@ -1,4 +1,4 @@
-import produce, {produceWithPatches, applyPatches} from "../src/immer"
+import {produce, produceWithPatches, applyPatches} from "../src/immer"
 
 test("error when using Maps", () => {
 	expect(() => {
