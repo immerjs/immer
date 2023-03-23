@@ -10,6 +10,7 @@ import cloneDeep from "lodash.clonedeep"
 import {fromJS} from "immutable"
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
+import update from "immutability-helper"
 
 enableAllPlugins()
 
@@ -76,6 +77,22 @@ measure("seamless-immutable", () => {
 
 measure("seamless-immutable + asMutable", () => {
 	seamlessBaseState.set("data", dataSet).asMutable({deep: true})
+})
+
+measure("immutability-helper - without autofreeze * " + MAX, () => {
+	for (let i = 0; i < MAX; i++)
+		update(baseState, {
+			data: {$set: dataSet}
+		})
+})
+
+measure("immutability-helper - with autofreeze * " + MAX, () => {
+	for (let i = 0; i < MAX; i++)
+		deepFreeze(
+			update(baseState, {
+				data: {$set: dataSet}
+			})
+		)
 })
 
 measure("immer (proxy) - without autofreeze * " + MAX, () => {

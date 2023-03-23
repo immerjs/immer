@@ -10,6 +10,7 @@ import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
+import update from "immutability-helper"
 
 enableAllPlugins()
 
@@ -167,6 +168,22 @@ measure("seamless-immutable + asMutable", () => {
 			else return todo
 		})
 		.asMutable({deep: true})
+})
+
+measure("immutability-helper (no freeze)", () => {
+	const updates = {}
+	for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+		updates[i] = {done: {$set: true}}
+	}
+	const nextState = update(baseState, updates)
+})
+
+measure("immutability-helper (with freeze)", () => {
+	const updates = {}
+	for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+		updates[i] = {done: {$set: true}}
+	}
+	const nextState = freeze(update(baseState, updates))
 })
 
 measure(
