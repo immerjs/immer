@@ -5,7 +5,7 @@ sidebar_label: Original
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 Immer exposes a named export `original` that will get the original object from the proxied instance inside `produce` (or return `undefined` for unproxied values). A good example of when this can be useful is when searching for nodes in a tree-like state using strict equality.

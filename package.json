@@ -6,9 +6,9 @@
   "module": "dist/immer.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/immer.d.ts",
       "import": "./dist/immer.esm.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/immer.d.ts"
+      "require": "./dist/index.js"
     },
     "./*": "./*"
   },

@@ -4,7 +4,7 @@ title: External resources
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 - Blog: [The Rise of Immer in React](https://www.netlify.com/blog/2018/09/12/the-rise-of-immer-in-react/)

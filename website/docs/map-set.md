@@ -4,7 +4,7 @@ title: Map and Set
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 _⚠ Since version 6 support for `Map`s and `Set`s has to be enabled explicitly by calling [`enableMapSet()`](./installation.mdx#pick-your-immer-version) once when starting your application._

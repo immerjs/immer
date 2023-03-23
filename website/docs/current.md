@@ -5,7 +5,7 @@ sidebar_label: Current
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
 Immer exposes a named export `current` that creates a copy of the current state of the draft. This can be very useful for debugging purposes (as those objects won't be Proxy objects and not be logged as such). Also, references to `current` can be safely leaked from a produce function. Put differently, `current` provides a snapshot of the current state of a draft.

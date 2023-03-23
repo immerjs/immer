@@ -6,10 +6,10 @@ slug: /
 ---
 
 <center>
-<div data-ea-publisher="immerjs" data-ea-type="image" class="horizontal bordered"></div>
+<div data-ea-publisher="immerjs" data-ea-type="image" className="horizontal bordered"></div>
 </center>
 
-<img src="/immer/img/immer-logo.svg" height="200px" align="right"/>
+<img src="/immer/img/immer-logo.svg" style={{maxHeight:200}} align="right"/>
 
 # Immer
 
