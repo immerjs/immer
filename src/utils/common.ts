@@ -10,7 +10,9 @@ import {
 	ImmerState,
 	hasMap,
 	Archtype,
-	die
+	die,
+	NOTHING,
+	Nothing
 } from "../internal"
 
 /** Returns true if the given value is an Immer draft */
@@ -213,4 +215,8 @@ export function isFrozen(obj: any): boolean {
 	if (obj == null || typeof obj !== "object") return true
 	// See #600, IE dies on non-objects in Object.isFrozen
 	return Object.isFrozen(obj)
+}
+
+export function isNothing(value: unknown): value is Nothing {
+	return value === NOTHING
 }
