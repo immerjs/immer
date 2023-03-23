@@ -37,9 +37,9 @@ export type Draft<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
 	? T
-	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
 	? Map<Draft<K>, Draft<V>>
-	: T extends IfAvailable<ReadonlySet<infer V>> // Set extends ReadonlySet
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
 	? Set<Draft<V>>
 	: T extends WeakReferences
 	? T
@@ -52,9 +52,9 @@ export type Immutable<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
 	? T
-	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
 	? ReadonlyMap<Immutable<K>, Immutable<V>>
-	: T extends IfAvailable<ReadonlySet<infer V>> // Set extends ReadonlySet
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
 	? ReadonlySet<Immutable<V>>
 	: T extends WeakReferences
 	? T

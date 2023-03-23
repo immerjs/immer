@@ -17,7 +17,6 @@ title: API overview
 | `current` | Given a draft object (doesn't have to be a tree root), takes a snapshot of the current state of the draft | [Current](./current.md) |
 | `Draft<T>` | Exposed TypeScript type to convert an immutable type to a mutable type | [TypeScript](./typescript.mdx) |
 | `enableAllPlugins()` | Enables all plugins mentioned below | [Installation](./installation.mdx#pick-your-immer-version) |
-| `enableES5()` | Enables support for older JavaScript engines, such as Internet Explorer and React Native | [Installation](./installation.mdx#pick-your-immer-version) |
 | `enableMapSet()` | Enables support for `Map` and `Set` collections. | [Installation](./installation.mdx#pick-your-immer-version) |
 | `enablePatches()` | Enables support for JSON patches. | [Installation](./installation#pick-your-immer-version) |
 | `finishDraft` | Given an draft created using `createDraft`, seals the draft and produces and returns the next immutable state that captures all the changes | [Async](./async.mdx) |

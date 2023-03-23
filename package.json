@@ -44,7 +44,7 @@
     "build:flow": "cpx 'src/types/index.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
-    "test:size": "yarn build && yarn import-size --report . produce enableES5 enableMapSet enablePatches enableAllPlugins",
+    "test:size": "yarn build && yarn import-size --report . produce enableMapSet enablePatches enableAllPlugins",
     "test:sizequick": "tsdx build --name immer --format esm && yarn import-size . produce"
   },
   "husky": {
