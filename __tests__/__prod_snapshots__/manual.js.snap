@@ -1,56 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`manual - es5 should check arguments 1`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`manual - es5 should check arguments 2`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/3cXEKWf"`;
-
-exports[`manual - es5 should check arguments 3`] = `"Cannot read properties of undefined (reading 'A')"`;
-
-exports[`manual - es5 should not finish twice 1`] = `"Cannot read properties of null (reading 'length')"`;
-
-exports[`manual - es5 should support patches drafts 1`] = `
-Array [
-  Array [
-    Array [
-      Object {
-        "op": "replace",
-        "path": Array [
-          "a",
-        ],
-        "value": 2,
-      },
-      Object {
-        "op": "add",
-        "path": Array [
-          "b",
-        ],
-        "value": 3,
-      },
-    ],
-    Array [
-      Object {
-        "op": "replace",
-        "path": Array [
-          "a",
-        ],
-        "value": 1,
-      },
-      Object {
-        "op": "remove",
-        "path": Array [
-          "b",
-        ],
-      },
-    ],
-  ],
-]
-`;
-
 exports[`manual - proxy should check arguments 1`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`manual - proxy should check arguments 2`] = `"[Immer] minified error nr: 8. Find the full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`manual - proxy should check arguments 3`] = `"Cannot read properties of undefined (reading 'A')"`;
+exports[`manual - proxy should check arguments 3`] = `"[Immer] minified error nr: 9. Find the full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`manual - proxy should not finish twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
