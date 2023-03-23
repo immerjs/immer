@@ -1,7 +1,6 @@
 // @flow
 import {
     produce,
-    enableMapSet,
     setAutoFreeze,
     setUseProxies,
     produce as produce2,
@@ -10,7 +9,6 @@ import {
     original
 } from "../../dist/index.js.flow"
 
-enableMapSet()
 setAutoFreeze(true)
 setUseProxies(true)
 

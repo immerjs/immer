@@ -6,8 +6,11 @@ import {
 	nothing,
 	Draft,
 	Immutable,
-	Immer
+	Immer,
+	enablePatches
 } from "../src/immer"
+
+enablePatches()
 
 interface State {
 	readonly num: number

@@ -23,7 +23,9 @@ import {
 	getCurrentScope,
 	NOTHING,
 	freeze,
-	current
+	current,
+	proxyMap,
+	proxySet
 } from "../internal"
 
 interface ProducersFns {
@@ -193,9 +195,9 @@ export function createProxy<T extends Objectish>(
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
 	const draft: Drafted = isMap(value)
-		? getPlugin("MapSet").proxyMap_(value, parent)
+		? proxyMap(value, parent)
 		: isSet(value)
-		? getPlugin("MapSet").proxySet_(value, parent)
+		? proxySet(value, parent)
 		: createProxyProxy(value, parent)
 
 	const scope = parent ? parent.scope_ : getCurrentScope()

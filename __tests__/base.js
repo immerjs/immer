@@ -1,11 +1,20 @@
 "use strict"
-import {Immer, nothing, original, isDraft, immerable} from "../src/immer"
+import {
+	Immer,
+	nothing,
+	original,
+	isDraft,
+	immerable,
+	enablePatches
+} from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
 
 jest.setTimeout(1000)
+
+enablePatches()
 
 const isProd = process.env.NODE_ENV === "production"
 

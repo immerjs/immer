@@ -5,9 +5,11 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableMapSet
+	enablePatches
 } from "../src/immer"
 import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
+
+enablePatches()
 
 jest.setTimeout(1000)
 
@@ -281,7 +283,6 @@ function runBaseTest(name, autoFreeze, useListener) {
 				mapType1 = draft.constructor
 			})
 
-			enableMapSet()
 			let mapType2
 			produce(new Map(), draft => {
 				mapType2 = draft.constructor

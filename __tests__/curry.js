@@ -1,5 +1,12 @@
 "use strict"
-import {produce, setUseProxies, produceWithPatches} from "../src/immer"
+import {
+	produce,
+	setUseProxies,
+	produceWithPatches,
+	enablePatches
+} from "../src/immer"
+
+enablePatches()
 
 runTests("proxy", true)
 

@@ -1,13 +1,4 @@
-import {
-	ImmerState,
-	Patch,
-	Drafted,
-	ImmerBaseState,
-	AnyMap,
-	AnySet,
-	ArchType,
-	die
-} from "../internal"
+import {ImmerState, Patch, die} from "../internal"
 
 /** Plugin utilities */
 const plugins: {
@@ -25,10 +16,6 @@ const plugins: {
 			inversePatches: Patch[]
 		): void
 		applyPatches_<T>(draft: T, patches: Patch[]): T
-	}
-	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
 	}
 } = {}
 
@@ -50,25 +37,6 @@ export function loadPlugin<K extends keyof Plugins>(
 	implementation: Plugins[K]
 ): void {
 	if (!plugins[pluginKey]) plugins[pluginKey] = implementation
-}
-/** Map / Set plugin */
-
-export interface MapState extends ImmerBaseState {
-	type_: ArchType.Map
-	copy_: AnyMap | undefined
-	assigned_: Map<any, boolean> | undefined
-	base_: AnyMap
-	revoked_: boolean
-	draft_: Drafted<AnyMap, MapState>
-}
-
-export interface SetState extends ImmerBaseState {
-	type_: ArchType.Set
-	copy_: AnySet | undefined
-	base_: AnySet
-	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set
-	revoked_: boolean
-	draft_: Drafted<AnySet, SetState>
 }
 
 /** Patches plugin */

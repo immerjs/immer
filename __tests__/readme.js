@@ -4,8 +4,11 @@ import {
 	applyPatches,
 	immerable,
 	produceWithPatches,
-	setAutoFreeze
+	setAutoFreeze,
+	enablePatches
 } from "../src/immer"
+
+enablePatches()
 
 describe("readme example", () => {
 	it("works", () => {

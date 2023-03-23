@@ -304,5 +304,4 @@ export interface ImmerState<T = any> {
 	assigned: {[prop: string]: boolean; [index: number]: boolean}
 }
 
-export declare function enableMapSet(): void
 export declare function enablePatches(): void

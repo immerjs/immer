@@ -1,10 +1,7 @@
-import {
-	produce,
-	produceWithPatches,
-	immerable,
-	applyPatches
-} from "../src/immer"
+import {produce, immerable, applyPatches, enablePatches} from "../src/immer"
 import {DRAFT_STATE, Patch} from "../src/internal"
+
+enablePatches()
 
 test("empty stub test", () => {
 	expect(true).toBe(true)

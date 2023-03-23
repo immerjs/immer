@@ -16,7 +16,6 @@ title: API 概览
 | `createDraft` | 给定一个基本 state，创建一个可变 draft，任何修改都将被记录下来 | [Async](./async.mdx) |
 | `current` | 给定一个 draft 对象（不必是对象的根结点），对 draft 的当前状态进行快照 | [Current](./current.md) |
 | `Draft<T>` | 暴露的 TypeScript 类型以将不可变类型转换为可变类型 | [TypeScript](./typescript.mdx) |
-| `enableMapSet()` | 启用对 `Map` 和 `Set` 集合的支持。 | [Installation](./installation.mdx#pick-your-immer-version) |
 | `enablePatches()` | 启用对 JSON patches 的支持 | [Installation](./installation#pick-your-immer-version) |
 | `finishDraft` | 给定使用 `createDraft` 创建的 draft，冻结 draft 并生成并返回下一个不可变状态，该状态捕获所有更改 | [Async](./async.mdx) |
 | `freeze(obj, deep?)` | 冻结可 draft 对象。返回原始对象。默认情况下浅冻结，但如果第二个参数为真，它将递归冻结。 |

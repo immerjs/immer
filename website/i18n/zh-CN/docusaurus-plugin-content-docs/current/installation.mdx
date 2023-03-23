@@ -30,34 +30,9 @@ _本节仅适用于版本 6 及更高版本_
 
 | 功能 | 描述 | 调用方法 |
 | --- | --- | --- |
-| ES 5 支持 | 如果您的应用程序需要能够在较旧的 JavaScript 环境（例如 Internet Explorer 或 React Native）上运行，请启用此功能。 | `enableES5()` |
-| [ES2015 Map and Set 支持](./complex-objects.md) | 要使 Immer 能够对原生 Map 和 Set 集合进行操作，请启用此功能 | `enableMapSet()` |
 | [JSON 补丁 支持](./patches.mdx) | Immer 可以跟踪您对 draft 对象所做的所有更改。这对于使用 JSON 补丁时传达更改很有用 | `enablePatches()` |
 
-例如，如果您想在 `Map` 上使用 `produce` ，则需要在应用程序启动期间启用此功能一次：
-
-```typescript
-// 在你的应用程序入口文件
-import {enableMapSet} from "immer"
-
-enableMapSet()
-
-// ...然后
-import {produce} from "immer"
-
-const usersById_v1 = new Map([
-	["michel", {name: "Michel Weststrate", country: "NL"}]
-])
-
-const usersById_v2 = produce(usersById_v1, draft => {
-	draft.get("michel").country = "UK"
-})
-
-expect(usersById_v1.get("michel").country).toBe("NL")
-expect(usersById_v2.get("michel").country).toBe("UK")
-```
-
-Immer 以大约 3KB 的 gzip 压缩开始。每个启用的插件都会增加 < 1 KB。细分如下
+Immer 以大约 4KB 的 gzip 压缩开始。每个启用的插件都会增加 < 1 KB。细分如下
 
 ```
 Import size report for immer:

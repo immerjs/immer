@@ -5,8 +5,11 @@ import {
 	produceWithPatches,
 	isDraft,
 	immerable,
-	nothing
+	nothing,
+	enablePatches
 } from "../src/immer"
+
+enablePatches()
 
 jest.setTimeout(1000)
 
