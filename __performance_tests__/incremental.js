@@ -1,10 +1,6 @@
 "use strict"
 import {measure} from "./measure"
-import {
-	produce,
-	setAutoFreeze,
-	setUseProxies
-} from "../dist/immer.cjs.production.min.js"
+import {produce, setAutoFreeze} from "../dist/immer.cjs.production.min.js"
 import cloneDeep from "lodash.clonedeep"
 import * as Immutable from "immutable"
 
@@ -71,9 +67,8 @@ measure(
 )
 
 measure(
-	"immer (proxy)",
+	"immer",
 	() => {
-		setUseProxies(true)
 		setAutoFreeze(false)
 		return baseState
 	},
@@ -88,43 +83,8 @@ measure(
 )
 
 measure(
-	"immer (es5)",
+	"immer - single produce",
 	() => {
-		setUseProxies(false)
-		setAutoFreeze(false)
-		return baseState
-	},
-	state => {
-		for (let i = 0; i < MAX; i++) {
-			state = produce(state, draft => {
-				draft.ids.push(i)
-				draft.map[i] = createTestObject()
-			})
-		}
-	}
-)
-
-measure(
-	"immer (proxy) - single produce",
-	() => {
-		setUseProxies(true)
-		setAutoFreeze(false)
-		return baseState
-	},
-	state => {
-		produce(state, draft => {
-			for (let i = 0; i < MAX; i++) {
-				draft.ids.push(i)
-				draft.map[i] = createTestObject()
-			}
-		})
-	}
-)
-
-measure(
-	"immer (es5) - single produce",
-	() => {
-		setUseProxies(false)
 		setAutoFreeze(false)
 		return baseState
 	},

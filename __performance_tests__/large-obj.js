@@ -1,7 +1,6 @@
 import {measure} from "./measure"
 import {
 	produce,
-	setUseProxies,
 	setUseStrictShallowCopy
 } from "../dist/immer.cjs.production.min.js"
 
@@ -15,9 +14,8 @@ const baseState = Object.fromEntries(
 		.map((_, i) => [i, i])
 )
 
-measure("immer (proxy) - with setUseStrictShallowCopy", () => {
+measure("immer - with setUseStrictShallowCopy", () => {
 	setUseStrictShallowCopy(true)
-	setUseProxies(true)
 
 	for (let i = 0; i < MAX; i++) {
 		produce(baseState, draft => {
@@ -26,31 +24,8 @@ measure("immer (proxy) - with setUseStrictShallowCopy", () => {
 	}
 })
 
-measure("immer (proxy) - without setUseStrictShallowCopy", () => {
+measure("immer - without setUseStrictShallowCopy", () => {
 	setUseStrictShallowCopy(false)
-	setUseProxies(true)
-
-	for (let i = 0; i < MAX; i++) {
-		produce(baseState, draft => {
-			draft[5000]++
-		})
-	}
-})
-
-measure("immer (es5) - with setUseStrictShallowCopy", () => {
-	setUseStrictShallowCopy(true)
-	setUseProxies(false)
-
-	for (let i = 0; i < MAX; i++) {
-		produce(baseState, draft => {
-			draft[5000]++
-		})
-	}
-})
-
-measure("immer (es5) - without setUseStrictShallowCopy", () => {
-	setUseStrictShallowCopy(false)
-	setUseProxies(false)
 
 	for (let i = 0; i < MAX; i++) {
 		produce(baseState, draft => {

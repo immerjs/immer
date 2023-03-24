@@ -2,9 +2,9 @@
 
 import {measure} from "./measure"
 import {
+	enablePatches,
 	produce,
-	setAutoFreeze,
-	setUseProxies
+	setAutoFreeze
 } from "../dist/immer.cjs.production.min.js"
 import cloneDeep from "lodash.clonedeep"
 import {List, Record} from "immutable"
@@ -168,9 +168,8 @@ measure("seamless-immutable + asMutable", () => {
 })
 
 measure(
-	"immer (proxy) - without autofreeze",
+	"immer - without autofreeze",
 	() => {
-		setUseProxies(true)
 		setAutoFreeze(false)
 	},
 	() => {
@@ -183,9 +182,8 @@ measure(
 )
 
 measure(
-	"immer (proxy) - with autofreeze",
+	"immer - with autofreeze",
 	() => {
-		setUseProxies(true)
 		setAutoFreeze(true)
 	},
 	() => {
@@ -198,9 +196,9 @@ measure(
 )
 
 measure(
-	"immer (proxy) - without autofreeze - with patch listener",
+	"immer - without autofreeze - with patch listener",
 	() => {
-		setUseProxies(true)
+		enablePatches()
 		setAutoFreeze(false)
 	},
 	() => {
@@ -217,77 +215,9 @@ measure(
 )
 
 measure(
-	"immer (proxy) - with autofreeze - with patch listener",
+	"immer - with autofreeze - with patch listener",
 	() => {
-		setUseProxies(true)
-		setAutoFreeze(true)
-	},
-	() => {
-		produce(
-			baseState,
-			draft => {
-				for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-					draft[i].done = true
-				}
-			},
-			function() {}
-		)
-	}
-)
-
-measure(
-	"immer (es5) - without autofreeze",
-	() => {
-		setUseProxies(false)
-		setAutoFreeze(false)
-	},
-	() => {
-		produce(baseState, draft => {
-			for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-				draft[i].done = true
-			}
-		})
-	}
-)
-
-measure(
-	"immer (es5) - with autofreeze",
-	() => {
-		setUseProxies(false)
-		setAutoFreeze(true)
-	},
-	() => {
-		produce(frozenBazeState, draft => {
-			for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-				draft[i].done = true
-			}
-		})
-	}
-)
-
-measure(
-	"immer (es5) - without autofreeze - with patch listener",
-	() => {
-		setUseProxies(false)
-		setAutoFreeze(false)
-	},
-	() => {
-		produce(
-			baseState,
-			draft => {
-				for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
-					draft[i].done = true
-				}
-			},
-			function() {}
-		)
-	}
-)
-
-measure(
-	"immer (es5) - with autofreeze - with patch listener",
-	() => {
-		setUseProxies(false)
+		enablePatches()
 		setAutoFreeze(true)
 	},
 	() => {
