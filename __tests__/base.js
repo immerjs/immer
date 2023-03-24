@@ -896,16 +896,10 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				expect(s[test]).toBeTruthy()
 				s.foo = true
 			})
-			if (useStrictShallowCopy) {
-				expect(nextState).toEqual({
-					[test]: true,
-					foo: true
-				})
-			} else {
-				expect(nextState).toEqual({
-					foo: true
-				})
-			}
+			expect(nextState).toEqual({
+				[test]: true,
+				foo: true
+			})
 		})
 
 		if (!global.USES_BUILD)

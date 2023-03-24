@@ -65,8 +65,8 @@ export function each<T extends Objectish>(
 ): void
 export function each(obj: any, iter: any) {
 	if (getArchtype(obj) === ArchType.Object) {
-		Object.keys(obj).forEach(key => {
-			iter(key, obj[key], obj)
+		Object.entries(obj).forEach(([key, value]) => {
+			iter(key, value, obj)
 		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
@@ -144,13 +144,11 @@ export function shallowCopy(base: any, strict: boolean) {
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
 	if (!strict && isPlainObject(base)) {
-		const keys = Object.keys(base)
-		const obj: any = Object.create(Object.getPrototypeOf(base))
-		for (let i = 0; i < keys.length; i++) {
-			const key = keys[i]
-			obj[key] = base[key]
+		if (!Object.getPrototypeOf(base)) {
+			const obj = Object.create(null)
+			return Object.assign(obj, base)
 		}
-		return obj
+		return {...base}
 	}
 
 	const descriptors = Object.getOwnPropertyDescriptors(base)
@@ -191,7 +189,7 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
-	if (deep) each(obj, (key, value) => freeze(value, true), true)
+	if (deep) each(obj, (_key, value) => freeze(value, true), true)
 	return obj
 }
 
