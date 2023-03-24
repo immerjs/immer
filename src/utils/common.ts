@@ -139,8 +139,19 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any) {
+export function shallowCopy(base: any, strict: boolean) {
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
+
+	if (!strict && isPlainObject(base)) {
+		const keys = Object.keys(base)
+		const obj: any = Object.create(Object.getPrototypeOf(base))
+		for (let i = 0; i < keys.length; i++) {
+			const key = keys[i]
+			obj[key] = base[key]
+		}
+		return obj
+	}
+
 	const descriptors = getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
 	let keys = ownKeys(descriptors)

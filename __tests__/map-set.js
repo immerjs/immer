@@ -7,7 +7,7 @@ import {
 	immerable,
 	enablePatches
 } from "../src/immer"
-import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/common"
+import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/utils/common"
 
 enablePatches()
 

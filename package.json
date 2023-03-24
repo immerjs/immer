@@ -34,7 +34,7 @@
   "sideEffects": false,
   "scripts": {
     "test": "jest && yarn test:build && yarn test:flow",
-    "test:perf": "cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js",
+    "test:perf": "cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js && babel-node large-obj.js",
     "test:flow": "yarn flow check __tests__/flow",
     "test:build": "yarn build && NODE_ENV='production' yarn jest --config jest.config.build.js",
     "watch": "jest --watch",

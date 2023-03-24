@@ -28,10 +28,14 @@ function currentImpl(value: any): any {
 		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
-		copy = copyHelper(value, archType)
+		copy = copyHelper(
+			value,
+			archType,
+			state.scope_.immer_.useStrictShallowCopy_
+		)
 		state.finalized_ = false
 	} else {
-		copy = copyHelper(value, archType)
+		copy = copyHelper(value, archType, true)
 	}
 
 	each(copy, (key, childValue) => {
@@ -42,7 +46,7 @@ function currentImpl(value: any): any {
 	return archType === ArchType.Set ? new Set(copy) : copy
 }
 
-function copyHelper(value: any, archType: number): any {
+function copyHelper(value: any, archType: number, strict: boolean): any {
 	// creates a shallow copy, even if it is a map or set
 	switch (archType) {
 		case ArchType.Map:
@@ -51,5 +55,5 @@ function copyHelper(value: any, archType: number): any {
 			// Set will be cloned as array temporarily, so that we can replace individual items
 			return Array.from(value)
 	}
-	return shallowCopy(value)
+	return shallowCopy(value, strict)
 }

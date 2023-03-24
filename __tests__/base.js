@@ -9,7 +9,6 @@ import {
 } from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
-import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
 
 jest.setTimeout(1000)
@@ -22,17 +21,24 @@ test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
 
-runBaseTest("proxy (no freeze)", false)
-runBaseTest("proxy (autofreeze)", true)
-runBaseTest("proxy (patch listener)", false, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true)
+for (const autoFreeze of [true, false]) {
+	for (const useStrictShallowCopy of [true, false]) {
+		for (const useListener of [true, false]) {
+			const name = `${autoFreeze ? "auto-freeze=true" : "auto-freeze=false"}:${
+				useStrictShallowCopy ? "shallow-copy=true" : "shallow-copy=false"
+			}:${useListener ? "use-listener=true" : "use-listener=false"}`
+			runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener)
+		}
+	}
+}
 
 class Foo {}
 
-function runBaseTest(name, autoFreeze, useListener) {
+function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
-		autoFreeze
+		autoFreeze,
+		useStrictShallowCopy
 	})
 
 	// When `useListener` is true, append a function to the arguments of every
@@ -890,10 +896,16 @@ function runBaseTest(name, autoFreeze, useListener) {
 				expect(s[test]).toBeTruthy()
 				s.foo = true
 			})
-			expect(nextState).toEqual({
-				[test]: true,
-				foo: true
-			})
+			if (useStrictShallowCopy) {
+				expect(nextState).toEqual({
+					[test]: true,
+					foo: true
+				})
+			} else {
+				expect(nextState).toEqual({
+					foo: true
+				})
+			}
 		})
 
 		if (!global.USES_BUILD)
@@ -909,16 +921,26 @@ function runBaseTest(name, autoFreeze, useListener) {
 					value: 1,
 					enumerable: false
 				})
-				const nextState = produce(baseState, s => {
-					expect(s.foo).toBeTruthy()
-					expect(isEnumerable(s, "foo")).toBeFalsy()
-					s.bar++
-					expect(isEnumerable(s, "foo")).toBeFalsy()
-					s.foo.a++
-					expect(isEnumerable(s, "foo")).toBeFalsy()
+				// Non-enumerable primitive property that won't modified.
+				Object.defineProperty(baseState, "baz", {
+					value: 1,
+					enumerable: false
 				})
-				expect(nextState.foo).toBeTruthy()
-				expect(isEnumerable(nextState, "foo")).toBeFalsy()
+
+				// When using Proxy, even non-enumerable keys will be copied if it's changed.
+				const canReferNonEnumerableProperty = useStrictShallowCopy
+				const nextState = produce(baseState, s => {
+					if (canReferNonEnumerableProperty) expect(s.foo).toBeTruthy()
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+					if (canReferNonEnumerableProperty) s.bar++
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+					if (canReferNonEnumerableProperty) s.foo.a++
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+				})
+				if (canReferNonEnumerableProperty) expect(nextState.foo).toBeTruthy()
+				if (useStrictShallowCopy)
+					expect(isEnumerable(nextState, "foo")).toBeFalsy()
+				if (useStrictShallowCopy) expect(nextState.baz).toBeTruthy()
 			})
 
 		it("can work with own computed props", () => {

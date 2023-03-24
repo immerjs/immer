@@ -59,6 +59,13 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 
 /**
+ * Pass true to enable strict shallow copy.
+ *
+ * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
+ */
+export const setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer)
+
+/**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
