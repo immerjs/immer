@@ -58,11 +58,6 @@ export function original(value: Drafted<any>): any {
 	return value[DRAFT_STATE].base_
 }
 
-/*#__PURE__*/
-export const ownKeys: (target: AnyObject) => PropertyKey[] = Reflect.ownKeys
-
-export const getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors
-
 export function each<T extends Objectish>(
 	obj: T,
 	iter: (key: string | number, value: any, source: T) => void,
@@ -70,7 +65,7 @@ export function each<T extends Objectish>(
 ): void
 export function each(obj: any, iter: any, enumerableOnly = false) {
 	if (getArchtype(obj) === ArchType.Object) {
-		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
+		;(enumerableOnly ? Object.keys : Reflect.ownKeys)(obj).forEach(key => {
 			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
 		})
 	} else {
@@ -158,9 +153,9 @@ export function shallowCopy(base: any, strict: boolean) {
 		return obj
 	}
 
-	const descriptors = getOwnPropertyDescriptors(base)
+	const descriptors = Object.getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
-	let keys = ownKeys(descriptors)
+	let keys = Reflect.ownKeys(descriptors)
 	for (let i = 0; i < keys.length; i++) {
 		const key: any = keys[i]
 		const desc = descriptors[key]
@@ -205,7 +200,5 @@ function dontMutateFrozenCollections() {
 }
 
 export function isFrozen(obj: any): boolean {
-	if (obj == null || typeof obj !== "object") return true
-	// See #600, IE dies on non-objects in Object.isFrozen
 	return Object.isFrozen(obj)
 }

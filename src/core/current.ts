@@ -6,7 +6,8 @@ import {
 	DRAFT_STATE,
 	set,
 	ImmerState,
-	isDraftable
+	isDraftable,
+	isFrozen
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
@@ -17,17 +18,23 @@ export function current(value: any): any {
 }
 
 function currentImpl(value: any): any {
-	if (!isDraftable(value)) return value
+	if (!isDraftable(value) || isFrozen(value)) return value
 	const state: ImmerState | undefined = value[DRAFT_STATE]
-	if (!state) return value
-	if (!state.modified_) return state.base_
-	// Optimization: avoid generating new drafts during copying
-	state.finalized_ = true
-	const copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
+	let copy: any
+	if (state) {
+		if (!state.modified_) return state.base_
+		// Optimization: avoid generating new drafts during copying
+		state.finalized_ = true
+		copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
+	} else {
+		copy = shallowCopy(value, true)
+	}
 	// recurse
 	each(copy, (key, childValue) => {
 		set(copy, key, currentImpl(childValue))
 	})
-	state.finalized_ = false
+	if (state) {
+		state.finalized_ = false
+	}
 	return copy
 }

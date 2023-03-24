@@ -4,7 +4,8 @@ import {
 	immerable,
 	isDraft,
 	produce,
-	original
+	original,
+	freeze
 } from "../src/immer"
 
 runTests("proxy", true)
@@ -109,7 +110,8 @@ function runTests(name) {
 					z: 2
 				},
 				z: {},
-				w: {}
+				w: {},
+				ww: freeze({})
 			}
 			produce(base, draft => {
 				draft.y.z++
@@ -125,14 +127,44 @@ function runTests(name) {
 						z: 3
 					},
 					z: {nested: {z: 3}},
-					w: {}
+					w: {},
+					ww: {}
 				})
 				expect(isDraft(c)).toBe(false)
 				expect(isDraft(c.y)).toBe(false)
 				expect(isDraft(c.z)).toBe(false)
 				expect(isDraft(c.z.nested)).toBe(false)
 				expect(isDraft(c.z.nested.z)).toBe(false)
-				expect(c.w).toBe(base.w)
+				// this works only with frozen objects, otherwise no way to tell if this was
+				// a new object that was added during the recipe, that might contain drafts.
+				// the recipe or not
+				expect(c.w).not.toBe(base.w)
+				// was frozen, so recyclable
+				expect(c.ww).toBe(base.ww)
+			})
+		})
+
+		it("will find drafts inside objects - 2", () => {
+			const base = {
+				ar: [
+					{
+						x: 1
+					},
+					{x: 2}
+				]
+			}
+			produce(base, draft => {
+				draft.ar[1].x++
+				draft.ar = [draft.ar[1], draft.ar[0]] // swap
+				const c = current(draft)
+				expect(c).toEqual({
+					ar: [{x: 3}, {x: 1}]
+				})
+				expect(isDraft(c)).toBe(false)
+				expect(isDraft(c.ar)).toBe(false)
+				expect(isDraft(c.ar[0])).toBe(false)
+				expect(isDraft(c.ar[1])).toBe(false)
+				expect(c.ar[1]).toBe(base.ar[0])
 			})
 		})
 
