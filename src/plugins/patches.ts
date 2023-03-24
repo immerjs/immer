@@ -18,10 +18,25 @@ import {
 	die,
 	isDraft,
 	isDraftable,
-	NOTHING
+	NOTHING,
+	errors
 } from "../internal"
 
 export function enablePatches() {
+	const errorOffset = 16
+	if (__DEV__) {
+		errors.push(
+			'Sets cannot have "replace" patches.',
+			function(op: string) {
+				return "Unsupported patch operation: " + op
+			},
+			function(path: string) {
+				return "Cannot apply patch, path doesn't resolve: " + path
+			},
+			"Patching reserved attributes like __proto__, prototype and constructor is not allowed"
+		)
+	}
+
 	const REPLACE = "replace"
 	const ADD = "add"
 	const REMOVE = "remove"
@@ -212,10 +227,11 @@ export function enablePatches() {
 					(parentType === ArchType.Object || parentType === ArchType.Array) &&
 					(p === "__proto__" || p === "constructor")
 				)
-					die(24)
-				if (typeof base === "function" && p === "prototype") die(24)
+					die(errorOffset + 3)
+				if (typeof base === "function" && p === "prototype")
+					die(errorOffset + 3)
 				base = get(base, p)
-				if (typeof base !== "object") die(15, path.join("/"))
+				if (typeof base !== "object") die(errorOffset + 2, path.join("/"))
 			}
 
 			const type = getArchtype(base)
@@ -228,7 +244,7 @@ export function enablePatches() {
 							return base.set(key, value)
 						/* istanbul ignore next */
 						case ArchType.Set:
-							die(16)
+							die(errorOffset)
 						default:
 							// if value is an object, then it's assigned by reference
 							// in the following add or remove ops, the value field inside the patch will also be modifyed
@@ -261,7 +277,7 @@ export function enablePatches() {
 							return delete base[key]
 					}
 				default:
-					die(17, op)
+					die(errorOffset + 1, op)
 			}
 		})
 

@@ -26,7 +26,7 @@ export function getPlugin<K extends keyof Plugins>(
 ): Exclude<Plugins[K], undefined> {
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
-		die(18, pluginKey)
+		die(0, pluginKey)
 	}
 	// @ts-ignore
 	return plugin

@@ -8,7 +8,6 @@ import {
 	ArchType,
 	getPlugin
 } from "../internal"
-import {die} from "../utils/errors"
 
 /** Each scope represents a `produce` call. */
 
@@ -26,7 +25,6 @@ export interface ImmerScope {
 let currentScope: ImmerScope | undefined
 
 export function getCurrentScope() {
-	if (__DEV__ && !currentScope) die(0)
 	return currentScope!
 }
 

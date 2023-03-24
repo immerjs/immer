@@ -50,6 +50,17 @@ function runTests(name) {
 				}).toThrowErrorMatchingSnapshot()
 			})
 
+		it("cannot finishDraft twice", () => {
+			const state = {a: 1}
+
+			const draft = createDraft(state)
+			draft.a = 2
+			expect(finishDraft(draft)).toEqual({a: 2})
+			expect(() => {
+				finishDraft(draft)
+			}).toThrowErrorMatchingSnapshot()
+		})
+
 		it("should support patches drafts", () => {
 			const state = {a: 1}
 

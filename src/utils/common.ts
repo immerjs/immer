@@ -54,7 +54,7 @@ export function isPlainObject(value: any): boolean {
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
-	if (!isDraft(value)) die(23, value)
+	if (!isDraft(value)) die(15, value)
 	return value[DRAFT_STATE].base_
 }
 
@@ -63,10 +63,10 @@ export function each<T extends Objectish>(
 	iter: (key: string | number, value: any, source: T) => void,
 	enumerableOnly?: boolean
 ): void
-export function each(obj: any, iter: any, enumerableOnly = false) {
+export function each(obj: any, iter: any) {
 	if (getArchtype(obj) === ArchType.Object) {
-		;(enumerableOnly ? Object.keys : Reflect.ownKeys)(obj).forEach(key => {
-			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
+		Object.keys(obj).forEach(key => {
+			iter(key, obj[key], obj)
 		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))

@@ -178,8 +178,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			// if an originally not assigned property was deleted
 			delete state.assigned_[prop]
 		}
-		// @ts-ignore
-		if (state.copy_) delete state.copy_[prop]
+		delete state.copy_[prop]
 		return true
 	},
 	// Note: We never coerce `desc.value` into an Immer draft, because we can't make
