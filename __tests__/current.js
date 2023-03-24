@@ -108,26 +108,31 @@ function runTests(name) {
 				y: {
 					z: 2
 				},
-				z: {}
+				z: {},
+				w: {}
 			}
 			produce(base, draft => {
 				draft.y.z++
-				draft.y = {
-					nested: draft.y
+				draft.z = {
+					nested: {
+						z: 3
+					}
 				}
 				const c = current(draft)
 				expect(c).toEqual({
 					x: 1,
 					y: {
-						nested: {
-							z: 3
-						}
+						z: 3
 					},
-					z: {}
+					z: {nested: {z: 3}},
+					w: {}
 				})
-				expect(isDraft(c.y.nested)).toBe(false)
-				expect(c.z).toBe(base.z)
-				expect(c.y.nested).not.toBe(draft.y.nested)
+				expect(isDraft(c)).toBe(false)
+				expect(isDraft(c.y)).toBe(false)
+				expect(isDraft(c.z)).toBe(false)
+				expect(isDraft(c.z.nested)).toBe(false)
+				expect(isDraft(c.z.nested.z)).toBe(false)
+				expect(c.w).toBe(base.w)
 			})
 		})
 

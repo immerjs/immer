@@ -29,7 +29,6 @@ title: API overview
 | `Patch` | Exposed TypeScript type, describes the shape of an (inverse) patch object | [Patches](./patches.mdx) |
 | `produceWithPatches` | Works the same as `produce`, but instead of just returning the produced object, it returns a tuple, consisting of `[result, patches, inversePatches]`. | [Patches](./patches.mdx) |
 | `setAutoFreeze` | Enables / disables automatic freezing of the trees produces. By default enabled. | [Freezing](./freezing.mdx) |
-| `setUseProxies` | Can be used to disable or force the use of `Proxy` objects. Useful when filing bug reports. |  |
 | `setUseStrictShallowCopy` | Can be used to enable strict shallow copy. If enable, immer copies non-enumerable properties as much as possible. | [Classes](./complex-objects.md) |
 
 ## Importing immer

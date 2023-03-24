@@ -15,9 +15,9 @@ import {
 	DRAFT_STATE,
 	die,
 	createProxy,
-	ArchType
+	ArchType,
+	ImmerScope
 } from "../internal"
-import {ImmerScope} from "./scope"
 
 interface ProxyBaseState extends ImmerBaseState {
 	assigned_: {

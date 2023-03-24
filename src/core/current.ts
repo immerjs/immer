@@ -4,12 +4,9 @@ import {
 	shallowCopy,
 	each,
 	DRAFT_STATE,
-	get,
 	set,
 	ImmerState,
-	isDraftable,
-	ArchType,
-	getArchtype
+	isDraftable
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
@@ -22,38 +19,15 @@ export function current(value: any): any {
 function currentImpl(value: any): any {
 	if (!isDraftable(value)) return value
 	const state: ImmerState | undefined = value[DRAFT_STATE]
-	let copy: any
-	const archType = getArchtype(value)
-	if (state) {
-		if (!state.modified_) return state.base_
-		// Optimization: avoid generating new drafts during copying
-		state.finalized_ = true
-		copy = copyHelper(
-			value,
-			archType,
-			state.scope_.immer_.useStrictShallowCopy_
-		)
-		state.finalized_ = false
-	} else {
-		copy = copyHelper(value, archType, true)
-	}
-
+	if (!state) return value
+	if (!state.modified_) return state.base_
+	// Optimization: avoid generating new drafts during copying
+	state.finalized_ = true
+	const copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
+	// recurse
 	each(copy, (key, childValue) => {
-		if (state && get(state.base_, key) === childValue) return // no need to copy or search in something that didn't change
 		set(copy, key, currentImpl(childValue))
 	})
-	// In the future, we might consider freezing here, based on the current settings
-	return archType === ArchType.Set ? new Set(copy) : copy
-}
-
-function copyHelper(value: any, archType: number, strict: boolean): any {
-	// creates a shallow copy, even if it is a map or set
-	switch (archType) {
-		case ArchType.Map:
-			return new Map(value)
-		case ArchType.Set:
-			// Set will be cloned as array temporarily, so that we can replace individual items
-			return Array.from(value)
-	}
-	return shallowCopy(value, strict)
+	state.finalized_ = false
+	return copy
 }

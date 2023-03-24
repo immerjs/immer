@@ -140,6 +140,12 @@ export function latest(state: ImmerState): any {
 
 /*#__PURE__*/
 export function shallowCopy(base: any, strict: boolean) {
+	if (isMap(base)) {
+		return new Map(base)
+	}
+	if (isSet(base)) {
+		return new Set(base)
+	}
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
 	if (!strict && isPlainObject(base)) {

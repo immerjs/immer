@@ -78,12 +78,6 @@ declare export var immerable: Symbol
 declare export function setAutoFreeze(autoFreeze: boolean): void
 
 /**
- * Manually override whether proxies should be used.
- * By default done by using feature detection
- */
-declare export function setUseProxies(useProxies: boolean): void
-
-/**
  * Pass false to disable strict shallow copy.
  *
  * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
