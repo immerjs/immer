@@ -1,5 +1,7 @@
-module.exports = {
-	testURL: "http://localhost",
+export default {
+	testEnvironmentOptions: {
+		url: "http://localhost"
+	},
 	globals: {
 		__DEV__: true,
 		"ts-jest": {

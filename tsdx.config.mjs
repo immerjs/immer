@@ -1,6 +1,6 @@
-const {terser} = require("rollup-plugin-terser")
+import terser from "rollup-plugin-terser"
 
-module.exports = {
+export default {
 	// This function will run for each entry/format/env combination
 	rollup(config, options) {
 		if (options.format === "esm" || options.env === "production") {

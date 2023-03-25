@@ -2,6 +2,7 @@
   "name": "immer",
   "version": "9.0.0-beta.1",
   "description": "Create your next immutable state by mutating the current one",
+  "type": "module",
   "main": "dist/index.js",
   "module": "dist/immer.esm.js",
   "exports": {
@@ -23,7 +24,7 @@
     "test": "jest && yarn test:build && yarn test:flow",
     "test:perf": "cd __performance_tests__ && babel-node add-data.js && babel-node todo.js && babel-node incremental.js && babel-node large-obj.js",
     "test:flow": "yarn flow check __tests__/flow",
-    "test:build": "yarn build && NODE_ENV='production' yarn jest --config jest.config.build.js",
+    "test:build": "yarn build && NODE_ENV='production' yarn jest --config jest.config.build.mjs",
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
@@ -64,8 +65,8 @@
     "src"
   ],
   "devDependencies": {
-    "@babel/core": "^7.8.4",
-    "@babel/node": "^7.8.4",
+    "@babel/core": "^7.21.3",
+    "@babel/node": "^7.20.7",
     "@types/jest": "^25.1.2",
     "coveralls": "^3.0.0",
     "cpx2": "^3.0.0",
@@ -74,7 +75,7 @@
     "husky": "^1.2.0",
     "immutable": "^3.8.2",
     "import-size": "^1.0.2",
-    "jest": "^25.1.0",
+    "jest": "^29.5.0",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
     "prettier": "1.19.1",
@@ -84,8 +85,8 @@
     "seamless-immutable": "^7.1.3",
     "semantic-release": "^17.0.2",
     "spec.ts": "^1.1.0",
-    "ts-jest": "^25.2.0",
-    "tsdx": "^0.12.3",
+    "ts-jest": "^29.0.0",
+    "tsdx": "^0.14.1",
     "typescript": "^5.0.2"
   }
 }

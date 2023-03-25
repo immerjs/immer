@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	moduleNameMapper: {
 		"src/.*": "<rootDir>/dist/immer.esm.js"
 	},
@@ -14,6 +14,6 @@ module.exports = {
 	preset: "ts-jest/presets/js-with-ts",
 	testEnvironment: "node",
 	testMatch: ["**/__tests__/**/*.[jt]s?(x)"],
-	snapshotResolver: "<rootDir>/jest.config.build.snapshots.js",
-	testResultsProcessor: "<rootDir>/ignoreObseleteSnapshots.js"
+	snapshotResolver: "<rootDir>/jest.config.build.snapshots.mjs",
+	testResultsProcessor: "<rootDir>/ignoreObseleteSnapshots.mjs"
 }

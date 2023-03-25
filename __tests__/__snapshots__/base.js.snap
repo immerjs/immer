@@ -305,18 +305,18 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=tr
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`complex nesting map / set / object modify deep object 1`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -325,26 +325,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 2`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -352,18 +352,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 3`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -372,26 +372,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 4`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -399,18 +399,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 5`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -419,26 +419,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 6`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -446,18 +446,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 7`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -466,26 +466,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 8`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -493,18 +493,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 9`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -513,26 +513,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 10`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -540,18 +540,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 11`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -560,26 +560,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 12`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -587,18 +587,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 13`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -607,26 +607,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 14`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },
@@ -634,18 +634,18 @@ Array [
 `;
 
 exports[`complex nesting map / set / object modify deep object 15`] = `
-Object {
+{
   "map": Map {
     "set1" => Set {
-      Object {
+      {
         "a": 2,
       },
-      Object {
+      {
         "b": 2,
       },
     },
     "set2" => Set {
-      Object {
+      {
         "c": 3,
       },
     },
@@ -654,26 +654,26 @@ Object {
 `;
 
 exports[`complex nesting map / set / object modify deep object 16`] = `
-Array [
-  Object {
+[
+  {
     "op": "remove",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 1,
     },
   },
-  Object {
+  {
     "op": "add",
-    "path": Array [
+    "path": [
       "map",
       "set1",
       0,
     ],
-    "value": Object {
+    "value": {
       "a": 2,
     },
   },

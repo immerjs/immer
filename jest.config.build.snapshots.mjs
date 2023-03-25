@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	// resolves from test to snapshot path
 	resolveSnapshotPath: (testPath, snapshotExtension) =>
 		testPath.replace("__tests__", "__tests__/__prod_snapshots__") +
