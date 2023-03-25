@@ -3,15 +3,17 @@ export default {
 		url: "http://localhost"
 	},
 	globals: {
-		__DEV__: true,
-		"ts-jest": {
-			tsConfig: {
-				noUnusedLocals: false
-			},
-			disableSourceMapSupport: true
-		}
+		__DEV__: true
 	},
-	preset: "ts-jest/presets/js-with-ts",
+	// transform: {
+	// 	"**/__tests__/**/*.tsx?": ['ts-jest', {
+	// 		tsConfig: {
+	// 			noUnusedLocals: false
+	// 		},
+	// 		disableSourceMapSupport: true
+	// 	}]
+	// },
+	preset: "ts-jest/presets/js-with-ts-esm",
 	testEnvironment: "node",
 	testMatch: ["**/__tests__/**/*.[jt]s?(x)"]
 }

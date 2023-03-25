@@ -6,7 +6,7 @@
     "importHelpers": false,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "sourceMap": true,
     "declarationMap": true,
     "noEmit": true,

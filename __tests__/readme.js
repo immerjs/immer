@@ -216,7 +216,7 @@ test("Producers can update Maps", () => {
 	expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
 	expect(usersById_v2).toMatchInlineSnapshot(`
 		Map {
-		  "michel" => Object {
+		  "michel" => {
 		    "country": "NL",
 		    "name": "Michel Weststrate",
 		  },
@@ -224,7 +224,7 @@ test("Producers can update Maps", () => {
 	`)
 	expect(usersById_v3).toMatchInlineSnapshot(`
 		Map {
-		  "michel" => Object {
+		  "michel" => {
 		    "country": "UK",
 		    "name": "Michel Weststrate",
 		  },

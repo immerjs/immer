@@ -15,35 +15,35 @@ exports[`manual - proxy should not finish drafts from produce 1`] = `"[Immer] Fi
 exports[`manual - proxy should not finish twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
 
 exports[`manual - proxy should support patches drafts 1`] = `
-Array [
-  Array [
-    Array [
-      Object {
+[
+  [
+    [
+      {
         "op": "replace",
-        "path": Array [
+        "path": [
           "a",
         ],
         "value": 2,
       },
-      Object {
+      {
         "op": "add",
-        "path": Array [
+        "path": [
           "b",
         ],
         "value": 3,
       },
     ],
-    Array [
-      Object {
+    [
+      {
         "op": "replace",
-        "path": Array [
+        "path": [
           "a",
         ],
         "value": 1,
       },
-      Object {
+      {
         "op": "remove",
-        "path": Array [
+        "path": [
           "b",
         ],
       },
