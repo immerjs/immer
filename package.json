@@ -7,10 +7,9 @@
   "exports": {
     ".": {
       "types": "./dist/immer.d.ts",
-      "import": "./dist/immer.esm.mjs",
+      "import": "./dist/immer.esm.js",
       "require": "./dist/index.js"
-    },
-    "./*": "./*"
+    }
   },
   "umd:main": "dist/immer.umd.production.min.js",
   "unpkg": "dist/immer.umd.production.min.js",
@@ -19,18 +18,6 @@
   "react-native": "dist/immer.esm.js",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
-  "typesVersions": {
-    ">=3.7": {
-      "*": [
-        "./*"
-      ]
-    },
-    ">=3.1": {
-      "*": [
-        "compat/pre-3.7/*"
-      ]
-    }
-  },
   "sideEffects": false,
   "scripts": {
     "test": "jest && yarn test:build && yarn test:flow",
@@ -40,7 +27,7 @@
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && cp dist/immer.esm.js dist/immer.esm.mjs && yarn build:flow",
+    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && yarn build:flow",
     "build:flow": "cpx 'src/types/index.js.flow' dist -v",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
@@ -61,7 +48,7 @@
     "mutable",
     "copy-on-write"
   ],
-  "author": "Michel Weststrate",
+  "author": "Michel Weststrate <info@michel.codes>",
   "license": "MIT",
   "funding": {
     "type": "opencollective",

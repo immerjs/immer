@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "lib": ["es2015"],
     "target": "ES6",
     "strict": true,
     "declaration": true,
@@ -11,9 +10,9 @@
     "sourceMap": true,
     "declarationMap": true,
     "noEmit": true,
-    "moduleResolution": "node",
-    "module": "esnext",
-    "allowJs": true
+    "module": "ES6",
+    "allowJs": true,
+    "skipLibCheck": true
   },
   "files": ["./src/immer.ts", "./src/plugins/patches.ts", "src/types/globals.d.ts"]
 }
