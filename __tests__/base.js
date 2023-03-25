@@ -2393,7 +2393,7 @@ function testLiteralTypes(produce) {
 						})
 					).toThrowError(
 						isProd
-							? "[Immer] minified error nr: 21"
+							? "[Immer] minified error nr: 1"
 							: "produce can only be called on things that are draftable"
 					)
 				})

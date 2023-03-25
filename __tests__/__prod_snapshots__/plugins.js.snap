@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`error when using patches - 1 1`] = `"[Immer] minified error nr: 18 'Patches'. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 1 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`error when using patches - 2 1`] = `"[Immer] minified error nr: 18 'Patches'. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 2 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
 
-exports[`error when using patches - 3 1`] = `"[Immer] minified error nr: 18 'Patches'. Find the full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 3 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;

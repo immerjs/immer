@@ -29,29 +29,29 @@ describe("original", () => {
 		produce(baseState, draftState => {
 			draftState.c = {}
 			draftState.d = 3
-			expect(() => original(draftState.c)).toThrowErrorMatchingInlineSnapshot(
+			expect(() => original(draftState.c)).toThrowError(
 				isProd
-					? `"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
-					: `"[Immer] 'original' expects a draft, got: [object Object]"`
+					? `[Immer] minified error nr: 15. Full error at: https://bit.ly/3cXEKWf`
+					: `[Immer] 'original' expects a draft, got: [object Object]`
 			)
-			expect(() => original(draftState.d)).toThrowErrorMatchingInlineSnapshot(
+			expect(() => original(draftState.d)).toThrowError(
 				isProd
-					? `"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
-					: `"[Immer] 'original' expects a draft, got: 3"`
+					? `[Immer] minified error nr: 15. Full error at: https://bit.ly/3cXEKWf`
+					: `[Immer] 'original' expects a draft, got: 3`
 			)
 		})
 	})
 
 	it("should return undefined for an object that is not proxied", () => {
-		expect(() => original({})).toThrowErrorMatchingInlineSnapshot(
+		expect(() => original({})).toThrowError(
 			isProd
-				? `"[Immer] minified error nr: 23 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"`
-				: `"[Immer] 'original' expects a draft, got: [object Object]"`
+				? `[Immer] minified error nr: 15. Full error at: https://bit.ly/3cXEKWf`
+				: `[Immer] 'original' expects a draft, got: [object Object]`
 		)
-		expect(() => original(3)).toThrowErrorMatchingInlineSnapshot(
+		expect(() => original(3)).toThrowError(
 			isProd
-				? `"[Immer] minified error nr: 23 '3'. Find the full error at: https://bit.ly/3cXEKWf"`
-				: `"[Immer] 'original' expects a draft, got: 3"`
+				? `[Immer] minified error nr: 15. Full error at: https://bit.ly/3cXEKWf`
+				: `[Immer] 'original' expects a draft, got: 3`
 		)
 	})
 })

@@ -23,7 +23,7 @@ function runTests(name) {
 				current({})
 			}).toThrowError(
 				isProd
-					? "[Immer] minified error nr: 22 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"
+					? "[Immer] minified error nr: 10. Full error at: https://bit.ly/3cXEKWf"
 					: "[Immer] 'current' expects a draft, got: [object Object]"
 			)
 		})

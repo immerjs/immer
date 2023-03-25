@@ -2,7 +2,6 @@
 import {
     produce,
     setAutoFreeze,
-    setUseProxies,
     produce as produce2,
     applyPatches,
     Patch,
@@ -10,7 +9,6 @@ import {
 } from "../../dist/index.js.flow"
 
 setAutoFreeze(true)
-setUseProxies(true)
 
 // we really don't want this code to actually execute..
 const result = produce({x: 3}, draft => {
