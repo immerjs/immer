@@ -1,8 +1,8 @@
 "use strict"
-import {measure} from "./measure"
-import {produce, setAutoFreeze} from "../dist/immer.cjs.production.min.js"
+import {measure} from "./measure.js"
+import {produce, setAutoFreeze} from "../dist/immer.esm.js"
 import cloneDeep from "lodash.clonedeep"
-import * as Immutable from "immutable"
+import Immutable from "immutable"
 
 console.log("\n# incremental - lot of small incremental changes\n")
 

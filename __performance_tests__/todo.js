@@ -1,15 +1,17 @@
 "use strict"
 
-import {measure} from "./measure"
+import {measure} from "./measure.js"
 import {
 	enablePatches,
 	produce,
 	setAutoFreeze
-} from "../dist/immer.cjs.production.min.js"
+} from "../dist/immer.esm.js"
 import cloneDeep from "lodash.clonedeep"
-import {List, Record} from "immutable"
+import immutable from "immutable"
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
+
+const {List, Record} = immutable
 
 function freeze(x) {
 	Object.freeze(x)

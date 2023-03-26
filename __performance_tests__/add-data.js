@@ -1,15 +1,17 @@
 "use strict"
 
-import {measure} from "./measure"
-import {produce, setAutoFreeze} from "../dist/immer.cjs.production.min.js"
+import {measure} from "./measure.js"
+import {produce, setAutoFreeze} from "../dist/immer.esm.js"
 import cloneDeep from "lodash.clonedeep"
-import {fromJS} from "immutable"
+import immutable from "immutable"
+const {fromJS} = immutable
 import Seamless from "seamless-immutable"
 import deepFreeze from "deep-freeze"
 
 console.log("\n# add-data - loading large set of data\n")
 
-const dataSet = require("./data.json")
+import dataSet from "./data.json"  assert { type: "json" }
+
 const baseState = {
 	data: null
 }
