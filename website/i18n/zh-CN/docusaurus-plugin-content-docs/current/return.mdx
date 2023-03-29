@@ -96,7 +96,7 @@ produce({}, draft => {
 但是，为了让 Immer 清楚您有意生成 `undefined` 值，您可以返回内置标记 `nothing`：
 
 ```javascript
-import produce, {nothing} from "immer"
+import {nothing, produce} from "immer"
 
 const state = {
 	hello: "world"

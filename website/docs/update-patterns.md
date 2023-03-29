@@ -14,7 +14,7 @@ To help 'unlearning' those patterns here is an overview how you can leverage the
 ### Object mutations
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const todosObj = {
 	id1: {done: false, body: "Take out the trash"},
@@ -40,7 +40,7 @@ const updatedTodosObj = produce(todosObj, draft => {
 ### Array mutations
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const todosArray = [
 	{id: "id1", done: false, body: "Take out the trash"},
@@ -107,7 +107,7 @@ const updatedTodosArray = produce(todosArray, draft => {
 ### Nested data structures
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // example complex data structure
 const store = {

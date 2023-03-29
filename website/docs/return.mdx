@@ -96,7 +96,7 @@ The problem is that in JavaScript a function that doesn't return anything also r
 However, to make it clear to Immer that you intentionally want to produce the value `undefined`, you can return the built-in token `nothing`:
 
 ```javascript
-import produce, {nothing} from "immer"
+import {nothing, produce} from "immer"
 
 const state = {
 	hello: "world"

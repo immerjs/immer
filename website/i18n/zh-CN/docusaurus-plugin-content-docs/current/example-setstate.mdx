@@ -37,7 +37,7 @@ title: React & Immer
 
 ```javascript
 import React, { useCallback, useState } from "react";
-import produce from "immer";
+import {produce} from "immer";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([
@@ -128,7 +128,7 @@ const TodoList = () => {
 
 ```javascript
 import React, {useCallback, useReducer} from "react"
-import produce from "immer"
+import {produce} from "immer"
 
 const TodoList = () => {
 	const [todos, dispatch] = useReducer(
@@ -214,7 +214,7 @@ Redux + Immer 在 [Redux Toolkit](https://redux-toolkit.js.org/usage/immer-reduc
 例子:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // 初始 state
 const INITIAL_STATE = [

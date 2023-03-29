@@ -64,7 +64,7 @@ Patches are useful in few scenarios:
 To help with replaying patches, `applyPatches` comes in handy. Here is an example how patches could be used to record the incremental updates and (inverse) apply them:
 
 ```javascript
-import produce, {applyPatches} from "immer"
+import {applyPatches, produce} from "immer"
 
 // version 6
 import {enablePatches} from "immer"

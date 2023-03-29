@@ -36,7 +36,7 @@ Immer 包附带了类型定义，TypeScript 和 Flow 开箱即可获取这些定
 TypeScript 类型会自动从 draft 类型中删除 `readonly` 修饰符，并返回与原始类型匹配的值。看这个实际的例子:
 
 ```ts
-import produce from "immer"
+import {produce} from "immer"
 
 interface State {
 	readonly x: number

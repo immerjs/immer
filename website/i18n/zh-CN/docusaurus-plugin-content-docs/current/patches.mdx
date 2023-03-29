@@ -64,7 +64,7 @@ Patches 在下面场景很有用:
 为了帮助回溯补丁，`applyPatches` 派上用场了。这是一个如何使用 Patches 来记录增量更新并（反向）应用它们的示例：
 
 ```javascript
-import produce, {applyPatches} from "immer"
+import {applyPatches, produce} from "immer"
 
 // 版本 6
 import {enablePatches} from "immer"

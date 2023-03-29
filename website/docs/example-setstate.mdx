@@ -37,7 +37,7 @@ The `useState` hook assumes any state that is stored inside it is treated as imm
 
 ```javascript
 import React, { useCallback, useState } from "react";
-import produce from "immer";
+import {produce} from "immer";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([
@@ -128,7 +128,7 @@ Similarly to `useState`, `useReducer` combines neatly with Immer as well, as dem
 
 ```javascript
 import React, {useCallback, useReducer} from "react"
-import produce from "immer"
+import {produce} from "immer"
 
 const TodoList = () => {
 	const [todos, dispatch] = useReducer(
@@ -213,7 +213,7 @@ Redux + Immer is extensively covered in the documentation of [Redux Toolkit](htt
 For example:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // Reducer with initial state
 const INITIAL_STATE = [

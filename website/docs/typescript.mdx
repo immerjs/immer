@@ -36,7 +36,7 @@ The Immer package ships with type definitions inside the package, which should b
 The TypeScript typings automatically remove `readonly` modifiers from your draft types and return a value that matches your original type. See this practical example:
 
 ```ts
-import produce from "immer"
+import {produce} from "immer"
 
 interface State {
 	readonly x: number

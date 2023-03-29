@@ -14,7 +14,7 @@ title: 更新模式
 ### 更新对象
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const todosObj = {
 	id1: {done: false, body: "Take out the trash"},
@@ -40,7 +40,7 @@ const updatedTodosObj = produce(todosObj, draft => {
 ### 更新数组
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const todosArray = [
 	{id: "id1", done: false, body: "Take out the trash"},
@@ -104,7 +104,7 @@ const updatedTodosArray = produce(todosArray, draft => {
 ### 嵌套数据结构
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // 复杂数据结构例子
 const store = {

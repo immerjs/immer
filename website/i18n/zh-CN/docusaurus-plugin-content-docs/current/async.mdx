@@ -34,7 +34,7 @@ sidebar_label: 异步 produce / createDraft
 允许从 recipe 返回 Promise 对象。或者，换句话说，使用 `async / await`。这对于长时间运行的进程非常有用，只有在 Promise 链解析后才生成新对象。请注意，如果 producer 是异步的，`produce` 本身（即使是柯里化形式）也会返回一个 promise。例子:
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const user = {
 	name: "michel",

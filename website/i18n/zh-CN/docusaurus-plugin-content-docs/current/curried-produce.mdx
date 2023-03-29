@@ -33,7 +33,7 @@ title: 柯里化 producers
 将函数作为第一个参数传递给 `produce` 会创建一个函数，该函数尚未将 `produce` 应用于特定 state，而是创建一个函数，该函数将应用于将来传递给它的任何 state。这通常称为柯里化。举个例子：
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 function toggleTodo(state, id) {
 	return produce(state, draft => {
@@ -61,7 +61,7 @@ const nextState = toggleTodo(baseState, "Immer")
 上面的 `toggleTodo` 模式非常典型；传递一个现有的 state 来 `produce`，修改 `draft`，然后返回结果。由于 `state` 除了将其传递给 `produce` 之外没有其他任何用途，因此可以通过使用 `produce` 的柯里化形式来简化上面的示例，其中您只传递 `produce` recipe 函数，并且 `produce` 将返回一个应用 recipe 到基础状态的新函数。这允许我们缩短上述 `toggleTodo` 定义。
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 // curried producer:
 const toggleTodo = produce((draft, id) => {
