@@ -1,6 +1,6 @@
 {
   "name": "immer",
-  "version": "10.0.0-beta.1",
+  "version": "10.0.0-beta.2",
   "description": "Create your next immutable state by mutating the current one",
   "type": "module",
   "main": "dist/index.js",
