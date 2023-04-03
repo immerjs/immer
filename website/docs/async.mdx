@@ -1,7 +1,7 @@
 ---
 id: async
-title: Async producers & createDraft / finishDraft
-sidebar_label: Async produce / createDraft
+title: createDraft / finishDraft
+sidebar_label: createDraft / finishDraft
 ---
 
 <center>
@@ -10,8 +10,7 @@ sidebar_label: Async produce / createDraft
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 11: Creating <b>async</b> producers (and why you
 		shouldn’t)
@@ -33,26 +32,11 @@ sidebar_label: Async produce / createDraft
 	</a>
 </details>
 
-It is allowed to return Promise objects from recipes. Or, in other words, to use `async / await`. This can be pretty useful for long running processes, that only produce the new object once the promise chain resolves. Note that `produce` itself (even in the curried form) will return a promise if the producer is async. Example:
-
-```javascript
-import {produce} from "immer"
-
-const user = {
-	name: "michel",
-	todos: []
-}
-
-const loadedUser = await produce(user, async function(draft) {
-	draft.todos = await (await window.fetch("http://host/" + draft.name)).json()
-})
-```
-
-_Warning: please note that the draft shouldn't be 'leaked' from the async process and stored else where. The draft will still be revoked as soon as the async process completes._
-
 ## `createDraft` and `finishDraft`
 
-`createDraft` and `finishDraft` are two low-level functions that are mostly useful for libraries that build abstractions on top of immer. It avoids the need to always create a function in order to work with drafts. Instead, one can create a draft, modify it, and at some time in the future finish the draft, in which case the next immutable state will be produced. We could for example rewrite our above example as:
+`createDraft` and `finishDraft` are two low-level functions that are mostly useful for libraries that build abstractions on top of immer. It avoids the need to always create a function in order to work with drafts. Instead, one can create a draft, modify it, and at some time in the future finish the draft, in which case the next immutable state will be produced.
+
+Beyond that, `createDraft` / `finishDraft` could be used to express async updates to drafts:
 
 ```javascript
 import {createDraft, finishDraft} from "immer"
@@ -66,6 +50,8 @@ const draft = createDraft(user)
 draft.todos = await (await window.fetch("http://host/" + draft.name)).json()
 const loadedUser = finishDraft(draft)
 ```
+
+Note: The above is an anti-pattern! First fetch data instead, then draft the `user`. Otherwise updates to user that happen during the async process, would be "missed" by the draft.
 
 Note: `finishDraft` takes a `patchListener` as second argument, which can be used to record the patches, similarly to `produce`.
 
