@@ -106,6 +106,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 		it("can delete props", () => {
 			const nextState = produce(baseState, s => {
 				delete s.anObject.nested
+				delete s.nonexisting
 			})
 			expect(nextState).not.toBe(baseState)
 			expect(nextState.anObject).not.toBe(baseState.anObject)

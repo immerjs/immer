@@ -1,6 +1,6 @@
-export default {
+module.exports = {
 	moduleNameMapper: {
-		"src/.*": "<rootDir>/dist/immer.esm.js"
+		"src/.*": "<rootDir>/dist/immer.cjs.production.min.js"
 	},
 	testEnvironmentOptions: {
 		url: "http://localhost"
@@ -11,6 +11,6 @@ export default {
 	preset: "ts-jest/presets/js-with-ts",
 	testEnvironment: "node",
 	testMatch: ["**/__tests__/**/*.[jt]s?(x)"],
-	snapshotResolver: "<rootDir>/jest.config.build.snapshots.cjs",
-	testResultsProcessor: "<rootDir>/ignoreObseleteSnapshots.mjs"
+	snapshotResolver: "<rootDir>/jest.config.build.snapshots.js",
+	testResultsProcessor: "<rootDir>/ignoreObseleteSnapshots.js"
 }

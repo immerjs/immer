@@ -11,8 +11,7 @@
     "declarationMap": true,
     "noEmit": true,
     "module": "ES6",
-    "allowJs": true,
-    "skipLibCheck": true
+    "allowJs": true
   },
   "files": ["./src/immer.ts", "./src/plugins/patches.ts", "src/types/globals.d.ts"]
 }
