@@ -1,7 +1,7 @@
 "use strict"
 
-import {measure} from "./measure.js"
-import {produce, setAutoFreeze} from "../dist/immer.esm.js"
+import {measure} from "./measure.mjs"
+import {produce, setAutoFreeze} from "../dist/immer.mjs"
 import cloneDeep from "lodash.clonedeep"
 import immutable from "immutable"
 const {fromJS} = immutable

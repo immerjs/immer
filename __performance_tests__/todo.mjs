@@ -1,11 +1,11 @@
 "use strict"
 
-import {measure} from "./measure.js"
+import {measure} from "./measure.mjs"
 import {
 	enablePatches,
 	produce,
 	setAutoFreeze
-} from "../dist/immer.esm.js"
+} from "../dist/immer.mjs"
 import cloneDeep from "lodash.clonedeep"
 import immutable from "immutable"
 import Seamless from "seamless-immutable"
