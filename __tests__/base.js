@@ -5,15 +5,17 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enablePatches
+	enablePatches,
+	enableMapSet
 } from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import * as lodash from "lodash"
 
-jest.setTimeout(1000)
-
 enablePatches()
+enableMapSet()
+
+jest.setTimeout(1000)
 
 const isProd = process.env.NODE_ENV === "production"
 

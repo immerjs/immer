@@ -7,9 +7,11 @@ import {
 	Draft,
 	Immutable,
 	Immer,
+	enableMapSet,
 	enablePatches
 } from "../src/immer"
 
+enableMapSet()
 enablePatches()
 
 interface State {

@@ -1,6 +1,7 @@
 // @flow
 import {
     produce,
+    enableMapSet,
     setAutoFreeze,
     produce as produce2,
     applyPatches,
@@ -8,6 +9,7 @@ import {
     original
 } from "../../dist/index.js.flow"
 
+enableMapSet()
 setAutoFreeze(true)
 
 // we really don't want this code to actually execute..

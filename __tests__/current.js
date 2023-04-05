@@ -5,8 +5,11 @@ import {
 	isDraft,
 	produce,
 	original,
-	freeze
+	freeze,
+	enableMapSet
 } from "../src/immer"
+
+enableMapSet()
 
 runTests("proxy", true)
 

@@ -6,10 +6,12 @@ import {
 	isDraft,
 	immerable,
 	nothing,
-	enablePatches
+	enablePatches,
+	enableMapSet
 } from "../src/immer"
 
 enablePatches()
+enableMapSet()
 
 jest.setTimeout(1000)
 

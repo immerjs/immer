@@ -4,10 +4,12 @@ import {
 	applyPatches,
 	immerable,
 	produceWithPatches,
-	setAutoFreeze,
-	enablePatches
+	enableMapSet,
+	enablePatches,
+	setAutoFreeze
 } from "../src/immer"
 
+enableMapSet()
 enablePatches()
 
 describe("readme example", () => {

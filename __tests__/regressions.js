@@ -1,5 +1,14 @@
 "use strict"
-import {Immer, nothing, original, isDraft, immerable} from "../src/immer"
+import {
+	Immer,
+	nothing,
+	original,
+	isDraft,
+	immerable,
+	enableMapSet
+} from "../src/immer"
+
+enableMapSet()
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)

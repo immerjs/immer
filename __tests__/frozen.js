@@ -1,5 +1,13 @@
 "use strict"
-import {produce, setUseProxies, setAutoFreeze, freeze} from "../src/immer"
+import {
+	produce,
+	setUseProxies,
+	setAutoFreeze,
+	freeze,
+	enableMapSet
+} from "../src/immer"
+
+enableMapSet()
 
 const {isFrozen} = Object
 

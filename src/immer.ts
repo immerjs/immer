@@ -110,3 +110,4 @@ export function castImmutable<T>(value: T): Immutable<T> {
 export {Immer}
 
 export {enablePatches} from "./plugins/patches"
+export {enableMapSet} from "./plugins/mapset"

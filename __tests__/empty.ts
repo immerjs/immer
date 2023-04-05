@@ -1,6 +1,14 @@
-import {produce, immerable, applyPatches, enablePatches} from "../src/immer"
+import {
+	produce,
+	produceWithPatches,
+	immerable,
+	enableMapSet,
+	enablePatches,
+	applyPatches
+} from "../src/immer"
 import {DRAFT_STATE, Patch} from "../src/internal"
 
+enableMapSet()
 enablePatches()
 
 test("empty stub test", () => {
