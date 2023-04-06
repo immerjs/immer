@@ -743,3 +743,13 @@ it("allows for mixed property value types", () => {
 		}
 	})
 })
+
+it("can delete properties that do not exist on the draft", () => {
+	const newState = produce((draft: Draft<State>) => {
+		// @ts-expect-error
+		delete draft.aPropertyThatDoesNotExist
+		draft.num++
+	})(state)
+	expect(newState).not.toBe(state)
+	expect(newState.num).toBe(1)
+})

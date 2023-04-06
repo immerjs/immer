@@ -176,9 +176,9 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			markChanged(state)
 		} else {
 			// if an originally not assigned property was deleted
-			delete state.assigned_[prop]
+			delete state.assigned_?.[prop]
 		}
-		delete state.copy_[prop]
+		delete state.copy_?.[prop]
 		return true
 	},
 	// Note: We never coerce `desc.value` into an Immer draft, because we can't make
