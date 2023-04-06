@@ -115,6 +115,13 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			expect(nextState.anObject.nested).toBe(undefined)
 		})
 
+		it("can delete props - 2", () => {
+			const nextState = produce(baseState, s => {
+				delete s.nonexisting
+			})
+			expect(nextState).toBe(baseState)
+		})
+
 		// Found by: https://github.com/mweststrate/immer/pull/267
 		it("can delete props added in the producer", () => {
 			const nextState = produce(baseState, s => {
