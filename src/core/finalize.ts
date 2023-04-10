@@ -116,7 +116,8 @@ function finalizeProperty(
 	rootPath?: PatchPath,
 	targetIsSet?: boolean
 ) {
-	if (__DEV__ && childValue === targetObject) die(5)
+	if (process.env.NODE_ENV === "development" && childValue === targetObject)
+		die(5)
 	if (isDraft(childValue)) {
 		const path =
 			rootPath &&

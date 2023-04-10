@@ -24,7 +24,7 @@ import {
 
 export function enablePatches() {
 	const errorOffset = 16
-	if (__DEV__) {
+	if (process.env.NODE_ENV === "development") {
 		errors.push(
 			'Sets cannot have "replace" patches.',
 			function(op: string) {
