@@ -11,6 +11,7 @@ import {
 	each,
 	has,
 	getArchtype,
+	getPrototypeOf,
 	isSet,
 	isMap,
 	loadPlugin,
@@ -296,7 +297,7 @@ export function enablePatches() {
 				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
 			)
 		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
-		const cloned = Object.create(Object.getPrototypeOf(obj))
+		const cloned = Object.create(getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 		if (has(obj, immerable)) cloned[immerable] = obj[immerable]
 		return cloned

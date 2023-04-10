@@ -12,6 +12,7 @@ import {
 	AnyArray,
 	Objectish,
 	getCurrentScope,
+	getPrototypeOf,
 	DRAFT_STATE,
 	die,
 	createProxy,
@@ -200,7 +201,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		die(11)
 	},
 	getPrototypeOf(state) {
-		return Object.getPrototypeOf(state.base_)
+		return getPrototypeOf(state.base_)
 	},
 	setPrototypeOf() {
 		die(12)
@@ -259,11 +260,11 @@ function getDescriptorFromProto(
 ): PropertyDescriptor | undefined {
 	// 'in' checks proto!
 	if (!(prop in source)) return undefined
-	let proto = Object.getPrototypeOf(source)
+	let proto = getPrototypeOf(source)
 	while (proto) {
 		const desc = Object.getOwnPropertyDescriptor(proto, prop)
 		if (desc) return desc
-		proto = Object.getPrototypeOf(proto)
+		proto = getPrototypeOf(proto)
 	}
 	return undefined
 }
