@@ -12,6 +12,7 @@ import {
 	AnyArray,
 	Objectish,
 	getCurrentScope,
+	getPrototypeOf,
 	DRAFT_STATE,
 	die,
 	createProxy,
@@ -200,7 +201,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		die(11)
 	},
 	getPrototypeOf(state) {
-		return Object.getPrototypeOf(state.base_)
+		return getPrototypeOf(state.base_)
 	},
 	setPrototypeOf() {
 		die(12)
@@ -220,12 +221,18 @@ each(objectTraps, (key, fn) => {
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
-	if (__DEV__ && isNaN(parseInt(prop as any))) die(13)
+	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
+		die(13)
 	// @ts-ignore
 	return arrayTraps.set!.call(this, state, prop, undefined)
 }
 arrayTraps.set = function(state, prop, value) {
-	if (__DEV__ && prop !== "length" && isNaN(parseInt(prop as any))) die(14)
+	if (
+		process.env.NODE_ENV !== "production" &&
+		prop !== "length" &&
+		isNaN(parseInt(prop as any))
+	)
+		die(14)
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
@@ -253,11 +260,11 @@ function getDescriptorFromProto(
 ): PropertyDescriptor | undefined {
 	// 'in' checks proto!
 	if (!(prop in source)) return undefined
-	let proto = Object.getPrototypeOf(source)
+	let proto = getPrototypeOf(source)
 	while (proto) {
 		const desc = Object.getOwnPropertyDescriptor(proto, prop)
 		if (desc) return desc
-		proto = Object.getPrototypeOf(proto)
+		proto = getPrototypeOf(proto)
 	}
 	return undefined
 }

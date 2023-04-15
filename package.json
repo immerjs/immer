@@ -2,37 +2,34 @@
   "name": "immer",
   "version": "10.0.0-beta.6",
   "description": "Create your next immutable state by mutating the current one",
-  "main": "dist/index.js",
-  "module": "dist/immer.mjs",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/immer.legacy-esm.js",
   "exports": {
     ".": {
       "types": "./dist/immer.d.ts",
       "import": "./dist/immer.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/cjs/index.js"
     }
   },
-  "umd:main": "dist/immer.umd.production.min.js",
-  "unpkg": "dist/immer.umd.production.min.js",
-  "jsdelivr": "dist/immer.umd.production.min.js",
   "jsnext:main": "dist/immer.mjs",
   "react-native": "dist/immer.mjs",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
   "sideEffects": false,
   "scripts": {
+    "pretest": "yarn build",
     "test": "jest && yarn test:build && yarn test:flow",
     "test:perf": "cd __performance_tests__ && node add-data.mjs && node todo.mjs && node incremental.mjs && node large-obj.mjs",
     "test:flow": "yarn flow check __tests__/flow",
-    "test:build": "yarn build && NODE_ENV='production' yarn jest --config jest.config.build.js",
+    "test:build": "NODE_ENV='production' yarn jest --config jest.config.build.js",
     "watch": "jest --watch",
     "coverage": "jest --coverage",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "build": "rimraf dist/ && tsdx build --name immer --format esm,cjs,umd && mv dist/immer.esm.js dist/immer.mjs && yarn build:flow",
-    "build:flow": "cpx 'src/types/index.js.flow' dist -v",
+    "build": "tsup",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
     "test:size": "yarn build && yarn import-size --report . produce enableMapSet enablePatches",
-    "test:sizequick": "tsdx build --name immer --format esm && yarn import-size . produce"
+    "test:sizequick": "yarn build && yarn import-size . produce"
   },
   "husky": {
     "hooks": {
@@ -84,7 +81,7 @@
     "semantic-release": "^17.0.2",
     "spec.ts": "^1.1.0",
     "ts-jest": "^29.0.0",
-    "tsdx": "^0.14.1",
+    "tsup": "^6.7.0",
     "typescript": "^5.0.2"
   }
 }

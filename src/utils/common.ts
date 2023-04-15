@@ -11,6 +11,8 @@ import {
 	die
 } from "../internal"
 
+export const getPrototypeOf = Object.getPrototypeOf
+
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
 export function isDraft(value: any): boolean {
@@ -35,7 +37,7 @@ const objectCtorString = Object.prototype.constructor.toString()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
-	const proto = Object.getPrototypeOf(value)
+	const proto = getPrototypeOf(value)
 	if (proto === null) {
 		return true
 	}
@@ -144,7 +146,7 @@ export function shallowCopy(base: any, strict: boolean) {
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
 	if (!strict && isPlainObject(base)) {
-		if (!Object.getPrototypeOf(base)) {
+		if (!getPrototypeOf(base)) {
 			const obj = Object.create(null)
 			return Object.assign(obj, base)
 		}
@@ -172,7 +174,7 @@ export function shallowCopy(base: any, strict: boolean) {
 				value: base[key]
 			}
 	}
-	return Object.create(Object.getPrototypeOf(base), descriptors)
+	return Object.create(getPrototypeOf(base), descriptors)
 }
 
 /**
