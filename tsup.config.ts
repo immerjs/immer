@@ -12,6 +12,9 @@ export default defineConfig(options => {
 
 	const productionOptions = {
 		minify: true,
+		esbuildOptions(options, _context) {
+			options.mangleProps = /_$/
+		},
 		define: {
 			"process.env.NODE_ENV": JSON.stringify("production")
 		}
