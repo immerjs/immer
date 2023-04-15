@@ -221,14 +221,14 @@ each(objectTraps, (key, fn) => {
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
-	if (process.env.NODE_ENV === "development" && isNaN(parseInt(prop as any)))
+	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
 		die(13)
 	// @ts-ignore
 	return arrayTraps.set!.call(this, state, prop, undefined)
 }
 arrayTraps.set = function(state, prop, value) {
 	if (
-		process.env.NODE_ENV === "development" &&
+		process.env.NODE_ENV !== "production" &&
 		prop !== "length" &&
 		isNaN(parseInt(prop as any))
 	)

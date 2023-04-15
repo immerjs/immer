@@ -1,5 +1,5 @@
 export const errors =
-	process.env.NODE_ENV === "development"
+	process.env.NODE_ENV !== "production"
 		? [
 				// All error codes, starting by 0:
 				function(plugin: string) {
@@ -37,7 +37,7 @@ export const errors =
 		: []
 
 export function die(error: number, ...args: any[]): never {
-	if (process.env.NODE_ENV === "development") {
+	if (process.env.NODE_ENV !== "production") {
 		const e = errors[error]
 		const msg = typeof e === "function" ? e.apply(null, args as any) : e
 		throw new Error(`[Immer] ${msg}`)

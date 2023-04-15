@@ -1,6 +1,6 @@
 module.exports = {
 	moduleNameMapper: {
-		"src/.*": "<rootDir>/dist/immer.cjs.production.min.js"
+		"src/.*": "<rootDir>/dist/cjs/immer.cjs.production.js"
 	},
 	testEnvironmentOptions: {
 		url: "http://localhost"
