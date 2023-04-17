@@ -1,13 +1,11 @@
 import {
 	ImmerState,
 	Patch,
-	ImmerScope,
 	Drafted,
-	AnyObject,
 	ImmerBaseState,
 	AnyMap,
 	AnySet,
-	ProxyType,
+	ArchType,
 	die
 } from "../internal"
 
@@ -28,14 +26,6 @@ const plugins: {
 		): void
 		applyPatches_<T>(draft: T, patches: Patch[]): T
 	}
-	ES5?: {
-		willFinalizeES5_(scope: ImmerScope, result: any, isReplaced: boolean): void
-		createES5Proxy_<T>(
-			base: T,
-			parent?: ImmerState
-		): Drafted<T, ES5ObjectState | ES5ArrayState>
-		hasChanges_(state: ES5ArrayState | ES5ObjectState): boolean
-	}
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
 		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
@@ -49,7 +39,7 @@ export function getPlugin<K extends keyof Plugins>(
 ): Exclude<Plugins[K], undefined> {
 	const plugin = plugins[pluginKey]
 	if (!plugin) {
-		die(18, pluginKey)
+		die(0, pluginKey)
 	}
 	// @ts-ignore
 	return plugin
@@ -61,33 +51,10 @@ export function loadPlugin<K extends keyof Plugins>(
 ): void {
 	if (!plugins[pluginKey]) plugins[pluginKey] = implementation
 }
-
-/** ES5 Plugin */
-
-interface ES5BaseState extends ImmerBaseState {
-	assigned_: {[key: string]: any}
-	parent_?: ImmerState
-	revoked_: boolean
-}
-
-export interface ES5ObjectState extends ES5BaseState {
-	type_: ProxyType.ES5Object
-	draft_: Drafted<AnyObject, ES5ObjectState>
-	base_: AnyObject
-	copy_: AnyObject | null
-}
-
-export interface ES5ArrayState extends ES5BaseState {
-	type_: ProxyType.ES5Array
-	draft_: Drafted<AnyObject, ES5ArrayState>
-	base_: any
-	copy_: any
-}
-
 /** Map / Set plugin */
 
 export interface MapState extends ImmerBaseState {
-	type_: ProxyType.Map
+	type_: ArchType.Map
 	copy_: AnyMap | undefined
 	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
@@ -96,7 +63,7 @@ export interface MapState extends ImmerBaseState {
 }
 
 export interface SetState extends ImmerBaseState {
-	type_: ProxyType.Set
+	type_: ArchType.Set
 	copy_: AnySet | undefined
 	base_: AnySet
 	drafts_: Map<any, Drafted> // maps the original value to the draft value in the new set

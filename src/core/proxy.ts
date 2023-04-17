@@ -12,10 +12,12 @@ import {
 	AnyArray,
 	Objectish,
 	getCurrentScope,
+	getPrototypeOf,
 	DRAFT_STATE,
 	die,
 	createProxy,
-	ProxyType
+	ArchType,
+	ImmerScope
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -27,14 +29,14 @@ interface ProxyBaseState extends ImmerBaseState {
 }
 
 export interface ProxyObjectState extends ProxyBaseState {
-	type_: ProxyType.ProxyObject
+	type_: ArchType.Object
 	base_: any
 	copy_: any
 	draft_: Drafted<AnyObject, ProxyObjectState>
 }
 
 export interface ProxyArrayState extends ProxyBaseState {
-	type_: ProxyType.ProxyArray
+	type_: ArchType.Array
 	base_: AnyArray
 	copy_: AnyArray | null
 	draft_: Drafted<AnyArray, ProxyArrayState>
@@ -53,7 +55,7 @@ export function createProxyProxy<T extends Objectish>(
 ): Drafted<T, ProxyState> {
 	const isArray = Array.isArray(base)
 	const state: ProxyState = {
-		type_: isArray ? ProxyType.ProxyArray : (ProxyType.ProxyObject as any),
+		type_: isArray ? ArchType.Array : (ArchType.Object as any),
 		// Track which produce call this is associated with.
 		scope_: parent ? parent.scope_ : getCurrentScope()!,
 		// True for both shallow and deep changes.
@@ -114,11 +116,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
-			return (state.copy_![prop as any] = createProxy(
-				state.scope_.immer_,
-				value,
-				state
-			))
+			return (state.copy_![prop as any] = createProxy(value, state))
 		}
 		return value
 	},
@@ -181,8 +179,9 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			// if an originally not assigned property was deleted
 			delete state.assigned_[prop]
 		}
-		// @ts-ignore
-		if (state.copy_) delete state.copy_[prop]
+		if (state.copy_) {
+			delete state.copy_[prop]
+		}
 		return true
 	},
 	// Note: We never coerce `desc.value` into an Immer draft, because we can't make
@@ -193,7 +192,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (!desc) return desc
 		return {
 			writable: true,
-			configurable: state.type_ !== ProxyType.ProxyArray || prop !== "length",
+			configurable: state.type_ !== ArchType.Array || prop !== "length",
 			enumerable: desc.enumerable,
 			value: owner[prop]
 		}
@@ -202,7 +201,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		die(11)
 	},
 	getPrototypeOf(state) {
-		return Object.getPrototypeOf(state.base_)
+		return getPrototypeOf(state.base_)
 	},
 	setPrototypeOf() {
 		die(12)
@@ -222,12 +221,18 @@ each(objectTraps, (key, fn) => {
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
-	if (__DEV__ && isNaN(parseInt(prop as any))) die(13)
+	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
+		die(13)
 	// @ts-ignore
 	return arrayTraps.set!.call(this, state, prop, undefined)
 }
 arrayTraps.set = function(state, prop, value) {
-	if (__DEV__ && prop !== "length" && isNaN(parseInt(prop as any))) die(14)
+	if (
+		process.env.NODE_ENV !== "production" &&
+		prop !== "length" &&
+		isNaN(parseInt(prop as any))
+	)
+		die(14)
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
 
@@ -255,11 +260,11 @@ function getDescriptorFromProto(
 ): PropertyDescriptor | undefined {
 	// 'in' checks proto!
 	if (!(prop in source)) return undefined
-	let proto = Object.getPrototypeOf(source)
+	let proto = getPrototypeOf(source)
 	while (proto) {
 		const desc = Object.getOwnPropertyDescriptor(proto, prop)
 		if (desc) return desc
-		proto = Object.getPrototypeOf(proto)
+		proto = getPrototypeOf(proto)
 	}
 	return undefined
 }
@@ -273,8 +278,15 @@ export function markChanged(state: ImmerState) {
 	}
 }
 
-export function prepareCopy(state: {base_: any; copy_: any}) {
+export function prepareCopy(state: {
+	base_: any
+	copy_: any
+	scope_: ImmerScope
+}) {
 	if (!state.copy_) {
-		state.copy_ = shallowCopy(state.base_)
+		state.copy_ = shallowCopy(
+			state.base_,
+			state.scope_.immer_.useStrictShallowCopy_
+		)
 	}
 }

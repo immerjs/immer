@@ -1,15 +1,17 @@
 "use strict"
-import produce, {
-	setUseProxies,
+import {
+	produce,
 	applyPatches,
 	produceWithPatches,
-	enableAllPlugins,
 	isDraft,
 	immerable,
-	nothing
+	nothing,
+	enablePatches,
+	enableMapSet
 } from "../src/immer"
 
-enableAllPlugins()
+enablePatches()
+enableMapSet()
 
 jest.setTimeout(1000)
 
@@ -48,16 +50,7 @@ function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
 	}
 
 	describe(`proxy`, () => {
-		setUseProxies(true)
 		resultProxies = runPatchTestHelper()
-	})
-
-	describe(`es5`, () => {
-		setUseProxies(false)
-		resultEs5 = runPatchTestHelper()
-		test("ES5 and Proxy implementation yield same result", () => {
-			expect(resultEs5).toEqual(resultProxies)
-		})
 	})
 
 	return resultProxies
@@ -573,7 +566,7 @@ describe("arrays - splice middle", () => {
 		},
 		[
 			{op: "replace", path: ["x", 1], value: 3},
-			{op: "replace", path: ["x", "length"], value: 2}
+			{op: "remove", path: ["x", 2]}
 		]
 	)
 })
@@ -592,7 +585,8 @@ describe("arrays - multiple splice", () => {
 			{op: "replace", path: [1], value: 3},
 			{op: "replace", path: [2], value: 3},
 			{op: "replace", path: [4], value: 0},
-			{op: "replace", path: ["length"], value: 5}
+			{op: "remove", path: [6]},
+			{op: "remove", path: [5]}
 		]
 	)
 })
@@ -607,7 +601,7 @@ describe("arrays - modify and shrink", () => {
 		},
 		[
 			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", "length"], value: 2}
+			{op: "remove", path: ["x", 2]}
 		],
 		[
 			{op: "replace", path: ["x", 0], value: 1},
@@ -652,7 +646,10 @@ describe("arrays - truncate", () => {
 		d => {
 			d.x.length -= 2
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}],
+		[
+			{op: "remove", path: ["x", 2]},
+			{op: "remove", path: ["x", 1]}
+		],
 		[
 			{op: "add", path: ["x", 1], value: 2},
 			{op: "add", path: ["x", 2], value: 3}
@@ -667,7 +664,10 @@ describe("arrays - pop twice", () => {
 			d.x.pop()
 			d.x.pop()
 		},
-		[{op: "replace", path: ["x", "length"], value: 1}]
+		[
+			{op: "remove", path: ["x", 2]},
+			{op: "remove", path: ["x", 1]}
+		]
 	)
 })
 
@@ -682,7 +682,10 @@ describe("arrays - push multiple", () => {
 			{op: "add", path: ["x", 3], value: 4},
 			{op: "add", path: ["x", 4], value: 5}
 		],
-		[{op: "replace", path: ["x", "length"], value: 3}]
+		[
+			{op: "remove", path: ["x", 4]},
+			{op: "remove", path: ["x", 3]}
+		]
 	)
 })
 
@@ -702,7 +705,8 @@ describe("arrays - splice (expand)", () => {
 		[
 			{op: "replace", path: ["x", 1], value: 2},
 			{op: "replace", path: ["x", 2], value: 3},
-			{op: "replace", path: ["x", "length"], value: 3}
+			{op: "remove", path: ["x", 4]},
+			{op: "remove", path: ["x", 3]}
 		]
 	)
 })
@@ -717,7 +721,8 @@ describe("arrays - splice (shrink)", () => {
 		[
 			{op: "replace", path: ["x", 1], value: 6},
 			{op: "replace", path: ["x", 2], value: 5},
-			{op: "replace", path: ["x", "length"], value: 3}
+			{op: "remove", path: ["x", 4]},
+			{op: "remove", path: ["x", 3]}
 		],
 		[
 			{op: "replace", path: ["x", 1], value: 2},
@@ -835,7 +840,7 @@ describe("arrays - splice should should result in remove op.", () => {
 		d => {
 			d.splice(1, 1)
 		},
-		[{op: "replace", path: ["length"], value: 1}],
+		[{op: "remove", path: [1]}],
 		[{op: "add", path: [1], value: 2}]
 	)
 })
@@ -847,7 +852,7 @@ describe("arrays - NESTED splice should should result in remove op.", () => {
 		d => {
 			d.a.b.c.splice(1, 1)
 		},
-		[{op: "replace", path: ["a", "b", "c", "length"], value: 1}],
+		[{op: "remove", path: ["a", "b", "c", 1]}],
 		[{op: "add", path: ["a", "b", "c", 1], value: 2}]
 	)
 })
@@ -1074,13 +1079,7 @@ describe("#468", () => {
 		expect(final).toEqual(nextState)
 	}
 
-	test("es5", () => {
-		setUseProxies(false)
-		run()
-	})
-
 	test("proxy", () => {
-		setUseProxies(true)
 		run()
 	})
 })
@@ -1105,8 +1104,6 @@ test("#521", () => {
 })
 
 test("#559 patches works in a nested reducer with proxies", () => {
-	setUseProxies(true)
-
 	const state = {
 		x: 1,
 		sub: {
@@ -1201,7 +1198,7 @@ test("do not allow __proto__ polution - 738", () => {
 		])
 	}).toThrow(
 		isProd
-			? "24"
+			? "19"
 			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
 	)
 	// @ts-ignore
@@ -1223,7 +1220,7 @@ test("do not allow __proto__ polution using arrays - 738", () => {
 		)
 	}).toThrow(
 		isProd
-			? "24"
+			? "19"
 			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
 	)
 	// @ts-ignore
@@ -1243,7 +1240,7 @@ test("do not allow prototype polution - 738", () => {
 		])
 	}).toThrow(
 		isProd
-			? "24"
+			? "19"
 			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
 	)
 	// @ts-ignore
@@ -1273,7 +1270,7 @@ test("do not allow constructor.prototype polution - 738", () => {
 		])
 	}).toThrow(
 		isProd
-			? "24"
+			? "19"
 			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
 	)
 	// @ts-ignore
@@ -1308,7 +1305,7 @@ test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", ()
 		])
 	}).toThrow(
 		isProd
-			? "24"
+			? "19"
 			: "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
 	)
 	// @ts-ignore

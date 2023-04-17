@@ -5,10 +5,10 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins
+	enableMapSet
 } from "../src/immer"
 
-enableAllPlugins()
+enableMapSet()
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
@@ -252,7 +252,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		test.only("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
+		test("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
 			const state = {
 				foo: {
 					bar: {

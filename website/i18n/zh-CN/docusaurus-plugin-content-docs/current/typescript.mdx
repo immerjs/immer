@@ -10,7 +10,8 @@ sidebar_label: TypeScript / Flow
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io 第12课: Immer + TypeScript
 	</summary>
@@ -36,7 +37,7 @@ Immer 包附带了类型定义，TypeScript 和 Flow 开箱即可获取这些定
 TypeScript 类型会自动从 draft 类型中删除 `readonly` 修饰符，并返回与原始类型匹配的值。看这个实际的例子:
 
 ```ts
-import produce from "immer"
+import {produce} from "immer"
 
 interface State {
 	readonly x: number
@@ -54,6 +55,7 @@ const newState = produce(state, draft => {
 
 // `newState.x` 不能在这里被修改
 ```
+
 这确保了您可以修改状态的唯一位置是在您的 produce 回调中。它甚至可以递归地和 `ReadonlyArray` 一起工作。
 
 ## 最佳实践
@@ -65,6 +67,7 @@ const newState = produce(state, draft => {
 ## 柯里化 producers 的提示
 
 我们尝试尽可能多地推断。因此，如果创建了一个柯里化 producer 并直接传递给另一个函数，我们可以从那里推断出类型。这适用于例如 React：
+
 ```typescript
 import {Immutable, produce} from "immer"
 
@@ -106,10 +109,9 @@ const toggler = produce((draft: Draft<Todo>) => {
 
 对于返回的柯里化函数 `toggler`，我们将输入类型缩小为 `Immutable<Todo>`，这样即使 `Todo` 是可变类型，我们仍将接受不可变的 todo 作为切换器的输入参数。
 
-与之相反，Immer 会将柯里化函数的输出类型_扩展_为 `Writable<Todo>`，以确保它的输出状态也可分配给未明确键入为不可变的变量。
+与之相反，Immer 会将柯里化函数的输出类型*扩展*为 `Writable<Todo>`，以确保它的输出状态也可分配给未明确键入为不可变的变量。
 
 这种类型的缩小/扩大行为可能不受欢迎，甚至可能因为它会导致类型非常多的噪音。因此，我们建议为柯里化 produces 指定 state 泛型 ，以防它无法直接推断，例如上面的 `toggler`。通过这样做，将跳过自动输出扩大/输入缩小。然而，`draft` 参数本身仍将被推断为可写 `Draft<Todo>`：
-
 
 ```typescript
 const toggler = produce<Todo>(draft => {
@@ -173,7 +175,6 @@ The type 'readonly Todo[]' is 'readonly' and cannot be assigned to the mutable t
 ```
 
 这个错误的原因是我们将只读的、不可变的数组分配给我们的 draft，draft 需要一个可变的类型，并带有 .push 等方法。就 TS 而言，这些并没有从我们的原始 `State` 中暴露出来。为了提示 TypeScript 我们希望将此处的集合向上转换为可变数组以用于 draft，我们可以使用函数 `castDraft`：
-
 
 `draft.finishedTodos = castDraft(state.unfinishedTodos)` 将使错误消失。
 

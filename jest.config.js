@@ -1,13 +1,6 @@
 module.exports = {
-	testURL: "http://localhost",
-	globals: {
-		__DEV__: true,
-		"ts-jest": {
-			tsConfig: {
-				noUnusedLocals: false
-			},
-			disableSourceMapSupport: true
-		}
+	testEnvironmentOptions: {
+		url: "http://localhost"
 	},
 	preset: "ts-jest/presets/js-with-ts",
 	testEnvironment: "node",

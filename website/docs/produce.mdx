@@ -9,7 +9,8 @@ title: Using produce
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 3: Simplifying deep updates with _produce_
 	</summary>
@@ -30,7 +31,7 @@ title: Using produce
 	</a>
 </details>
 
-The Immer package exposes a default function that does all the work.
+The Immer package exposes a `produce` function that does all the work.
 
 `produce(baseState, recipe: (draftState) => void): nextState`
 
@@ -45,7 +46,7 @@ Note that the recipe function itself normally doesn't return anything. However, 
 ## Example
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const baseState = [
 	{

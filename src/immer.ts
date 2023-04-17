@@ -42,7 +42,6 @@ const immer = new Immer()
  * @returns {any} a new state, or the initial state if nothing was modified
  */
 export const produce: IProduce = immer.produce
-export default produce
 
 /**
  * Like `produce`, but `produceWithPatches` always returns a tuple
@@ -60,12 +59,11 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 
 /**
- * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
- * always faster than using ES5 proxies.
+ * Pass true to enable strict shallow copy.
  *
- * By default, feature detection is used, so calling this is rarely necessary.
+ * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-export const setUseProxies = immer.setUseProxies.bind(immer)
+export const setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer)
 
 /**
  * Apply an array of Immer patches to the first argument.
@@ -111,7 +109,5 @@ export function castImmutable<T>(value: T): Immutable<T> {
 
 export {Immer}
 
-export {enableES5} from "./plugins/es5"
 export {enablePatches} from "./plugins/patches"
 export {enableMapSet} from "./plugins/mapset"
-export {enableAllPlugins} from "./plugins/all"

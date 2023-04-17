@@ -11,20 +11,17 @@ import {
 	isDraft,
 	SetState,
 	set,
-	ProxyType,
+	ArchType,
 	getPlugin,
 	die,
 	revokeScope,
-	isFrozen,
-	shallowCopy
+	isFrozen
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
 	const baseDraft = scope.drafts_![0]
 	const isReplaced = result !== undefined && result !== baseDraft
-	if (!scope.immer_.useProxies_)
-		getPlugin("ES5").willFinalizeES5_(scope, result, isReplaced)
 	if (isReplaced) {
 		if (baseDraft[DRAFT_STATE].modified_) {
 			revokeScope(scope)
@@ -80,18 +77,14 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	if (!state.finalized_) {
 		state.finalized_ = true
 		state.scope_.unfinalizedDrafts_--
-		const result =
-			// For ES5, create a good copy from the draft first, with added keys and without deleted keys.
-			state.type_ === ProxyType.ES5Object || state.type_ === ProxyType.ES5Array
-				? (state.copy_ = shallowCopy(state.draft_))
-				: state.copy_
+		const result = state.copy_
 		// Finalize all children of the copy
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
 		// To preserve insertion order in all cases we then clear the set
 		// And we let finalizeProperty know it needs to re-add non-draft children back to the target
 		let resultEach = result
 		let isSet = false
-		if (state.type_ === ProxyType.Set) {
+		if (state.type_ === ArchType.Set) {
 			resultEach = new Set(result)
 			result.clear()
 			isSet = true
@@ -123,12 +116,13 @@ function finalizeProperty(
 	rootPath?: PatchPath,
 	targetIsSet?: boolean
 ) {
-	if (__DEV__ && childValue === targetObject) die(5)
+	if (process.env.NODE_ENV !== "production" && childValue === targetObject)
+		die(5)
 	if (isDraft(childValue)) {
 		const path =
 			rootPath &&
 			parentState &&
-			parentState!.type_ !== ProxyType.Set && // Set objects are atomic since they have no keys.
+			parentState!.type_ !== ArchType.Set && // Set objects are atomic since they have no keys.
 			!has((parentState as Exclude<ImmerState, SetState>).assigned_!, prop) // Skip deep patches for assigned keys.
 				? rootPath!.concat(prop)
 				: undefined

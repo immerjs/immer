@@ -1,24 +1,4 @@
-import produce, {
-	setUseProxies,
-	produceWithPatches,
-	applyPatches
-} from "../src/immer"
-
-describe("ES5 plugins should throw if no proxies are available", () => {
-	beforeEach(() => {
-		setUseProxies(false)
-	})
-
-	afterEach(() => {
-		setUseProxies(true)
-	})
-
-	test("error when using ES5", () => {
-		expect(() => {
-			produce({}, function() {})
-		}).toThrowErrorMatchingSnapshot()
-	})
-})
+import {produce, produceWithPatches, applyPatches} from "../src/immer"
 
 test("error when using Maps", () => {
 	expect(() => {

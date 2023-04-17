@@ -1,50 +1,22 @@
 import {
 	produce,
 	produceWithPatches,
-	setUseProxies,
-	enableAllPlugins,
 	immerable,
+	enableMapSet,
+	enablePatches,
 	applyPatches
 } from "../src/immer"
 import {DRAFT_STATE, Patch} from "../src/internal"
 
-enableAllPlugins()
+enableMapSet()
+enablePatches()
 
 test("empty stub test", () => {
 	expect(true).toBe(true)
 })
 
-describe("map set - es5", () => {
-	test("can assign set value", () => {
-		setUseProxies(false)
-
-		const baseState = new Map([["x", 1]])
-		debugger
-		const nextState = produce(baseState, s => {
-			s.set("x", 2)
-		})
-		expect(baseState.get("x")).toEqual(1)
-		expect(nextState).not.toBe(baseState)
-		expect(nextState.get("x")).toEqual(2)
-	})
-
-	test("can assign by key", () => {
-		setUseProxies(false)
-
-		const baseState = new Map([["x", {a: 1}]])
-		const nextState = produce(baseState, s => {
-			s.get("x")!.a++
-		})
-		expect(nextState.get("x")!.a).toEqual(2)
-		expect(baseState.get("x")!.a).toEqual(1)
-		expect(nextState).not.toBe(baseState)
-	})
-})
-
 describe("map set - proxy", () => {
 	test("can assign set value", () => {
-		setUseProxies(true)
-
 		const baseState = new Map([["x", 1]])
 		const nextState = produce(baseState, s => {
 			s.set("x", 2)
@@ -55,8 +27,6 @@ describe("map set - proxy", () => {
 	})
 
 	test("can assign by key", () => {
-		setUseProxies(true)
-
 		const baseState = new Map([["x", {a: 1}]])
 		const nextState = produce(baseState, s => {
 			s.get("x")!.a++
@@ -67,8 +37,6 @@ describe("map set - proxy", () => {
 	})
 
 	test("deep change bubbles up", () => {
-		setUseProxies(true)
-
 		const baseState = createBaseState()
 		const nextState = produce(baseState, s => {
 			s.anObject.nested.yummie = false
@@ -81,7 +49,6 @@ describe("map set - proxy", () => {
 	})
 
 	it("can assign by key", () => {
-		setUseProxies(true)
 		const baseState = createBaseState()
 
 		const nextState = produce(baseState, s => {
@@ -185,7 +152,6 @@ describe("#768", () => {
 		expect(state.stock.price).toEqual(100)
 		expect(state.stock[immerable]).toBeTruthy()
 		// Use patch to "replace" stocks
-		debugger
 		const resetState: State = applyPatches(state, errorProducingPatch)
 		expect(state.stock.price).toEqual(100)
 		expect(resetState.stock.price).toEqual(200)

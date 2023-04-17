@@ -1,4 +1,4 @@
-import {Nothing} from "../internal"
+import {NOTHING} from "../internal"
 
 type AnyFunc = (...args: any[]) => any
 
@@ -37,9 +37,9 @@ export type Draft<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
 	? T
-	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
 	? Map<Draft<K>, Draft<V>>
-	: T extends IfAvailable<ReadonlySet<infer V>> // Set extends ReadonlySet
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
 	? Set<Draft<V>>
 	: T extends WeakReferences
 	? T
@@ -52,9 +52,9 @@ export type Immutable<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
 	? T
-	: T extends IfAvailable<ReadonlyMap<infer K, infer V>> // Map extends ReadonlyMap
+	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
 	? ReadonlyMap<Immutable<K>, Immutable<V>>
-	: T extends IfAvailable<ReadonlySet<infer V>> // Set extends ReadonlySet
+	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
 	? ReadonlySet<Immutable<V>>
 	: T extends WeakReferences
 	? T
@@ -71,13 +71,11 @@ export interface Patch {
 export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
 
 /** Converts `nothing` into `undefined` */
-type FromNothing<T> = T extends Nothing ? undefined : T
+type FromNothing<T> = T extends typeof NOTHING ? undefined : T
 
 /** The inferred return type of `produce` */
 export type Produced<Base, Return> = Return extends void
 	? Base
-	: Return extends Promise<infer Result>
-	? Promise<Result extends void ? Base : FromNothing<Result>>
 	: FromNothing<Return>
 
 /**
@@ -89,21 +87,12 @@ type ValidRecipeReturnType<State> =
 	| State
 	| void
 	| undefined
-	| (State extends undefined ? Nothing : never)
+	| (State extends undefined ? typeof NOTHING : never)
 
-type ValidRecipeReturnTypePossiblyPromise<State> =
-	| ValidRecipeReturnType<State>
-	| Promise<ValidRecipeReturnType<State>>
-
-type PromisifyReturnIfNeeded<
+type ReturnTypeWithPatchesIfNeeded<
 	State,
-	Recipe extends AnyFunc,
 	UsePatches extends boolean
-> = ReturnType<Recipe> extends Promise<any>
-	? Promise<UsePatches extends true ? PatchesTuple<State> : State>
-	: UsePatches extends true
-	? PatchesTuple<State>
-	: State
+> = UsePatches extends true ? PatchesTuple<State> : State
 
 /**
  * Core Producer inference
@@ -131,11 +120,11 @@ type InferCurriedFromRecipe<
 	Recipe,
 	UsePatches extends boolean
 > = Recipe extends (draft: infer DraftState, ...args: infer RestArgs) => any // verify return type
-	? ReturnType<Recipe> extends ValidRecipeReturnTypePossiblyPromise<DraftState>
+	? ReturnType<Recipe> extends ValidRecipeReturnType<DraftState>
 		? (
 				base: Immutable<DraftState>,
 				...args: RestArgs
-		  ) => PromisifyReturnIfNeeded<DraftState, Recipe, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
+		  ) => ReturnTypeWithPatchesIfNeeded<DraftState, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
 		: never // incorrect return type
 	: never // not a function
 
@@ -146,11 +135,11 @@ type InferCurriedFromInitialStateAndRecipe<
 > = Recipe extends (
 	draft: Draft<State>,
 	...rest: infer RestArgs
-) => ValidRecipeReturnTypePossiblyPromise<State>
+) => ValidRecipeReturnType<State>
 	? (
 			base?: State | undefined,
 			...args: RestArgs
-	  ) => PromisifyReturnIfNeeded<State, Recipe, UsePatches>
+	  ) => ReturnTypeWithPatchesIfNeeded<State, UsePatches>
 	: never // recipe doesn't match initial state
 
 /**
@@ -218,13 +207,6 @@ export interface IProduce {
 		recipe: (draft: D) => ValidRecipeReturnType<D>,
 		listener?: PatchListener
 	): Base
-
-	/** Promisified normal producer */
-	<Base, D = Draft<Base>>(
-		base: Base,
-		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
-		listener?: PatchListener
-	): Promise<Base>
 }
 
 /**
@@ -245,17 +227,12 @@ export interface IProduceWithPatches {
 		recipe: (draft: D) => ValidRecipeReturnType<D>,
 		listener?: PatchListener
 	): PatchesTuple<Base>
-	<Base, D = Draft<Base>>(
-		base: Base,
-		recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
-		listener?: PatchListener
-	): Promise<PatchesTuple<Base>>
 }
 
 /**
  * The type for `recipe function`
  */
-export type Producer<T> = (draft: Draft<T>) => ValidRecipeReturnType<Draft<T>> | Promise<ValidRecipeReturnType<Draft<T>>>
+export type Producer<T> = (draft: Draft<T>) => ValidRecipeReturnType<Draft<T>>
 
 // Fixes #507: bili doesn't export the types of this file if there is no actual source in it..
 // hopefully it get's tree-shaken away for everyone :)

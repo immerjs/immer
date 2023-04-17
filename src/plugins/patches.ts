@@ -3,28 +3,41 @@ import {
 	ImmerState,
 	Patch,
 	SetState,
-	ES5ArrayState,
 	ProxyArrayState,
 	MapState,
-	ES5ObjectState,
 	ProxyObjectState,
 	PatchPath,
 	get,
 	each,
 	has,
 	getArchtype,
+	getPrototypeOf,
 	isSet,
 	isMap,
 	loadPlugin,
-	ProxyType,
-	Archtype,
+	ArchType,
 	die,
 	isDraft,
 	isDraftable,
-	NOTHING
+	NOTHING,
+	errors
 } from "../internal"
 
 export function enablePatches() {
+	const errorOffset = 16
+	if (process.env.NODE_ENV !== "production") {
+		errors.push(
+			'Sets cannot have "replace" patches.',
+			function(op: string) {
+				return "Unsupported patch operation: " + op
+			},
+			function(path: string) {
+				return "Cannot apply patch, path doesn't resolve: " + path
+			},
+			"Patching reserved attributes like __proto__, prototype and constructor is not allowed"
+		)
+	}
+
 	const REPLACE = "replace"
 	const ADD = "add"
 	const REMOVE = "remove"
@@ -36,19 +49,17 @@ export function enablePatches() {
 		inversePatches: Patch[]
 	): void {
 		switch (state.type_) {
-			case ProxyType.ProxyObject:
-			case ProxyType.ES5Object:
-			case ProxyType.Map:
+			case ArchType.Object:
+			case ArchType.Map:
 				return generatePatchesFromAssigned(
 					state,
 					basePath,
 					patches,
 					inversePatches
 				)
-			case ProxyType.ES5Array:
-			case ProxyType.ProxyArray:
+			case ArchType.Array:
 				return generateArrayPatches(state, basePath, patches, inversePatches)
-			case ProxyType.Set:
+			case ArchType.Set:
 				return generateSetPatches(
 					(state as any) as SetState,
 					basePath,
@@ -59,7 +70,7 @@ export function enablePatches() {
 	}
 
 	function generateArrayPatches(
-		state: ES5ArrayState | ProxyArrayState,
+		state: ProxyArrayState,
 		basePath: PatchPath,
 		patches: Patch[],
 		inversePatches: Patch[]
@@ -104,18 +115,18 @@ export function enablePatches() {
 				value: clonePatchValueIfNeeded(copy_[i])
 			})
 		}
-		if (base_.length < copy_.length) {
+		for (let i = copy_.length - 1; base_.length <= i; --i) {
+			const path = basePath.concat([i])
 			inversePatches.push({
-				op: REPLACE,
-				path: basePath.concat(["length"]),
-				value: base_.length
+				op: REMOVE,
+				path
 			})
 		}
 	}
 
 	// This is used for both Map objects and normal objects.
 	function generatePatchesFromAssigned(
-		state: MapState | ES5ObjectState | ProxyObjectState,
+		state: MapState | ProxyObjectState,
 		basePath: PatchPath,
 		patches: Patch[],
 		inversePatches: Patch[]
@@ -214,13 +225,14 @@ export function enablePatches() {
 
 				// See #738, avoid prototype pollution
 				if (
-					(parentType === Archtype.Object || parentType === Archtype.Array) &&
+					(parentType === ArchType.Object || parentType === ArchType.Array) &&
 					(p === "__proto__" || p === "constructor")
 				)
-					die(24)
-				if (typeof base === "function" && p === "prototype") die(24)
+					die(errorOffset + 3)
+				if (typeof base === "function" && p === "prototype")
+					die(errorOffset + 3)
 				base = get(base, p)
-				if (typeof base !== "object") die(15, path.join("/"))
+				if (typeof base !== "object") die(errorOffset + 2, path.join("/"))
 			}
 
 			const type = getArchtype(base)
@@ -229,11 +241,11 @@ export function enablePatches() {
 			switch (op) {
 				case REPLACE:
 					switch (type) {
-						case Archtype.Map:
+						case ArchType.Map:
 							return base.set(key, value)
 						/* istanbul ignore next */
-						case Archtype.Set:
-							die(16)
+						case ArchType.Set:
+							die(errorOffset)
 						default:
 							// if value is an object, then it's assigned by reference
 							// in the following add or remove ops, the value field inside the patch will also be modifyed
@@ -243,30 +255,30 @@ export function enablePatches() {
 					}
 				case ADD:
 					switch (type) {
-						case Archtype.Array:
+						case ArchType.Array:
 							return key === "-"
 								? base.push(value)
 								: base.splice(key as any, 0, value)
-						case Archtype.Map:
+						case ArchType.Map:
 							return base.set(key, value)
-						case Archtype.Set:
+						case ArchType.Set:
 							return base.add(value)
 						default:
 							return (base[key] = value)
 					}
 				case REMOVE:
 					switch (type) {
-						case Archtype.Array:
+						case ArchType.Array:
 							return base.splice(key as any, 1)
-						case Archtype.Map:
+						case ArchType.Map:
 							return base.delete(key)
-						case Archtype.Set:
+						case ArchType.Set:
 							return base.delete(patch.value)
 						default:
 							return delete base[key]
 					}
 				default:
-					die(17, op)
+					die(errorOffset + 1, op)
 			}
 		})
 
@@ -285,7 +297,7 @@ export function enablePatches() {
 				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
 			)
 		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
-		const cloned = Object.create(Object.getPrototypeOf(obj))
+		const cloned = Object.create(getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 		if (has(obj, immerable)) cloned[immerable] = obj[immerable]
 		return cloned

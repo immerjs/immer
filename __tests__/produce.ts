@@ -1,16 +1,18 @@
 import {assert, _} from "spec.ts"
-import produce, {
-	produce as produce2,
+import {
+	produce,
 	applyPatches,
 	Patch,
 	nothing,
 	Draft,
 	Immutable,
-	enableAllPlugins,
-	Immer
+	Immer,
+	enableMapSet,
+	enablePatches
 } from "../src/immer"
 
-enableAllPlugins()
+enableMapSet()
+enablePatches()
 
 interface State {
 	readonly num: number
@@ -130,7 +132,7 @@ it("can update readonly state via curried api", () => {
 })
 
 it("can update use the non-default export", () => {
-	const newState = produce2((draft: Draft<State>) => {
+	const newState = produce((draft: Draft<State>) => {
 		draft.num++
 		draft.foo = "bar"
 		draft.bar = "foo"
@@ -287,23 +289,6 @@ it("can return the draft itself", () => {
 	let result = produce(base, draft => draft)
 
 	assert(result, _ as {readonly a: number})
-})
-
-it("can return a promise", () => {
-	type Base = {readonly a: number}
-	let base = {a: 0} as Base
-
-	// Return a promise only.
-	let res1 = produce(base, draft => {
-		return Promise.resolve(draft)
-	})
-	assert(res1, _ as Promise<Base>)
-
-	// Return a promise or undefined.
-	let res2 = produce(base, draft => {
-		return Promise.resolve()
-	})
-	assert(res2, _ as Promise<Base>)
 })
 
 it("works with `void` hack", () => {
@@ -622,31 +607,6 @@ it("infers curried", () => {
 		fn({title: "test"})
 		// @ts-expect-error
 		fn(3)
-	}
-})
-
-it("infers async curried", async () => {
-	type Todo = {title: string}
-	{
-		const fn = produce(async (draft: Todo) => {
-			let x: string = draft.title
-		})
-
-		const res = await fn({title: "test"})
-		// @ts-expect-error
-		fn(3)
-		assert(res, _ as Todo)
-	}
-	{
-		const fn = produce(async (draft: Todo) => {
-			let x: string = draft.title
-			return draft
-		})
-
-		const res = await fn({title: "test"})
-		// @ts-expect-error
-		fn(3)
-		assert(res, _ as Todo)
 	}
 })
 

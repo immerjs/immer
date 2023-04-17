@@ -5,16 +5,17 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableAllPlugins
+	enablePatches,
+	enableMapSet
 } from "../src/immer"
 import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
 import deepFreeze from "deep-freeze"
-import cloneDeep from "lodash.clonedeep"
 import * as lodash from "lodash"
 
-jest.setTimeout(1000)
+enablePatches()
+enableMapSet()
 
-enableAllPlugins()
+jest.setTimeout(1000)
 
 const isProd = process.env.NODE_ENV === "production"
 
@@ -22,21 +23,24 @@ test("immer should have no dependencies", () => {
 	expect(require("../package.json").dependencies).toBeUndefined()
 })
 
-runBaseTest("proxy (no freeze)", true, false)
-runBaseTest("proxy (autofreeze)", true, true)
-runBaseTest("proxy (patch listener)", true, false, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
+for (const autoFreeze of [true, false]) {
+	for (const useStrictShallowCopy of [true, false]) {
+		for (const useListener of [true, false]) {
+			const name = `${autoFreeze ? "auto-freeze=true" : "auto-freeze=false"}:${
+				useStrictShallowCopy ? "shallow-copy=true" : "shallow-copy=false"
+			}:${useListener ? "use-listener=true" : "use-listener=false"}`
+			runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener)
+		}
+	}
+}
 
-runBaseTest("es5 (no freeze)", false, false)
-runBaseTest("es5 (autofreeze)", false, true)
-runBaseTest("es5 (patch listener)", false, false, true)
-runBaseTest("es5 (autofreeze)(patch listener)", false, true, true)
+class Foo {}
 
-function runBaseTest(name, useProxies, autoFreeze, useListener) {
+function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
-		useProxies,
-		autoFreeze
+		autoFreeze,
+		useStrictShallowCopy
 	})
 
 	// When `useListener` is true, append a function to the arguments of every
@@ -104,10 +108,18 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		it("can delete props", () => {
 			const nextState = produce(baseState, s => {
 				delete s.anObject.nested
+				delete s.nonexisting
 			})
 			expect(nextState).not.toBe(baseState)
 			expect(nextState.anObject).not.toBe(baseState.anObject)
 			expect(nextState.anObject.nested).toBe(undefined)
+		})
+
+		it("can delete props - 2", () => {
+			const nextState = produce(baseState, s => {
+				delete s.nonexisting
+			})
+			expect(nextState).toBe(baseState)
 		})
 
 		// Found by: https://github.com/mweststrate/immer/pull/267
@@ -116,13 +128,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				s.anObject.test = true
 				delete s.anObject.test
 			})
-			if (useProxies) {
-				expect(nextState).not.toBe(baseState)
-				expect(nextState).toEqual(baseState)
-			} else {
-				// The copy is avoided in ES5.
-				expect(nextState).toBe(baseState)
-			}
+			expect(nextState).not.toBe(baseState)
+			expect(nextState).toEqual(baseState)
 		})
 
 		// Found by: https://github.com/mweststrate/immer/issues/328
@@ -142,13 +149,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				delete s.a
 				s.a = a
 			})
-			if (useProxies) {
-				expect(nextState).not.toBe(baseState)
-				expect(nextState).toEqual(baseState)
-			} else {
-				// The copy is avoided in ES5.
-				expect(nextState).toBe(baseState)
-			}
+			expect(nextState).not.toBe(baseState)
+			expect(nextState).toEqual(baseState)
 		})
 
 		it("can get property descriptors", () => {
@@ -159,7 +161,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				const desc = {
 					configurable: true,
 					enumerable: true,
-					...(useProxies && {writable: true})
+					writable: true
 				}
 
 				// Known property
@@ -296,7 +298,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				expect("x" in nextState).toBeFalsy()
 			})
 
-			if (useProxies && !global.USES_BUILD) {
+			if (!global.USES_BUILD) {
 				it("throws when a non-numeric property is added", () => {
 					expect(() => {
 						produce([], d => {
@@ -923,16 +925,26 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 					value: 1,
 					enumerable: false
 				})
-				const nextState = produce(baseState, s => {
-					expect(s.foo).toBeTruthy()
-					expect(isEnumerable(s, "foo")).toBeFalsy()
-					s.bar++
-					expect(isEnumerable(s, "foo")).toBeFalsy()
-					s.foo.a++
-					expect(isEnumerable(s, "foo")).toBeFalsy()
+				// Non-enumerable primitive property that won't modified.
+				Object.defineProperty(baseState, "baz", {
+					value: 1,
+					enumerable: false
 				})
-				expect(nextState.foo).toBeTruthy()
-				expect(isEnumerable(nextState, "foo")).toBeFalsy()
+
+				// When using Proxy, even non-enumerable keys will be copied if it's changed.
+				const canReferNonEnumerableProperty = useStrictShallowCopy
+				const nextState = produce(baseState, s => {
+					if (canReferNonEnumerableProperty) expect(s.foo).toBeTruthy()
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+					if (canReferNonEnumerableProperty) s.bar++
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+					if (canReferNonEnumerableProperty) s.foo.a++
+					if (useStrictShallowCopy) expect(isEnumerable(s, "foo")).toBeFalsy()
+				})
+				if (canReferNonEnumerableProperty) expect(nextState.foo).toBeTruthy()
+				if (useStrictShallowCopy)
+					expect(isEnumerable(nextState, "foo")).toBeFalsy()
+				if (useStrictShallowCopy) expect(nextState.baz).toBeTruthy()
 			})
 
 		it("can work with own computed props", () => {
@@ -1149,9 +1161,8 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		// NOTE: ES5 drafts only protect existing properties when revoked.
 		if (!isProd)
 			it("revokes the draft once produce returns", () => {
-				const expectRevoked = (fn, shouldThrow = true) => {
-					if (shouldThrow) expect(fn).toThrowErrorMatchingSnapshot()
-					else expect(fn).not.toThrow()
+				const expectRevoked = fn => {
+					expect(fn).toThrowErrorMatchingSnapshot()
 				}
 
 				// Test object drafts:
@@ -1174,12 +1185,12 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				// Access unknown property on object draft.
 				expectRevoked(() => {
 					draft.z
-				}, useProxies)
+				})
 
 				// Assign unknown property on object draft.
 				expectRevoked(() => {
 					draft.z = true
-				}, useProxies)
+				})
 
 				// Test array drafts:
 				produce([1, 2], s => {
@@ -1200,12 +1211,12 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 				// Access unknown index of an array draft.
 				expectRevoked(() => {
 					draft[1]
-				}, useProxies)
+				})
 
 				// Assign unknown index of an array draft.
 				expectRevoked(() => {
 					draft[1] = true
-				}, useProxies)
+				})
 			})
 
 		it("can access a child draft that was created before the draft was modified", () => {
@@ -1233,18 +1244,17 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		if (useProxies)
-			it("throws when Object.defineProperty() is used on drafts", () => {
-				expect(() => {
-					produce({}, draft => {
-						Object.defineProperty(draft, "xx", {
-							enumerable: true,
-							writeable: true,
-							value: 2
-						})
+		it("throws when Object.defineProperty() is used on drafts", () => {
+			expect(() => {
+				produce({}, draft => {
+					Object.defineProperty(draft, "xx", {
+						enumerable: true,
+						writeable: true,
+						value: 2
 					})
-				}).toThrowErrorMatchingSnapshot()
-			})
+				})
+			}).toThrowErrorMatchingSnapshot()
+		})
 
 		it("should handle constructor correctly", () => {
 			const baseState = {
@@ -1431,7 +1441,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 
 			it("works with interweaved Immer instances", () => {
-				const options = {useProxies, autoFreeze}
+				const options = {autoFreeze}
 				const one = createPatchedImmer(options)
 				const two = createPatchedImmer(options)
 
@@ -1452,14 +1462,13 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		if (useProxies)
-			it("throws when Object.setPrototypeOf() is used on a draft", () => {
-				produce({}, draft => {
-					expect(() =>
-						Object.setPrototypeOf(draft, Array)
-					).toThrowErrorMatchingSnapshot()
-				})
+		it("throws when Object.setPrototypeOf() is used on a draft", () => {
+			produce({}, draft => {
+				expect(() =>
+					Object.setPrototypeOf(draft, Array)
+				).toThrowErrorMatchingSnapshot()
 			})
+		})
 
 		it("supports the 'in' operator", () => {
 			produce(baseState, draft => {
@@ -1704,75 +1713,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			})
 		})
 
-		describe("async recipe function", () => {
-			it("can modify the draft", () => {
-				const base = {a: 0, b: 0}
-				return produce(base, async d => {
-					d.a = 1
-					await Promise.resolve()
-					d.b = 1
-				}).then(res => {
-					expect(res).not.toBe(base)
-					expect(res).toEqual({a: 1, b: 1})
-				})
-			})
-
-			it("works with rejected promises", () => {
-				let draft
-				const base = {a: 0, b: 0}
-				const err = new Error("passed")
-				return produce(base, d => {
-					draft = d
-					draft.b = 1
-					return Promise.reject(err)
-				}).then(
-					() => {
-						throw "failed"
-					},
-					e => {
-						expect(e).toBe(err)
-						if (!isProd) expect(() => draft.a).toThrowErrorMatchingSnapshot()
-					}
-				)
-			})
-
-			it("supports recursive produce calls after await", () => {
-				const base = {obj: {k: 1}}
-				return produce(base, d => {
-					const obj = d.obj
-					delete d.obj
-					return Promise.resolve().then(() => {
-						d.a = produce({}, d => {
-							d.b = obj // Assign a draft owned by the parent scope.
-						})
-
-						// Auto-freezing is prevented when an unowned draft exists.
-						expect(Object.isFrozen(d.a)).toBeFalsy()
-
-						// Ensure `obj` is not revoked.
-						obj.c = 1
-					})
-				}).then(res => {
-					expect(res).not.toBe(base)
-					expect(res).toEqual({
-						a: {b: {k: 1, c: 1}}
-					})
-				})
-			})
-
-			it("works with patches", () =>
-				produceWithPatches({a: 0}, async d => {
-					await Promise.resolve()
-					d.a = 1
-				}).then(([nextState, patches, inversePathes]) => {
-					expect(nextState).toEqual({a: 1})
-					expect(patches).toEqual([{op: "replace", path: ["a"], value: 1}])
-					expect(inversePathes).toEqual([
-						{op: "replace", path: ["a"], value: 0}
-					])
-				}))
-		})
-
 		it("throws when the draft is modified and another object is returned", () => {
 			const base = {x: 3}
 			expect(() => {
@@ -1895,8 +1835,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(nextState).toEqual({})
 			expect(patches).toEqual([])
 			// This differs between ES5 and proxy, and ES5 does it better :(
-			if (useProxies) expect(nextState).not.toBe(baseState)
-			else expect(nextState).toBe(baseState)
+			expect(nextState).not.toBe(baseState)
 		})
 
 		it("cannot produce undefined by returning undefined", () => {
@@ -1926,7 +1865,6 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(baseState).toEqual(createBaseState())
 		})
 
-		class Foo {}
 		function createBaseState() {
 			const data = {
 				anInstance: new Foo(),
@@ -2465,7 +2403,7 @@ function testLiteralTypes(produce) {
 						})
 					).toThrowError(
 						isProd
-							? "[Immer] minified error nr: 21"
+							? "[Immer] minified error nr: 1"
 							: "produce can only be called on things that are draftable"
 					)
 				})

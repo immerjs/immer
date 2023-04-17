@@ -9,8 +9,7 @@ title: Patches
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io 第14课: 使用 produceWithPatches 捕获 Patches
 	</summary>
@@ -29,8 +28,7 @@ title: Patches
 	>
 		Hosted on egghead.io
 	</a>
-</details>
-<details>
+</details> <details>
 	<summary className="egghead-summary">
 		egghead.io 第16课: 使用 applyPatches 应用 Patches
 	</summary>
@@ -51,9 +49,9 @@ title: Patches
 	</a>
 </details>
 
-_⚠ 在版本6之后，必须在启动应用程序调用一次 [`enablePatches()`](./installation.mdx#pick-your-immer-version) 来启用对 Patches 的支持。_
+_⚠ 在版本 6 之后，必须在启动应用程序调用一次 [`enablePatches()`](./installation.mdx#pick-your-immer-version) 来启用对 Patches 的支持。_
 
-在 producer 运行期间，Immer 可以记录所有的补丁来回溯 reducer造成的更改 。这是一个非常强大的工具，如果您想暂时 fork 您的状态并回溯对原始状态的更改。
+在 producer 运行期间，Immer 可以记录所有的补丁来回溯 reducer 造成的更改 。这是一个非常强大的工具，如果您想暂时 fork 您的状态并回溯对原始状态的更改。
 
 Patches 在下面场景很有用:
 
@@ -64,7 +62,7 @@ Patches 在下面场景很有用:
 为了帮助回溯补丁，`applyPatches` 派上用场了。这是一个如何使用 Patches 来记录增量更新并（反向）应用它们的示例：
 
 ```javascript
-import produce, {applyPatches} from "immer"
+import {produce, applyPatches} from "immer"
 
 // 版本 6
 import {enablePatches} from "immer"
@@ -163,8 +161,7 @@ expect(state).toEqual({
 	>
 		Hosted on egghead.io
 	</a>
-</details>
-<details>
+</details> <details>
 	<summary className="egghead-summary">
 		egghead.io 第20课: 使用 patches 构建重做功能
 	</summary>
@@ -185,8 +182,7 @@ expect(state).toEqual({
 	</a>
 </details>
 
-除了设置 patch 监听器之外，获取 patches 的更简单方法是使用 `produceWithPatches`，它与 `produce` 具有相同的签名，不过它
-不止返回 next state，而是一个包含 `[nextState, patches, inversePatches]` 的元组，和 `produce` 一样，`produceWithPatches` 也支持柯里化。
+除了设置 patch 监听器之外，获取 patches 的更简单方法是使用 `produceWithPatches`，它与 `produce` 具有相同的签名，不过它不止返回 next state，而是一个包含 `[nextState, patches, inversePatches]` 的元组，和 `produce` 一样，`produceWithPatches` 也支持柯里化。
 
 ```javascript
 import {produceWithPatches} from "immer"
@@ -204,7 +200,7 @@ const [nextState, patches, inversePatches] = produceWithPatches(
 将返回:
 
 ```javascript
-[
+;[
 	{
 		age: 34
 	},
@@ -225,6 +221,6 @@ const [nextState, patches, inversePatches] = produceWithPatches(
 ]
 ```
 
-有关更深入的研究，请参阅使用  [Distributing patches and rebasing actions using Immer](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988)
+有关更深入的研究，请参阅使用 [Distributing patches and rebasing actions using Immer](https://medium.com/@mweststrate/distributing-state-changes-using-snapshots-patches-and-actions-part-2-2f50d8363988)
 
 提示：使用此技巧可以 [compress patches](https://medium.com/@david.b.edelstein/using-immer-to-compress-immer-patches-f382835b6c69)

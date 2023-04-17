@@ -16,7 +16,6 @@ import {
 	createProxyProxy,
 	getPlugin,
 	die,
-	hasProxies,
 	enterScope,
 	revokeScope,
 	leaveScope,
@@ -33,15 +32,14 @@ interface ProducersFns {
 }
 
 export class Immer implements ProducersFns {
-	useProxies_: boolean = hasProxies
-
 	autoFreeze_: boolean = true
+	useStrictShallowCopy_: boolean = false
 
-	constructor(config?: {useProxies?: boolean; autoFreeze?: boolean}) {
-		if (typeof config?.useProxies === "boolean")
-			this.setUseProxies(config!.useProxies)
+	constructor(config?: {autoFreeze?: boolean; useStrictShallowCopy?: boolean}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
+		if (typeof config?.useStrictShallowCopy === "boolean")
+			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
 	}
 
 	/**
@@ -88,7 +86,7 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
-			const proxy = createProxy(this, base, undefined)
+			const proxy = createProxy(base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -97,18 +95,6 @@ export class Immer implements ProducersFns {
 				// finally instead of catch + rethrow better preserves original stack
 				if (hasError) revokeScope(scope)
 				else leaveScope(scope)
-			}
-			if (typeof Promise !== "undefined" && result instanceof Promise) {
-				return result.then(
-					result => {
-						usePatchesInScope(scope, patchListener)
-						return processResult(result, scope)
-					},
-					error => {
-						revokeScope(scope)
-						throw error
-					}
-				)
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
@@ -124,7 +110,7 @@ export class Immer implements ProducersFns {
 				patchListener(p, ip)
 			}
 			return result
-		} else die(21, base)
+		} else die(1, base)
 	}
 
 	produceWithPatches: IProduceWithPatches = (base: any, recipe?: any): any => {
@@ -139,10 +125,6 @@ export class Immer implements ProducersFns {
 			patches = p
 			inversePatches = ip
 		})
-
-		if (typeof Promise !== "undefined" && result instanceof Promise) {
-			return result.then(nextState => [nextState, patches!, inversePatches!])
-		}
 		return [result, patches!, inversePatches!]
 	}
 
@@ -150,7 +132,7 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) die(8)
 		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
-		const proxy = createProxy(this, base, undefined)
+		const proxy = createProxy(base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
 		return proxy as any
@@ -161,10 +143,7 @@ export class Immer implements ProducersFns {
 		patchListener?: PatchListener
 	): D extends Draft<infer T> ? T : never {
 		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
-		if (__DEV__) {
-			if (!state || !state.isManual_) die(9)
-			if (state.finalized_) die(10)
-		}
+		if (!state || !state.isManual_) die(9)
 		const {scope_: scope} = state
 		usePatchesInScope(scope, patchListener)
 		return processResult(undefined, scope)
@@ -180,16 +159,12 @@ export class Immer implements ProducersFns {
 	}
 
 	/**
-	 * Pass true to use the ES2015 `Proxy` class when creating drafts, which is
-	 * always faster than using ES5 proxies.
+	 * Pass true to enable strict shallow copy.
 	 *
-	 * By default, feature detection is used, so calling this is rarely necessary.
+	 * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
 	 */
-	setUseProxies(value: boolean) {
-		if (value && !hasProxies) {
-			die(20)
-		}
-		this.useProxies_ = value
+	setUseStrictShallowCopy(value: boolean) {
+		this.useStrictShallowCopy_ = value
 	}
 
 	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
@@ -222,7 +197,6 @@ export class Immer implements ProducersFns {
 }
 
 export function createProxy<T extends Objectish>(
-	immer: Immer,
 	value: T,
 	parent?: ImmerState
 ): Drafted<T, ImmerState> {
@@ -231,9 +205,7 @@ export function createProxy<T extends Objectish>(
 		? getPlugin("MapSet").proxyMap_(value, parent)
 		: isSet(value)
 		? getPlugin("MapSet").proxySet_(value, parent)
-		: immer.useProxies_
-		? createProxyProxy(value, parent)
-		: getPlugin("ES5").createES5Proxy_(value, parent)
+		: createProxyProxy(value, parent)
 
 	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)

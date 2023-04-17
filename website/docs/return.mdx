@@ -9,8 +9,7 @@ title: Returning new data from producers
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 9: Returning completely new state
 	</summary>
@@ -96,7 +95,7 @@ The problem is that in JavaScript a function that doesn't return anything also r
 However, to make it clear to Immer that you intentionally want to produce the value `undefined`, you can return the built-in token `nothing`:
 
 ```javascript
-import produce, {nothing} from "immer"
+import {produce, nothing} from "immer"
 
 const state = {
 	hello: "world"

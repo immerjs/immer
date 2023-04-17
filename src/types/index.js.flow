@@ -62,7 +62,6 @@ interface IProduceWithPatches {
 }
 
 declare export var produce: IProduce
-declare export default IProduce
 
 declare export var produceWithPatches: IProduceWithPatches
 
@@ -79,10 +78,11 @@ declare export var immerable: Symbol
 declare export function setAutoFreeze(autoFreeze: boolean): void
 
 /**
- * Manually override whether proxies should be used.
- * By default done by using feature detection
+ * Pass false to disable strict shallow copy.
+ *
+ * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-declare export function setUseProxies(useProxies: boolean): void
+declare export function setUseStrictShallowCopy(useStrictShallowCopy: boolean): void
 
 declare export function applyPatches<S>(state: S, patches: Patch[]): S
 
@@ -105,9 +105,7 @@ declare export function createDraft<T>(base: T): T
  */
 declare export function finishDraft<T>(base: T, listener?: PatchListener): T
 
-declare export function enableES5(): void
 declare export function enableMapSet(): void
 declare export function enablePatches(): void
-declare export function enableAllPlugins(): void
 
 declare export function freeze<T>(obj: T, freeze?: boolean): T

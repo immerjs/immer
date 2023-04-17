@@ -1,8 +1,8 @@
 // @flow
-import produce, {
+import {
+    produce,
     enableMapSet,
     setAutoFreeze,
-    setUseProxies,
     produce as produce2,
     applyPatches,
     Patch,
@@ -11,7 +11,6 @@ import produce, {
 
 enableMapSet()
 setAutoFreeze(true)
-setUseProxies(true)
 
 // we really don't want this code to actually execute..
 const result = produce({x: 3}, draft => {

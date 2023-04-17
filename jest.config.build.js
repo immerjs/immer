@@ -1,15 +1,12 @@
 module.exports = {
 	moduleNameMapper: {
-		"src/.*": "<rootDir>/dist/immer.esm.js"
+		"src/.*": "<rootDir>/dist/cjs/immer.cjs.production.js"
 	},
-	testURL: "http://localhost",
+	testEnvironmentOptions: {
+		url: "http://localhost"
+	},
 	globals: {
-		USES_BUILD: true,
-		"ts-jest": {
-			tsConfig: {
-				noUnusedLocals: false
-			}
-		}
+		USES_BUILD: true
 	},
 	preset: "ts-jest/presets/js-with-ts",
 	testEnvironment: "node",

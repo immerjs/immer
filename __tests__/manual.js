@@ -5,22 +5,17 @@ import {
 	finishDraft,
 	produce,
 	isDraft,
-	enableAllPlugins
+	enablePatches
 } from "../src/immer"
 
-enableAllPlugins()
+enablePatches()
 
 const isProd = process.env.NODE_ENV === "production"
 
 runTests("proxy", true)
-runTests("es5", false)
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("manual - " + name, () => {
-		beforeAll(() => {
-			setUseProxies(useProxies)
-		})
-
 		it("should check arguments", () => {
 			expect(() => createDraft(3)).toThrowErrorMatchingSnapshot()
 			const buf = Buffer.from([])
@@ -54,6 +49,17 @@ function runTests(name, useProxies) {
 					draft.a = 3
 				}).toThrowErrorMatchingSnapshot()
 			})
+
+		it("cannot finishDraft twice", () => {
+			const state = {a: 1}
+
+			const draft = createDraft(state)
+			draft.a = 2
+			expect(finishDraft(draft)).toEqual({a: 2})
+			expect(() => {
+				finishDraft(draft)
+			}).toThrowErrorMatchingSnapshot()
+		})
 
 		it("should support patches drafts", () => {
 			const state = {a: 1}

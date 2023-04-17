@@ -1,26 +1,24 @@
 import {
-	setUseProxies,
 	setAutoFreeze,
-	enableAllPlugins,
 	current,
 	immerable,
 	isDraft,
 	produce,
-	original
+	original,
+	freeze,
+	enableMapSet
 } from "../src/immer"
 
-enableAllPlugins()
+enableMapSet()
 
 runTests("proxy", true)
-runTests("es5", false)
 
 const isProd = process.env.NODE_ENV === "production"
 
-function runTests(name, useProxies) {
+function runTests(name) {
 	describe("current - " + name, () => {
 		beforeAll(() => {
 			setAutoFreeze(true)
-			setUseProxies(useProxies)
 		})
 
 		it("must be called on draft", () => {
@@ -28,7 +26,7 @@ function runTests(name, useProxies) {
 				current({})
 			}).toThrowError(
 				isProd
-					? "[Immer] minified error nr: 22 '[object Object]'. Find the full error at: https://bit.ly/3cXEKWf"
+					? "[Immer] minified error nr: 10. Full error at: https://bit.ly/3cXEKWf"
 					: "[Immer] 'current' expects a draft, got: [object Object]"
 			)
 		})
@@ -114,26 +112,62 @@ function runTests(name, useProxies) {
 				y: {
 					z: 2
 				},
-				z: {}
+				z: {},
+				w: {},
+				ww: freeze({})
 			}
 			produce(base, draft => {
 				draft.y.z++
-				draft.y = {
-					nested: draft.y
+				draft.z = {
+					nested: {
+						z: 3
+					}
 				}
 				const c = current(draft)
 				expect(c).toEqual({
 					x: 1,
 					y: {
-						nested: {
-							z: 3
-						}
+						z: 3
 					},
-					z: {}
+					z: {nested: {z: 3}},
+					w: {},
+					ww: {}
 				})
-				expect(isDraft(c.y.nested)).toBe(false)
-				expect(c.z).toBe(base.z)
-				expect(c.y.nested).not.toBe(draft.y.nested)
+				expect(isDraft(c)).toBe(false)
+				expect(isDraft(c.y)).toBe(false)
+				expect(isDraft(c.z)).toBe(false)
+				expect(isDraft(c.z.nested)).toBe(false)
+				expect(isDraft(c.z.nested.z)).toBe(false)
+				// this works only with frozen objects, otherwise no way to tell if this was
+				// a new object that was added during the recipe, that might contain drafts.
+				// the recipe or not
+				expect(c.w).not.toBe(base.w)
+				// was frozen, so recyclable
+				expect(c.ww).toBe(base.ww)
+			})
+		})
+
+		it("will find drafts inside objects - 2", () => {
+			const base = {
+				ar: [
+					{
+						x: 1
+					},
+					{x: 2}
+				]
+			}
+			produce(base, draft => {
+				draft.ar[1].x++
+				draft.ar = [draft.ar[1], draft.ar[0]] // swap
+				const c = current(draft)
+				expect(c).toEqual({
+					ar: [{x: 3}, {x: 1}]
+				})
+				expect(isDraft(c)).toBe(false)
+				expect(isDraft(c.ar)).toBe(false)
+				expect(isDraft(c.ar[0])).toBe(false)
+				expect(isDraft(c.ar[1])).toBe(false)
+				expect(c.ar[1]).toBe(base.ar[0])
 			})
 		})
 

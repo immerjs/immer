@@ -71,7 +71,7 @@ nextState.push({title: "Tweet about it"})
 使用 Immer，这个过程更加简单。我们可以利用 `produce` 函数，它将我们要更改的 state 作为第一个参数，对于第二个参数，我们传递一个名为 recipe 的函数，该函数传递一个 `draft` 参数，我们可以对其应用直接的 `mutations`。一旦 `recipe` 执行完成，这些 `mutations` 被记录并用于产生下一个状态。 `produce` 将负责所有必要的复制，并通过冻结数据来防止未来的意外修改。
 
 ```javascript
-import produce from "immer"
+import {produce} from "immer"
 
 const nextState = produce(baseState, draft => {
 	draft[1].done = true

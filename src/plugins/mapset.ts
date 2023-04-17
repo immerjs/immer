@@ -8,48 +8,23 @@ import {
 	DRAFT_STATE,
 	getCurrentScope,
 	latest,
-	iteratorSymbol,
 	isDraftable,
 	createProxy,
 	loadPlugin,
 	markChanged,
-	ProxyType,
 	die,
+	ArchType,
 	each
 } from "../internal"
 
 export function enableMapSet() {
-	/* istanbul ignore next */
-	var extendStatics = function(d: any, b: any): any {
-		extendStatics =
-			Object.setPrototypeOf ||
-			({__proto__: []} instanceof Array &&
-				function(d, b) {
-					d.__proto__ = b
-				}) ||
-			function(d, b) {
-				for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]
-			}
-		return extendStatics(d, b)
-	}
+	class DraftMap extends Map {
+		[DRAFT_STATE]: MapState
 
-	// Ugly hack to resolve #502 and inherit built in Map / Set
-	function __extends(d: any, b: any): any {
-		extendStatics(d, b)
-		function __(this: any): any {
-			this.constructor = d
-		}
-		d.prototype =
-			// @ts-ignore
-			((__.prototype = b.prototype), new __())
-	}
-
-	const DraftMap = (function(_super) {
-		__extends(DraftMap, _super)
-		// Create class manually, cause #502
-		function DraftMap(this: any, target: AnyMap, parent?: ImmerState): any {
+		constructor(target: AnyMap, parent?: ImmerState) {
+			super()
 			this[DRAFT_STATE] = {
-				type_: ProxyType.Map,
+				type_: ArchType.Map,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,
@@ -60,24 +35,18 @@ export function enableMapSet() {
 				draft_: this as any,
 				isManual_: false,
 				revoked_: false
-			} as MapState
-			return this
-		}
-		const p = DraftMap.prototype
-
-		Object.defineProperty(p, "size", {
-			get: function() {
-				return latest(this[DRAFT_STATE]).size
 			}
-			// enumerable: false,
-			// configurable: true
-		})
+		}
 
-		p.has = function(key: any): boolean {
+		get size(): number {
+			return latest(this[DRAFT_STATE]).size
+		}
+
+		has(key: any): boolean {
 			return latest(this[DRAFT_STATE]).has(key)
 		}
 
-		p.set = function(key: any, value: any) {
+		set(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			if (!latest(state).has(key) || latest(state).get(key) !== value) {
@@ -90,7 +59,7 @@ export function enableMapSet() {
 			return this
 		}
 
-		p.delete = function(key: any): boolean {
+		delete(key: any): boolean {
 			if (!this.has(key)) {
 				return false
 			}
@@ -108,7 +77,7 @@ export function enableMapSet() {
 			return true
 		}
 
-		p.clear = function() {
+		clear() {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			if (latest(state).size) {
@@ -122,17 +91,14 @@ export function enableMapSet() {
 			}
 		}
 
-		p.forEach = function(
-			cb: (value: any, key: any, self: any) => void,
-			thisArg?: any
-		) {
+		forEach(cb: (value: any, key: any, self: any) => void, thisArg?: any) {
 			const state: MapState = this[DRAFT_STATE]
 			latest(state).forEach((_value: any, key: any, _map: any) => {
 				cb.call(thisArg, this.get(key), key, this)
 			})
 		}
 
-		p.get = function(key: any): any {
+		get(key: any): any {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			const value = latest(state).get(key)
@@ -143,20 +109,20 @@ export function enableMapSet() {
 				return value // either already drafted or reassigned
 			}
 			// despite what it looks, this creates a draft only once, see above condition
-			const draft = createProxy(state.scope_.immer_, value, state)
+			const draft = createProxy(value, state)
 			prepareMapCopy(state)
 			state.copy_!.set(key, draft)
 			return draft
 		}
 
-		p.keys = function(): IterableIterator<any> {
+		keys(): IterableIterator<any> {
 			return latest(this[DRAFT_STATE]).keys()
 		}
 
-		p.values = function(): IterableIterator<any> {
+		values(): IterableIterator<any> {
 			const iterator = this.keys()
 			return {
-				[iteratorSymbol]: () => this.values(),
+				[Symbol.iterator]: () => this.values(),
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -170,10 +136,10 @@ export function enableMapSet() {
 			} as any
 		}
 
-		p.entries = function(): IterableIterator<[any, any]> {
+		entries(): IterableIterator<[any, any]> {
 			const iterator = this.keys()
 			return {
-				[iteratorSymbol]: () => this.entries(),
+				[Symbol.iterator]: () => this.entries(),
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -187,12 +153,10 @@ export function enableMapSet() {
 			} as any
 		}
 
-		p[iteratorSymbol] = function() {
+		[Symbol.iterator]() {
 			return this.entries()
 		}
-
-		return DraftMap
-	})(Map)
+	}
 
 	function proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T {
 		// @ts-ignore
@@ -206,12 +170,12 @@ export function enableMapSet() {
 		}
 	}
 
-	const DraftSet = (function(_super) {
-		__extends(DraftSet, _super)
-		// Create class manually, cause #502
-		function DraftSet(this: any, target: AnySet, parent?: ImmerState) {
+	class DraftSet extends Set {
+		[DRAFT_STATE]: SetState
+		constructor(target: AnySet, parent?: ImmerState) {
+			super()
 			this[DRAFT_STATE] = {
-				type_: ProxyType.Set,
+				type_: ArchType.Set,
 				parent_: parent,
 				scope_: parent ? parent.scope_ : getCurrentScope()!,
 				modified_: false,
@@ -222,19 +186,14 @@ export function enableMapSet() {
 				drafts_: new Map(),
 				revoked_: false,
 				isManual_: false
-			} as SetState
-			return this
-		}
-		const p = DraftSet.prototype
-
-		Object.defineProperty(p, "size", {
-			get: function() {
-				return latest(this[DRAFT_STATE]).size
 			}
-			// enumerable: true,
-		})
+		}
 
-		p.has = function(value: any): boolean {
+		get size(): number {
+			return latest(this[DRAFT_STATE]).size
+		}
+
+		has(value: any): boolean {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			// bit of trickery here, to be able to recognize both the value, and the draft of its value
@@ -247,7 +206,7 @@ export function enableMapSet() {
 			return false
 		}
 
-		p.add = function(value: any): any {
+		add(value: any): any {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			if (!this.has(value)) {
@@ -258,7 +217,7 @@ export function enableMapSet() {
 			return this
 		}
 
-		p.delete = function(value: any): any {
+		delete(value: any): any {
 			if (!this.has(value)) {
 				return false
 			}
@@ -275,7 +234,7 @@ export function enableMapSet() {
 			)
 		}
 
-		p.clear = function() {
+		clear() {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			if (latest(state).size) {
@@ -285,29 +244,29 @@ export function enableMapSet() {
 			}
 		}
 
-		p.values = function(): IterableIterator<any> {
+		values(): IterableIterator<any> {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
 			return state.copy_!.values()
 		}
 
-		p.entries = function entries(): IterableIterator<[any, any]> {
+		entries(): IterableIterator<[any, any]> {
 			const state: SetState = this[DRAFT_STATE]
 			assertUnrevoked(state)
 			prepareSetCopy(state)
 			return state.copy_!.entries()
 		}
 
-		p.keys = function(): IterableIterator<any> {
+		keys(): IterableIterator<any> {
 			return this.values()
 		}
 
-		p[iteratorSymbol] = function() {
+		[Symbol.iterator]() {
 			return this.values()
 		}
 
-		p.forEach = function forEach(cb: any, thisArg?: any) {
+		forEach(cb: any, thisArg?: any) {
 			const iterator = this.values()
 			let result = iterator.next()
 			while (!result.done) {
@@ -315,10 +274,7 @@ export function enableMapSet() {
 				result = iterator.next()
 			}
 		}
-
-		return DraftSet
-	})(Set)
-
+	}
 	function proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T {
 		// @ts-ignore
 		return new DraftSet(target, parent)
@@ -330,7 +286,7 @@ export function enableMapSet() {
 			state.copy_ = new Set()
 			state.base_.forEach(value => {
 				if (isDraftable(value)) {
-					const draft = createProxy(state.scope_.immer_, value, state)
+					const draft = createProxy(value, state)
 					state.drafts_.set(value, draft)
 					state.copy_!.add(draft)
 				} else {

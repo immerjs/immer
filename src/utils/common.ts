@@ -1,17 +1,17 @@
 import {
 	DRAFT_STATE,
 	DRAFTABLE,
-	hasSet,
 	Objectish,
 	Drafted,
 	AnyObject,
 	AnyMap,
 	AnySet,
 	ImmerState,
-	hasMap,
-	Archtype,
+	ArchType,
 	die
 } from "../internal"
+
+export const getPrototypeOf = Object.getPrototypeOf
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
@@ -37,7 +37,7 @@ const objectCtorString = Object.prototype.constructor.toString()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
-	const proto = Object.getPrototypeOf(value)
+	const proto = getPrototypeOf(value)
 	if (proto === null) {
 		return true
 	}
@@ -56,41 +56,19 @@ export function isPlainObject(value: any): boolean {
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
 export function original(value: Drafted<any>): any {
-	if (!isDraft(value)) die(23, value)
+	if (!isDraft(value)) die(15, value)
 	return value[DRAFT_STATE].base_
 }
-
-/*#__PURE__*/
-export const ownKeys: (target: AnyObject) => PropertyKey[] =
-	typeof Reflect !== "undefined" && Reflect.ownKeys
-		? Reflect.ownKeys
-		: typeof Object.getOwnPropertySymbols !== "undefined"
-		? obj =>
-				Object.getOwnPropertyNames(obj).concat(
-					Object.getOwnPropertySymbols(obj) as any
-				)
-		: /* istanbul ignore next */ Object.getOwnPropertyNames
-
-export const getOwnPropertyDescriptors =
-	Object.getOwnPropertyDescriptors ||
-	function getOwnPropertyDescriptors(target: any) {
-		// Polyfill needed for Hermes and IE, see https://github.com/facebook/hermes/issues/274
-		const res: any = {}
-		ownKeys(target).forEach(key => {
-			res[key] = Object.getOwnPropertyDescriptor(target, key)
-		})
-		return res
-	}
 
 export function each<T extends Objectish>(
 	obj: T,
 	iter: (key: string | number, value: any, source: T) => void,
 	enumerableOnly?: boolean
 ): void
-export function each(obj: any, iter: any, enumerableOnly = false) {
-	if (getArchtype(obj) === Archtype.Object) {
-		;(enumerableOnly ? Object.keys : ownKeys)(obj).forEach(key => {
-			if (!enumerableOnly || typeof key !== "symbol") iter(key, obj[key], obj)
+export function each(obj: any, iter: any) {
+	if (getArchtype(obj) === ArchType.Object) {
+		Object.entries(obj).forEach(([key, value]) => {
+			iter(key, value, obj)
 		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
@@ -98,25 +76,22 @@ export function each(obj: any, iter: any, enumerableOnly = false) {
 }
 
 /*#__PURE__*/
-export function getArchtype(thing: any): Archtype {
-	/* istanbul ignore next */
+export function getArchtype(thing: any): ArchType {
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
-		? state.type_ > 3
-			? state.type_ - 4 // cause Object and Array map back from 4 and 5
-			: (state.type_ as any) // others are the same
+		? state.type_
 		: Array.isArray(thing)
-		? Archtype.Array
+		? ArchType.Array
 		: isMap(thing)
-		? Archtype.Map
+		? ArchType.Map
 		: isSet(thing)
-		? Archtype.Set
-		: Archtype.Object
+		? ArchType.Set
+		: ArchType.Object
 }
 
 /*#__PURE__*/
 export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === Archtype.Map
+	return getArchtype(thing) === ArchType.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
@@ -124,14 +99,14 @@ export function has(thing: any, prop: PropertyKey): boolean {
 /*#__PURE__*/
 export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
 	// @ts-ignore
-	return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop]
+	return getArchtype(thing) === ArchType.Map ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
 export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
 	const t = getArchtype(thing)
-	if (t === Archtype.Map) thing.set(propOrOldValue, value)
-	else if (t === Archtype.Set) {
+	if (t === ArchType.Map) thing.set(propOrOldValue, value)
+	else if (t === ArchType.Set) {
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }
@@ -148,12 +123,12 @@ export function is(x: any, y: any): boolean {
 
 /*#__PURE__*/
 export function isMap(target: any): target is AnyMap {
-	return hasMap && target instanceof Map
+	return target instanceof Map
 }
 
 /*#__PURE__*/
 export function isSet(target: any): target is AnySet {
-	return hasSet && target instanceof Set
+	return target instanceof Set
 }
 /*#__PURE__*/
 export function latest(state: ImmerState): any {
@@ -161,11 +136,26 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any) {
+export function shallowCopy(base: any, strict: boolean) {
+	if (isMap(base)) {
+		return new Map(base)
+	}
+	if (isSet(base)) {
+		return new Set(base)
+	}
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
-	const descriptors = getOwnPropertyDescriptors(base)
+
+	if (!strict && isPlainObject(base)) {
+		if (!getPrototypeOf(base)) {
+			const obj = Object.create(null)
+			return Object.assign(obj, base)
+		}
+		return {...base}
+	}
+
+	const descriptors = Object.getOwnPropertyDescriptors(base)
 	delete descriptors[DRAFT_STATE as any]
-	let keys = ownKeys(descriptors)
+	let keys = Reflect.ownKeys(descriptors)
 	for (let i = 0; i < keys.length; i++) {
 		const key: any = keys[i]
 		const desc = descriptors[key]
@@ -184,7 +174,7 @@ export function shallowCopy(base: any) {
 				value: base[key]
 			}
 	}
-	return Object.create(Object.getPrototypeOf(base), descriptors)
+	return Object.create(getPrototypeOf(base), descriptors)
 }
 
 /**
@@ -201,7 +191,7 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
-	if (deep) each(obj, (key, value) => freeze(value, true), true)
+	if (deep) each(obj, (_key, value) => freeze(value, true), true)
 	return obj
 }
 
@@ -210,7 +200,5 @@ function dontMutateFrozenCollections() {
 }
 
 export function isFrozen(obj: any): boolean {
-	if (obj == null || typeof obj !== "object") return true
-	// See #600, IE dies on non-objects in Object.isFrozen
 	return Object.isFrozen(obj)
 }
