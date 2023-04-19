@@ -30,7 +30,7 @@ export default defineConfig(options => {
 			sourcemap: true,
 			onSuccess() {
 				// Support Flow types
-				fs.copyFileSync("src/types/index.js.flow", "dist/index.js.flow")
+				fs.copyFileSync("src/types/index.js.flow", "dist/cjs/index.js.flow")
 			}
 		},
 		// ESM, Webpack 4 support. Target ES2018 syntax to compile away optional chaining and spreads
