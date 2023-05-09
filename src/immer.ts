@@ -17,7 +17,8 @@ export {
 	isDraftable,
 	NOTHING as nothing,
 	DRAFTABLE as immerable,
-	freeze
+	freeze,
+	Objectish
 } from "./internal"
 
 const immer = new Immer()
