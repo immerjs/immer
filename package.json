@@ -12,7 +12,7 @@
     }
   },
   "jsnext:main": "dist/immer.mjs",
-  "react-native": "dist/immer.mjs",
+  "react-native": "./dist/immer.legacy-esm.js",
   "source": "src/immer.ts",
   "types": "./dist/immer.d.ts",
   "sideEffects": false,
