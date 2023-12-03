@@ -26,7 +26,7 @@ const addedTodosObj = produce(todosObj, draft => {
 	draft["id3"] = {done: false, body: "Buy bananas"}
 })
 
-// delete
+// delete single property
 const deletedTodosObj = produce(todosObj, draft => {
 	delete draft["id1"]
 })
@@ -34,6 +34,11 @@ const deletedTodosObj = produce(todosObj, draft => {
 // update
 const updatedTodosObj = produce(todosObj, draft => {
 	draft["id1"].done = true
+})
+
+// reset/clear/empty
+const emptyTodo = produce(todosObj, () => {
+	return {};
 })
 ```
 
@@ -101,6 +106,11 @@ const updatedTodosArray = produce(todosArray, draft => {
 	// but as shown below, if the filter is not on the top
 	// level produce is still pretty useful)
 	return draft.filter(todo => todo.done)
+})
+
+// reset/clear/empty
+const emptyTodo = produce(todosArray, () => {
+	return [];
 })
 ```
 
