@@ -9,3 +9,5 @@ export * from "./core/finalize"
 export * from "./core/proxy"
 export * from "./core/immerClass"
 export * from "./core/current"
+export * from "./core/deepCurrent"
+
