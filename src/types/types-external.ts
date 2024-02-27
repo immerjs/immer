@@ -68,7 +68,10 @@ export interface Patch {
 	value?: any
 }
 
-export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
+export type PatchListener = (
+	patches: readonly Patch[],
+	inversePatches: readonly Patch[]
+) => void
 
 /** Converts `nothing` into `undefined` */
 type FromNothing<T> = T extends typeof NOTHING ? undefined : T
@@ -81,7 +84,7 @@ export type Produced<Base, Return> = Return extends void
 /**
  * Utility types
  */
-type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
+type PatchesTuple<T> = readonly [T, readonly Patch[], readonly Patch[]]
 
 type ValidRecipeReturnType<State> =
 	| State

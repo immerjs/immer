@@ -120,11 +120,15 @@ export class Immer implements ProducersFns {
 				this.produceWithPatches(state, (draft: any) => base(draft, ...args))
 		}
 
-		let patches: Patch[], inversePatches: Patch[]
-		const result = this.produce(base, recipe, (p: Patch[], ip: Patch[]) => {
-			patches = p
-			inversePatches = ip
-		})
+		let patches: readonly Patch[], inversePatches: readonly Patch[]
+		const result = this.produce(
+			base,
+			recipe,
+			(p: readonly Patch[], ip: readonly Patch[]) => {
+				patches = p
+				inversePatches = ip
+			}
+		)
 		return [result, patches!, inversePatches!]
 	}
 
