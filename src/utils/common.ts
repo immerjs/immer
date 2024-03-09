@@ -60,15 +60,19 @@ export function original(value: Drafted<any>): any {
 	return value[DRAFT_STATE].base_
 }
 
+/**
+ * Each iterates a map, set or array.
+ * Or, if any other kind of of object all it's own properties.
+ * Regardless whether they are enumerable or symbols
+ */
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: string | number, value: any, source: T) => void,
-	enumerableOnly?: boolean
+	iter: (key: string | number, value: any, source: T) => void
 ): void
 export function each(obj: any, iter: any) {
 	if (getArchtype(obj) === ArchType.Object) {
-		Object.entries(obj).forEach(([key, value]) => {
-			iter(key, value, obj)
+		Reflect.ownKeys(obj).forEach(key => {
+			iter(key, obj[key], obj)
 		})
 	} else {
 		obj.forEach((entry: any, index: any) => iter(index, entry, obj))
@@ -191,7 +195,10 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
 	}
 	Object.freeze(obj)
-	if (deep) each(obj, (_key, value) => freeze(value, true), true)
+	if (deep)
+		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
+		// So use Object.entries (only string-like, enumerables) instead of each()
+		Object.entries(obj).forEach(([key, value]) => freeze(value, true))
 	return obj
 }
 

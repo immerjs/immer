@@ -219,6 +219,7 @@ function runTests(name) {
 				state2.ref.state.x++
 			}).not.toThrow()
 			expect(state2.ref.state.x).toBe(2)
+			expect(component.state.x).toBe(2)
 		})
 
 		it("never freezes symbolic fields #590", () => {

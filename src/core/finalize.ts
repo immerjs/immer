@@ -58,11 +58,8 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	const state: ImmerState = value[DRAFT_STATE]
 	// A plain object, might need freezing, might contain drafts
 	if (!state) {
-		each(
-			value,
-			(key, childValue) =>
-				finalizeProperty(rootScope, state, value, key, childValue, path),
-			true // See #590, don't recurse into non-enumerable of non drafted objects
+		each(value, (key, childValue) =>
+			finalizeProperty(rootScope, state, value, key, childValue, path)
 		)
 		return value
 	}
@@ -148,8 +145,14 @@ function finalizeProperty(
 			return
 		}
 		finalize(rootScope, childValue)
-		// immer deep freezes plain objects, so if there is no parent state, we freeze as well
-		if (!parentState || !parentState.scope_.parent_)
+		// Immer deep freezes plain objects, so if there is no parent state, we freeze as well
+		// Per #590, we never freeze symbolic properties. Just to make sure don't accidentally interfere
+		// with other frameworks.
+		if (
+			(!parentState || !parentState.scope_.parent_) &&
+			typeof prop !== "symbol" &&
+			Object.prototype.propertyIsEnumerable.call(targetObject, prop)
+		)
 			maybeFreeze(rootScope, childValue)
 	}
 }
