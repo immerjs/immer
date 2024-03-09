@@ -120,15 +120,11 @@ export class Immer implements ProducersFns {
 				this.produceWithPatches(state, (draft: any) => base(draft, ...args))
 		}
 
-		let patches: readonly Patch[], inversePatches: readonly Patch[]
-		const result = this.produce(
-			base,
-			recipe,
-			(p: readonly Patch[], ip: readonly Patch[]) => {
-				patches = p
-				inversePatches = ip
-			}
-		)
+		let patches: Patch[], inversePatches: Patch[]
+		const result = this.produce(base, recipe, (p: Patch[], ip: Patch[]) => {
+			patches = p
+			inversePatches = ip
+		})
 		return [result, patches!, inversePatches!]
 	}
 
@@ -171,7 +167,7 @@ export class Immer implements ProducersFns {
 		this.useStrictShallowCopy_ = value
 	}
 
-	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
+	applyPatches<T extends Objectish>(base: T, patches: readonly Patch[]): T {
 		// If a patch replaces the entire state, take that replacement as base
 		// before applying patches
 		let i: number
