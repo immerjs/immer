@@ -1,4 +1,4 @@
-import {assert, _} from "spec.ts"
+import {assert, _} from "./spec_ts"
 import {produce, Draft, castDraft, original} from "../src/immer"
 
 // For checking if a type is assignable to its draft type (and vice versa)

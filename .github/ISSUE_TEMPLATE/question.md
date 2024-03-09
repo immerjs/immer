@@ -1,7 +1,7 @@
 ---
 name: 🙋‍♂ Question
 labels: "question"
-about: Submit a proposal for a new feature
+about: Submit a generic question
 ---
 
 ## 🙋‍♂ Question
