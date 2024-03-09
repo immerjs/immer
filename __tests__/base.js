@@ -2362,6 +2362,22 @@ function testObjectTypes(produce) {
 			[customSymbol]: 3
 		})
 	})
+
+	describe("#1096 / #1087 / proxies", () => {
+		const sym = Symbol()
+
+		let state = {
+			id: 1,
+			[sym]: {x: 2}
+		}
+
+		state = produce(state, draft => {
+			draft.id = 2
+			draft[sym]
+		})
+
+		expect(state[sym].x).toBe(2)
+	})
 }
 
 function testLiteralTypes(produce) {
