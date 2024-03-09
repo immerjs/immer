@@ -79,7 +79,6 @@
     "rimraf": "^2.6.2",
     "seamless-immutable": "^7.1.3",
     "semantic-release": "^17.0.2",
-    "spec.ts": "^1.1.0",
     "ts-jest": "^29.0.0",
     "tsup": "^6.7.0",
     "typescript": "^5.0.2"

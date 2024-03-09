@@ -1,4 +1,4 @@
-import {assert, _} from "spec.ts"
+import {assert, _} from "./spec_ts"
 import {produce, Immutable, castImmutable} from "../src/immer"
 
 test("types are ok", () => {
