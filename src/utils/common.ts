@@ -149,12 +149,13 @@ export function shallowCopy(base: any, strict: boolean) {
 	}
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
-	if (!strict && isPlainObject(base)) {
-		if (!getPrototypeOf(base)) {
-			const obj = Object.create(null)
-			return Object.assign(obj, base)
+	if (!strict) {
+		const proto = getPrototypeOf(base)
+		if (proto !== null && isPlainObject(base)) {
+			return {...base} // assumption: better inner class optimization than the assign below
 		}
-		return {...base}
+		const obj = Object.create(proto)
+		return Object.assign(obj, base)
 	}
 
 	const descriptors = Object.getOwnPropertyDescriptors(base)
