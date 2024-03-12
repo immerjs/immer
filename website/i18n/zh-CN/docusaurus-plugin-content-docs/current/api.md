@@ -31,7 +31,7 @@ title: API 概览
 | `produce` | Immer 的核心 API，也暴露为 `default` 导出 | [Produce](./produce.mdx) |
 | `produceWithPatches` | 与 `produce` 相同，但它不仅返回生成的对象，还返回一个由 `[result, patch, inversePatches]` 组成的元组 | [Patches](./patches.mdx) |
 | `setAutoFreeze` | 启用/禁用递归的自动冻结。默认启用 | [Freezing](./freezing.mdx) |
-| `setUseStrictShallowCopy` | Can be used to enable strict shallow copy. If enable, immer copies non-enumerable properties as much as possible. | [Classes](./complex-objects.md) |
+| `setUseStrictShallowCopy` | 可用于启用严格的浅拷贝。 如果启用，immer 会尽可能多地拷贝不可枚举属性 | [Classes](./complex-objects.md) |
 
 ## 导入 immer
 
