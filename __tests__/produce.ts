@@ -8,7 +8,8 @@ import {
 	Immutable,
 	Immer,
 	enableMapSet,
-	enablePatches
+	enablePatches,
+	produceWithPatches
 } from "../src/immer"
 
 enableMapSet()
@@ -158,6 +159,20 @@ it("can apply patches", () => {
 			patches = p
 		}
 	)
+
+	expect(applyPatches({}, patches)).toEqual({x: 4})
+})
+
+it("can apply readonly patches", () => {
+	const [, patches]: readonly [
+		{
+			x: number
+		},
+		readonly Patch[],
+		readonly Patch[]
+	] = produceWithPatches({x: 3}, d => {
+		d.x++
+	})
 
 	expect(applyPatches({}, patches)).toEqual({x: 4})
 })
