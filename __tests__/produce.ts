@@ -115,6 +115,24 @@ it("cannot infer state type when the function type and default state are missing
 	assert(foo, _ as Recipe)
 })
 
+it("frozen status of the baseState after produce should be independent of the passed value", () => {
+	expect(Object.isFrozen(state)).toBe(false)
+
+	const updatedState = setNum(1)
+	expect(Object.isFrozen(state)).toBe(false)
+	expect(updatedState.num).toBe(1)
+
+	const equalState = setNum(state.num)
+	expect(Object.isFrozen(state)).toBe(false)
+	expect(equalState.num).toBe(state.num)
+})
+
+function setNum(newNum: number) {
+	return produce(state, draft => {
+		draft.num = newNum
+	})
+}
+
 it("can update readonly state via curried api", () => {
 	const newState = produce((draft: Draft<State>) => {
 		draft.num++
