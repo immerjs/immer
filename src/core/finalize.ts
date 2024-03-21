@@ -64,10 +64,10 @@ function finalize(
 	encounteredObjects = new WeakSet<any>()
 ): any {
 	// Don't recurse in tho recursive data structures
-	if (isFrozen(value) || encounteredObjects.has(value)) return value
-	encounteredObjects.add(value)
+	let state: ImmerState | undefined = value[DRAFT_STATE]
+	if (isFrozen(value) || encounteredObjects.has(state ? state.base_ : value)) return state ? state.copy_ : value
+	encounteredObjects.add(state ? state.base_ : value)
 
-	let state: ImmerState = value[DRAFT_STATE]
 
 	// A plain object, might need freezing, might contain drafts
 	if (!state || (!state.modified_ && state.existingStateMap_)) {
@@ -170,7 +170,7 @@ function finalizeProperty(
 				? rootPath!.concat(prop)
 				: undefined
 		// Drafts owned by `scope` are finalized here.
-		const res = finalize(rootScope, childValue, path, existingStateMap)
+		const res = finalize(rootScope, childValue, path, existingStateMap, encounteredObjects)
 		set(targetObject, prop, res)
 		// Drafts from another scope must prevented to be frozen
 		// if we got a draft back from finalize, we're in a nested produce and shouldn't freeze
