@@ -338,7 +338,6 @@ export function enableMapSet() {
 		}
 
 		forEach(cb: any, thisArg?: any) {
-			console.log("Set forEach", this)
 			const iterator = this.values()
 			let result = iterator.next()
 			while (!result.done) {
