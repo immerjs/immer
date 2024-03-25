@@ -63,9 +63,13 @@ function finalize(
 	existingStateMap?: WeakMap<Objectish, ImmerState>,
 	encounteredObjects = new WeakSet<any>()
 ): any {
-	// Don't recurse in tho recursive data structures
 	let state: ImmerState | undefined = value[DRAFT_STATE]
-	if (isFrozen(value) || encounteredObjects.has(state ? state.base_ : value)) return state ? state.copy_ : value
+
+	// Never finalize drafts owned by another scope.
+	if (state && state.scope_ !== rootScope) return value
+
+	// Don't recurse into recursive data structures
+	if (isFrozen(value) || encounteredObjects.has(state ? state.base_ : value)) return state ? (state.modified_? state.copy_ : state.base_) : value
 	encounteredObjects.add(state ? state.base_ : value)
 
 
@@ -86,10 +90,8 @@ function finalize(
 					encounteredObjects
 				)
 		)
-		return state ? state.base_ : value
+		return state ? (state.copy_ ? state.copy_ : state.base_) : value
 	}
-	// Never finalize drafts owned by another scope.
-	if (state.scope_ !== rootScope) return value
 	// Unmodified draft, return the (frozen) original
 	if (!state.modified_) {
 		maybeFreeze(rootScope, state.copy_ ?? state.base_, true)
