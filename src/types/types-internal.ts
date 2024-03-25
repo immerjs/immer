@@ -29,7 +29,6 @@ export interface ImmerBaseState {
 	modified_: boolean
 	finalized_: boolean
 	isManual_: boolean
-	existingStateMap_?: WeakMap<Objectish, ImmerState> | undefined
 }
 
 export type ImmerState =

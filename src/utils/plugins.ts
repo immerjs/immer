@@ -30,13 +30,11 @@ const plugins: {
 	MapSet?: {
 		proxyMap_<T extends AnyMap>(
 			target: T,
-			parent?: ImmerState,
-			stateMap?: WeakMap<Objectish, ImmerState>
+			parent?: ImmerState
 		): T
 		proxySet_<T extends AnySet>(
 			target: T,
-			parent?: ImmerState,
-			stateMap?: WeakMap<Objectish, ImmerState>
+			parent?: ImmerState
 		): T
 	}
 } = {}

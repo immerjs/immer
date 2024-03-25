@@ -93,8 +93,7 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
-			const stateMap = this.allowMultiRefs_ ? new Map() : undefined
-			const proxy = createProxy(base, undefined, stateMap)
+			const proxy = createProxy(base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -105,7 +104,7 @@ export class Immer implements ProducersFns {
 				else leaveScope(scope)
 			}
 			usePatchesInScope(scope, patchListener)
-			return processResult(result, scope, stateMap)
+			return processResult(result, scope)
 		} else if (!base || typeof base !== "object") {
 			result = recipe(base)
 			if (result === undefined) result = base
@@ -142,8 +141,7 @@ export class Immer implements ProducersFns {
 		const scope = enterScope(this)
 		const proxy = createProxy(
 			base,
-			undefined,
-			this.allowMultiRefs_ ? new WeakMap() : undefined
+			undefined
 		)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
@@ -157,9 +155,9 @@ export class Immer implements ProducersFns {
 		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
 		if (!state || !state.isManual_) die(9)
 
-		const {scope_: scope, existingStateMap_} = state
+		const {scope_: scope} = state
 		usePatchesInScope(scope, patchListener)
-		return processResult(undefined, scope, existingStateMap_) as any
+		return processResult(undefined, scope) as any
 	}
 
 	/**
@@ -216,25 +214,20 @@ export class Immer implements ProducersFns {
 
 export function createProxy<T extends Objectish>(
 	value: T,
-	parent?: ImmerState,
-	stateMap:
-		| WeakMap<Objectish, ImmerState>
-		| undefined = parent?.existingStateMap_
+	parent?: ImmerState
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
 	const draft: Drafted = isMap(value)
 		? getPlugin("MapSet").proxyMap_(
 				value,
-				parent,
-				stateMap ?? parent?.existingStateMap_
+				parent
 		  )
 		: isSet(value)
 		? getPlugin("MapSet").proxySet_(
 				value,
-				parent,
-				stateMap ?? parent?.existingStateMap_
+				parent
 		  )
-		: createProxyProxy(value, parent, stateMap ?? parent?.existingStateMap_)
+		: createProxyProxy(value, parent)
 
 	const scope = parent ? parent.scope_ : getCurrentScope()
 

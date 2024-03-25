@@ -16,13 +16,11 @@ import {
 	die,
 	revokeScope,
 	isFrozen,
-	Objectish
 } from "../internal"
 
 export function processResult(
 	result: any,
-	scope: ImmerScope,
-	existingStateMap?: WeakMap<Objectish, ImmerState>
+	scope: ImmerScope
 ) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
 	const baseDraft = scope.drafts_![0]
@@ -34,7 +32,7 @@ export function processResult(
 		}
 		if (isDraftable(result)) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
-			result = finalize(scope, result, undefined, existingStateMap)
+			result = finalize(scope, result)
 			if (!scope.parent_) maybeFreeze(scope, result, false)
 		}
 		if (scope.patches_) {
@@ -47,7 +45,7 @@ export function processResult(
 		}
 	} else {
 		// Finalize the base draft.
-		result = finalize(scope, baseDraft, [], existingStateMap)
+		result = finalize(scope, baseDraft, [])
 	}
 	revokeScope(scope)
 	if (scope.patches_) {
@@ -60,7 +58,6 @@ function finalize(
 	rootScope: ImmerScope,
 	value: any,
 	path?: PatchPath,
-	existingStateMap?: WeakMap<Objectish, ImmerState>,
 	encounteredObjects = new WeakSet<any>()
 ): any {
 	let state: ImmerState | undefined = value[DRAFT_STATE]
@@ -74,7 +71,7 @@ function finalize(
 
 
 	// A plain object, might need freezing, might contain drafts
-	if (!state || (!state.modified_ && state.existingStateMap_)) {
+	if (!state || (!state.modified_ && state.scope_.existingStateMap_)) {
 		each(
 			value,
 			(key, childValue) =>
@@ -86,7 +83,6 @@ function finalize(
 					childValue,
 					path,
 					undefined,
-					existingStateMap,
 					encounteredObjects
 				)
 		)
@@ -122,7 +118,6 @@ function finalize(
 				childValue,
 				path,
 				isSet,
-				existingStateMap,
 				encounteredObjects
 			)
 		)
@@ -150,14 +145,13 @@ function finalizeProperty(
 	childValue: any,
 	rootPath?: PatchPath,
 	targetIsSet?: boolean,
-	existingStateMap?: WeakMap<Objectish, ImmerState>,
 	encounteredObjects = new WeakSet<any>()
 ) {
 	if (process.env.NODE_ENV !== "production" && childValue === targetObject)
 		die(5)
 
 	if (!isDraft(childValue) && isDraftable(childValue)) {
-		const existingState = existingStateMap?.get(childValue)
+		const existingState = rootScope.existingStateMap_?.get(childValue)
 		if (existingState) {
 			childValue = existingState.draft_
 		}
@@ -172,7 +166,7 @@ function finalizeProperty(
 				? rootPath!.concat(prop)
 				: undefined
 		// Drafts owned by `scope` are finalized here.
-		const res = finalize(rootScope, childValue, path, existingStateMap, encounteredObjects)
+		const res = finalize(rootScope, childValue, path, encounteredObjects)
 		set(targetObject, prop, res)
 		// Drafts from another scope must prevented to be frozen
 		// if we got a draft back from finalize, we're in a nested produce and shouldn't freeze
@@ -197,7 +191,6 @@ function finalizeProperty(
 			rootScope,
 			childValue,
 			undefined,
-			existingStateMap,
 			encounteredObjects
 		)
 		// Immer deep freezes plain objects, so if there is no parent state, we freeze as well
