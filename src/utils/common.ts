@@ -62,7 +62,7 @@ export function original(value: Drafted<any>): any {
 
 /**
  * Each iterates a map, set or array.
- * Or, if any other kind of object, all of it's own properties.
+ * Or, if any other kind of object, all of its own properties.
  * Regardless whether they are enumerable or symbols
  */
 export function each<T extends Objectish>(
