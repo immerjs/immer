@@ -8,9 +8,11 @@ import {
 
 export {
 	Draft,
+	WritableDraft,
 	Immutable,
 	Patch,
 	PatchListener,
+	Producer,
 	original,
 	current,
 	isDraft,
