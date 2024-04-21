@@ -38,6 +38,82 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
@@ -75,6 +151,82 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
@@ -114,6 +266,82 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=f
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
@@ -151,6 +379,82 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=t
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
@@ -190,6 +494,82 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=f
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
@@ -227,6 +607,82 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=t
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
@@ -266,6 +722,82 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=fa
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
 
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
@@ -303,6 +835,834 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=tr
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is added 1`] = `"[Immer] Immer only supports setting array indices and the 'length' property"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true array drafts throws when a non-numeric property is deleted 1`] = `"[Immer] Immer only supports deleting array indices"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true map drafts revokes map proxies 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true recipe functions cannot return a modified child draft 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true recipe functions cannot return an object that references itself 1`] = `"[Immer] Immer forbids circular references"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true set drafts revokes sets 1`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true set drafts revokes sets 2`] = `"[Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when Object.defineProperty() is used on drafts 1`] = `"[Immer] Object.defineProperty() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when Object.setPrototypeOf() is used on a draft 1`] = `"[Immer] Object.setPrototypeOf() cannot be used on an Immer draft"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true throws when the draft is modified and another object is returned 1`] = `"[Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft."`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
 
 exports[`complex nesting map / set / object modify deep object 1`] = `
 {

@@ -14,27 +14,58 @@ import {
 	markChanged,
 	die,
 	ArchType,
-	each
+	each,
+	Objectish,
+	isDraft
 } from "../internal"
 
 export function enableMapSet() {
 	class DraftMap extends Map {
 		[DRAFT_STATE]: MapState
 
-		constructor(target: AnyMap, parent?: ImmerState) {
+		constructor(
+			target: AnyMap,
+			parent?: ImmerState
+		) {
 			super()
-			this[DRAFT_STATE] = {
-				type_: ArchType.Map,
-				parent_: parent,
-				scope_: parent ? parent.scope_ : getCurrentScope()!,
-				modified_: false,
-				finalized_: false,
-				copy_: undefined,
-				assigned_: undefined,
-				base_: target,
-				draft_: this as any,
-				isManual_: false,
-				revoked_: false
+			let revoked = false
+			const this_ = this
+			const scope_ = parent ? parent.scope_ : getCurrentScope()!
+			this[DRAFT_STATE] = new Proxy(
+				(scope_.existingStateMap_?.get(target) as MapState) || {
+					type_: ArchType.Map,
+					parent_: parent,
+					scope_: parent ? parent.scope_ : getCurrentScope()!,
+					modified_: false,
+					finalized_: false,
+					copy_: undefined,
+					assigned_: undefined,
+					base_: target,
+					draft_: this as any,
+					isManual_: false,
+					revoked_: false,
+				},
+				{
+					get(target, p, receiver) {
+						if (p === "revoked_") return revoked
+						if (p === "draft_") return this_
+						return Reflect.get(target, p, receiver)
+					},
+					set(target, p, newValue, receiver) {
+						if (p === "revoked_") {
+							revoked = newValue
+							return true
+						}
+						if (p === "draft_") return false
+						return Reflect.set(target, p, newValue, receiver)
+					}
+				}
+			)
+
+			if (parent && this[DRAFT_STATE].parent_ !== parent) {
+				if (this[DRAFT_STATE].extraParents_)
+					this[DRAFT_STATE].extraParents_.push(parent)
+				else this[DRAFT_STATE].extraParents_ = [parent]
 			}
 		}
 
@@ -46,10 +77,24 @@ export function enableMapSet() {
 			return latest(this[DRAFT_STATE]).has(key)
 		}
 
+		isValueChanging(key: any, value: any): boolean {
+			const state: MapState = this[DRAFT_STATE]
+			if (!latest(state).has(key)) return true
+
+			const baseValue = latest(state).get(key)
+
+			if (baseValue === value) return false
+
+			if (isDraft(baseValue) && latest(baseValue[DRAFT_STATE]) === value) return false
+
+			return true
+		}
+
 		set(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
+			const valueState: ImmerState | false = isDraft(value) && value[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (!latest(state).has(key) || latest(state).get(key) !== value) {
+			if (this.isValueChanging(key, value)) {
 				prepareMapCopy(state)
 				markChanged(state)
 				state.assigned_!.set(key, true)
@@ -158,34 +203,65 @@ export function enableMapSet() {
 		}
 	}
 
-	function proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T {
-		// @ts-ignore
-		return new DraftMap(target, parent)
+	function proxyMap_<T extends AnyMap>(
+		target: T,
+		parent?: ImmerState
+	): T {
+		return new DraftMap(target, parent) as unknown as T
 	}
 
 	function prepareMapCopy(state: MapState) {
-		if (!state.copy_) {
-			state.assigned_ = new Map()
-			state.copy_ = new Map(state.base_)
-		}
+		if (state.copy_) return
+		state.assigned_ = new Map()
+		state.copy_ = new Map(state.base_)
+		state.scope_.existingStateMap_?.set(state.base_, state)
 	}
 
 	class DraftSet extends Set {
 		[DRAFT_STATE]: SetState
-		constructor(target: AnySet, parent?: ImmerState) {
+		constructor(
+			target: AnySet,
+			parent?: ImmerState
+		) {
 			super()
-			this[DRAFT_STATE] = {
-				type_: ArchType.Set,
-				parent_: parent,
-				scope_: parent ? parent.scope_ : getCurrentScope()!,
-				modified_: false,
-				finalized_: false,
-				copy_: undefined,
-				base_: target,
-				draft_: this,
-				drafts_: new Map(),
-				revoked_: false,
-				isManual_: false
+			let revoked = false
+			const this_ = this
+			const scope_ = parent ? parent.scope_ : getCurrentScope()!
+			this[DRAFT_STATE] = new Proxy(
+				(scope_.existingStateMap_?.get(target) as SetState) || {
+					type_: ArchType.Set,
+					parent_: parent,
+					scope_,
+					modified_: false,
+					finalized_: false,
+					copy_: undefined,
+					base_: target,
+					draft_: this,
+					drafts_: new Map(),
+					revoked_: false,
+					isManual_: false
+				},
+				{
+					get(target, p, receiver) {
+						if (p === "revoked_") return revoked
+						if (p === "draft_") return this_
+						return Reflect.get(target, p, receiver)
+					},
+					set(target, p, newValue, receiver) {
+						if (p === "revoked_") {
+							revoked = newValue
+							return true
+						}
+						if (p === "draft_") return false
+						return Reflect.set(target, p, newValue, receiver)
+					}
+				}
+			)
+
+			if (parent && this[DRAFT_STATE].parent_ !== parent) {
+				if (this[DRAFT_STATE].extraParents_)
+					this[DRAFT_STATE].extraParents_.push(parent)
+				else this[DRAFT_STATE].extraParents_ = [parent]
 			}
 		}
 
@@ -275,25 +351,28 @@ export function enableMapSet() {
 			}
 		}
 	}
-	function proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T {
-		// @ts-ignore
-		return new DraftSet(target, parent)
+
+	function proxySet_<T extends AnySet>(
+		target: T,
+		parent?: ImmerState
+	): T {
+		return new DraftSet(target, parent) as unknown as T
 	}
 
 	function prepareSetCopy(state: SetState) {
-		if (!state.copy_) {
-			// create drafts for all entries to preserve insertion order
-			state.copy_ = new Set()
-			state.base_.forEach(value => {
-				if (isDraftable(value)) {
-					const draft = createProxy(value, state)
-					state.drafts_.set(value, draft)
-					state.copy_!.add(draft)
-				} else {
-					state.copy_!.add(value)
-				}
-			})
-		}
+		if (state.copy_) return
+		// create drafts for all entries to preserve insertion order
+		state.copy_ = new Set()
+		state.scope_.existingStateMap_?.set(state.base_, state)
+		state.base_.forEach(value => {
+			if (isDraftable(value)) {
+				const draft = createProxy(value, state)
+				state.drafts_.set(value, draft)
+				state.copy_!.add(draft)
+			} else {
+				state.copy_!.add(value)
+			}
+		})
 	}
 
 	function assertUnrevoked(state: any /*ES5State | MapState | SetState*/) {

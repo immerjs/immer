@@ -19,7 +19,8 @@ export interface ImmerScope {
 	parent_?: ImmerScope
 	patchListener_?: PatchListener
 	immer_: Immer
-	unfinalizedDrafts_: number
+	unfinalizedDrafts_: number,
+	existingStateMap_?: WeakMap<any, ImmerState>
 }
 
 let currentScope: ImmerScope | undefined
@@ -39,7 +40,8 @@ function createScope(
 		// Whenever the modified draft contains a draft from another scope, we
 		// need to prevent auto-freezing so the unowned draft can be finalized.
 		canAutoFreeze_: true,
-		unfinalizedDrafts_: 0
+		unfinalizedDrafts_: 0,
+		existingStateMap_: parent_ ? parent_.existingStateMap_ : (immer_.allowMultiRefs_ ? new WeakMap() : undefined)
 	}
 }
 

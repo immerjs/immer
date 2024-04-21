@@ -34,12 +34,19 @@ interface ProducersFns {
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
 	useStrictShallowCopy_: boolean = false
+	allowMultiRefs_: boolean = false
 
-	constructor(config?: {autoFreeze?: boolean; useStrictShallowCopy?: boolean}) {
+	constructor(config?: {
+		autoFreeze?: boolean
+		useStrictShallowCopy?: boolean
+		allowMultiRefs: boolean
+	}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
 		if (typeof config?.useStrictShallowCopy === "boolean")
 			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
+		if (typeof config?.allowMultiRefs === "boolean")
+			this.setAllowMultiRefs(config!.allowMultiRefs)
 	}
 
 	/**
@@ -132,7 +139,10 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) die(8)
 		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
-		const proxy = createProxy(base, undefined)
+		const proxy = createProxy(
+			base,
+			undefined
+		)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
 		return proxy as any
@@ -144,9 +154,10 @@ export class Immer implements ProducersFns {
 	): D extends Draft<infer T> ? T : never {
 		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
 		if (!state || !state.isManual_) die(9)
+
 		const {scope_: scope} = state
 		usePatchesInScope(scope, patchListener)
-		return processResult(undefined, scope)
+		return processResult(undefined, scope) as any
 	}
 
 	/**
@@ -165,6 +176,11 @@ export class Immer implements ProducersFns {
 	 */
 	setUseStrictShallowCopy(value: boolean) {
 		this.useStrictShallowCopy_ = value
+	}
+
+	/** Pass true to allow multiple references to the same object in the same state tree. */
+	setAllowMultiRefs(value: boolean) {
+		this.allowMultiRefs_ = value
 	}
 
 	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
@@ -202,12 +218,20 @@ export function createProxy<T extends Objectish>(
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
 	const draft: Drafted = isMap(value)
-		? getPlugin("MapSet").proxyMap_(value, parent)
+		? getPlugin("MapSet").proxyMap_(
+				value,
+				parent
+		  )
 		: isSet(value)
-		? getPlugin("MapSet").proxySet_(value, parent)
+		? getPlugin("MapSet").proxySet_(
+				value,
+				parent
+		  )
 		: createProxyProxy(value, parent)
 
 	const scope = parent ? parent.scope_ : getCurrentScope()
+
 	scope.drafts_.push(draft)
+
 	return draft
 }

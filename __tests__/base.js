@@ -26,21 +26,26 @@ test("immer should have no dependencies", () => {
 for (const autoFreeze of [true, false]) {
 	for (const useStrictShallowCopy of [true, false]) {
 		for (const useListener of [true, false]) {
-			const name = `${autoFreeze ? "auto-freeze=true" : "auto-freeze=false"}:${
-				useStrictShallowCopy ? "shallow-copy=true" : "shallow-copy=false"
-			}:${useListener ? "use-listener=true" : "use-listener=false"}`
-			runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener)
+			for (const allowMultiRefs of [true, false]) {
+				const name = `${autoFreeze ? "auto-freeze=true" : "auto-freeze=false"}:${
+					useStrictShallowCopy ? "shallow-copy=true" : "shallow-copy=false"
+				}:${useListener ? "use-listener=true" : "use-listener=false"}:${
+					allowMultiRefs ? "allow-multi-refs=true" : "allow-multi-refs=false"
+				}`
+				runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowMultiRefs)
+			}
 		}
 	}
 }
 
 class Foo {}
 
-function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
+function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowMultiRefs) {
 	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
-		useStrictShallowCopy
+		useStrictShallowCopy,
+		allowMultiRefs,
 	})
 
 	// When `useListener` is true, append a function to the arguments of every
@@ -1033,7 +1038,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			})
 		})
 
-		it("optimization: does not visit properties of new data structures if autofreeze is disabled and no drafts are unfinalized", () => {
+		it("optimization: does not visit properties of new data structures if autofreeze and multiref are disabled and no drafts are unfinalized", () => {
 			const newData = {}
 			Object.defineProperty(newData, "x", {
 				enumerable: true,
@@ -1046,7 +1051,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				produce({}, d => {
 					d.data = newData
 				})
-			if (autoFreeze) {
+			if (autoFreeze || allowMultiRefs) {
 				expect(run).toThrow("visited!")
 			} else {
 				expect(run).not.toThrow("visited!")
@@ -1426,19 +1431,29 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			// "Upvalues" are variables from a parent scope.
 			it("does not finalize upvalue drafts", () => {
 				produce({a: {}, b: {}}, parent => {
-					expect(produce({}, () => parent)).toBe(parent)
-					parent.x // Ensure proxy not revoked.
+					const producedParent1 = produce({}, () => parent);
+					expect(()=>parent.x).not.toThrow()  // Ensure proxy not revoked.
+					expect(()=>producedParent1.x).not.toThrow()  // Ensure proxy not revoked.
+					expect(Object.is(parent, producedParent1)).toBe(true)
 
-					expect(produce({}, () => [parent])[0]).toBe(parent)
-					parent.x // Ensure proxy not revoked.
 
-					expect(produce({}, () => parent.a)).toBe(parent.a)
-					parent.a.x // Ensure proxy not revoked.
+					const producedParent2 = produce({}, () => [parent][0]);
+					expect(()=>parent.x).not.toThrow()  // Ensure proxy not revoked.
+					expect(()=>producedParent2.x).not.toThrow()  // Ensure proxy not revoked.
+					expect(Object.is(parent, producedParent2)).toBe(true)
+
+					const producedChildA = produce({}, () => parent.a)
+					expect(()=>parent.a.x).not.toThrow() // Ensure proxy not revoked.
+					expect(()=>producedChildA.x).not.toThrow() // Ensure proxy not revoked.
+					expect(Object.is(parent.a, producedChildA)).toBe(true)
 
 					// Modified parent test
 					parent.c = 1
-					expect(produce({}, () => [parent.b])[0]).toBe(parent.b)
-					parent.b.x // Ensure proxy not revoked.
+
+					const producedChildB = produce({}, () => [parent.b])[0]
+					expect(()=>parent.b.x).not.toThrow() // Ensure proxy not revoked.
+					expect(()=>producedChildB.x).not.toThrow() // Ensure proxy not revoked.
+					expect(Object.is(parent.b, producedChildB)).toBe(true)
 				})
 			})
 
@@ -1522,7 +1537,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			expect(world.inc(world).counter.count).toBe(2)
 		})
 
-		it("doesnt recurse into frozen structures if external data is frozen", () => {
+		it("doesnt recurse into frozen structures if external data is frozen and is not multiref", () => {
 			const frozen = {}
 			Object.defineProperty(frozen, "x", {
 				get() {
@@ -1533,11 +1548,14 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			})
 			Object.freeze(frozen)
 
-			expect(() => {
+			const expectTest = expect(() => {
 				produce({}, d => {
 					d.x = frozen
 				})
-			}).not.toThrow()
+			})
+
+			if (allowMultiRefs) expectTest.toThrow("oops")
+			else expectTest.not.toThrow("oops")
 		})
 
 		// See here: https://github.com/mweststrate/immer/issues/89
@@ -1702,11 +1720,12 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				const next = produce(base, d => {
 					return [d.a, d.a]
 				})
+				console.log(base, next);
 				expect(next[0]).toBe(base.a)
 				expect(next[0]).toBe(next[1])
 			})
 
-			it("cannot return an object that references itself", () => {
+			if (!allowMultiRefs) it("cannot return an object that references itself", () => {
 				const res = {}
 				res.self = res
 				expect(() => {
@@ -2030,7 +2049,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 		})
 	})
 
-	describe(`complex nesting map / set / object`, () => {
+	describe(`complex nesting map / set / object - ${name}`, () => {
 		const a = {a: 1}
 		const b = {b: 2}
 		const c = {c: 3}
