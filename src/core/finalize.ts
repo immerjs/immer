@@ -65,6 +65,7 @@ function enterFinalize(
 	value: any
 ) {
 	let secondScope = null;
+	
 	try {
 		if (scope.existingStateMap_) {
 			secondScope = enterScope(scope.immer_)
@@ -74,16 +75,14 @@ function enterFinalize(
 				value = createProxy(value, undefined)
 			}
 		}
-		const oldStateDEBUGGINGONLY = value[DRAFT_STATE]
 
 		value = finalize(scope, secondScope, value, [])
-
-		if (oldStateDEBUGGINGONLY) console.log("DEBUGGING!");
 	} finally {
 		if (secondScope) {
 			revokeScope(secondScope)
 		}
 	}
+
 	if (!scope.parent_) maybeFreeze(scope, value, false)
 	return value
 }
