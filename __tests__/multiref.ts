@@ -1,5 +1,6 @@
 import {Immer, enableMapSet} from "../src/immer"
 import {inspect} from "util"
+import * as v8 from "v8"
 
 // Implementation note: TypeScript says ES5 doesn't support iterating directly over a Set so I've used Array.from().
 // If the project is moved to a later JS feature set, we can drop the Array.from() and do `for (const value of ref)` instead.
@@ -9,8 +10,7 @@ test("modified circular object", () => {
 	const base = {a: 1, b: null} as any
 	base.b = base
 
-	const envs = ["production", "development", "testing"]
-	for (const env of envs) {
+	for (const env of ["production", "development", "testing"]) {
 		process.env.NODE_ENV = env
 		expect(() => {
 			const next = immer.produce(base, (draft: any) => {
@@ -26,8 +26,7 @@ test("unmodified circular object", () => {
 	const base = {a: 1, b: null} as any
 	base.b = base
 
-	const envs = ["production", "development", "testing"]
-	for (const env of envs) {
+	for (const env of ["production", "development", "testing"]) {
 		process.env.NODE_ENV = env
 		expect(() => {
 			const next = immer.produce({state: null}, (draft: any) => {
@@ -37,6 +36,82 @@ test("unmodified circular object", () => {
 		}).not.toThrow()
 	}
 })
+
+test("circular object using a draft and a non-draft", () => {
+	const immer = new Immer({allowMultiRefs: true})
+	const baseState: Record<string, any> = {
+		someValue: 'abcd',
+		state1: null,
+		state2: {state: null},
+		state3: {state_: {state: null}},
+		state4: {state__: {state_: {state: null}}},
+	}
+	baseState.state1 = baseState
+	baseState.state2.state = baseState
+	baseState.state3.state_.state = baseState
+	baseState.state4.state__.state_.state = baseState
+
+	for (const env of ["production", "development", "testing"]) {
+		process.env.NODE_ENV = env
+		v8.setFlagsFromString("--stack-size=2000")
+		expect(() => {
+			const next = immer.produce(baseState, (draft: any) => {
+				draft.state3.state_.state.someValue = 'efgh'
+				draft.state2.state.someValue = 'ijkl'
+			})
+
+			expect(next.someValue).toBe('ijkl')
+		}).not.toThrow('Maximum call stack size exceeded')
+	}
+});
+
+test("replacing a deeply-nested value modified elsewhere does not modify the original object", () => {
+
+	// When failing, produces the following output:
+	//  originalBase: {
+    //    someState: { something: { b: 'b' } },
+    //    someOtherState: { someState: { something: { b: 'b' } } }
+    //  },
+    //  base: {
+    //    someState: { something: { b: 'b' } },
+    //    someOtherState: { someState: { something: { b: 'a modified value' } } } // <----- ⚠ This should be 'b'; we just modified the original state! ⚠
+    //  },
+    //  next: {
+    //    someState: { something: { b: 'a modified value' } },
+    //    someOtherState: { someState: { something: { b: 'a modified value' } } }
+    //  }
+
+
+	const immer = new Immer({allowMultiRefs: true})
+
+	const someState = {something: {b: 'b'}}
+	const base = {someState, someOtherState: { someState }}
+
+	const originalBaseString = JSON.stringify(base)
+
+	const next = immer.produce(base, draft => {
+		draft.someState.something.b = 'a modified value'
+	})
+
+	let hasError = true
+
+	try {
+		expect(next.someOtherState.someState).toBe(next.someState) // Make sure multi-ref is working on the surface first
+
+		expect(next.someState.something.b).toBe('a modified value')
+		expect(base.someState.something.b).not.toBe('a modified value')
+		expect(next.someOtherState).not.toBe(base.someOtherState)
+
+		expect(next.someOtherState.someState.something.b).toBe('a modified value')
+		expect(base.someOtherState.someState.something.b).not.toBe('a modified value')
+		expect(next.someOtherState).not.toBe(base.someOtherState)
+		hasError = false
+	} finally {
+		if (hasError) console.log('Objects for test "replacing a deeply-nested value modified elsewhere does not modify the original object":',
+			inspect({originalBase: JSON.parse(originalBaseString), base, next}, {depth: 99, colors: true})
+		)
+	}
+});
 
 describe("access value & change child's child value", () => {
 	describe("with object", () => {

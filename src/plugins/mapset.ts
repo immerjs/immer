@@ -15,7 +15,8 @@ import {
 	die,
 	ArchType,
 	each,
-	Objectish
+	Objectish,
+	isDraft
 } from "../internal"
 
 export function enableMapSet() {
@@ -76,10 +77,24 @@ export function enableMapSet() {
 			return latest(this[DRAFT_STATE]).has(key)
 		}
 
+		isValueChanging(key: any, value: any): boolean {
+			const state: MapState = this[DRAFT_STATE]
+			if (!latest(state).has(key)) return true
+
+			const baseValue = latest(state).get(key)
+
+			if (baseValue === value) return false
+
+			if (isDraft(baseValue) && latest(baseValue[DRAFT_STATE]) === value) return false
+
+			return true
+		}
+
 		set(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
+			const valueState: ImmerState | false = isDraft(value) && value[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (!latest(state).has(key) || latest(state).get(key) !== value) {
+			if (this.isValueChanging(key, value)) {
 				prepareMapCopy(state)
 				markChanged(state)
 				state.assigned_!.set(key, true)
@@ -344,8 +359,6 @@ export function enableMapSet() {
 		return new DraftSet(target, parent) as unknown as T
 	}
 
-	const unusedValueSymbol = Symbol("unused")
-
 	function prepareSetCopy(state: SetState) {
 		if (state.copy_) return
 		// create drafts for all entries to preserve insertion order
@@ -354,8 +367,6 @@ export function enableMapSet() {
 		state.base_.forEach(value => {
 			if (isDraftable(value)) {
 				const draft = createProxy(value, state)
-				if (state.scope_.existingStateMap_)
-					draft[unusedValueSymbol] = unusedValueSymbol
 				state.drafts_.set(value, draft)
 				state.copy_!.add(draft)
 			} else {

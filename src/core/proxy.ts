@@ -17,7 +17,8 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope
+	ImmerScope,
+	isDraft
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -112,6 +113,14 @@ export function createProxyProxy<T extends Objectish>(
 	}
 
 	return state.draft_ as any
+}
+
+function isScopeDescendedFrom(parent: ImmerScope, child: ImmerScope | undefined) {
+	while (child) {
+		if (child === parent) return true
+		child = child.parent_
+	}
+	return false
 }
 
 /**

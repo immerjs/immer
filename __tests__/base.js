@@ -1038,7 +1038,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowM
 			})
 		})
 
-		it("optimization: does not visit properties of new data structures if autofreeze is disabled and no drafts are unfinalized", () => {
+		it("optimization: does not visit properties of new data structures if autofreeze and multiref are disabled and no drafts are unfinalized", () => {
 			const newData = {}
 			Object.defineProperty(newData, "x", {
 				enumerable: true,
@@ -1051,7 +1051,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowM
 				produce({}, d => {
 					d.data = newData
 				})
-			if (autoFreeze) {
+			if (autoFreeze || allowMultiRefs) {
 				expect(run).toThrow("visited!")
 			} else {
 				expect(run).not.toThrow("visited!")
@@ -1537,7 +1537,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowM
 			expect(world.inc(world).counter.count).toBe(2)
 		})
 
-		it("doesnt recurse into frozen structures if external data is frozen", () => {
+		it("doesnt recurse into frozen structures if external data is frozen and is not multiref", () => {
 			const frozen = {}
 			Object.defineProperty(frozen, "x", {
 				get() {
@@ -1548,11 +1548,14 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener, allowM
 			})
 			Object.freeze(frozen)
 
-			expect(() => {
+			const expectTest = expect(() => {
 				produce({}, d => {
 					d.x = frozen
 				})
-			}).not.toThrow()
+			})
+
+			if (allowMultiRefs) expectTest.toThrow("oops")
+			else expectTest.not.toThrow("oops")
 		})
 
 		// See here: https://github.com/mweststrate/immer/issues/89

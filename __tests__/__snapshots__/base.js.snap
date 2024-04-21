@@ -959,6 +959,53 @@ exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=fal
 ]
 `;
 
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
 exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
 {
   "map": Map {
@@ -980,6 +1027,53 @@ exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=fal
 `;
 
 exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
 [
   {
     "op": "remove",
@@ -1053,6 +1147,53 @@ exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=tru
 ]
 `;
 
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
 exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
 {
   "map": Map {
@@ -1074,6 +1215,53 @@ exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=tru
 `;
 
 exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=false:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
 [
   {
     "op": "remove",
@@ -1147,6 +1335,53 @@ exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=fals
 ]
 `;
 
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
 exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
 {
   "map": Map {
@@ -1168,6 +1403,53 @@ exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=fals
 `;
 
 exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=false:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
 [
   {
     "op": "remove",
@@ -1241,6 +1523,53 @@ exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true
 ]
 `;
 
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=false:allow-multi-refs=true modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
 exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 1`] = `
 {
   "map": Map {
@@ -1262,6 +1591,53 @@ exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true
 `;
 
 exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=false modify deep object 2`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 1`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object - auto-freeze=true:shallow-copy=true:use-listener=true:allow-multi-refs=true modify deep object 2`] = `
 [
   {
     "op": "remove",
