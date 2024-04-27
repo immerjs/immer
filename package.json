@@ -5,6 +5,7 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/immer.legacy-esm.js",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "types": "./dist/immer.d.ts",
       "import": "./dist/immer.mjs",
