@@ -63,3 +63,5 @@ website/build
 website/.docusaurus
 .rts2*
 .gitpod.yml
+
+.watchman-cookie*
