@@ -23,7 +23,8 @@ import {
 	getCurrentScope,
 	NOTHING,
 	freeze,
-	current
+	current,
+	isPlainObject
 } from "../internal"
 
 interface ProducersFns {
@@ -31,7 +32,7 @@ interface ProducersFns {
 	produceWithPatches: IProduceWithPatches
 }
 
-export type StrictMode = boolean | "class_only";
+export type StrictMode = boolean | "class_only"
 
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
@@ -197,6 +198,13 @@ export class Immer implements ProducersFns {
 		// Otherwise, produce a copy of the base state.
 		return this.produce(base, (draft: Drafted) =>
 			applyPatchesImpl(draft, patches)
+		)
+	}
+
+	useStrict_(obj: any): boolean {
+		return (
+			this.useStrictShallowCopy_ === true ||
+			(this.useStrictShallowCopy_ === "class_only" && !isPlainObject(obj))
 		)
 	}
 }

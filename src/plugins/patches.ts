@@ -132,21 +132,25 @@ export function enablePatches() {
 		inversePatches: Patch[]
 	) {
 		const {base_, copy_} = state
-		each(state.assigned_!, (key, assignedValue) => {
-			const origValue = get(base_, key)
-			const value = get(copy_!, key)
-			const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
-			if (origValue === value && op === REPLACE) return
-			const path = basePath.concat(key as any)
-			patches.push(op === REMOVE ? {op, path} : {op, path, value})
-			inversePatches.push(
-				op === ADD
-					? {op: REMOVE, path}
-					: op === REMOVE
-					? {op: ADD, path, value: clonePatchValueIfNeeded(origValue)}
-					: {op: REPLACE, path, value: clonePatchValueIfNeeded(origValue)}
-			)
-		})
+		each(
+			state.assigned_!,
+			(key, assignedValue) => {
+				const origValue = get(base_, key)
+				const value = get(copy_!, key)
+				const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
+				if (origValue === value && op === REPLACE) return
+				const path = basePath.concat(key as any)
+				patches.push(op === REMOVE ? {op, path} : {op, path, value})
+				inversePatches.push(
+					op === ADD
+						? {op: REMOVE, path}
+						: op === REMOVE
+						? {op: ADD, path, value: clonePatchValueIfNeeded(origValue)}
+						: {op: REPLACE, path, value: clonePatchValueIfNeeded(origValue)}
+				)
+			},
+			state.scope_.immer_.useStrict_(base_)
+		)
 	}
 
 	function generateSetPatches(

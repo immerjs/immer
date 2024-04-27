@@ -58,8 +58,11 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	const state: ImmerState = value[DRAFT_STATE]
 	// A plain object, might need freezing, might contain drafts
 	if (!state) {
-		each(value, (key, childValue) =>
-			finalizeProperty(rootScope, state, value, key, childValue, path)
+		each(
+			value,
+			(key, childValue) =>
+				finalizeProperty(rootScope, state, value, key, childValue, path),
+			rootScope.immer_.useStrict_(value)
 		)
 		return value
 	}
@@ -86,8 +89,19 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 			result.clear()
 			isSet = true
 		}
-		each(resultEach, (key, childValue) =>
-			finalizeProperty(rootScope, state, result, key, childValue, path, isSet)
+		each(
+			resultEach,
+			(key, childValue) =>
+				finalizeProperty(
+					rootScope,
+					state,
+					result,
+					key,
+					childValue,
+					path,
+					isSet
+				),
+			state.scope_.immer_.useStrict_(resultEach)
 		)
 		// everything inside is frozen, we can freeze here
 		maybeFreeze(rootScope, result, false)

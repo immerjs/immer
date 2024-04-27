@@ -68,11 +68,13 @@ export function original(value: Drafted<any>): any {
  */
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: string | number, value: any, source: T) => void
+	iter: (key: string | number, value: any, source: T) => void,
+	strict?: boolean
 ): void
-export function each(obj: any, iter: any) {
+export function each(obj: any, iter: any, strict: boolean = true) {
 	if (getArchtype(obj) === ArchType.Object) {
-		Reflect.ownKeys(obj).forEach(key => {
+		const keys = strict ? Reflect.ownKeys(obj) : Object.keys(obj)
+		keys.forEach(key => {
 			iter(key, obj[key], obj)
 		})
 	} else {

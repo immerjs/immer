@@ -21,18 +21,22 @@ function currentImpl(value: any): any {
 	if (!isDraftable(value) || isFrozen(value)) return value
 	const state: ImmerState | undefined = value[DRAFT_STATE]
 	let copy: any
+	let strict = true // we might not know, so true just to be safe
 	if (state) {
 		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
-		copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
-	} else {
-		copy = shallowCopy(value, true)
+		strict = state.scope_.immer_.useStrict_(value)
 	}
+	copy = shallowCopy(value, strict)
 	// recurse
-	each(copy, (key, childValue) => {
-		set(copy, key, currentImpl(childValue))
-	})
+	each(
+		copy,
+		(key, childValue) => {
+			set(copy, key, currentImpl(childValue))
+		},
+		strict
+	)
 	if (state) {
 		state.finalized_ = false
 	}
