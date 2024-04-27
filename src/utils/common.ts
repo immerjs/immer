@@ -8,7 +8,8 @@ import {
 	AnySet,
 	ImmerState,
 	ArchType,
-	die
+	die,
+	StrictMode
 } from "../internal"
 
 export const getPrototypeOf = Object.getPrototypeOf
@@ -140,7 +141,7 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any, strict: boolean | "class_only") {
+export function shallowCopy(base: any, strict: StrictMode) {
 	if (isMap(base)) {
 		return new Map(base)
 	}

@@ -2,12 +2,13 @@ import {
 	immerable,
 	produce,
 	setUseStrictShallowCopy,
-	setAutoFreeze
+	setAutoFreeze,
+	StrictMode
 } from "../src/immer"
 
 describe.each([true, false, "class_only" as const])(
 	"setUseStrictShallowCopy(true)",
-	(strictMode: boolean | "class_only") => {
+	(strictMode: StrictMode) => {
 		test("keep descriptors, mode: " + strictMode, () => {
 			setUseStrictShallowCopy(strictMode)
 
