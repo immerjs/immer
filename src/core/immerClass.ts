@@ -33,9 +33,12 @@ interface ProducersFns {
 
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
-	useStrictShallowCopy_: boolean = false
+	useStrictShallowCopy_: boolean | "class_only" = false
 
-	constructor(config?: {autoFreeze?: boolean; useStrictShallowCopy?: boolean}) {
+	constructor(config?: {
+		autoFreeze?: boolean
+		useStrictShallowCopy?: boolean | "class_only"
+	}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
 		if (typeof config?.useStrictShallowCopy === "boolean")
@@ -163,7 +166,7 @@ export class Immer implements ProducersFns {
 	 *
 	 * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
 	 */
-	setUseStrictShallowCopy(value: boolean) {
+	setUseStrictShallowCopy(value: boolean | "class_only") {
 		this.useStrictShallowCopy_ = value
 	}
 

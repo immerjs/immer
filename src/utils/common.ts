@@ -140,7 +140,7 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any, strict: boolean) {
+export function shallowCopy(base: any, strict: boolean | "class_only") {
 	if (isMap(base)) {
 		return new Map(base)
 	}
@@ -149,37 +149,41 @@ export function shallowCopy(base: any, strict: boolean) {
 	}
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
-	if (!strict) {
+	const isPlain = isPlainObject(base)
+
+	if (strict === true || (strict === "class_only" && !isPlain)) {
+		// Perform a strict copy
+		const descriptors = Object.getOwnPropertyDescriptors(base)
+		delete descriptors[DRAFT_STATE as any]
+		let keys = Reflect.ownKeys(descriptors)
+		for (let i = 0; i < keys.length; i++) {
+			const key: any = keys[i]
+			const desc = descriptors[key]
+			if (desc.writable === false) {
+				desc.writable = true
+				desc.configurable = true
+			}
+			// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
+			// with libraries that trap values, like mobx or vue
+			// unlike object.assign, non-enumerables will be copied as well
+			if (desc.get || desc.set)
+				descriptors[key] = {
+					configurable: true,
+					writable: true, // could live with !!desc.set as well here...
+					enumerable: desc.enumerable,
+					value: base[key]
+				}
+		}
+		return Object.create(getPrototypeOf(base), descriptors)
+	} else {
+		// perform a sloppy copy
 		const proto = getPrototypeOf(base)
-		if (proto !== null && isPlainObject(base)) {
+		if (proto !== null && isPlain) {
 			return {...base} // assumption: better inner class optimization than the assign below
 		}
 		const obj = Object.create(proto)
 		return Object.assign(obj, base)
 	}
-
-	const descriptors = Object.getOwnPropertyDescriptors(base)
-	delete descriptors[DRAFT_STATE as any]
-	let keys = Reflect.ownKeys(descriptors)
-	for (let i = 0; i < keys.length; i++) {
-		const key: any = keys[i]
-		const desc = descriptors[key]
-		if (desc.writable === false) {
-			desc.writable = true
-			desc.configurable = true
-		}
-		// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
-		// with libraries that trap values, like mobx or vue
-		// unlike object.assign, non-enumerables will be copied as well
-		if (desc.get || desc.set)
-			descriptors[key] = {
-				configurable: true,
-				writable: true, // could live with !!desc.set as well here...
-				enumerable: desc.enumerable,
-				value: base[key]
-			}
-	}
-	return Object.create(getPrototypeOf(base), descriptors)
 }
 
 /**
