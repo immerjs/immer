@@ -736,7 +736,7 @@ it("infers curried", () => {
 		assert(n, _ as State)
 	}
 	{
-		// explictly use generic
+		// explicitly use generic
 		const f = produce<ROState>(draft => {
 			draft.count++
 		})
