@@ -490,7 +490,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				expect(nextState.get(key)).toEqual(true)
 			})
 
-			it("state stays the same if the the same item is assigned by key", () => {
+			it("state stays the same if the same item is assigned by key", () => {
 				const nextState = produce(baseState, s => {
 					s.aMap.set("jediTotal", 42)
 				})
