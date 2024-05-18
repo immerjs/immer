@@ -1,9 +1,20 @@
 import {
+	applyPatchesImpl,
+	createDraftImpl,
+	createImmerContext,
+	Draft,
+	finishDraftImpl,
+	Immer,
+	Immutable,
 	IProduce,
 	IProduceWithPatches,
-	Immer,
-	Draft,
-	Immutable
+	Objectish,
+	Patch,
+	PatchListener,
+	produceImpl,
+	produceWithPatchesImpl,
+	setAutoFreezeImpl,
+	setUseStrictShallowCopyImpl
 } from "./internal"
 
 export {
@@ -24,7 +35,7 @@ export {
 	StrictMode
 } from "./internal"
 
-const immer = new Immer()
+const globalImmerContext = createImmerContext()
 
 /**
  * The `produce` function takes a value and a "recipe function" (whose
@@ -45,14 +56,14 @@ const immer = new Immer()
  * @param {Function} patchListener - optional function that will be called with all the patches produced here
  * @returns {any} a new state, or the initial state if nothing was modified
  */
-export const produce: IProduce = immer.produce
+export const produce: IProduce = produceImpl.bind(globalImmerContext)
 
 /**
  * Like `produce`, but `produceWithPatches` always returns a tuple
  * [nextState, patches, inversePatches] (instead of just the next state)
  */
-export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.bind(
-	immer
+export const produceWithPatches: IProduceWithPatches = produceWithPatchesImpl.bind(
+	globalImmerContext
 )
 
 /**
@@ -60,27 +71,38 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
  *
  * Always freeze by default, even in production mode
  */
-export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
+export const setAutoFreeze = setAutoFreezeImpl.bind(globalImmerContext)
 
 /**
  * Pass true to enable strict shallow copy.
  *
  * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-export const setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer)
+export const setUseStrictShallowCopy = setUseStrictShallowCopyImpl.bind(
+	globalImmerContext
+)
 
 /**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
  */
-export const applyPatches = immer.applyPatches.bind(immer)
+export const applyPatches = applyPatchesImpl.bind(globalImmerContext) as <
+	T extends Objectish
+>(
+	base: T,
+	patches: readonly Patch[]
+) => T
 
 /**
  * Create an Immer draft from the given base state, which may be a draft itself.
  * The draft can be modified until you finalize it with the `finishDraft` function.
  */
-export const createDraft = immer.createDraft.bind(immer)
+export const createDraft = createDraftImpl.bind(globalImmerContext) as <
+	T extends Objectish
+>(
+	base: T
+) => Draft<T>
 
 /**
  * Finalize an Immer draft from a `createDraft` call, returning the base state
@@ -90,7 +112,12 @@ export const createDraft = immer.createDraft.bind(immer)
  * Pass a function as the 2nd argument to generate Immer patches based on the
  * changes that were made.
  */
-export const finishDraft = immer.finishDraft.bind(immer)
+export const finishDraft = finishDraftImpl.bind(globalImmerContext) as <
+	D extends Draft<any>
+>(
+	draft: D,
+	patchListener?: PatchListener
+) => D extends Draft<infer T> ? T : never
 
 /**
  * This function is actually a no-op, but can be used to cast an immutable type

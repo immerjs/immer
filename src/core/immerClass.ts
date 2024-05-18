@@ -3,27 +3,25 @@ import {
 	IProduce,
 	ImmerState,
 	Drafted,
-	isDraftable,
-	processResult,
 	Patch,
 	Objectish,
-	DRAFT_STATE,
 	Draft,
 	PatchListener,
-	isDraft,
 	isMap,
 	isSet,
 	createProxyProxy,
 	getPlugin,
-	die,
-	enterScope,
-	revokeScope,
-	leaveScope,
-	usePatchesInScope,
 	getCurrentScope,
-	NOTHING,
-	freeze,
-	current
+	DEFAULT_AUTOFREEZE,
+	DEFAULT_USE_STRICT_SHALLOW_COPY,
+	ImmerContext,
+	applyPatchesImpl,
+	createDraftImpl,
+	finishDraftImpl,
+	produceImpl,
+	produceWithPatchesImpl,
+	setAutoFreezeImpl,
+	setUseStrictShallowCopyImpl
 } from "../internal"
 
 interface ProducersFns {
@@ -33,9 +31,9 @@ interface ProducersFns {
 
 export type StrictMode = boolean | "class_only";
 
-export class Immer implements ProducersFns {
-	autoFreeze_: boolean = true
-	useStrictShallowCopy_: StrictMode = false
+export class Immer implements ProducersFns, ImmerContext {
+	autoFreeze_: boolean = DEFAULT_AUTOFREEZE
+	useStrictShallowCopy_: StrictMode = DEFAULT_USE_STRICT_SHALLOW_COPY
 
 	constructor(config?: {
 		autoFreeze?: boolean
@@ -66,139 +64,37 @@ export class Immer implements ProducersFns {
 	 * @param {Function} patchListener - optional function that will be called with all the patches produced here
 	 * @returns {any} a new state, or the initial state if nothing was modified
 	 */
-	produce: IProduce = (base: any, recipe?: any, patchListener?: any) => {
-		// curried invocation
-		if (typeof base === "function" && typeof recipe !== "function") {
-			const defaultBase = recipe
-			recipe = base
+	produce: IProduce = produceImpl.bind(this)
 
-			const self = this
-			return function curriedProduce(
-				this: any,
-				base = defaultBase,
-				...args: any[]
-			) {
-				return self.produce(base, (draft: Drafted) => recipe.call(this, draft, ...args)) // prettier-ignore
-			}
-		}
+	produceWithPatches: IProduceWithPatches = produceWithPatchesImpl.bind(this)
 
-		if (typeof recipe !== "function") die(6)
-		if (patchListener !== undefined && typeof patchListener !== "function")
-			die(7)
+	createDraft = createDraftImpl.bind(this) as <T extends Objectish>(
+		base: T
+	) => Draft<T>
 
-		let result
-
-		// Only plain objects, arrays, and "immerable classes" are drafted.
-		if (isDraftable(base)) {
-			const scope = enterScope(this)
-			const proxy = createProxy(base, undefined)
-			let hasError = true
-			try {
-				result = recipe(proxy)
-				hasError = false
-			} finally {
-				// finally instead of catch + rethrow better preserves original stack
-				if (hasError) revokeScope(scope)
-				else leaveScope(scope)
-			}
-			usePatchesInScope(scope, patchListener)
-			return processResult(result, scope)
-		} else if (!base || typeof base !== "object") {
-			result = recipe(base)
-			if (result === undefined) result = base
-			if (result === NOTHING) result = undefined
-			if (this.autoFreeze_) freeze(result, true)
-			if (patchListener) {
-				const p: Patch[] = []
-				const ip: Patch[] = []
-				getPlugin("Patches").generateReplacementPatches_(base, result, p, ip)
-				patchListener(p, ip)
-			}
-			return result
-		} else die(1, base)
-	}
-
-	produceWithPatches: IProduceWithPatches = (base: any, recipe?: any): any => {
-		// curried invocation
-		if (typeof base === "function") {
-			return (state: any, ...args: any[]) =>
-				this.produceWithPatches(state, (draft: any) => base(draft, ...args))
-		}
-
-		let patches: Patch[], inversePatches: Patch[]
-		const result = this.produce(base, recipe, (p: Patch[], ip: Patch[]) => {
-			patches = p
-			inversePatches = ip
-		})
-		return [result, patches!, inversePatches!]
-	}
-
-	createDraft<T extends Objectish>(base: T): Draft<T> {
-		if (!isDraftable(base)) die(8)
-		if (isDraft(base)) base = current(base)
-		const scope = enterScope(this)
-		const proxy = createProxy(base, undefined)
-		proxy[DRAFT_STATE].isManual_ = true
-		leaveScope(scope)
-		return proxy as any
-	}
-
-	finishDraft<D extends Draft<any>>(
+	finishDraft = finishDraftImpl.bind(this) as <D extends Draft<any>>(
 		draft: D,
 		patchListener?: PatchListener
-	): D extends Draft<infer T> ? T : never {
-		const state: ImmerState = draft && (draft as any)[DRAFT_STATE]
-		if (!state || !state.isManual_) die(9)
-		const {scope_: scope} = state
-		usePatchesInScope(scope, patchListener)
-		return processResult(undefined, scope)
-	}
+	) => D extends Draft<infer T> ? T : never
 
 	/**
 	 * Pass true to automatically freeze all copies created by Immer.
 	 *
 	 * By default, auto-freezing is enabled.
 	 */
-	setAutoFreeze(value: boolean) {
-		this.autoFreeze_ = value
-	}
+	setAutoFreeze = setAutoFreezeImpl.bind(this)
 
 	/**
 	 * Pass true to enable strict shallow copy.
 	 *
 	 * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
 	 */
-	setUseStrictShallowCopy(value: StrictMode) {
-		this.useStrictShallowCopy_ = value
-	}
+	setUseStrictShallowCopy = setUseStrictShallowCopyImpl.bind(this)
 
-	applyPatches<T extends Objectish>(base: T, patches: readonly Patch[]): T {
-		// If a patch replaces the entire state, take that replacement as base
-		// before applying patches
-		let i: number
-		for (i = patches.length - 1; i >= 0; i--) {
-			const patch = patches[i]
-			if (patch.path.length === 0 && patch.op === "replace") {
-				base = patch.value
-				break
-			}
-		}
-		// If there was a patch that replaced the entire state, start from the
-		// patch after that.
-		if (i > -1) {
-			patches = patches.slice(i + 1)
-		}
-
-		const applyPatchesImpl = getPlugin("Patches").applyPatches_
-		if (isDraft(base)) {
-			// N.B: never hits if some patch a replacement, patches are never drafts
-			return applyPatchesImpl(base, patches)
-		}
-		// Otherwise, produce a copy of the base state.
-		return this.produce(base, (draft: Drafted) =>
-			applyPatchesImpl(draft, patches)
-		)
-	}
+	applyPatches = applyPatchesImpl.bind(this) as <T extends Objectish>(
+		base: T,
+		patches: readonly Patch[]
+	) => T
 }
 
 export function createProxy<T extends Objectish>(
