@@ -45,13 +45,13 @@ const immer = new Immer()
  * @param {Function} patchListener - optional function that will be called with all the patches produced here
  * @returns {any} a new state, or the initial state if nothing was modified
  */
-export const produce: IProduce = immer.produce
+export const produce: IProduce = /* @__PURE__ */ immer.produce
 
 /**
  * Like `produce`, but `produceWithPatches` always returns a tuple
  * [nextState, patches, inversePatches] (instead of just the next state)
  */
-export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.bind(
+export const produceWithPatches: IProduceWithPatches = /* @__PURE__ */ immer.produceWithPatches.bind(
 	immer
 )
 
@@ -60,27 +60,29 @@ export const produceWithPatches: IProduceWithPatches = immer.produceWithPatches.
  *
  * Always freeze by default, even in production mode
  */
-export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
+export const setAutoFreeze = /* @__PURE__ */ immer.setAutoFreeze.bind(immer)
 
 /**
  * Pass true to enable strict shallow copy.
  *
  * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-export const setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer)
+export const setUseStrictShallowCopy = /* @__PURE__ */ immer.setUseStrictShallowCopy.bind(
+	immer
+)
 
 /**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
  */
-export const applyPatches = immer.applyPatches.bind(immer)
+export const applyPatches = /* @__PURE__ */ immer.applyPatches.bind(immer)
 
 /**
  * Create an Immer draft from the given base state, which may be a draft itself.
  * The draft can be modified until you finalize it with the `finishDraft` function.
  */
-export const createDraft = immer.createDraft.bind(immer)
+export const createDraft = /* @__PURE__ */ immer.createDraft.bind(immer)
 
 /**
  * Finalize an Immer draft from a `createDraft` call, returning the base state
@@ -90,7 +92,7 @@ export const createDraft = immer.createDraft.bind(immer)
  * Pass a function as the 2nd argument to generate Immer patches based on the
  * changes that were made.
  */
-export const finishDraft = immer.finishDraft.bind(immer)
+export const finishDraft = /* @__PURE__ */ immer.finishDraft.bind(immer)
 
 /**
  * This function is actually a no-op, but can be used to cast an immutable type
