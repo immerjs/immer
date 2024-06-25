@@ -46,7 +46,7 @@ const updatedTodosObj = produce(todosObj, draft => {
 })
 ```
 
-Please keep in mind that when updating (nested) objects you should do so through mutation. Creating a new object and directly assigning it to a property in your immer draft object, will not work. This creates a new reference and does not update the existing object.
+Any time a nested draft field gets a new reference or value, produce() will finish applying the immutable update and return a new reference. If you tried to mutate, but the values remained the same, Immer will bail out and return the existing reference from produce()
 
 ### Array mutations
 
