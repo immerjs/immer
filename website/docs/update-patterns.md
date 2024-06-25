@@ -41,7 +41,7 @@ const updatedTodosObj = produce(todosObj, draft => {
 	Object.assign(draft, {
 		id1: {done: true, body: "Take out the trash"},
 		id2: {done: true, body: "Check Email"},
-		id3: {done: true, body: "Check Email"}
+		id3: {done: true, body: "Feed my cat"}
 	})
 })
 ```
