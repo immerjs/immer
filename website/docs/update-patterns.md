@@ -35,7 +35,18 @@ const deletedTodosObj = produce(todosObj, draft => {
 const updatedTodosObj = produce(todosObj, draft => {
 	draft["id1"].done = true
 })
+
+// replace & update in bulk
+const updatedTodosObj = produce(todosObj, draft => {
+	Object.assign(draft, {
+		id1: {done: true, body: "Take out the trash"},
+		id2: {done: true, body: "Check Email"},
+		id3: {done: true, body: "Check Email"}
+	})
+})
 ```
+
+Please keep in mind that when updating (nested) objects you should do so through mutation. Creating a new object and directly assigning it to a property in your immer draft object, will not work. This creates a new reference and does not update the existing object.
 
 ### Array mutations
 
