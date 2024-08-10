@@ -10,14 +10,14 @@
     "write-translations": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.4.0",
-    "@docusaurus/plugin-client-redirects": "^2.4.0",
-    "@docusaurus/plugin-content-docs": "^2.4.0",
-    "@docusaurus/plugin-google-analytics": "^2.4.0",
-    "@docusaurus/plugin-google-gtag": "^2.4.0",
-    "@docusaurus/plugin-sitemap": "^2.4.0",
-    "@docusaurus/theme-classic": "^2.4.0",
-    "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "@docusaurus/core": "^2.4.3",
+    "@docusaurus/plugin-client-redirects": "^2.4.3",
+    "@docusaurus/plugin-google-analytics": "^2.4.3",
+    "@docusaurus/plugin-google-gtag": "^2.4.3",
+    "@docusaurus/plugin-sitemap": "^2.4.3",
+    "@docusaurus/preset-classic": "^2.4.3",
+    "docusaurus-lunr-search": "^3.4.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   }
 }
