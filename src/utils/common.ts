@@ -203,8 +203,8 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 	Object.freeze(obj)
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
-		// So use Object.entries (only string-like, enumerables) instead of each()
-		Object.entries(obj).forEach(([_key, value]) => freeze(value, true))
+		// So use Object.values (only string-like, enumerables) instead of each()
+		Object.values(obj).forEach(value => freeze(value, true))
 	return obj
 }
 
