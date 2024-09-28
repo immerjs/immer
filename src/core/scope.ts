@@ -2,7 +2,7 @@ import {
 	Patch,
 	PatchListener,
 	Drafted,
-	Immer,
+	ImmerContext,
 	DRAFT_STATE,
 	ImmerState,
 	ArchType,
@@ -18,7 +18,7 @@ export interface ImmerScope {
 	drafts_: any[]
 	parent_?: ImmerScope
 	patchListener_?: PatchListener
-	immer_: Immer
+	immer_: ImmerContext
 	unfinalizedDrafts_: number
 }
 
@@ -30,7 +30,7 @@ export function getCurrentScope() {
 
 function createScope(
 	parent_: ImmerScope | undefined,
-	immer_: Immer
+	immer_: ImmerContext
 ): ImmerScope {
 	return {
 		drafts_: [],
@@ -68,8 +68,8 @@ export function leaveScope(scope: ImmerScope) {
 	}
 }
 
-export function enterScope(immer: Immer) {
-	return (currentScope = createScope(currentScope, immer))
+export function enterScope(immerContext: ImmerContext) {
+	return (currentScope = createScope(currentScope, immerContext))
 }
 
 function revokeDraft(draft: Drafted) {
