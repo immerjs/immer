@@ -4,40 +4,9 @@
 }
 */
 
-a {
-	color: #c200c2;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-.navbar--dark {
-	--ifm-navbar-background-color: black;
-	--ifm-menu-color: white;
-	--ifm-menu-color-background-hover: rgba(255, 255, 255, 0.1);
-}
-
-.navbar--fixed-top {
-	color: white;
-	font-weight: bold;
-}
-
-.navbar--fixed-top a {
-	color: white;
-}
-
-:root {
-	--ifm-link-color: #c200c2;
-}
-
 details {
 	margin-bottom: 20px;
 	background: #e2e2e2;
-}
-
-details[open] {
-	border-bottom: 2px solid #c200c2;
 }
 
 details iframe {
@@ -51,62 +20,8 @@ details a {
 	color: #666;
 }
 
-.egghead-summary {
-	color: white;
-	background: #c200c2;
-	padding: 5px;
-	margin: 0px;
-	border-radius: 2px;
-	cursor: pointer;
-}
-
 .egghead-link {
 	font-style: italic;
 	padding: 5px;
 	margin: 5px;
-}
-
-iframe {
-	border: none;
-}
-
-.dropdown__link {
-	color: black !important;
-}
-
-/* Announcement banner */
-
-:root {
-	--docusaurus-announcement-bar-height: auto !important;
-}
-
-div[class^="announcementBarContent"] {
-	line-height: 40px;
-	font-size: 20px;
-	font-weight: bold;
-	padding: 8px 30px;
-}
-
-div[class^="announcementBarContent"] a {
-	text-decoration: underline;
-	display: inline-block;
-	color: var(--ifm-color-primary-lightest) !important;
-}
-
-div[class^="announcementBarContent"] a:hover {
-	color: var(--brand) !important;
-}
-
-@media only screen and (max-width: 768px) {
-	.announcement {
-		font-size: 18px;
-	}
-}
-
-@media only screen and (max-width: 500px) {
-	.announcement {
-		font-size: 15px;
-		line-height: 22px;
-		padding: 6px 30px;
-	}
 }

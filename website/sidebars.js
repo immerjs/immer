@@ -1,5 +1,5 @@
 module.exports = {
-	Immer: {
+	docs: {
 		Basics: [
 			"introduction",
 			"installation",

@@ -62,23 +62,24 @@ module.exports = {
 		"https://buttons.github.io/buttons.js",
 		"https://media.ethicalads.io/media/client/ethicalads.min.js"
 	],
-	themes: [
+	presets: [
 		[
-			"@docusaurus/theme-classic",
+			"@docusaurus/preset-classic",
 			{
-				customCss: require.resolve("./src/css/immer-infima.css")
+				docs: {
+					sidebarPath: require.resolve("./sidebars.js"),
+					editUrl: "https://github.com/immerjs/immer/edit/main/website/",
+					routeBasePath: "/"
+				},
+				theme: {
+					customCss: require.resolve("./src/css/immer-infima.css")
+				}
 			}
 		]
 	],
+
 	plugins: [
-		[
-			"@docusaurus/plugin-content-docs",
-			{
-				sidebarPath: require.resolve("./sidebars.js"),
-				editUrl: "https://github.com/immerjs/immer/edit/main/website/",
-				routeBasePath: "/"
-			}
-		],
+		require.resolve("docusaurus-lunr-search"),
 		[
 			"@docusaurus/plugin-google-gtag",
 			{
