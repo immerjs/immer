@@ -15,7 +15,8 @@ import {
 	getPlugin,
 	die,
 	revokeScope,
-	isFrozen
+	isFrozen,
+	isMap
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -151,7 +152,9 @@ function finalizeProperty(
 		if (
 			(!parentState || !parentState.scope_.parent_) &&
 			typeof prop !== "symbol" &&
-			Object.prototype.propertyIsEnumerable.call(targetObject, prop)
+			(isMap(targetObject)
+				? targetObject.has(prop)
+				: Object.prototype.propertyIsEnumerable.call(targetObject, prop))
 		)
 			maybeFreeze(rootScope, childValue)
 	}
