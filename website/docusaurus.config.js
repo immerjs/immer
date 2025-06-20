@@ -15,14 +15,6 @@ module.exports = {
 		locales: ["en", "zh-CN"]
 	},
 	themeConfig: {
-		announcementBar: {
-			id: "support_ukraine",
-			content:
-				'Support Ukraine 🇺🇦 <a target="_blank" rel="noopener noreferrer" href="https://opensource.fb.com/support-ukraine">Help Provide Humanitarian Aid to Ukraine</a>.',
-			backgroundColor: "#20232a",
-			textColor: "#fff",
-			isCloseable: false
-		},
 		navbar: {
 			title: "Immer",
 			style: "dark",
