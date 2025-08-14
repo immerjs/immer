@@ -8,7 +8,8 @@ import {
 	AnySet,
 	ImmerState,
 	ArchType,
-	die
+	die,
+	StrictMode
 } from "../internal"
 
 export const getPrototypeOf = Object.getPrototypeOf
@@ -62,7 +63,7 @@ export function original(value: Drafted<any>): any {
 
 /**
  * Each iterates a map, set or array.
- * Or, if any other kind of of object all it's own properties.
+ * Or, if any other kind of object, all of its own properties.
  * Regardless whether they are enumerable or symbols
  */
 export function each<T extends Objectish>(
@@ -140,7 +141,7 @@ export function latest(state: ImmerState): any {
 }
 
 /*#__PURE__*/
-export function shallowCopy(base: any, strict: boolean) {
+export function shallowCopy(base: any, strict: StrictMode) {
 	if (isMap(base)) {
 		return new Map(base)
 	}
@@ -149,36 +150,41 @@ export function shallowCopy(base: any, strict: boolean) {
 	}
 	if (Array.isArray(base)) return Array.prototype.slice.call(base)
 
-	if (!strict && isPlainObject(base)) {
-		if (!getPrototypeOf(base)) {
-			const obj = Object.create(null)
-			return Object.assign(obj, base)
-		}
-		return {...base}
-	}
+	const isPlain = isPlainObject(base)
 
-	const descriptors = Object.getOwnPropertyDescriptors(base)
-	delete descriptors[DRAFT_STATE as any]
-	let keys = Reflect.ownKeys(descriptors)
-	for (let i = 0; i < keys.length; i++) {
-		const key: any = keys[i]
-		const desc = descriptors[key]
-		if (desc.writable === false) {
-			desc.writable = true
-			desc.configurable = true
-		}
-		// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
-		// with libraries that trap values, like mobx or vue
-		// unlike object.assign, non-enumerables will be copied as well
-		if (desc.get || desc.set)
-			descriptors[key] = {
-				configurable: true,
-				writable: true, // could live with !!desc.set as well here...
-				enumerable: desc.enumerable,
-				value: base[key]
+	if (strict === true || (strict === "class_only" && !isPlain)) {
+		// Perform a strict copy
+		const descriptors = Object.getOwnPropertyDescriptors(base)
+		delete descriptors[DRAFT_STATE as any]
+		let keys = Reflect.ownKeys(descriptors)
+		for (let i = 0; i < keys.length; i++) {
+			const key: any = keys[i]
+			const desc = descriptors[key]
+			if (desc.writable === false) {
+				desc.writable = true
+				desc.configurable = true
 			}
+			// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
+			// with libraries that trap values, like mobx or vue
+			// unlike object.assign, non-enumerables will be copied as well
+			if (desc.get || desc.set)
+				descriptors[key] = {
+					configurable: true,
+					writable: true, // could live with !!desc.set as well here...
+					enumerable: desc.enumerable,
+					value: base[key]
+				}
+		}
+		return Object.create(getPrototypeOf(base), descriptors)
+	} else {
+		// perform a sloppy copy
+		const proto = getPrototypeOf(base)
+		if (proto !== null && isPlain) {
+			return {...base} // assumption: better inner class optimization than the assign below
+		}
+		const obj = Object.create(proto)
+		return Object.assign(obj, base)
 	}
-	return Object.create(getPrototypeOf(base), descriptors)
 }
 
 /**
@@ -197,8 +203,8 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 	Object.freeze(obj)
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
-		// So use Object.entries (only string-like, enumerables) instead of each()
-		Object.entries(obj).forEach(([key, value]) => freeze(value, true))
+		// So use Object.values (only string-like, enumerables) instead of each()
+		Object.values(obj).forEach(value => freeze(value, true))
 	return obj
 }
 

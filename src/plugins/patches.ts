@@ -211,7 +211,7 @@ export function enablePatches() {
 		})
 	}
 
-	function applyPatches_<T>(draft: T, patches: Patch[]): T {
+	function applyPatches_<T>(draft: T, patches: readonly Patch[]): T {
 		patches.forEach(patch => {
 			const {path, op} = patch
 

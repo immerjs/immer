@@ -8,9 +8,11 @@ import {
 
 export {
 	Draft,
+	WritableDraft,
 	Immutable,
 	Patch,
 	PatchListener,
+	Producer,
 	original,
 	current,
 	isDraft,
@@ -18,7 +20,8 @@ export {
 	NOTHING as nothing,
 	DRAFTABLE as immerable,
 	freeze,
-	Objectish
+	Objectish,
+	StrictMode
 } from "./internal"
 
 const immer = new Immer()

@@ -31,14 +31,16 @@ interface ProducersFns {
 	produceWithPatches: IProduceWithPatches
 }
 
+export type StrictMode = boolean | "class_only";
+
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
-	useStrictShallowCopy_: boolean = false
+	useStrictShallowCopy_: StrictMode = false
 	allowMultiRefs_: boolean = false
 
 	constructor(config?: {
 		autoFreeze?: boolean
-		useStrictShallowCopy?: boolean
+		useStrictShallowCopy?: StrictMode
 		allowMultiRefs: boolean
 	}) {
 		if (typeof config?.autoFreeze === "boolean")
@@ -174,7 +176,7 @@ export class Immer implements ProducersFns {
 	 *
 	 * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
 	 */
-	setUseStrictShallowCopy(value: boolean) {
+	setUseStrictShallowCopy(value: StrictMode) {
 		this.useStrictShallowCopy_ = value
 	}
 
@@ -183,7 +185,7 @@ export class Immer implements ProducersFns {
 		this.allowMultiRefs_ = value
 	}
 
-	applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
+	applyPatches<T extends Objectish>(base: T, patches: readonly Patch[]): T {
 		// If a patch replaces the entire state, take that replacement as base
 		// before applying patches
 		let i: number
