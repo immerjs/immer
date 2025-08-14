@@ -6,7 +6,8 @@ import {
 	AnyMap,
 	AnySet,
 	ArchType,
-	die
+	die,
+	Objectish
 } from "../internal"
 
 /** Plugin utilities */
@@ -27,8 +28,14 @@ const plugins: {
 		applyPatches_<T>(draft: T, patches: readonly Patch[]): T
 	}
 	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
+		proxyMap_<T extends AnyMap>(
+			target: T,
+			parent?: ImmerState
+		): T
+		proxySet_<T extends AnySet>(
+			target: T,
+			parent?: ImmerState
+		): T
 	}
 } = {}
 

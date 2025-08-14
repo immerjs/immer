@@ -17,7 +17,8 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope
+	ImmerScope,
+	isDraft
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -53,11 +54,13 @@ export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
 ): Drafted<T, ProxyState> {
+	const scope_ = parent ? parent.scope_ : getCurrentScope()!
+
 	const isArray = Array.isArray(base)
-	const state: ProxyState = {
+	const state: ProxyState = (scope_.existingStateMap_?.get(base) as ProxyState) || {
 		type_: isArray ? ArchType.Array : (ArchType.Object as any),
 		// Track which produce call this is associated with.
-		scope_: parent ? parent.scope_ : getCurrentScope()!,
+		scope_: scope_,
 		// True for both shallow and deep changes.
 		modified_: false,
 		// Used during finalization.
@@ -74,7 +77,12 @@ export function createProxyProxy<T extends Objectish>(
 		copy_: null,
 		// Called by the `produce` function.
 		revoke_: null as any,
-		isManual_: false
+		isManual_: false,
+	}
+
+	if (parent && state.parent_ !== parent) {
+		if (state.extraParents_) state.extraParents_.push(parent)
+		else state.extraParents_ = [parent]
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -90,10 +98,29 @@ export function createProxyProxy<T extends Objectish>(
 		traps = arrayTraps
 	}
 
-	const {revoke, proxy} = Proxy.revocable(target, traps)
-	state.draft_ = proxy as any
-	state.revoke_ = revoke
-	return proxy as any
+	if (state.revoke_) {
+		let thisHasBeenRevoked = false
+		const oldRevoke = state.revoke_
+		state.revoke_ = () => {
+			if (thisHasBeenRevoked) return oldRevoke()
+			thisHasBeenRevoked = true
+		}
+	} else {
+		const {revoke, proxy} = Proxy.revocable(target, traps)
+
+		if (!state.draft_) state.draft_ = proxy as any
+		state.revoke_ = revoke
+	}
+
+	return state.draft_ as any
+}
+
+function isScopeDescendedFrom(parent: ImmerScope, child: ImmerScope | undefined) {
+	while (child) {
+		if (child === parent) return true
+		child = child.parent_
+	}
+	return false
 }
 
 /**
@@ -116,7 +143,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
-			return (state.copy_![prop as any] = createProxy(value, state))
+			return (state.copy_![prop as any] = createProxy(
+				value,
+				state
+			))
 		}
 		return value
 	},
@@ -164,7 +194,6 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		)
 			return true
 
-		// @ts-ignore
 		state.copy_![prop] = value
 		state.assigned_[prop] = true
 		return true
@@ -223,8 +252,7 @@ each(objectTraps, (key, fn) => {
 arrayTraps.deleteProperty = function(state, prop) {
 	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
 		die(13)
-	// @ts-ignore
-	return arrayTraps.set!.call(this, state, prop, undefined)
+	return arrayTraps.set!.call(this, state, prop, undefined, undefined)
 }
 arrayTraps.set = function(state, prop, value) {
 	if (
@@ -275,18 +303,27 @@ export function markChanged(state: ImmerState) {
 		if (state.parent_) {
 			markChanged(state.parent_)
 		}
+		if (state.extraParents_) {
+			for (let i = 0; i < state.extraParents_.length; i++) {
+				markChanged(state.extraParents_[i])
+			}
+		}
 	}
 }
 
-export function prepareCopy(state: {
-	base_: any
-	copy_: any
-	scope_: ImmerScope
-}) {
-	if (!state.copy_) {
-		state.copy_ = shallowCopy(
-			state.base_,
-			state.scope_.immer_.useStrictShallowCopy_
-		)
+export function prepareCopy(state: ImmerState) {
+	if (state.copy_) return
+
+	const existing = state.scope_.existingStateMap_?.get(state.base_)
+	if (existing) {
+		Object.assign(state, existing)
+		return
 	}
+
+	state.copy_ = shallowCopy(
+		state.base_,
+		state.scope_.immer_.useStrictShallowCopy_
+	)
+
+	state.scope_.existingStateMap_?.set(state.base_, state)
 }

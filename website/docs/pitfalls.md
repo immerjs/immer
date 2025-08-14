@@ -17,6 +17,8 @@ Never reassign the `draft` argument (example: `draft = myCoolNewState`). Instead
 
 ### Immer only supports unidirectional trees
 
+<!-- TODO: Discuss what to do in the docs regarding the multiple references PR -->
+
 Immer assumes your state to be a unidirectional tree. That is, no object should appear twice in the tree, there should be no circular references. There should be exactly one path from the root to any node of the tree.
 
 ### Never explicitly return `undefined` from a producer

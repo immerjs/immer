@@ -8,6 +8,22 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
 
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false set drafts revokes sets 2`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
@@ -25,6 +41,22 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
@@ -44,6 +76,22 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=f
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
 
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false set drafts revokes sets 2`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
@@ -61,6 +109,22 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=t
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
@@ -80,6 +144,22 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=f
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
 
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false set drafts revokes sets 2`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
@@ -97,6 +177,22 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=t
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
@@ -116,6 +212,22 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=fa
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
 
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false set drafts revokes sets 2`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
@@ -133,6 +245,22 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=tr
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true recipe functions cannot return a modified child draft 1`] = `"[Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true recipe functions cannot return an object that references itself 1`] = `"Maximum call stack size exceeded"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 2`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 3`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 4`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 5`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 6`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 7`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+
+exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true revokes the draft once produce returns 8`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true set drafts revokes sets 1`] = `"[Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf"`;
 
