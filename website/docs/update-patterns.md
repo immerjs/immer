@@ -137,7 +137,7 @@ const nextStore = produce(store, draft => {
 	const user = draft.users.get("17")
 	// when filtering, creating a fresh collection is simpler than
 	// removing irrelevant items
-	user.todos = user.todos.filter(todo => todo.done)
+	user.todos = user.todos.filter(todo => !todo.done)
 })
 ```
 
