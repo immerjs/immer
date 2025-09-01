@@ -36,11 +36,21 @@ const updatedTodosObj = produce(todosObj, draft => {
 	draft["id1"].done = true
 })
 
+// replace & update in bulk
+const updatedTodosObj = produce(todosObj, draft => {
+	Object.assign(draft, {
+		id1: {done: true, body: "Take out the trash"},
+		id2: {done: true, body: "Check Email"},
+		id3: {done: true, body: "Feed my cat"}
+	})
+
 // reset/clear/empty
 const emptyTodo = produce(todosObj, () => {
 	return {};
 })
 ```
+
+Any time a nested draft field gets a new reference or value, produce() will finish applying the immutable update and return a new reference. If you tried to mutate, but the values remained the same, Immer will bail out and return the existing reference from produce()
 
 ### Array mutations
 
