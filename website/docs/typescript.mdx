@@ -109,7 +109,7 @@ Note that we did wrap the `Todo` type of the `draft` argument with `Draft`, beca
 
 For the returned curried function, `toggler`, We will _narrow_ the _input_ type to `Immutable<Todo>`, so that even though `Todo` is a mutable type, we will still accept an immutable todo as input argument to `toggler`.
 
-In contrast, Immer will _widen_ the _output_ type of the curried function to `Writable<Todo>`, to make sure it's output state is also assignable to variables that are not explictly typed to be immutable.
+In contrast, Immer will _widen_ the _output_ type of the curried function to `Writable<Todo>`, to make sure it's output state is also assignable to variables that are not explicitly typed to be immutable.
 
 This type narrowing / widening behavior might be unwelcome, maybe even for the simple reason that it results in quite noisy types. So we recommend to specify the generic state type for curried producers instead, in cases where it cannot be inferred directly, like `toggler` above. By doing so the automatic output widening / input narrowing will be skipped. However, the `draft` argument itself will still be inferred to be a writable `Draft<Todo>`:
 

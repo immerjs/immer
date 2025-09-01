@@ -198,13 +198,18 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections as any
+		 Object.defineProperties(obj, {
+                        set: {value: dontMutateFrozenCollections as any},
+                        add: {value: dontMutateFrozenCollections as any},
+                        clear: {value: dontMutateFrozenCollections as any},
+                        delete: {value: dontMutateFrozenCollections as any}
+                })
 	}
 	Object.freeze(obj)
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
-		// So use Object.entries (only string-like, enumerables) instead of each()
-		Object.entries(obj).forEach(([key, value]) => freeze(value, true))
+		// So use Object.values (only string-like, enumerables) instead of each()
+		Object.values(obj).forEach(value => freeze(value, true))
 	return obj
 }
 

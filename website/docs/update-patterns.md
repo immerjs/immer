@@ -26,7 +26,7 @@ const addedTodosObj = produce(todosObj, draft => {
 	draft["id3"] = {done: false, body: "Buy bananas"}
 })
 
-// delete
+// delete single property
 const deletedTodosObj = produce(todosObj, draft => {
 	delete draft["id1"]
 })
@@ -43,6 +43,10 @@ const updatedTodosObj = produce(todosObj, draft => {
 		id2: {done: true, body: "Check Email"},
 		id3: {done: true, body: "Feed my cat"}
 	})
+
+// reset/clear/empty
+const emptyTodo = produce(todosObj, () => {
+	return {};
 })
 ```
 
@@ -113,6 +117,11 @@ const updatedTodosArray = produce(todosArray, draft => {
 	// level produce is still pretty useful)
 	return draft.filter(todo => todo.done)
 })
+
+// reset/clear/empty
+const emptyTodo = produce(todosArray, () => {
+	return [];
+})
 ```
 
 ### Nested data structures
@@ -148,7 +157,7 @@ const nextStore = produce(store, draft => {
 	const user = draft.users.get("17")
 	// when filtering, creating a fresh collection is simpler than
 	// removing irrelevant items
-	user.todos = user.todos.filter(todo => todo.done)
+	user.todos = user.todos.filter(todo => !todo.done)
 })
 ```
 
