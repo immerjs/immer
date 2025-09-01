@@ -147,10 +147,12 @@ function runTests(name) {
 
 			const res = produce(base, draft => {
 				draft.set("a", 1)
+				draft.set("o", {b: 1})
 			})
 			expect(() => res.set("b", 2)).toThrowErrorMatchingSnapshot()
 			expect(() => res.clear()).toThrowErrorMatchingSnapshot()
 			expect(() => res.delete("b")).toThrowErrorMatchingSnapshot()
+			expect(Object.isFrozen(res.get("o"))).toBe(true)
 
 			// In draft, still editable
 			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
