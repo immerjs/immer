@@ -36,7 +36,7 @@ export function isDraftable(value: any): boolean {
 
 const objectCtorString = Object.prototype.constructor.toString()
 /*#__PURE__*/
-export function isPlainObject(value: any): boolean {
+export function isPlainObjectOriginal(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	const proto = getPrototypeOf(value)
 	if (proto === null) {
@@ -52,6 +52,29 @@ export function isPlainObject(value: any): boolean {
 		Function.toString.call(Ctor) === objectCtorString
 	)
 }
+
+const cachedCtorStrings = new WeakMap()
+function isPlainObjectCached(value: any) {
+	if (!value || typeof value !== "object") return false
+	const proto = Object.getPrototypeOf(value)
+	if (proto === null || proto === Object.prototype) return true
+
+	const Ctor =
+		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	if (Ctor === Object) return true
+
+	if (typeof Ctor !== "function") return false
+
+	let ctorString = cachedCtorStrings.get(Ctor)
+	if (ctorString === undefined) {
+		ctorString = Function.toString.call(Ctor)
+		cachedCtorStrings.set(Ctor, ctorString)
+	}
+
+	return ctorString === objectCtorString
+}
+
+export const isPlainObject = isPlainObjectCached
 
 /** Get the underlying object that is represented by the given draft */
 /*#__PURE__*/
@@ -198,12 +221,12 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		 Object.defineProperties(obj, {
-                        set: {value: dontMutateFrozenCollections as any},
-                        add: {value: dontMutateFrozenCollections as any},
-                        clear: {value: dontMutateFrozenCollections as any},
-                        delete: {value: dontMutateFrozenCollections as any}
-                })
+		Object.defineProperties(obj, {
+			set: {value: dontMutateFrozenCollections as any},
+			add: {value: dontMutateFrozenCollections as any},
+			clear: {value: dontMutateFrozenCollections as any},
+			delete: {value: dontMutateFrozenCollections as any}
+		})
 	}
 	Object.freeze(obj)
 	if (deep)
