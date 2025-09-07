@@ -20,18 +20,29 @@ export function isDraft(value: any): boolean {
 	return !!value && !!value[DRAFT_STATE]
 }
 
+const isDraftableCache = new WeakMap<object, boolean>()
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
 export function isDraftable(value: any): boolean {
-	if (!value) return false
-	return (
+	// Fast path: primitives are never draftable
+	if (!value || typeof value !== "object") return false
+
+	// Now safe to check cache since we know value is an object
+	if (isDraftableCache.has(value)) {
+		return isDraftableCache.get(value)!
+	}
+
+	const result =
 		isPlainObject(value) ||
 		Array.isArray(value) ||
 		!!value[DRAFTABLE] ||
 		!!value.constructor?.[DRAFTABLE] ||
 		isMap(value) ||
 		isSet(value)
-	)
+
+	// Safe to cache since value is an object
+	isDraftableCache.set(value, result)
+	return result
 }
 
 const objectCtorString = Object.prototype.constructor.toString()
