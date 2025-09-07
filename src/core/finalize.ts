@@ -114,6 +114,18 @@ function finalizeProperty(
 	rootPath?: PatchPath,
 	targetIsSet?: boolean
 ) {
+	if (childValue == null) {
+		return
+	}
+
+	if (typeof childValue !== "object" && !targetIsSet) {
+		return
+	}
+	const childIsFrozen = isFrozen(childValue)
+	if (childIsFrozen && !targetIsSet) {
+		return
+	}
+
 	if (process.env.NODE_ENV !== "production" && childValue === targetObject)
 		die(5)
 	if (isDraft(childValue)) {
@@ -136,13 +148,22 @@ function finalizeProperty(
 		targetObject.add(childValue)
 	}
 	// Search new objects for unfinalized drafts. Frozen objects should never contain drafts.
-	if (isDraftable(childValue) && !isFrozen(childValue)) {
+	if (isDraftable(childValue) && !childIsFrozen) {
 		if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
 			// optimization: if an object is not a draft, and we don't have to
 			// deepfreeze everything, and we are sure that no drafts are left in the remaining object
 			// cause we saw and finalized all drafts already; we can stop visiting the rest of the tree.
 			// This benefits especially adding large data tree's without further processing.
 			// See add-data.js perf test
+			return
+		}
+		if (
+			parentState &&
+			parentState.base_ &&
+			parentState.base_[prop] === childValue &&
+			childIsFrozen
+		) {
+			// Object is unchanged from base - no need to process further
 			return
 		}
 		finalize(rootScope, childValue)
