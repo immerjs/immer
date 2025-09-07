@@ -1,20 +1,20 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`manual - proxy cannot finishDraft twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+exports[`manual - proxy > cannot finishDraft twice 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
-exports[`manual - proxy cannot modify after finish 1`] = `"Cannot perform 'set' on a proxy that has been revoked"`;
+exports[`manual - proxy > cannot modify after finish 1`] = `[TypeError: Cannot perform 'set' on a proxy that has been revoked]`;
 
-exports[`manual - proxy should check arguments 1`] = `"[Immer] First argument to \`createDraft\` must be a plain object, an array, or an immerable object"`;
+exports[`manual - proxy > should check arguments 1`] = `[Error: [Immer] First argument to \`createDraft\` must be a plain object, an array, or an immerable object]`;
 
-exports[`manual - proxy should check arguments 2`] = `"[Immer] First argument to \`createDraft\` must be a plain object, an array, or an immerable object"`;
+exports[`manual - proxy > should check arguments 2`] = `[Error: [Immer] First argument to \`createDraft\` must be a plain object, an array, or an immerable object]`;
 
-exports[`manual - proxy should check arguments 3`] = `"[Immer] First argument to \`finishDraft\` must be a draft returned by \`createDraft\`"`;
+exports[`manual - proxy > should check arguments 3`] = `[Error: [Immer] First argument to \`finishDraft\` must be a draft returned by \`createDraft\`]`;
 
-exports[`manual - proxy should not finish drafts from produce 1`] = `"[Immer] First argument to \`finishDraft\` must be a draft returned by \`createDraft\`"`;
+exports[`manual - proxy > should not finish drafts from produce 1`] = `[Error: [Immer] First argument to \`finishDraft\` must be a draft returned by \`createDraft\`]`;
 
-exports[`manual - proxy should not finish twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+exports[`manual - proxy > should not finish twice 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
-exports[`manual - proxy should support patches drafts 1`] = `
+exports[`manual - proxy > should support patches drafts 1`] = `
 [
   [
     [

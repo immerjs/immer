@@ -1,3 +1,3 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Producers can update Maps 4`] = `"[Immer] This object has been frozen and should not be mutated"`;
+exports[`Producers can update Maps 4`] = `[Error: [Immer] This object has been frozen and should not be mutated]`;

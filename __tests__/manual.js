@@ -1,4 +1,5 @@
 "use strict"
+import {vi} from "vitest"
 import {
 	setUseProxies,
 	createDraft,
@@ -68,7 +69,7 @@ function runTests(name) {
 			draft.a = 2
 			draft.b = 3
 
-			const listener = jest.fn()
+			const listener = vi.fn()
 			const result = finishDraft(draft, listener)
 
 			expect(result).not.toBe(state)
