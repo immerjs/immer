@@ -1,16 +1,16 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`manual - proxy cannot finishDraft twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+exports[`manual - proxy > cannot finishDraft twice 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
-exports[`manual - proxy should check arguments 1`] = `"[Immer] minified error nr: 8. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`manual - proxy > should check arguments 1`] = `[Error: [Immer] minified error nr: 8. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`manual - proxy should check arguments 2`] = `"[Immer] minified error nr: 8. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`manual - proxy > should check arguments 2`] = `[Error: [Immer] minified error nr: 8. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`manual - proxy should check arguments 3`] = `"[Immer] minified error nr: 9. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`manual - proxy > should check arguments 3`] = `[Error: [Immer] minified error nr: 9. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`manual - proxy should not finish twice 1`] = `"Cannot perform 'get' on a proxy that has been revoked"`;
+exports[`manual - proxy > should not finish twice 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
-exports[`manual - proxy should support patches drafts 1`] = `
+exports[`manual - proxy > should support patches drafts 1`] = `
 [
   [
     [

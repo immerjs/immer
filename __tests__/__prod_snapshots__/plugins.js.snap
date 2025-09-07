@@ -1,9 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`error when using Maps 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using Maps 1`] = `[Error: [Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`error when using patches - 1 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 1 1`] = `[Error: [Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`error when using patches - 2 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 2 1`] = `[Error: [Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`error when using patches - 3 1`] = `"[Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`error when using patches - 3 1`] = `[Error: [Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf]`;
