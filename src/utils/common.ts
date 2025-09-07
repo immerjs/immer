@@ -87,15 +87,23 @@ export function original(value: Drafted<any>): any {
 /**
  * Each iterates a map, set or array.
  * Or, if any other kind of object, all of its own properties.
- * Regardless whether they are enumerable or symbols
+ *
+ * @param obj The object to iterate over
+ * @param iter The iterator function
+ * @param strict When true (default), includes symbols and non-enumerable properties.
+ *               When false, uses ultra-fast iteration over only enumerable string properties.
  */
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: string | number, value: any, source: T) => void
+	iter: (key: string | number, value: any, source: T) => void,
+	strict?: boolean
 ): void
-export function each(obj: any, iter: any) {
+export function each(obj: any, iter: any, strict: boolean = true) {
 	if (getArchtype(obj) === ArchType.Object) {
-		Reflect.ownKeys(obj).forEach(key => {
+		// If strict, we do a full iteration including symbols and non-enumerable properties
+		// Otherwise, we only iterate enumerable string properties for performance
+		const keys = strict ? Reflect.ownKeys(obj) : Object.keys(obj)
+		keys.forEach(key => {
 			iter(key, obj[key], obj)
 		})
 	} else {
