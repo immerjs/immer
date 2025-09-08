@@ -36,7 +36,7 @@ export type StrictMode = boolean | "class_only"
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
 	useStrictShallowCopy_: StrictMode = false
-	useStrictIteration_: boolean = false
+	useStrictIteration_: boolean = true
 
 	constructor(config?: {
 		autoFreeze?: boolean
