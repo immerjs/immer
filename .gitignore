@@ -58,7 +58,7 @@ typings/
 .env
 
 .idea
-/dist/
+/dist*
 website/build
 website/.docusaurus
 .rts2*

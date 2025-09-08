@@ -1,0 +1,34 @@
+{
+  "name": "immer-perf-testing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "benchmark": "cross-env NO_COLOR=true node --expose-gc --enable-source-maps dist/immutability-benchmarks.js",
+    "build": "rolldown -c rolldown.config.js",
+    "profile": "node --cpu-prof --expose-gc dist/immutability-benchmarks.js",
+    "analyze-profile": "node read-cpuprofile.js",
+    "build-immer": "cd .. && yarn build",
+    "build-with-latest": "yarn build-immer && yarn build",
+    "build-and-benchmark": "yarn build-with-latest && yarn benchmark",
+    "build-and-profile": "yarn build-with-latest && yarn profile"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "immer5": "npm:immer@5",
+    "immer6": "npm:immer@6",
+    "immer7": "npm:immer@7",
+    "immer8": "npm:immer@8",
+    "immer9": "npm:immer@9",
+    "immer10": "npm:immer@10",
+    "mitata": "^1.0.34",
+    "mutative": "^1.1.0",
+    "mutative-compat": "^0.1.2",
+    "pprof-format": "^2.2.1",
+    "source-map": "^0.7.4",
+    "source-map-support": "^0.5.21"
+  },
+  "devDependencies": {
+    "rolldown": "1.0.0-beta.23"
+  }
+}
