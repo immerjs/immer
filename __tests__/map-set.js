@@ -1,4 +1,5 @@
 "use strict"
+import {vi} from "vitest"
 import {
 	Immer,
 	nothing,
@@ -13,7 +14,9 @@ import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/utils/common"
 enableMapSet()
 enablePatches()
 
-jest.setTimeout(1000)
+vi.setConfig({
+	testTimeout: 1000
+})
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)

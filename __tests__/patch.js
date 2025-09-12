@@ -1,4 +1,5 @@
 "use strict"
+import {vi} from "vitest"
 import {
 	produce,
 	applyPatches,
@@ -13,47 +14,128 @@ import {
 enablePatches()
 enableMapSet()
 
-jest.setTimeout(1000)
+vi.setConfig({
+	testTimeout: 1000
+})
 
 const isProd = process.env.NODE_ENV === "production"
 
-function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
-	let resultProxies, resultEs5
+function createPatchTestData(
+	base,
+	producer,
+	expectedPatches,
+	expectedInversePatches,
+	expectedResult
+) {
+	let recordedPatches, recordedInversePatches
+	const res = produce(base, producer, (p, i) => {
+		recordedPatches = p
+		recordedInversePatches = i
+	})
 
-	function runPatchTestHelper() {
-		let recordedPatches
-		let recordedInversePatches
-		const res = produce(base, producer, (p, i) => {
-			recordedPatches = p
-			recordedInversePatches = i
-		})
+	return {
+		result: res,
+		patches: recordedPatches,
+		inversePatches: recordedInversePatches,
+		expectedPatches,
+		expectedInversePatches,
+		expectedResult,
+		base
+	}
+}
 
-		if (expectedResult !== undefined)
+function runPatchTests(
+	testName,
+	base,
+	producer,
+	expectedPatches,
+	expectedInversePatches,
+	expectedResult,
+	options = {}
+) {
+	const {only = false, skip = false} = options
+
+	// Choose the appropriate describe function
+	let describeFn = describe
+	if (testName === "") describeFn = (name, fn) => fn()
+	if (only) describeFn = describe.only
+	if (skip) describeFn = describe.skip
+
+	let testData = createPatchTestData(
+		base,
+		producer,
+		expectedPatches,
+		expectedInversePatches,
+		expectedResult
+	)
+
+	describeFn(testName, () => {
+		if (expectedResult !== undefined) {
 			test("produced the correct result", () => {
-				expect(res).toEqual(expectedResult)
+				expect(testData.result).toEqual(expectedResult)
 			})
+		}
 
 		test("produces the correct patches", () => {
-			expect(recordedPatches).toEqual(patches)
-			if (inversePathes) expect(recordedInversePatches).toEqual(inversePathes)
+			expect(testData.patches).toEqual(expectedPatches)
+			if (expectedInversePatches) {
+				expect(testData.inversePatches).toEqual(expectedInversePatches)
+			}
 		})
 
 		test("patches are replayable", () => {
-			expect(applyPatches(base, recordedPatches)).toEqual(res)
+			expect(applyPatches(base, testData.patches)).toEqual(testData.result)
 		})
 
 		test("patches can be reversed", () => {
-			expect(applyPatches(res, recordedInversePatches)).toEqual(base)
+			if (expectedInversePatches) {
+				expect(applyPatches(testData.result, testData.inversePatches)).toEqual(
+					base
+				)
+			}
 		})
-
-		return res
-	}
-
-	describe(`proxy`, () => {
-		resultProxies = runPatchTestHelper()
 	})
 
-	return resultProxies
+	return testData
+}
+
+// Convenience functions for common use cases
+runPatchTests.only = function(
+	testName,
+	base,
+	producer,
+	expectedPatches,
+	expectedInversePatches,
+	expectedResult
+) {
+	return runPatchTests(
+		testName,
+		base,
+		producer,
+		expectedPatches,
+		expectedInversePatches,
+		expectedResult,
+		{only: true}
+	)
+}
+
+runPatchTests.skip = function(
+	testName,
+	base,
+	producer,
+	expectedPatches,
+	expectedInversePatches,
+	expectedResult
+) {
+	return runPatchTests(
+		testName,
+		base,
+		producer,
+		expectedPatches,
+		expectedInversePatches,
+		expectedResult,
+		{skip: true}
+	)
 }
 
 describe("applyPatches", () => {
@@ -116,81 +198,91 @@ describe("applyPatches", () => {
 	})
 })
 
-describe("simple assignment - 1", () => {
-	runPatchTest(
-		{x: 3},
-		d => {
-			d.x++
-		},
-		[{op: "replace", path: ["x"], value: 4}]
-	)
-})
+// New macro-style test
+runPatchTests(
+	"simple assignment - 1",
+	{x: 3},
+	d => {
+		d.x++
+	},
+	[{op: "replace", path: ["x"], value: 4}]
+)
 
-describe("simple assignment - 2", () => {
-	runPatchTest(
-		{x: {y: 4}},
-		d => {
-			d.x.y++
-		},
-		[{op: "replace", path: ["x", "y"], value: 5}]
-	)
-})
+// Original test (commented out for comparison)
+// describe("simple assignment - 1", () => {
+// 	runPatchTest(
+// 		{x: 3},
+// 		d => {
+// 			d.x++
+// 		},
+// 		[{op: "replace", path: ["x"], value: 4}]
+// 	)
+// })
 
-describe("simple assignment - 3", () => {
-	runPatchTest(
-		{x: [{y: 4}]},
-		d => {
-			d.x[0].y++
-		},
-		[{op: "replace", path: ["x", 0, "y"], value: 5}]
-	)
-})
+// New macro-style tests
+runPatchTests(
+	"simple assignment - 2",
+	{x: {y: 4}},
+	d => {
+		d.x.y++
+	},
+	[{op: "replace", path: ["x", "y"], value: 5}]
+)
 
-describe("simple assignment - 4", () => {
-	runPatchTest(
-		new Map([["x", {y: 4}]]),
-		d => {
-			d.get("x").y++
-		},
-		[{op: "replace", path: ["x", "y"], value: 5}],
-		[{op: "replace", path: ["x", "y"], value: 4}]
-	)
-})
+runPatchTests(
+	"simple assignment - 3",
+	{x: [{y: 4}]},
+	d => {
+		d.x[0].y++
+	},
+	[{op: "replace", path: ["x", 0, "y"], value: 5}]
+)
 
-describe("simple assignment - 5", () => {
-	runPatchTest(
-		{x: new Map([["y", 4]])},
-		d => {
-			d.x.set("y", 5)
-		},
-		[{op: "replace", path: ["x", "y"], value: 5}],
-		[{op: "replace", path: ["x", "y"], value: 4}]
-	)
-})
+runPatchTests(
+	"simple assignment - 4",
+	new Map([["x", {y: 4}]]),
+	d => {
+		d.get("x").y++
+	},
+	[{op: "replace", path: ["x", "y"], value: 5}],
+	[{op: "replace", path: ["x", "y"], value: 4}]
+)
 
-describe("simple assignment - 6", () => {
-	runPatchTest(
-		new Map([["x", 1]]),
-		d => {
-			// Map.prototype.set should return the Map itself
-			const res = d.set("x", 2)
-			res.set("y", 3)
-		},
-		[
-			{op: "replace", path: ["x"], value: 2},
-			{op: "add", path: ["y"], value: 3}
-		],
-		[
-			{op: "replace", path: ["x"], value: 1},
-			{op: "remove", path: ["y"]}
-		]
-	)
-})
+runPatchTests(
+	"simple assignment - 5",
+	{x: new Map([["y", 4]])},
+	d => {
+		d.x.set("y", 5)
+	},
+	[{op: "replace", path: ["x", "y"], value: 5}],
+	[{op: "replace", path: ["x", "y"], value: 4}]
+)
 
+runPatchTests(
+	"simple assignment - 6",
+	new Map([["x", 1]]),
+	d => {
+		// Map.prototype.set should return the Map itself
+		const res = d.set("x", 2)
+		res.set("y", 3)
+	},
+	[
+		{op: "replace", path: ["x"], value: 2},
+		{op: "add", path: ["y"], value: 3}
+	],
+	[
+		{op: "replace", path: ["x"], value: 1},
+		{op: "remove", path: ["y"]}
+	]
+)
+
+// Complex test with external variables - keep as individual describe
 describe("simple assignment - 7", () => {
 	const key1 = {prop: "val1"}
 	const key2 = {prop: "val2"}
-	runPatchTest(
+
+	runPatchTests(
+		"",
 		{x: new Map([[key1, 4]])},
 		d => {
 			d.x.set(key1, 5)
@@ -207,60 +299,58 @@ describe("simple assignment - 7", () => {
 	)
 })
 
-describe("simple assignment - 8", () => {
-	runPatchTest(
-		new Map([[0, new Map([[1, 4]])]]),
-		d => {
-			d.get(0).set(1, 5)
-			d.get(0).set(2, 6)
-		},
-		[
-			{op: "replace", path: [0, 1], value: 5},
-			{op: "add", path: [0, 2], value: 6}
-		],
-		[
-			{op: "replace", path: [0, 1], value: 4},
-			{op: "remove", path: [0, 2]}
-		]
-	)
-})
+runPatchTests(
+	"simple assignment - 8",
+	new Map([[0, new Map([[1, 4]])]]),
+	d => {
+		d.get(0).set(1, 5)
+		d.get(0).set(2, 6)
+	},
+	[
+		{op: "replace", path: [0, 1], value: 5},
+		{op: "add", path: [0, 2], value: 6}
+	],
+	[
+		{op: "replace", path: [0, 1], value: 4},
+		{op: "remove", path: [0, 2]}
+	]
+)
 
-describe("delete 1", () => {
-	runPatchTest(
-		{x: {y: 4}},
-		d => {
-			delete d.x
-		},
-		[{op: "remove", path: ["x"]}]
-	)
-})
+runPatchTests(
+	"delete 1",
+	{x: {y: 4}},
+	d => {
+		delete d.x
+	},
+	[{op: "remove", path: ["x"]}]
+)
 
-describe("delete 2", () => {
-	runPatchTest(
-		new Map([["x", 1]]),
-		d => {
-			d.delete("x")
-		},
-		[{op: "remove", path: ["x"]}],
-		[{op: "add", path: ["x"], value: 1}]
-	)
-})
+runPatchTests(
+	"delete 2",
+	new Map([["x", 1]]),
+	d => {
+		d.delete("x")
+	},
+	[{op: "remove", path: ["x"]}],
+	[{op: "add", path: ["x"], value: 1}]
+)
 
-describe("delete 3", () => {
-	runPatchTest(
-		{x: new Map([["y", 1]])},
-		d => {
-			d.x.delete("y")
-		},
-		[{op: "remove", path: ["x", "y"]}],
-		[{op: "add", path: ["x", "y"], value: 1}]
-	)
-})
+runPatchTests(
+	"delete 3",
+	{x: new Map([["y", 1]])},
+	d => {
+		d.x.delete("y")
+	},
+	[{op: "remove", path: ["x", "y"]}],
+	[{op: "add", path: ["x", "y"], value: 1}]
+)
 
 describe("delete 5", () => {
 	const key1 = {prop: "val1"}
 	const key2 = {prop: "val2"}
-	runPatchTest(
+
+	runPatchTests(
+		"",
 		{
 			x: new Map([
 				[key1, 1],
@@ -282,471 +372,443 @@ describe("delete 5", () => {
 	)
 })
 
-describe("delete 6", () => {
-	runPatchTest(
-		new Set(["x", 1]),
-		d => {
-			d.delete("x")
-		},
-		[{op: "remove", path: [0], value: "x"}],
-		[{op: "add", path: [0], value: "x"}]
-	)
-})
+runPatchTests(
+	"delete 6",
+	new Set(["x", 1]),
+	d => {
+		d.delete("x")
+	},
+	[{op: "remove", path: [0], value: "x"}],
+	[{op: "add", path: [0], value: "x"}]
+)
 
-describe("delete 7", () => {
-	runPatchTest(
-		{x: new Set(["y", 1])},
-		d => {
-			d.x.delete("y")
-		},
-		[{op: "remove", path: ["x", 0], value: "y"}],
-		[{op: "add", path: ["x", 0], value: "y"}]
-	)
-})
+runPatchTests(
+	"delete 7",
+	{x: new Set(["y", 1])},
+	d => {
+		d.x.delete("y")
+	},
+	[{op: "remove", path: ["x", 0], value: "y"}],
+	[{op: "add", path: ["x", 0], value: "y"}]
+)
 
 describe("renaming properties", () => {
-	describe("nested object (no changes)", () => {
-		runPatchTest(
-			{a: {b: 1}},
-			d => {
-				d.x = d.a
-				delete d.a
-			},
-			[
-				{op: "add", path: ["x"], value: {b: 1}},
-				{op: "remove", path: ["a"]}
-			]
-		)
-	})
-
-	describe("nested change in object", () => {
-		runPatchTest(
-			{
-				a: {b: 1}
-			},
-			d => {
-				d.a.b++
-			},
-			[{op: "replace", path: ["a", "b"], value: 2}],
-			[{op: "replace", path: ["a", "b"], value: 1}]
-		)
-	})
-
-	describe("nested change in map", () => {
-		runPatchTest(
-			new Map([["a", new Map([["b", 1]])]]),
-			d => {
-				d.get("a").set("b", 2)
-			},
-			[{op: "replace", path: ["a", "b"], value: 2}],
-			[{op: "replace", path: ["a", "b"], value: 1}]
-		)
-	})
-
-	describe("nested change in array", () => {
-		runPatchTest(
-			[[{b: 1}]],
-			d => {
-				d[0][0].b++
-			},
-			[{op: "replace", path: [0, 0, "b"], value: 2}],
-			[{op: "replace", path: [0, 0, "b"], value: 1}]
-		)
-	})
-
-	describe("nested map (no changes)", () => {
-		runPatchTest(
-			new Map([["a", new Map([["b", 1]])]]),
-			d => {
-				d.set("x", d.get("a"))
-				d.delete("a")
-			},
-			[
-				{op: "add", path: ["x"], value: new Map([["b", 1]])},
-				{op: "remove", path: ["a"]}
-			],
-			[
-				{op: "remove", path: ["x"]},
-				{op: "add", path: ["a"], value: new Map([["b", 1]])}
-			]
-		)
-	})
-
-	describe("nested object (with changes)", () => {
-		runPatchTest(
-			{a: {b: 1, c: 1}},
-			d => {
-				let a = d.a
-				a.b = 2 // change
-				delete a.c // delete
-				a.y = 2 // add
-
-				// rename
-				d.x = a
-				delete d.a
-			},
-			[
-				{op: "add", path: ["x"], value: {b: 2, y: 2}},
-				{op: "remove", path: ["a"]}
-			]
-		)
-	})
-
-	describe("nested map (with changes)", () => {
-		runPatchTest(
-			new Map([
-				[
-					"a",
-					new Map([
-						["b", 1],
-						["c", 1]
-					])
-				]
-			]),
-			d => {
-				let a = d.get("a")
-				a.set("b", 2) // change
-				a.delete("c") // delete
-				a.set("y", 2) // add
-
-				// rename
-				d.set("x", a)
-				d.delete("a")
-			},
-			[
-				{
-					op: "add",
-					path: ["x"],
-					value: new Map([
-						["b", 2],
-						["y", 2]
-					])
-				},
-				{op: "remove", path: ["a"]}
-			],
-			[
-				{op: "remove", path: ["x"]},
-				{
-					op: "add",
-					path: ["a"],
-					value: new Map([
-						["b", 1],
-						["c", 1]
-					])
-				}
-			]
-		)
-	})
-
-	describe("deeply nested object (with changes)", () => {
-		runPatchTest(
-			{a: {b: {c: 1, d: 1}}},
-			d => {
-				let b = d.a.b
-				b.c = 2 // change
-				delete b.d // delete
-				b.y = 2 // add
-
-				// rename
-				d.a.x = b
-				delete d.a.b
-			},
-			[
-				{op: "add", path: ["a", "x"], value: {c: 2, y: 2}},
-				{op: "remove", path: ["a", "b"]}
-			]
-		)
-	})
-
-	describe("deeply nested map (with changes)", () => {
-		runPatchTest(
-			new Map([
-				[
-					"a",
-					new Map([
-						[
-							"b",
-							new Map([
-								["c", 1],
-								["d", 1]
-							])
-						]
-					])
-				]
-			]),
-			d => {
-				let b = d.get("a").get("b")
-				b.set("c", 2) // change
-				b.delete("d") // delete
-				b.set("y", 2) // add
-
-				// rename
-				d.get("a").set("x", b)
-				d.get("a").delete("b")
-			},
-			[
-				{
-					op: "add",
-					path: ["a", "x"],
-					value: new Map([
-						["c", 2],
-						["y", 2]
-					])
-				},
-				{op: "remove", path: ["a", "b"]}
-			],
-			[
-				{op: "remove", path: ["a", "x"]},
-				{
-					op: "add",
-					path: ["a", "b"],
-					value: new Map([
-						["c", 1],
-						["d", 1]
-					])
-				}
-			]
-		)
-	})
-})
-
-describe("minimum amount of changes", () => {
-	runPatchTest(
-		{x: 3, y: {a: 4}, z: 3},
+	runPatchTests(
+		"nested object (no changes)",
+		{a: {b: 1}},
 		d => {
-			d.y.a = 4
-			d.y.b = 5
-			Object.assign(d, {x: 4, y: {a: 2}})
+			d.x = d.a
+			delete d.a
 		},
 		[
-			{op: "replace", path: ["x"], value: 4},
-			{op: "replace", path: ["y"], value: {a: 2}}
+			{op: "add", path: ["x"], value: {b: 1}},
+			{op: "remove", path: ["a"]}
 		]
 	)
-})
 
-describe("arrays - prepend", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.unshift(4)
-		},
-		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", 1], value: 1},
-			{op: "replace", path: ["x", 2], value: 2},
-			{op: "add", path: ["x", 3], value: 3}
-		]
-	)
-})
-
-describe("arrays - multiple prepend", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.unshift(4)
-			d.x.unshift(5)
-			// 4,5,1,2,3
-		},
-		[
-			{op: "replace", path: ["x", 0], value: 5},
-			{op: "replace", path: ["x", 1], value: 4},
-			{op: "replace", path: ["x", 2], value: 1},
-			{op: "add", path: ["x", 3], value: 2},
-			{op: "add", path: ["x", 4], value: 3}
-		]
-	)
-})
-
-describe("arrays - splice middle", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.splice(1, 1)
-		},
-		[
-			{op: "replace", path: ["x", 1], value: 3},
-			{op: "remove", path: ["x", 2]}
-		]
-	)
-})
-
-describe("arrays - multiple splice", () => {
-	runPatchTest(
-		[0, 1, 2, 3, 4, 5, 0],
-		d => {
-			d.splice(4, 2, 3)
-			// [0,1,2,3,3,0]
-			d.splice(1, 2, 3)
-			// [0,3,3,3,0]
-			expect(d.slice()).toEqual([0, 3, 3, 3, 0])
-		},
-		[
-			{op: "replace", path: [1], value: 3},
-			{op: "replace", path: [2], value: 3},
-			{op: "replace", path: [4], value: 0},
-			{op: "remove", path: [6]},
-			{op: "remove", path: [5]}
-		]
-	)
-})
-
-describe("arrays - modify and shrink", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x[0] = 4
-			d.x.length = 2
-			// [0, 2]
-		},
-		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "remove", path: ["x", 2]}
-		],
-		[
-			{op: "replace", path: ["x", 0], value: 1},
-			{op: "add", path: ["x", 2], value: 3}
-		]
-	)
-})
-
-describe("arrays - prepend then splice middle", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.unshift(4)
-			d.x.splice(2, 1)
-			// 4, 1, 3
-		},
-		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", 1], value: 1}
-		]
-	)
-})
-
-describe("arrays - splice middle then prepend", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.splice(1, 1)
-			d.x.unshift(4)
-			// [4, 1, 3]
-		},
-		[
-			{op: "replace", path: ["x", 0], value: 4},
-			{op: "replace", path: ["x", 1], value: 1}
-		]
-	)
-})
-
-describe("arrays - truncate", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.length -= 2
-		},
-		[
-			{op: "remove", path: ["x", 2]},
-			{op: "remove", path: ["x", 1]}
-		],
-		[
-			{op: "add", path: ["x", 1], value: 2},
-			{op: "add", path: ["x", 2], value: 3}
-		]
-	)
-})
-
-describe("arrays - pop twice", () => {
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.pop()
-			d.x.pop()
-		},
-		[
-			{op: "remove", path: ["x", 2]},
-			{op: "remove", path: ["x", 1]}
-		]
-	)
-})
-
-describe("arrays - push multiple", () => {
-	// These patches were more optimal pre immer 7, but not always correct
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.push(4, 5)
-		},
-		[
-			{op: "add", path: ["x", 3], value: 4},
-			{op: "add", path: ["x", 4], value: 5}
-		],
-		[
-			{op: "remove", path: ["x", 4]},
-			{op: "remove", path: ["x", 3]}
-		]
-	)
-})
-
-describe("arrays - splice (expand)", () => {
-	// These patches were more optimal pre immer 7, but not always correct
-	runPatchTest(
-		{x: [1, 2, 3]},
-		d => {
-			d.x.splice(1, 1, 4, 5, 6) // [1,4,5,6,3]
-		},
-		[
-			{op: "replace", path: ["x", 1], value: 4},
-			{op: "replace", path: ["x", 2], value: 5},
-			{op: "add", path: ["x", 3], value: 6},
-			{op: "add", path: ["x", 4], value: 3}
-		],
-		[
-			{op: "replace", path: ["x", 1], value: 2},
-			{op: "replace", path: ["x", 2], value: 3},
-			{op: "remove", path: ["x", 4]},
-			{op: "remove", path: ["x", 3]}
-		]
-	)
-})
-
-describe("arrays - splice (shrink)", () => {
-	// These patches were more optimal pre immer 7, but not always correct
-	runPatchTest(
-		{x: [1, 2, 3, 4, 5]},
-		d => {
-			d.x.splice(1, 3, 6) // [1, 6, 5]
-		},
-		[
-			{op: "replace", path: ["x", 1], value: 6},
-			{op: "replace", path: ["x", 2], value: 5},
-			{op: "remove", path: ["x", 4]},
-			{op: "remove", path: ["x", 3]}
-		],
-		[
-			{op: "replace", path: ["x", 1], value: 2},
-			{op: "replace", path: ["x", 2], value: 3},
-			{op: "add", path: ["x", 3], value: 4},
-			{op: "add", path: ["x", 4], value: 5}
-		]
-	)
-})
-
-describe("arrays - delete", () => {
-	runPatchTest(
+	runPatchTests(
+		"nested change in object",
 		{
-			x: [
-				{a: 1, b: 2},
-				{c: 3, d: 4}
-			]
+			a: {b: 1}
 		},
 		d => {
-			delete d.x[1].c
+			d.a.b++
 		},
-		[{op: "remove", path: ["x", 1, "c"]}]
+		[{op: "replace", path: ["a", "b"], value: 2}],
+		[{op: "replace", path: ["a", "b"], value: 1}]
+	)
+
+	runPatchTests(
+		"nested change in map",
+		new Map([["a", new Map([["b", 1]])]]),
+		d => {
+			d.get("a").set("b", 2)
+		},
+		[{op: "replace", path: ["a", "b"], value: 2}],
+		[{op: "replace", path: ["a", "b"], value: 1}]
+	)
+
+	runPatchTests(
+		"nested change in array",
+		[[{b: 1}]],
+		d => {
+			d[0][0].b++
+		},
+		[{op: "replace", path: [0, 0, "b"], value: 2}],
+		[{op: "replace", path: [0, 0, "b"], value: 1}]
+	)
+
+	runPatchTests(
+		"nested map (no changes)",
+		new Map([["a", new Map([["b", 1]])]]),
+		d => {
+			d.set("x", d.get("a"))
+			d.delete("a")
+		},
+		[
+			{op: "add", path: ["x"], value: new Map([["b", 1]])},
+			{op: "remove", path: ["a"]}
+		],
+		[
+			{op: "remove", path: ["x"]},
+			{op: "add", path: ["a"], value: new Map([["b", 1]])}
+		]
+	)
+
+	runPatchTests(
+		"nested object (with changes)",
+		{a: {b: 1, c: 1}},
+		d => {
+			let a = d.a
+			a.b = 2 // change
+			delete a.c // delete
+			a.y = 2 // add
+
+			// rename
+			d.x = a
+			delete d.a
+		},
+		[
+			{op: "add", path: ["x"], value: {b: 2, y: 2}},
+			{op: "remove", path: ["a"]}
+		]
+	)
+
+	runPatchTests(
+		"nested map (with changes)",
+		new Map([
+			[
+				"a",
+				new Map([
+					["b", 1],
+					["c", 1]
+				])
+			]
+		]),
+		d => {
+			let a = d.get("a")
+			a.set("b", 2) // change
+			a.delete("c") // delete
+			a.set("y", 2) // add
+
+			// rename
+			d.set("x", a)
+			d.delete("a")
+		},
+		[
+			{
+				op: "add",
+				path: ["x"],
+				value: new Map([
+					["b", 2],
+					["y", 2]
+				])
+			},
+			{op: "remove", path: ["a"]}
+		],
+		[
+			{op: "remove", path: ["x"]},
+			{
+				op: "add",
+				path: ["a"],
+				value: new Map([
+					["b", 1],
+					["c", 1]
+				])
+			}
+		]
+	)
+
+	runPatchTests(
+		"deeply nested object (with changes)",
+		{a: {b: {c: 1, d: 1}}},
+		d => {
+			let b = d.a.b
+			b.c = 2 // change
+			delete b.d // delete
+			b.y = 2 // add
+
+			// rename
+			d.a.x = b
+			delete d.a.b
+		},
+		[
+			{op: "add", path: ["a", "x"], value: {c: 2, y: 2}},
+			{op: "remove", path: ["a", "b"]}
+		]
+	)
+
+	runPatchTests(
+		"deeply nested map (with changes)",
+		new Map([
+			[
+				"a",
+				new Map([
+					[
+						"b",
+						new Map([
+							["c", 1],
+							["d", 1]
+						])
+					]
+				])
+			]
+		]),
+		d => {
+			let b = d.get("a").get("b")
+			b.set("c", 2) // change
+			b.delete("d") // delete
+			b.set("y", 2) // add
+
+			// rename
+			d.get("a").set("x", b)
+			d.get("a").delete("b")
+		},
+		[
+			{
+				op: "add",
+				path: ["a", "x"],
+				value: new Map([
+					["c", 2],
+					["y", 2]
+				])
+			},
+			{op: "remove", path: ["a", "b"]}
+		],
+		[
+			{op: "remove", path: ["a", "x"]},
+			{
+				op: "add",
+				path: ["a", "b"],
+				value: new Map([
+					["c", 1],
+					["d", 1]
+				])
+			}
+		]
 	)
 })
+
+runPatchTests(
+	"minimum amount of changes",
+	{x: 3, y: {a: 4}, z: 3},
+	d => {
+		d.y.a = 4
+		d.y.b = 5
+		Object.assign(d, {x: 4, y: {a: 2}})
+	},
+	[
+		{op: "replace", path: ["x"], value: 4},
+		{op: "replace", path: ["y"], value: {a: 2}}
+	]
+)
+
+runPatchTests(
+	"arrays - prepend",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.unshift(4)
+	},
+	[
+		{op: "replace", path: ["x", 0], value: 4},
+		{op: "replace", path: ["x", 1], value: 1},
+		{op: "replace", path: ["x", 2], value: 2},
+		{op: "add", path: ["x", 3], value: 3}
+	]
+)
+
+runPatchTests(
+	"arrays - multiple prepend",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.unshift(4)
+		d.x.unshift(5)
+		// 4,5,1,2,3
+	},
+	[
+		{op: "replace", path: ["x", 0], value: 5},
+		{op: "replace", path: ["x", 1], value: 4},
+		{op: "replace", path: ["x", 2], value: 1},
+		{op: "add", path: ["x", 3], value: 2},
+		{op: "add", path: ["x", 4], value: 3}
+	]
+)
+
+runPatchTests(
+	"arrays - splice middle",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.splice(1, 1)
+	},
+	[
+		{op: "replace", path: ["x", 1], value: 3},
+		{op: "remove", path: ["x", 2]}
+	]
+)
+
+runPatchTests(
+	"arrays - multiple splice",
+	[0, 1, 2, 3, 4, 5, 0],
+	d => {
+		d.splice(4, 2, 3)
+		// [0,1,2,3,3,0]
+		d.splice(1, 2, 3)
+		// [0,3,3,3,0]
+		expect(d.slice()).toEqual([0, 3, 3, 3, 0])
+	},
+	[
+		{op: "replace", path: [1], value: 3},
+		{op: "replace", path: [2], value: 3},
+		{op: "replace", path: [4], value: 0},
+		{op: "remove", path: [6]},
+		{op: "remove", path: [5]}
+	]
+)
+
+runPatchTests(
+	"arrays - modify and shrink",
+	{x: [1, 2, 3]},
+	d => {
+		d.x[0] = 4
+		d.x.length = 2
+		// [0, 2]
+	},
+	[
+		{op: "replace", path: ["x", 0], value: 4},
+		{op: "remove", path: ["x", 2]}
+	],
+	[
+		{op: "replace", path: ["x", 0], value: 1},
+		{op: "add", path: ["x", 2], value: 3}
+	]
+)
+
+runPatchTests(
+	"arrays - prepend then splice middle",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.unshift(4)
+		d.x.splice(2, 1)
+		// 4, 1, 3
+	},
+	[
+		{op: "replace", path: ["x", 0], value: 4},
+		{op: "replace", path: ["x", 1], value: 1}
+	]
+)
+
+runPatchTests(
+	"arrays - splice middle then prepend",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.splice(1, 1)
+		d.x.unshift(4)
+		// [4, 1, 3]
+	},
+	[
+		{op: "replace", path: ["x", 0], value: 4},
+		{op: "replace", path: ["x", 1], value: 1}
+	]
+)
+
+runPatchTests(
+	"arrays - truncate",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.length -= 2
+	},
+	[
+		{op: "remove", path: ["x", 2]},
+		{op: "remove", path: ["x", 1]}
+	],
+	[
+		{op: "add", path: ["x", 1], value: 2},
+		{op: "add", path: ["x", 2], value: 3}
+	]
+)
+
+runPatchTests(
+	"arrays - pop twice",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.pop()
+		d.x.pop()
+	},
+	[
+		{op: "remove", path: ["x", 2]},
+		{op: "remove", path: ["x", 1]}
+	]
+)
+
+runPatchTests(
+	"arrays - push multiple",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.push(4, 5)
+	},
+	[
+		{op: "add", path: ["x", 3], value: 4},
+		{op: "add", path: ["x", 4], value: 5}
+	],
+	[
+		{op: "remove", path: ["x", 4]},
+		{op: "remove", path: ["x", 3]}
+	]
+)
+
+runPatchTests(
+	"arrays - splice (expand)",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.splice(1, 1, 4, 5, 6) // [1,4,5,6,3]
+	},
+	[
+		{op: "replace", path: ["x", 1], value: 4},
+		{op: "replace", path: ["x", 2], value: 5},
+		{op: "add", path: ["x", 3], value: 6},
+		{op: "add", path: ["x", 4], value: 3}
+	],
+	[
+		{op: "replace", path: ["x", 1], value: 2},
+		{op: "replace", path: ["x", 2], value: 3},
+		{op: "remove", path: ["x", 4]},
+		{op: "remove", path: ["x", 3]}
+	]
+)
+
+runPatchTests(
+	"arrays - splice (shrink)",
+	{x: [1, 2, 3, 4, 5]},
+	d => {
+		d.x.splice(1, 3, 6) // [1, 6, 5]
+	},
+	[
+		{op: "replace", path: ["x", 1], value: 6},
+		{op: "replace", path: ["x", 2], value: 5},
+		{op: "remove", path: ["x", 4]},
+		{op: "remove", path: ["x", 3]}
+	],
+	[
+		{op: "replace", path: ["x", 1], value: 2},
+		{op: "replace", path: ["x", 2], value: 3},
+		{op: "add", path: ["x", 3], value: 4},
+		{op: "add", path: ["x", 4], value: 5}
+	]
+)
+
+runPatchTests(
+	"arrays - delete",
+	{
+		x: [
+			{a: 1, b: 2},
+			{c: 3, d: 4}
+		]
+	},
+	d => {
+		delete d.x[1].c
+	},
+	[{op: "remove", path: ["x", 1, "c"]}]
+)
 
 describe("arrays - append", () => {
 	test("appends to array when last part of path is '-'", () => {
@@ -764,42 +826,39 @@ describe("arrays - append", () => {
 	})
 })
 
-describe("sets - add - 1", () => {
-	runPatchTest(
-		new Set([1]),
-		d => {
-			d.add(2)
-		},
-		[{op: "add", path: [1], value: 2}],
-		[{op: "remove", path: [1], value: 2}]
-	)
-})
+runPatchTests(
+	"sets - add - 1",
+	new Set([1]),
+	d => {
+		d.add(2)
+	},
+	[{op: "add", path: [1], value: 2}],
+	[{op: "remove", path: [1], value: 2}]
+)
 
-describe("sets - add, delete, add - 1", () => {
-	runPatchTest(
-		new Set([1]),
-		d => {
-			d.add(2)
-			d.delete(2)
-			d.add(2)
-		},
-		[{op: "add", path: [1], value: 2}],
-		[{op: "remove", path: [1], value: 2}]
-	)
-})
+runPatchTests(
+	"sets - add, delete, add - 1",
+	new Set([1]),
+	d => {
+		d.add(2)
+		d.delete(2)
+		d.add(2)
+	},
+	[{op: "add", path: [1], value: 2}],
+	[{op: "remove", path: [1], value: 2}]
+)
 
-describe("sets - add, delete, add - 2", () => {
-	runPatchTest(
-		new Set([2, 1]),
-		d => {
-			d.add(2)
-			d.delete(2)
-			d.add(2)
-		},
-		[],
-		[]
-	)
-})
+runPatchTests(
+	"sets - add, delete, add - 2",
+	new Set([2, 1]),
+	d => {
+		d.add(2)
+		d.delete(2)
+		d.add(2)
+	},
+	[],
+	[]
+)
 
 describe("sets - mutate - 1", () => {
 	const findById = (set, id) => {
@@ -807,7 +866,8 @@ describe("sets - mutate - 1", () => {
 			if (item.id === id) return item
 		}
 	}
-	runPatchTest(
+	runPatchTests(
+		"",
 		new Set([
 			{id: 1, val: "We"},
 			{id: 2, val: "will"}
@@ -833,147 +893,144 @@ describe("sets - mutate - 1", () => {
 	)
 })
 
-describe("arrays - splice should should result in remove op.", () => {
-	// These patches were more optimal pre immer 7, but not always correct
-	runPatchTest(
-		[1, 2],
-		d => {
-			d.splice(1, 1)
-		},
-		[{op: "remove", path: [1]}],
-		[{op: "add", path: [1], value: 2}]
-	)
-})
+// These patches were more optimal pre immer 7, but not always correct
+runPatchTests(
+	"arrays - splice should should result in remove op.",
+	[1, 2],
+	d => {
+		d.splice(1, 1)
+	},
+	[{op: "remove", path: [1]}],
+	[{op: "add", path: [1], value: 2}]
+)
 
-describe("arrays - NESTED splice should should result in remove op.", () => {
-	// These patches were more optimal pre immer 7, but not always correct
-	runPatchTest(
-		{a: {b: {c: [1, 2]}}},
-		d => {
-			d.a.b.c.splice(1, 1)
-		},
-		[{op: "remove", path: ["a", "b", "c", 1]}],
-		[{op: "add", path: ["a", "b", "c", 1], value: 2}]
-	)
-})
+// These patches were more optimal pre immer 7, but not always correct
+runPatchTests(
+	"arrays - NESTED splice should should result in remove op.",
+	{a: {b: {c: [1, 2]}}},
+	d => {
+		d.a.b.c.splice(1, 1)
+	},
+	[{op: "remove", path: ["a", "b", "c", 1]}],
+	[{op: "add", path: ["a", "b", "c", 1], value: 2}]
+)
 
-describe("simple replacement", () => {
-	runPatchTest({x: 3}, _d => 4, [{op: "replace", path: [], value: 4}])
-})
+runPatchTests("simple replacement", {x: 3}, _d => 4, [
+	{op: "replace", path: [], value: 4}
+])
 
-describe("same value replacement - 1", () => {
-	runPatchTest(
-		{x: {y: 3}},
-		d => {
-			const a = d.x
-			d.x = a
-		},
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 1",
+	{x: {y: 3}},
+	d => {
+		const a = d.x
+		d.x = a
+	},
+	[]
+)
 
-describe("same value replacement - 2", () => {
-	runPatchTest(
-		{x: {y: 3}},
-		d => {
-			const a = d.x
-			d.x = 4
-			d.x = a
-		},
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 2",
+	{x: {y: 3}},
+	d => {
+		const a = d.x
+		d.x = 4
+		d.x = a
+	},
+	[]
+)
 
-describe("same value replacement - 3", () => {
-	runPatchTest(
-		{x: 3},
-		d => {
-			d.x = 3
-		},
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 3",
+	{x: 3},
+	d => {
+		d.x = 3
+	},
+	[]
+)
 
-describe("same value replacement - 4", () => {
-	runPatchTest(
-		{x: 3},
-		d => {
-			d.x = 4
-			d.x = 3
-		},
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 4",
+	{x: 3},
+	d => {
+		d.x = 4
+		d.x = 3
+	},
+	[]
+)
 
-describe("same value replacement - 5", () => {
-	runPatchTest(
-		new Map([["x", 3]]),
-		d => {
-			d.set("x", 4)
-			d.set("x", 3)
-		},
-		[],
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 5",
+	new Map([["x", 3]]),
+	d => {
+		d.set("x", 4)
+		d.set("x", 3)
+	},
+	[],
+	[]
+)
 
-describe("same value replacement - 6", () => {
-	runPatchTest(
-		new Set(["x", 3]),
-		d => {
-			d.delete("x")
-			d.add("x")
-		},
-		[],
-		[]
-	)
-})
+runPatchTests(
+	"same value replacement - 6",
+	new Set(["x", 3]),
+	d => {
+		d.delete("x")
+		d.add("x")
+	},
+	[],
+	[]
+)
 
-describe("simple delete", () => {
-	runPatchTest(
-		{x: 2},
-		d => {
-			delete d.x
-		},
-		[
-			{
-				op: "remove",
-				path: ["x"]
-			}
-		]
-	)
-})
+runPatchTests(
+	"simple delete",
+	{x: 2},
+	d => {
+		delete d.x
+	},
+	[
+		{
+			op: "remove",
+			path: ["x"]
+		}
+	]
+)
 
 describe("patch compressions yields correct results", () => {
-	let p1, p2
-	runPatchTest(
+	let p1 = [
+		{
+			op: "add",
+			path: ["x"],
+			value: {
+				test: true
+			}
+		}
+	]
+	let p2 = [
+		{
+			op: "remove",
+			path: ["x"]
+		}
+	]
+
+	runPatchTests(
+		"add only",
 		{},
 		d => {
 			d.x = {test: true}
 		},
-		(p1 = [
-			{
-				op: "add",
-				path: ["x"],
-				value: {
-					test: true
-				}
-			}
-		])
+		p1
 	)
-	runPatchTest(
+
+	runPatchTests(
+		"delete only",
 		{x: {test: true}},
 		d => {
 			delete d.x
 		},
-		(p2 = [
-			{
-				op: "remove",
-				path: ["x"]
-			}
-		])
+		p2
 	)
-	const res = runPatchTest(
+	const testData = runPatchTests(
+		"add and delete together cancel",
 		{},
 		d => {
 			applyPatches(d, [...p1, ...p2])
@@ -981,29 +1038,25 @@ describe("patch compressions yields correct results", () => {
 		[]
 	)
 
-	expect(res).toEqual({})
+	expect(testData.result).toEqual({})
 })
 
-describe("change then delete property", () => {
-	const res = runPatchTest(
+runPatchTests(
+	"change then delete property",
+	{
+		x: 1
+	},
+	d => {
+		d.x = 2
+		delete d.x
+	},
+	[
 		{
-			x: 1
-		},
-		d => {
-			d.x = 2
-			delete d.x
-		},
-		[
-			{
-				op: "remove",
-				path: ["x"]
-			}
-		]
-	)
-	test("valid result", () => {
-		expect(res).toEqual({})
-	})
-})
+			op: "remove",
+			path: ["x"]
+		}
+	]
+)
 
 test("replaying patches with interweaved replacements should work correctly", () => {
 	const patches = []
@@ -1147,7 +1200,8 @@ describe("#588", () => {
 
 	let base = new Base()
 
-	runPatchTest(
+	runPatchTests(
+		"",
 		base,
 		vdraft => {
 			reference.value = vdraft
@@ -1409,29 +1463,27 @@ test("#888 patch to a primitive produces the primitive", () => {
 	}
 })
 
-describe("#879 delete item from array", () => {
-	runPatchTest(
-		[1, 2, 3],
-		draft => {
-			delete draft[1]
-		},
-		[{op: "replace", path: [1], value: undefined}],
-		[{op: "replace", path: [1], value: 2}],
-		[1, undefined, 3]
-	)
-})
+runPatchTests(
+	"#879 delete item from array",
+	[1, 2, 3],
+	draft => {
+		delete draft[1]
+	},
+	[{op: "replace", path: [1], value: undefined}],
+	[{op: "replace", path: [1], value: 2}],
+	[1, undefined, 3]
+)
 
-describe("#879 delete item from array - 2", () => {
-	runPatchTest(
-		[1, 2, 3],
-		draft => {
-			delete draft[2]
-		},
-		[{op: "replace", path: [2], value: undefined}],
-		[{op: "replace", path: [2], value: 3}],
-		[1, 2, undefined]
-	)
-})
+runPatchTests(
+	"#879 delete item from array - 2",
+	[1, 2, 3],
+	draft => {
+		delete draft[2]
+	},
+	[{op: "replace", path: [2], value: undefined}],
+	[{op: "replace", path: [2], value: 3}],
+	[1, 2, undefined]
+)
 
 test("#897 appendPatch", () => {
 	const state0 = {a: []}

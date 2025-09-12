@@ -1,13 +1,13 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`auto freeze - proxy will freeze maps 1`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze maps 1`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`auto freeze - proxy will freeze maps 2`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze maps 2`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`auto freeze - proxy will freeze maps 3`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze maps 3`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`auto freeze - proxy will freeze sets 1`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze sets 1`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`auto freeze - proxy will freeze sets 2`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze sets 2`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`auto freeze - proxy will freeze sets 3`] = `"[Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`auto freeze - proxy > will freeze sets 3`] = `[Error: [Immer] minified error nr: 2. Full error at: https://bit.ly/3cXEKWf]`;

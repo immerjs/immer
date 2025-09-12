@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`applyPatches throws when \`op\` is not "add", "replace", nor "remove" 1`] = `"[Immer] minified error nr: 17. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`applyPatches > throws when \`op\` is not "add", "replace", nor "remove" 1`] = `[Error: [Immer] minified error nr: 17. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`applyPatches throws when \`path\` cannot be resolved 1`] = `"[Immer] minified error nr: 18. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`applyPatches > throws when \`path\` cannot be resolved 1`] = `[Error: [Immer] minified error nr: 18. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`applyPatches throws when \`path\` cannot be resolved 2`] = `"[Immer] minified error nr: 18. Full error at: https://bit.ly/3cXEKWf"`;
+exports[`applyPatches > throws when \`path\` cannot be resolved 2`] = `[Error: [Immer] minified error nr: 18. Full error at: https://bit.ly/3cXEKWf]`;
