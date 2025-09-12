@@ -72,6 +72,7 @@
   ],
   "devDependencies": {
     "@babel/core": "^7.21.3",
+    "@types/node": "^24.3.1",
     "coveralls": "^3.0.0",
     "cpx2": "^3.0.0",
     "deep-freeze": "^0.0.1",
@@ -89,6 +90,7 @@
     "semantic-release": "^17.0.2",
     "tsup": "^6.7.0",
     "typescript": "^5.0.2",
-    "vitest": "^3.2.4"
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0"
   }
 }
