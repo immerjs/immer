@@ -73,6 +73,7 @@
   "devDependencies": {
     "@babel/core": "^7.21.3",
     "@types/node": "^24.3.1",
+    "@vitest/coverage-v8": "2.1.9",
     "coveralls": "^3.0.0",
     "cpx2": "^3.0.0",
     "deep-freeze": "^0.0.1",
