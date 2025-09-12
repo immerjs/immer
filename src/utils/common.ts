@@ -20,23 +20,34 @@ export function isDraft(value: any): boolean {
 	return !!value && !!value[DRAFT_STATE]
 }
 
+const isDraftableCache = new WeakMap<object, boolean>()
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
 export function isDraftable(value: any): boolean {
-	if (!value) return false
-	return (
+	// Fast path: primitives are never draftable
+	if (!value || typeof value !== "object") return false
+
+	// Now safe to check cache since we know value is an object
+	if (isDraftableCache.has(value)) {
+		return isDraftableCache.get(value)!
+	}
+
+	const result =
 		isPlainObject(value) ||
 		Array.isArray(value) ||
 		!!value[DRAFTABLE] ||
 		!!value.constructor?.[DRAFTABLE] ||
 		isMap(value) ||
 		isSet(value)
-	)
+
+	// Safe to cache since value is an object
+	isDraftableCache.set(value, result)
+	return result
 }
 
 const objectCtorString = Object.prototype.constructor.toString()
 /*#__PURE__*/
-export function isPlainObject(value: any): boolean {
+export function isPlainObjectOriginal(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	const proto = getPrototypeOf(value)
 	if (proto === null) {
@@ -53,6 +64,29 @@ export function isPlainObject(value: any): boolean {
 	)
 }
 
+const cachedCtorStrings = new WeakMap()
+function isPlainObjectCached(value: any) {
+	if (!value || typeof value !== "object") return false
+	const proto = Object.getPrototypeOf(value)
+	if (proto === null || proto === Object.prototype) return true
+
+	const Ctor =
+		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	if (Ctor === Object) return true
+
+	if (typeof Ctor !== "function") return false
+
+	let ctorString = cachedCtorStrings.get(Ctor)
+	if (ctorString === undefined) {
+		ctorString = Function.toString.call(Ctor)
+		cachedCtorStrings.set(Ctor, ctorString)
+	}
+
+	return ctorString === objectCtorString
+}
+
+export const isPlainObject = isPlainObjectCached
+
 /** Get the underlying object that is represented by the given draft */
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
@@ -64,15 +98,23 @@ export function original(value: Drafted<any>): any {
 /**
  * Each iterates a map, set or array.
  * Or, if any other kind of object, all of its own properties.
- * Regardless whether they are enumerable or symbols
+ *
+ * @param obj The object to iterate over
+ * @param iter The iterator function
+ * @param strict When true (default), includes symbols and non-enumerable properties.
+ *               When false, uses ultra-fast iteration over only enumerable string properties.
  */
 export function each<T extends Objectish>(
 	obj: T,
-	iter: (key: string | number, value: any, source: T) => void
+	iter: (key: string | number, value: any, source: T) => void,
+	strict?: boolean
 ): void
-export function each(obj: any, iter: any) {
+export function each(obj: any, iter: any, strict: boolean = true) {
 	if (getArchtype(obj) === ArchType.Object) {
-		Reflect.ownKeys(obj).forEach(key => {
+		// If strict, we do a full iteration including symbols and non-enumerable properties
+		// Otherwise, we only iterate enumerable string properties for performance
+		const keys = strict ? Reflect.ownKeys(obj) : Object.keys(obj)
+		keys.forEach(key => {
 			iter(key, obj[key], obj)
 		})
 	} else {
@@ -198,12 +240,12 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		 Object.defineProperties(obj, {
-                        set: {value: dontMutateFrozenCollections as any},
-                        add: {value: dontMutateFrozenCollections as any},
-                        clear: {value: dontMutateFrozenCollections as any},
-                        delete: {value: dontMutateFrozenCollections as any}
-                })
+		Object.defineProperties(obj, {
+			set: {value: dontMutateFrozenCollections as any},
+			add: {value: dontMutateFrozenCollections as any},
+			clear: {value: dontMutateFrozenCollections as any},
+			delete: {value: dontMutateFrozenCollections as any}
+		})
 	}
 	Object.freeze(obj)
 	if (deep)
