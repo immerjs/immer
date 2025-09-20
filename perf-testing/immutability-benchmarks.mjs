@@ -71,7 +71,9 @@ const concat = index => ({
 const updateHigh = index => ({
 	type: "test/updateHighIndex",
 	payload: {
-		id: Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) + (index % 1000),
+		id:
+			Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) +
+			(index % Math.floor(BENCHMARK_CONFIG.arraySize * 0.2)),
 		value: index,
 		nestedData: index
 	}
@@ -86,15 +88,9 @@ const updateMultiple = index => ({
 })
 const removeHigh = index => ({
 	type: "test/removeHighIndex",
-	payload: Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) + (index % 1000)
-})
-const addMultiple = index => ({
-	type: "test/addMultiple",
-	payload: Array.from({length: 3}, (_, i) => ({
-		id: index * 1000 + i,
-		value: index + i,
-		nested: {data: index + i}
-	}))
+	payload:
+		Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) +
+		(index % Math.floor(BENCHMARK_CONFIG.arraySize * 0.2))
 })
 
 const actions = {
@@ -105,8 +101,7 @@ const actions = {
 	concat,
 	updateHigh,
 	updateMultiple,
-	removeHigh,
-	addMultiple
+	removeHigh
 }
 
 const immerProducers = {
@@ -239,12 +234,6 @@ const vanillaReducer = (state = createInitialState(), action) => {
 				largeArray: newArray
 			}
 		}
-		case "test/addMultiple": {
-			return {
-				...state,
-				largeArray: [...state.largeArray, ...action.payload]
-			}
-		}
 		default:
 			return state
 	}
@@ -310,12 +299,6 @@ const createImmerReducer = produce => {
 					}
 					break
 				}
-				case "test/addMultiple": {
-					action.payload.forEach(item => {
-						draft.largeArray.push(item)
-					})
-					break
-				}
 			}
 		})
 
@@ -336,7 +319,7 @@ const reducers = {
 }
 
 function createBenchmarks() {
-	// single action with fresh state
+	// All single-operation benchmarks (fresh state each time)
 	for (const action in actions) {
 		summary(function() {
 			bench(`$action: $version (freeze: $freeze)`, function*(args) {
@@ -364,7 +347,7 @@ function createBenchmarks() {
 		})
 	}
 
-	// State reuse testing (frozen state performance)
+	// State reuse benchmarks (tests performance on frozen/evolved state)
 	const reuseActions = ["update", "updateHigh", "remove", "removeHigh"]
 	for (const action of reuseActions) {
 		summary(function() {
@@ -395,9 +378,9 @@ function createBenchmarks() {
 		})
 	}
 
-	// Multiple operations in sequence benchmarks
+	// Mixed operations sequence benchmark
 	summary(function() {
-		bench(`multi-ops: $version (freeze: $freeze)`, function*(args) {
+		bench(`mixed-sequence: $version (freeze: $freeze)`, function*(args) {
 			const version = args.get("version")
 			const freeze = args.get("freeze")
 
@@ -407,7 +390,7 @@ function createBenchmarks() {
 
 				let state = createInitialState()
 
-				// Perform a sequence of different operations
+				// Perform a sequence of different operations (typical workflow)
 				state = reducers[version](state, actions.add(1))
 				state = reducers[version](state, actions.update(500))
 				state = reducers[version](state, actions.updateHigh(2))
@@ -421,35 +404,6 @@ function createBenchmarks() {
 		}).args({
 			version: Object.keys(reducers),
 			freeze: [false, true]
-		})
-	})
-
-	// Batch operations benchmarks
-	summary(function() {
-		bench(`batch-$action: $version (freeze: $freeze)`, function*(args) {
-			const version = args.get("version")
-			const freeze = args.get("freeze")
-			const action = args.get("action")
-
-			function benchMethod() {
-				setAutoFreezes[version](freeze)
-				setStrictIteration[version](false)
-
-				const initialState = createInitialState()
-
-				// Perform the same action multiple times in a batch
-				for (let i = 0; i < 10; i++) {
-					reducers[version](initialState, actions[action](i))
-				}
-
-				setAutoFreezes[version](false)
-			}
-
-			yield benchMethod
-		}).args({
-			version: Object.keys(reducers),
-			freeze: [false, true],
-			action: ["updateMultiple", "addMultiple"]
 		})
 	})
 }
