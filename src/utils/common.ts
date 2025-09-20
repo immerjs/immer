@@ -198,12 +198,12 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		 Object.defineProperties(obj, {
-                        set: {value: dontMutateFrozenCollections as any},
-                        add: {value: dontMutateFrozenCollections as any},
-                        clear: {value: dontMutateFrozenCollections as any},
-                        delete: {value: dontMutateFrozenCollections as any}
-                })
+		Object.defineProperties(obj, {
+			set: {value: dontMutateFrozenCollections as any},
+			add: {value: dontMutateFrozenCollections as any},
+			clear: {value: dontMutateFrozenCollections as any},
+			delete: {value: dontMutateFrozenCollections as any}
+		})
 	}
 	Object.freeze(obj)
 	if (deep)
@@ -218,5 +218,8 @@ function dontMutateFrozenCollections() {
 }
 
 export function isFrozen(obj: any): boolean {
+	// Fast path: primitives and null/undefined are always "frozen"
+	if (obj === null || typeof obj !== "object") return true
+
 	return Object.isFrozen(obj)
 }
