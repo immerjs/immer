@@ -21,17 +21,20 @@ import {
 } from "mutative-compat"
 import {bench, run, group, summary} from "mitata"
 
-function createInitialState() {
+function createInitialState(arraySize = BENCHMARK_CONFIG.arraySize) {
 	const initialState = {
-		largeArray: Array.from({length: 10000}, (_, i) => ({
+		largeArray: Array.from({length: arraySize}, (_, i) => ({
 			id: i,
 			value: Math.random(),
 			nested: {key: `key-${i}`, data: Math.random()},
 			moreNested: {
-				items: Array.from({length: 100}, (_, i) => ({id: i, name: String(i)}))
+				items: Array.from(
+					{length: BENCHMARK_CONFIG.nestedArraySize},
+					(_, i) => ({id: i, name: String(i)})
+				)
 			}
 		})),
-		otherData: Array.from({length: 10000}, (_, i) => ({
+		otherData: Array.from({length: arraySize}, (_, i) => ({
 			id: i,
 			name: `name-${i}`,
 			isActive: i % 2 === 0
@@ -41,6 +44,14 @@ function createInitialState() {
 }
 
 const MAX = 1
+
+const BENCHMARK_CONFIG = {
+	iterations: 1,
+	arraySize: 10000,
+	nestedArraySize: 100,
+	multiUpdateCount: 5,
+	reuseStateIterations: 10
+}
 
 const add = index => ({
 	type: "test/addItem",
@@ -57,12 +68,45 @@ const concat = index => ({
 	payload: Array.from({length: 500}, (_, i) => ({id: i, value: index}))
 })
 
+const updateHigh = index => ({
+	type: "test/updateHighIndex",
+	payload: {
+		id: Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) + (index % 1000),
+		value: index,
+		nestedData: index
+	}
+})
+const updateMultiple = index => ({
+	type: "test/updateMultiple",
+	payload: Array.from({length: BENCHMARK_CONFIG.multiUpdateCount}, (_, i) => ({
+		id: (index + i) % BENCHMARK_CONFIG.arraySize,
+		value: index + i,
+		nestedData: index + i
+	}))
+})
+const removeHigh = index => ({
+	type: "test/removeHighIndex",
+	payload: Math.floor(BENCHMARK_CONFIG.arraySize * 0.8) + (index % 1000)
+})
+const addMultiple = index => ({
+	type: "test/addMultiple",
+	payload: Array.from({length: 3}, (_, i) => ({
+		id: index * 1000 + i,
+		value: index + i,
+		nested: {data: index + i}
+	}))
+})
+
 const actions = {
 	add,
 	remove,
 	filter,
 	update,
-	concat
+	concat,
+	updateHigh,
+	updateMultiple,
+	removeHigh,
+	addMultiple
 }
 
 const immerProducers = {
@@ -152,6 +196,55 @@ const vanillaReducer = (state = createInitialState(), action) => {
 				largeArray: newArray
 			}
 		}
+		case "test/updateHighIndex": {
+			return {
+				...state,
+				largeArray: state.largeArray.map(item =>
+					item.id === action.payload.id
+						? {
+								...item,
+								value: action.payload.value,
+								nested: {...item.nested, data: action.payload.nestedData}
+						  }
+						: item
+				)
+			}
+		}
+		case "test/updateMultiple": {
+			const updates = new Map(action.payload.map(p => [p.id, p]))
+			return {
+				...state,
+				largeArray: state.largeArray.map(item => {
+					const update = updates.get(item.id)
+					return update
+						? {
+								...item,
+								value: update.value,
+								nested: {...item.nested, data: update.nestedData}
+						  }
+						: item
+				})
+			}
+		}
+		case "test/removeHighIndex": {
+			const newArray = state.largeArray.slice()
+			const indexToRemove = newArray.findIndex(
+				item => item.id === action.payload
+			)
+			if (indexToRemove !== -1) {
+				newArray.splice(indexToRemove, 1)
+			}
+			return {
+				...state,
+				largeArray: newArray
+			}
+		}
+		case "test/addMultiple": {
+			return {
+				...state,
+				largeArray: [...state.largeArray, ...action.payload]
+			}
+		}
 		default:
 			return state
 	}
@@ -188,6 +281,41 @@ const createImmerReducer = produce => {
 					draft.largeArray = newArray
 					break
 				}
+				case "test/updateHighIndex": {
+					const item = draft.largeArray.find(
+						item => item.id === action.payload.id
+					)
+					if (item) {
+						item.value = action.payload.value
+						item.nested.data = action.payload.nestedData
+					}
+					break
+				}
+				case "test/updateMultiple": {
+					action.payload.forEach(update => {
+						const item = draft.largeArray.find(item => item.id === update.id)
+						if (item) {
+							item.value = update.value
+							item.nested.data = update.nestedData
+						}
+					})
+					break
+				}
+				case "test/removeHighIndex": {
+					const indexToRemove = draft.largeArray.findIndex(
+						item => item.id === action.payload
+					)
+					if (indexToRemove !== -1) {
+						draft.largeArray.splice(indexToRemove, 1)
+					}
+					break
+				}
+				case "test/addMultiple": {
+					action.payload.forEach(item => {
+						draft.largeArray.push(item)
+					})
+					break
+				}
 			}
 		})
 
@@ -208,6 +336,7 @@ const reducers = {
 }
 
 function createBenchmarks() {
+	// single action with fresh state
 	for (const action in actions) {
 		summary(function() {
 			bench(`$action: $version (freeze: $freeze)`, function*(args) {
@@ -234,6 +363,95 @@ function createBenchmarks() {
 			})
 		})
 	}
+
+	// State reuse testing (frozen state performance)
+	const reuseActions = ["update", "updateHigh", "remove", "removeHigh"]
+	for (const action of reuseActions) {
+		summary(function() {
+			bench(`$action-reuse: $version (freeze: $freeze)`, function*(args) {
+				const version = args.get("version")
+				const freeze = args.get("freeze")
+				const action = args.get("action")
+
+				function benchMethod() {
+					setAutoFreezes[version](freeze)
+					setStrictIteration[version](false)
+
+					let currentState = createInitialState()
+
+					// Perform multiple operations on the same evolving state
+					for (let i = 0; i < BENCHMARK_CONFIG.reuseStateIterations; i++) {
+						currentState = reducers[version](currentState, actions[action](i))
+					}
+					setAutoFreezes[version](false)
+				}
+
+				yield benchMethod
+			}).args({
+				version: Object.keys(reducers),
+				freeze: [false, true],
+				action: [action]
+			})
+		})
+	}
+
+	// Multiple operations in sequence benchmarks
+	summary(function() {
+		bench(`multi-ops: $version (freeze: $freeze)`, function*(args) {
+			const version = args.get("version")
+			const freeze = args.get("freeze")
+
+			function benchMethod() {
+				setAutoFreezes[version](freeze)
+				setStrictIteration[version](false)
+
+				let state = createInitialState()
+
+				// Perform a sequence of different operations
+				state = reducers[version](state, actions.add(1))
+				state = reducers[version](state, actions.update(500))
+				state = reducers[version](state, actions.updateHigh(2))
+				state = reducers[version](state, actions.updateMultiple(3))
+				state = reducers[version](state, actions.remove(100))
+
+				setAutoFreezes[version](false)
+			}
+
+			yield benchMethod
+		}).args({
+			version: Object.keys(reducers),
+			freeze: [false, true]
+		})
+	})
+
+	// Batch operations benchmarks
+	summary(function() {
+		bench(`batch-$action: $version (freeze: $freeze)`, function*(args) {
+			const version = args.get("version")
+			const freeze = args.get("freeze")
+			const action = args.get("action")
+
+			function benchMethod() {
+				setAutoFreezes[version](freeze)
+				setStrictIteration[version](false)
+
+				const initialState = createInitialState()
+
+				// Perform the same action multiple times in a batch
+				for (let i = 0; i < 10; i++) {
+					reducers[version](initialState, actions[action](i))
+				}
+
+				setAutoFreezes[version](false)
+			}
+
+			yield benchMethod
+		}).args({
+			version: Object.keys(reducers),
+			freeze: [false, true],
+			action: ["updateMultiple", "addMultiple"]
+		})
+	})
 }
 
 async function main() {
