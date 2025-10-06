@@ -35,26 +35,9 @@ export function isDraftable(value: any): boolean {
 }
 
 const objectCtorString = Object.prototype.constructor.toString()
-/*#__PURE__*/
-export function isPlainObjectOriginal(value: any): boolean {
-	if (!value || typeof value !== "object") return false
-	const proto = getPrototypeOf(value)
-	if (proto === null) {
-		return true
-	}
-	const Ctor =
-		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
-
-	if (Ctor === Object) return true
-
-	return (
-		typeof Ctor == "function" &&
-		Function.toString.call(Ctor) === objectCtorString
-	)
-}
-
 const cachedCtorStrings = new WeakMap()
-function isPlainObjectCached(value: any) {
+/*#__PURE__*/
+export function isPlainObject(value: any): boolean {
 	if (!value || typeof value !== "object") return false
 	const proto = Object.getPrototypeOf(value)
 	if (proto === null || proto === Object.prototype) return true
@@ -74,8 +57,6 @@ function isPlainObjectCached(value: any) {
 	return ctorString === objectCtorString
 }
 
-export const isPlainObject = isPlainObjectCached
-
 /** Get the underlying object that is represented by the given draft */
 /*#__PURE__*/
 export function original<T>(value: T): T | undefined
@@ -91,7 +72,7 @@ export function original(value: Drafted<any>): any {
  * @param obj The object to iterate over
  * @param iter The iterator function
  * @param strict When true (default), includes symbols and non-enumerable properties.
- *               When false, uses ultra-fast iteration over only enumerable string properties.
+ *               When false, uses looseiteration over only enumerable string properties.
  */
 export function each<T extends Objectish>(
 	obj: T,

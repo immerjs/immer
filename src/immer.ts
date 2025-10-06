@@ -72,7 +72,7 @@ export const setUseStrictShallowCopy = /* @__PURE__ */ immer.setUseStrictShallow
 )
 
 /**
- * Pass false to use ultra-fast iteration that only processes enumerable string properties.
+ * Pass false to use loose iteration that only processes enumerable string properties.
  * This skips symbols and non-enumerable properties for maximum performance.
  *
  * By default, strict iteration is enabled (includes all own properties).
