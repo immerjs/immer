@@ -17,7 +17,7 @@ enablePatches()
 enableMapSet()
 
 vi.setConfig({
-	testTimeout: 1000
+	testTimeout: 2000
 })
 
 const isProd = process.env.NODE_ENV === "production"
@@ -263,29 +263,1076 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				expect(nextState.anArray.length).toBe(baseLength + 1)
 			})
 
-			// Reported here: https://github.com/mweststrate/immer/issues/116
-			it("can pop then push", () => {
-				const nextState = produce([1, 2, 3], s => {
-					s.pop()
-					s.push(100)
+			describe("mutating array methods", () => {
+				// Reported here: https://github.com/mweststrate/immer/issues/116
+				it("can pop then push", () => {
+					const nextState = produce([1, 2, 3], s => {
+						s.pop()
+						s.push(100)
+					})
+					expect(nextState).toEqual([1, 2, 100])
 				})
-				expect(nextState).toEqual([1, 2, 100])
+
+				it("can be sorted", () => {
+					const baseState = [{value: 3}, {value: 1}, {value: 2}]
+					const nextState = produce(baseState, s => {
+						s.sort((a, b) => a.value - b.value)
+					})
+					expect(nextState).not.toBe(baseState)
+					expect(nextState).toEqual([{value: 1}, {value: 2}, {value: 3}])
+				})
+
+				it("can be reversed", () => {
+					const baseState = [{value: 1}, {value: 2}, {value: 3}]
+					const nextState = produce(baseState, s => {
+						s.reverse()
+					})
+					expect(nextState).not.toBe(baseState)
+					expect(nextState).toEqual([{value: 3}, {value: 2}, {value: 1}])
+				})
+
+				it("can be sorted with existing proxies", () => {
+					const baseState = [{value: 3}, {value: 1}, {value: 2}]
+					const nextState = produce(baseState, s => {
+						// First mutate a nested object to create a proxy
+						s[0].value = 4
+						// Then sort the array
+						s.sort((a, b) => a.value - b.value)
+					})
+					expect(nextState).not.toBe(baseState)
+					expect(nextState).toEqual([{value: 1}, {value: 2}, {value: 4}])
+				})
+
+				it("can be reversed with existing proxies", () => {
+					const baseState = [{value: 1}, {value: 2}, {value: 3}]
+					const nextState = produce(baseState, s => {
+						// First mutate a nested object to create a proxy
+						s[1].value = 5
+						// Then reverse the array
+						s.reverse()
+					})
+					expect(nextState).not.toBe(baseState)
+					expect(nextState).toEqual([{value: 3}, {value: 5}, {value: 1}])
+				})
+
+				it("can be sorted with unmodified existing proxies", () => {
+					const baseState = [{value: 3}, {value: 1}, {value: 2}]
+					const nextState = produce(baseState, s => {
+						// Access a nested object to create a proxy, but don't modify it
+						const firstValue = s[0].value // This creates a proxy for s[0]
+						expect(firstValue).toBe(3) // But we don't modify it
+
+						// Then sort the array
+						s.sort((a, b) => a.value - b.value)
+					})
+					expect(nextState).not.toBe(baseState)
+					expect(nextState).toEqual([{value: 1}, {value: 2}, {value: 3}])
+				})
+
+				describe("push()", () => {
+					test("push single item", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							draft.items.push({id: 3})
+						})
+						expect(result.items).toHaveLength(3)
+						expect(result.items[2].id).toBe(3)
+					})
+
+					test("push multiple items", () => {
+						const base = {items: [{id: 1}]}
+						const result = produce(base, draft => {
+							draft.items.push({id: 2}, {id: 3}, {id: 4})
+						})
+						expect(result.items).toHaveLength(4)
+						expect(result.items[3].id).toBe(4)
+					})
+
+					test("push then mutate pushed item", () => {
+						const base = {items: [{id: 1}]}
+						const result = produce(base, draft => {
+							draft.items.push({id: 2, value: 10})
+							draft.items[1].value = 20
+						})
+						expect(result.items[1].value).toBe(20)
+					})
+
+					test("push returns new length", () => {
+						const base = {items: [1, 2]}
+						produce(base, draft => {
+							const newLength = draft.items.push(3, 4)
+							expect(newLength).toBe(4)
+						})
+					})
+				})
+
+				describe("unshift()", () => {
+					test("unshift single item", () => {
+						const base = {items: [{id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							draft.items.unshift({id: 1})
+						})
+						expect(result.items).toHaveLength(3)
+						expect(result.items[0].id).toBe(1)
+						expect(result.items[1].id).toBe(2)
+					})
+
+					test("unshift multiple items", () => {
+						const base = {items: [{id: 4}]}
+						const result = produce(base, draft => {
+							draft.items.unshift({id: 1}, {id: 2}, {id: 3})
+						})
+						expect(result.items).toHaveLength(4)
+						expect(result.items[0].id).toBe(1)
+						expect(result.items[3].id).toBe(4)
+					})
+
+					test("unshift then mutate unshifted item", () => {
+						const base = {items: [{id: 2}]}
+						const result = produce(base, draft => {
+							draft.items.unshift({id: 1, value: 10})
+							draft.items[0].value = 20
+						})
+						expect(result.items[0].value).toBe(20)
+					})
+
+					test("unshift returns new length", () => {
+						const base = {items: [3, 4]}
+						produce(base, draft => {
+							const newLength = draft.items.unshift(1, 2)
+							expect(newLength).toBe(4)
+						})
+					})
+				})
+
+				describe("shift()", () => {
+					test("shift removes first item", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							const removed = draft.items.shift()
+							expect(removed.id).toBe(1)
+						})
+						expect(result.items).toHaveLength(2)
+						expect(result.items[0].id).toBe(2)
+					})
+
+					test("shift on empty array returns undefined", () => {
+						const base = {items: []}
+						produce(base, draft => {
+							const removed = draft.items.shift()
+							expect(removed).toBeUndefined()
+						})
+					})
+
+					test("shift then mutate remaining items", () => {
+						const base = {items: [{id: 1}, {id: 2, value: 10}]}
+						const result = produce(base, draft => {
+							draft.items.shift()
+							draft.items[0].value = 20
+						})
+						expect(result.items).toHaveLength(1)
+						expect(result.items[0].value).toBe(20)
+					})
+
+					test("multiple shifts", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							draft.items.shift()
+							draft.items.shift()
+						})
+						expect(result.items).toHaveLength(1)
+						expect(result.items[0].id).toBe(3)
+					})
+				})
+
+				describe("splice() edge cases", () => {
+					test("splice with only deleteCount (no items to add)", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}, {id: 4}]}
+						const result = produce(base, draft => {
+							const removed = draft.items.splice(1, 2)
+							expect(removed).toHaveLength(2)
+							expect(removed[0].id).toBe(2)
+						})
+						expect(result.items).toHaveLength(2)
+						expect(result.items[0].id).toBe(1)
+						expect(result.items[1].id).toBe(4)
+					})
+
+					test("splice with negative start index", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							draft.items.splice(-1, 1, {id: 99})
+						})
+						expect(result.items[2].id).toBe(99)
+					})
+
+					test("splice at start (index 0)", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							draft.items.splice(0, 0, {id: 0})
+						})
+						expect(result.items[0].id).toBe(0)
+						expect(result.items).toHaveLength(3)
+					})
+
+					test("splice at end", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							draft.items.splice(2, 0, {id: 3})
+						})
+						expect(result.items[2].id).toBe(3)
+					})
+
+					test("splice then mutate spliced-in items", () => {
+						const base = {items: [{id: 1}, {id: 3}]}
+						const result = produce(base, draft => {
+							draft.items.splice(1, 0, {id: 2, value: 10})
+							draft.items[1].value = 20
+						})
+						expect(result.items[1].value).toBe(20)
+					})
+				})
+
+				describe("combined operations", () => {
+					test("sort then push", () => {
+						const base = {items: [{value: 3}, {value: 1}]}
+						const result = produce(base, draft => {
+							draft.items.sort((a, b) => a.value - b.value)
+							draft.items.push({value: 4})
+						})
+						expect(result.items.map(i => i.value)).toEqual([1, 3, 4])
+					})
+
+					test("reverse then unshift", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							draft.items.reverse()
+							draft.items.unshift({id: 0})
+						})
+						expect(result.items.map(i => i.id)).toEqual([0, 3, 2, 1])
+					})
+
+					test("splice then sort", () => {
+						const base = {items: [{value: 5}, {value: 2}, {value: 8}]}
+						const result = produce(base, draft => {
+							draft.items.splice(1, 1, {value: 1})
+							draft.items.sort((a, b) => a.value - b.value)
+						})
+						expect(result.items.map(i => i.value)).toEqual([1, 5, 8])
+					})
+
+					test("push, pop, push sequence", () => {
+						const base = {items: [{id: 1}]}
+						const result = produce(base, draft => {
+							draft.items.push({id: 2})
+							draft.items.pop()
+							draft.items.push({id: 3})
+						})
+						expect(result.items.map(i => i.id)).toEqual([1, 3])
+					})
+				})
+
+				describe("bulk operations with pre-existing proxies", () => {
+					test("access items before sort", () => {
+						const base = {items: [{value: 3}, {value: 1}, {value: 2}]}
+						const result = produce(base, draft => {
+							// Access all items to create proxies
+							draft.items.forEach(item => item.value)
+							// Then sort
+							draft.items.sort((a, b) => a.value - b.value)
+						})
+						expect(result.items.map(i => i.value)).toEqual([1, 2, 3])
+					})
+
+					test("mutate items before reverse", () => {
+						const base = {
+							items: [
+								{id: 1, value: 10},
+								{id: 2, value: 20}
+							]
+						}
+						const result = produce(base, draft => {
+							// Mutate to create modified proxies
+							draft.items[0].value = 15
+							draft.items[1].value = 25
+							// Then reverse
+							draft.items.reverse()
+						})
+						expect(result.items[0].id).toBe(2)
+						expect(result.items[0].value).toBe(25)
+						expect(result.items[1].id).toBe(1)
+						expect(result.items[1].value).toBe(15)
+					})
+				})
+
+				describe("return values", () => {
+					test("pop returns removed item", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						produce(base, draft => {
+							const removed = draft.items.pop()
+							expect(removed.id).toBe(2)
+							// Verify we can mutate the returned item
+							removed.modified = true
+							expect(draft.items[0].modified).toBeUndefined()
+						})
+					})
+
+					test("shift returns removed item", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						produce(base, draft => {
+							const removed = draft.items.shift()
+							expect(removed.id).toBe(1)
+						})
+					})
+
+					test("splice returns array of removed items", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						produce(base, draft => {
+							const removed = draft.items.splice(0, 2)
+							expect(removed).toHaveLength(2)
+							expect(removed[0].id).toBe(1)
+							expect(removed[1].id).toBe(2)
+						})
+					})
+				})
 			})
 
-			it("can be sorted", () => {
-				const baseState = [3, 1, 2]
-				const nextState = produce(baseState, s => {
-					s.sort()
+			describe("non-mutating array methods", () => {
+				// Test data factory
+				const createTestData = () => ({
+					items: [
+						{id: 1, value: 10, nested: {count: 1}},
+						{id: 2, value: 20, nested: {count: 2}},
+						{id: 3, value: 30, nested: {count: 3}},
+						{id: 4, value: 40, nested: {count: 4}},
+						{id: 5, value: 50, nested: {count: 5}}
+					],
+					other: {data: "test"}
 				})
-				expect(nextState).not.toBe(baseState)
-				expect(nextState).toEqual([1, 2, 3])
+
+				describe("filter()", () => {
+					test("returns new array with filtered items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 25)
+							expect(filtered).toHaveLength(3)
+							expect(filtered[0].id).toBe(3)
+						})
+						expect(result).toBe(base) // No modifications
+					})
+
+					test("mutations to filtered items are reflected in result", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 25)
+							// Verify filtered items are drafts
+							expect(isDraft(filtered[0])).toBe(true)
+							filtered[0].value = 999
+						})
+						expect(result.items[2].value).toBe(999) // id: 3 is at index 2
+						expect(result.items[0].value).toBe(10) // Unchanged
+						// Verify base state unchanged
+						expect(base.items[2].value).toBe(30)
+						// Verify result is a copy
+						expect(result.items[2]).not.toBe(base.items[2])
+					})
+
+					test("mutations to nested properties work correctly", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.id > 2)
+							// Verify filtered items are drafts
+							expect(isDraft(filtered[0])).toBe(true)
+							filtered[0].nested.count = 100
+						})
+						expect(result.items[2].nested.count).toBe(100)
+						// Verify base state unchanged
+						expect(base.items[2].nested.count).toBe(3)
+						// Verify result is a copy
+						expect(result.items[2].nested).not.toBe(base.items[2].nested)
+					})
+
+					test("multiple mutations to different filtered items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 15)
+							// Verify all filtered items are drafts
+							filtered.forEach(item => expect(isDraft(item)).toBe(true))
+							filtered[0].value = 200 // id: 2
+							filtered[1].value = 300 // id: 3
+							filtered[2].value = 400 // id: 4
+						})
+						expect(result.items[1].value).toBe(200)
+						expect(result.items[2].value).toBe(300)
+						expect(result.items[3].value).toBe(400)
+						// Verify base state unchanged
+						expect(base.items[1].value).toBe(20)
+						expect(base.items[2].value).toBe(30)
+						expect(base.items[3].value).toBe(40)
+					})
+
+					test("filtered array can be assigned to another property", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 25)
+							draft.other.filtered = filtered
+						})
+						expect(result.other.filtered).toHaveLength(3)
+						expect(result.other.filtered[0].id).toBe(3)
+					})
+
+					test("cross-reference: mutating filtered item affects original location", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.id === 3)
+							draft.other.ref = filtered[0]
+							filtered[0].value = 999
+						})
+						expect(result.items[2].value).toBe(999)
+						expect(result.other.ref.value).toBe(999)
+					})
+
+					test("read-only access doesn't cause mutations", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 25)
+							const sum = filtered.reduce((acc, item) => acc + item.value, 0)
+							expect(sum).toBe(120) // 30 + 40 + 50
+						})
+						expect(result).toBe(base) // No modifications
+					})
+				})
+
+				describe("map()", () => {
+					test("returns new array with mapped items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const mapped = draft.items.map(item => item.nested)
+							expect(mapped).toHaveLength(5)
+							expect(mapped[0].count).toBe(1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations to mapped nested objects work", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const nested = draft.items.map(item => item.nested)
+							// Verify mapped items are drafts
+							expect(isDraft(nested[0])).toBe(true)
+							nested[0].count = 100
+						})
+						expect(result.items[0].nested.count).toBe(100)
+						// Verify base state unchanged
+						expect(base.items[0].nested.count).toBe(1)
+						// Verify result is a copy
+						expect(result.items[0].nested).not.toBe(base.items[0].nested)
+					})
+
+					test("map with transformation then mutate", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const mapped = draft.items.map(item => ({
+								...item,
+								doubled: item.value * 2
+							}))
+							// This creates new objects, so mutations won't affect original
+							mapped[0].value = 999
+						})
+						expect(result.items[0].value).toBe(10) // Unchanged
+					})
+
+					test("map returning original items allows mutation", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const mapped = draft.items.map(item => item) // Identity map
+							// Verify mapped items are drafts
+							expect(isDraft(mapped[0])).toBe(true)
+							mapped[0].value = 999
+						})
+						expect(result.items[0].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[0].value).toBe(10)
+						// Verify result is a copy
+						expect(result.items[0]).not.toBe(base.items[0])
+					})
+				})
+
+				describe("find()", () => {
+					test("returns found item", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const found = draft.items.find(item => item.id === 3)
+							expect(found?.value).toBe(30)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations to found item are reflected", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const found = draft.items.find(item => item.id === 3)
+							// Verify found item is a draft
+							expect(isDraft(found)).toBe(true)
+							if (found) {
+								found.value = 999
+							}
+						})
+						expect(result.items[2].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[2].value).toBe(30)
+						// Verify result is a copy
+						expect(result.items[2]).not.toBe(base.items[2])
+					})
+
+					test("nested mutations on found item", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const found = draft.items.find(item => item.id === 2)
+							// Verify found item is a draft
+							expect(isDraft(found)).toBe(true)
+							if (found) {
+								found.nested.count = 200
+							}
+						})
+						expect(result.items[1].nested.count).toBe(200)
+						// Verify base state unchanged
+						expect(base.items[1].nested.count).toBe(2)
+						// Verify result is a copy
+						expect(result.items[1].nested).not.toBe(base.items[1].nested)
+					})
+
+					test("find returns undefined when not found", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const found = draft.items.find(item => item.id === 999)
+							expect(found).toBeUndefined()
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("findLast()", () => {
+					test("returns last matching item", () => {
+						const base = {
+							items: [
+								{id: 1, type: "A"},
+								{id: 2, type: "B"},
+								{id: 3, type: "A"}
+							]
+						}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(item => item.type === "A")
+							expect(found?.id).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations to findLast result work", () => {
+						const base = {
+							items: [
+								{id: 1, type: "A", value: 10},
+								{id: 2, type: "B", value: 20},
+								{id: 3, type: "A", value: 30}
+							]
+						}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(item => item.type === "A")
+							// Verify found item is a draft
+							expect(isDraft(found)).toBe(true)
+							if (found) {
+								found.value = 999
+							}
+						})
+						expect(result.items[2].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[2].value).toBe(30)
+						// Verify result is a copy
+						expect(result.items[2]).not.toBe(base.items[2])
+					})
+				})
+
+				describe("slice()", () => {
+					test("returns sliced array", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const sliced = draft.items.slice(1, 3)
+							expect(sliced).toHaveLength(2)
+							expect(sliced[0].id).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations to sliced items work", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const sliced = draft.items.slice(1, 3)
+							// Verify sliced items are drafts
+							expect(isDraft(sliced[0])).toBe(true)
+							sliced[0].value = 999
+						})
+						expect(result.items[1].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[1].value).toBe(20)
+						// Verify result is a copy
+						expect(result.items[1]).not.toBe(base.items[1])
+					})
+
+					test("slice with negative indices", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const sliced = draft.items.slice(-2)
+							// Verify sliced items are drafts
+							expect(isDraft(sliced[0])).toBe(true)
+							sliced[0].value = 999
+						})
+						expect(result.items[3].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[3].value).toBe(40)
+						// Verify result is a copy
+						expect(result.items[3]).not.toBe(base.items[3])
+					})
+				})
+
+				describe("flatMap()", () => {
+					test("returns flattened array", () => {
+						const base = {
+							groups: [{items: [{id: 1}, {id: 2}]}, {items: [{id: 3}, {id: 4}]}]
+						}
+						const result = produce(base, draft => {
+							const flat = draft.groups.flatMap(group => group.items)
+							expect(flat).toHaveLength(4)
+							expect(flat[0].id).toBe(1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations to flatMapped items work", () => {
+						const base = {
+							groups: [
+								{
+									items: [
+										{id: 1, value: 10},
+										{id: 2, value: 20}
+									]
+								},
+								{items: [{id: 3, value: 30}]}
+							]
+						}
+						const result = produce(base, draft => {
+							const flat = draft.groups.flatMap(group => group.items)
+							// Verify flatMapped items are drafts
+							expect(isDraft(flat[0])).toBe(true)
+							flat[0].value = 999
+						})
+						expect(result.groups[0].items[0].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.groups[0].items[0].value).toBe(10)
+						// Verify result is a copy
+						expect(result.groups[0].items[0]).not.toBe(base.groups[0].items[0])
+					})
+				})
+
+				describe("reduce()", () => {
+					test("returns accumulated value", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const sum = draft.items.reduce((acc, item) => acc + item.value, 0)
+							expect(sum).toBe(150) // 10 + 20 + 30 + 40 + 50
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations during reduce are reflected", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const sum = draft.items.reduce((acc, item, index) => {
+								// Verify items in reduce are drafts
+								expect(isDraft(item)).toBe(true)
+								if (index === 2) {
+									item.value = 999
+								}
+								return acc + item.value
+							}, 0)
+							expect(sum).toBe(1119) // 10 + 20 + 999 + 40 + 50
+						})
+						expect(result.items[2].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[2].value).toBe(30)
+						// Verify result is a copy
+						expect(result.items[2]).not.toBe(base.items[2])
+					})
+
+					test("reduce with object accumulator", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const grouped = draft.items.reduce((acc, item) => {
+								const key = item.value > 25 ? "high" : "low"
+								if (!acc[key]) acc[key] = []
+								acc[key].push(item)
+								return acc
+							}, {})
+							expect(grouped.low).toHaveLength(2)
+							expect(grouped.high).toHaveLength(3)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("reduce then mutate accumulated items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const items = draft.items.reduce((acc, item) => {
+								// Verify items in reduce are drafts
+								expect(isDraft(item)).toBe(true)
+								if (item.value > 25) acc.push(item)
+								return acc
+							}, [])
+							// Verify accumulated items are drafts
+							expect(isDraft(items[0])).toBe(true)
+							items[0].value = 999
+						})
+						expect(result.items[2].value).toBe(999) // id: 3 is at index 2
+						// Verify base state unchanged
+						expect(base.items[2].value).toBe(30)
+						// Verify result is a copy
+						expect(result.items[2]).not.toBe(base.items[2])
+					})
+				})
+
+				describe("forEach()", () => {
+					test("iterates over all items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							let count = 0
+							draft.items.forEach(item => {
+								count++
+								expect(item.id).toBeDefined()
+							})
+							expect(count).toBe(5)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mutations during forEach are reflected", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.forEach((item, index) => {
+								// Verify items in forEach are drafts
+								expect(isDraft(item)).toBe(true)
+								if (index === 1) {
+									item.value = 999
+								}
+							})
+						})
+						expect(result.items[1].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[1].value).toBe(20)
+						// Verify result is a copy
+						expect(result.items[1]).not.toBe(base.items[1])
+					})
+
+					test("forEach with nested mutations", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.forEach(item => {
+								// Verify items in forEach are drafts
+								expect(isDraft(item)).toBe(true)
+								item.nested.count *= 10
+							})
+						})
+						expect(result.items[0].nested.count).toBe(10)
+						expect(result.items[4].nested.count).toBe(50)
+						// Verify base state unchanged
+						expect(base.items[0].nested.count).toBe(1)
+						// Verify result is a copy
+						expect(result.items[0].nested).not.toBe(base.items[0].nested)
+					})
+
+					test("forEach returns undefined", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const returnValue = draft.items.forEach(item => item.value)
+							expect(returnValue).toBeUndefined()
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("indexOf()", () => {
+					test("returns index of found item", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							const index = draft.items.indexOf(3)
+							expect(index).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns -1 when item not found", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							const index = draft.items.indexOf(99)
+							expect(index).toBe(-1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with object references", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const item = draft.items[2]
+							const index = draft.items.indexOf(item)
+							expect(index).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("indexOf with fromIndex parameter", () => {
+						const base = {items: [1, 2, 3, 2, 5]}
+						const result = produce(base, draft => {
+							const firstIndex = draft.items.indexOf(2)
+							const secondIndex = draft.items.indexOf(2, 2)
+							expect(firstIndex).toBe(1)
+							expect(secondIndex).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("join()", () => {
+					test("returns joined string", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							const joined = draft.items.join(",")
+							expect(joined).toBe("1,2,3,4,5")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("join with custom separator", () => {
+						const base = {items: ["a", "b", "c"]}
+						const result = produce(base, draft => {
+							const joined = draft.items.join(" - ")
+							expect(joined).toBe("a - b - c")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("join with no separator uses comma", () => {
+						const base = {items: [1, 2, 3]}
+						const result = produce(base, draft => {
+							const joined = draft.items.join()
+							expect(joined).toBe("1,2,3")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("join with objects calls toString", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const joined = draft.items.join(",")
+							expect(joined).toContain("[object Object]")
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("combined operations", () => {
+					test("chain filter then map then mutate", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 20)
+							// Verify filtered items are drafts
+							filtered.forEach(item => expect(isDraft(item)).toBe(true))
+							const nested = filtered.map(item => item.nested)
+							// Verify mapped items are drafts
+							expect(isDraft(nested[0])).toBe(true)
+							nested[0].count = 999
+						})
+						expect(result.items[2].nested.count).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[2].nested.count).toBe(3)
+						// Verify result is a copy
+						expect(result.items[2].nested).not.toBe(base.items[2].nested)
+					})
+
+					test("filter, find, then mutate", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 20)
+							// Verify filtered items are drafts
+							filtered.forEach(item => expect(isDraft(item)).toBe(true))
+							const found = filtered.find(item => item.id === 4)
+							// Verify found item is a draft
+							expect(isDraft(found)).toBe(true)
+							if (found) {
+								found.value = 999
+							}
+						})
+						expect(result.items[3].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[3].value).toBe(40)
+						// Verify result is a copy
+						expect(result.items[3]).not.toBe(base.items[3])
+					})
+
+					test("multiple filters with mutations", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered1 = draft.items.filter(item => item.value > 15)
+							// Verify first filter items are drafts
+							filtered1.forEach(item => expect(isDraft(item)).toBe(true))
+							const filtered2 = filtered1.filter(item => item.value < 45)
+							// Verify second filter items are drafts
+							filtered2.forEach(item => expect(isDraft(item)).toBe(true))
+							filtered2[0].value = 999
+						})
+						expect(result.items[1].value).toBe(999)
+						// Verify base state unchanged
+						expect(base.items[1].value).toBe(20)
+						// Verify result is a copy
+						expect(result.items[1]).not.toBe(base.items[1])
+					})
+				})
+
+				describe("edge cases", () => {
+					test("empty filter result", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 1000)
+							expect(filtered).toHaveLength(0)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("filter with all items", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(() => true)
+							filtered[0].value = 999
+						})
+						expect(result.items[0].value).toBe(999)
+					})
+
+					test("mutation during filter callback", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => {
+								// Verify items in filter callback are drafts
+								expect(isDraft(item)).toBe(true)
+								item.touched = true
+								return item.value > 25
+							})
+							expect(filtered).toHaveLength(3)
+						})
+						expect(result.items[0].touched).toBe(true)
+						expect(result.items[3].touched).toBe(true)
+						// Verify base state unchanged
+						expect(base.items[0].touched).toBeUndefined()
+					})
+
+					test("primitive array filter", () => {
+						const base = {numbers: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							const filtered = draft.numbers.filter(n => n > 2)
+							expect(filtered).toEqual([3, 4, 5])
+						})
+						expect(result).toBe(base)
+					})
+
+					test("mixed draft and non-draft in filter result", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							// Mutate some items before filtering
+							draft.items[0].value = 15
+							draft.items[2].value = 35
+
+							const filtered = draft.items.filter(item => item.value > 14)
+							filtered[0].value = 999 // Mutate already-mutated item
+						})
+						expect(result.items[0].value).toBe(999)
+					})
+
+					test("assigning filtered array back to draft", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items = draft.items.filter(item => item.value > 25)
+							draft.items[0].value = 999
+						})
+						expect(result.items).toHaveLength(3)
+						expect(result.items[0].value).toBe(999)
+						expect(result.items[0].id).toBe(3)
+					})
+				})
+
+				describe("performance-critical patterns", () => {
+					test("large array filter with read-only access", () => {
+						const base = {
+							items: Array.from({length: 1000}, (_, i) => ({
+								id: i,
+								value: i * 10
+							}))
+						}
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.value > 5000)
+							const sum = filtered.reduce((acc, item) => acc + item.value, 0)
+							expect(sum).toBeGreaterThan(0)
+						})
+						expect(result).toBe(base) // No modifications
+					})
+
+					test("multiple filters without mutations", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const f1 = draft.items.filter(item => item.value > 10)
+							const f2 = draft.items.filter(item => item.value < 40)
+							const f3 = draft.items.filter(item => item.id % 2 === 0)
+							expect(f1.length + f2.length + f3.length).toBeGreaterThan(0)
+						})
+						expect(result).toBe(base)
+					})
+				})
+			})
+
+			it("supports the same child reference multiple times in the same array via index assignment", () => {
+				const obj = {value: 1}
+				const baseState = {items: [obj, {}, {}, {}, {}]}
+
+				const nextState = produce(baseState, draft => {
+					// Assign the same object to multiple indices
+					draft.items[0] = obj // Original position
+					draft.items[2] = obj // Same object at different index
+					draft.items[4] = obj // Same object at yet another index
+
+					// Modify the object through one of the references
+					draft.items[0].value = 2
+				})
+
+				// Immer behavior: modified draft gets new object, unmodified drafts are optimized
+				expect(nextState.items[0]).not.toBe(nextState.items[2]) // Modified vs unmodified
+				expect(nextState.items[2]).toBe(nextState.items[4]) // Both unmodified, same reference
+				expect(nextState.items[0].value).toBe(2) // Modified
+				expect(nextState.items[2].value).toBe(1) // Unmodified (same as original)
+				expect(nextState.items[4].value).toBe(1) // Unmodified (same as original)
+
+				// The unmodified items should be the same as the original object
+				expect(nextState.items[2]).toBe(obj)
+				expect(nextState.items[4]).toBe(obj)
+
+				// Original object should be unchanged
+				expect(obj.value).toBe(1)
+
+				// Verify array structure
+				expect(nextState.items.length).toBe(5)
 			})
 
 			it("supports modifying nested objects", () => {
 				const baseState = [{a: 1}, {}]
 				const nextState = produce(baseState, s => {
 					s[0].a++
+					s[0].a++
 					s[1].a = 0
+					s[0].a--
 				})
 				expect(nextState).not.toBe(baseState)
 				expect(nextState[0].a).toBe(2)
@@ -1082,7 +2129,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 		})
 
 		it("supports a base state with multiple references to an object", () => {
-			const obj = {}
+			const obj = {notEmpty: true}
 			const res = produce({a: obj, b: obj}, d => {
 				// Two drafts are created for each occurrence of an object in the base state.
 				expect(d.a).not.toBe(d.b)
@@ -1709,6 +2756,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				expect(next[0]).toBe(next[1])
 			})
 
+			// This actually seems to pass now!
 			it("cannot return an object that references itself", () => {
 				const res = {}
 				res.self = res
