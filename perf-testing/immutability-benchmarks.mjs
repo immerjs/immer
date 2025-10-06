@@ -248,7 +248,10 @@ const reducers = {
 	...mapValues(immerProducers, createImmerReducer)
 }
 
+const freeze = [false, true]
+
 function createBenchmarks() {
+	// All single-operation benchmarks (fresh state each time)
 	for (const action in actions) {
 		summary(function() {
 			bench(`$action: $version (freeze: $freeze)`, function*(args) {
@@ -270,7 +273,7 @@ function createBenchmarks() {
 				yield benchMethod
 			}).args({
 				version: Object.keys(reducers),
-				freeze: [false, true],
+				freeze,
 				action: [action]
 			})
 		})
