@@ -74,7 +74,10 @@ const add = index => ({
 	payload: {id: index, value: index, nested: {data: index}}
 })
 const remove = index => ({type: "test/removeItem", payload: index})
-const filter = index => ({type: "test/filterItem", payload: index})
+const filter = percentToKeep => ({
+	type: "test/filterItem",
+	payload: percentToKeep
+})
 const update = index => ({
 	type: "test/updateItem",
 	payload: {id: index, value: index, nestedData: index}
@@ -155,8 +158,10 @@ const vanillaReducer = (state = createInitialState(), action) => {
 			}
 		}
 		case "test/filterItem": {
+			const keepPercentage = action.payload / 10
+			const length = state.largeArray.length
 			const newArray = state.largeArray.filter(
-				(item, i) => i !== action.payload
+				(item, i) => i / length < action.payload
 			)
 			return {
 				...state,
@@ -202,8 +207,10 @@ const createImmerReducer = produce => {
 					draft.largeArray.splice(action.payload, 1)
 					break
 				case "test/filterItem": {
+					const keepPercentage = action.payload / 10
+					const length = state.largeArray.length
 					draft.largeArray = draft.largeArray.filter(
-						(item, i) => i !== action.payload
+						(item, i) => i / length < action.payload
 					)
 					break
 				}
