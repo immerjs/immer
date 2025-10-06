@@ -56,6 +56,8 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 	// Don't recurse in tho recursive data structures
 	if (isFrozen(value)) return value
 
+	const useStrictIteration = rootScope.immer_.shouldUseStrictIteration()
+
 	const state: ImmerState = value[DRAFT_STATE]
 	// A plain object, might need freezing, might contain drafts
 	if (!state) {
@@ -63,7 +65,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 			value,
 			(key, childValue) =>
 				finalizeProperty(rootScope, state, value, key, childValue, path),
-			rootScope.immer_.shouldUseStrictIteration(value)
+			useStrictIteration
 		)
 		return value
 	}
@@ -102,7 +104,7 @@ function finalize(rootScope: ImmerScope, value: any, path?: PatchPath) {
 					path,
 					isSet
 				),
-			rootScope.immer_.shouldUseStrictIteration(resultEach)
+			useStrictIteration
 		)
 		// everything inside is frozen, we can freeze here
 		maybeFreeze(rootScope, result, false)

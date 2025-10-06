@@ -27,7 +27,7 @@ function currentImpl(value: any): any {
 		// Optimization: avoid generating new drafts during copying
 		state.finalized_ = true
 		copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
-		strict = state.scope_.immer_.shouldUseStrictIteration(value)
+		strict = state.scope_.immer_.shouldUseStrictIteration()
 	} else {
 		copy = shallowCopy(value, true)
 	}

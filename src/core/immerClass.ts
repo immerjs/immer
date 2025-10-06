@@ -186,7 +186,7 @@ export class Immer implements ProducersFns {
 		this.useStrictIteration_ = value
 	}
 
-	shouldUseStrictIteration(obj: any): boolean {
+	shouldUseStrictIteration(): boolean {
 		return this.useStrictIteration_
 	}
 
