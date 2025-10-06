@@ -31,20 +31,24 @@ interface ProducersFns {
 	produceWithPatches: IProduceWithPatches
 }
 
-export type StrictMode = boolean | "class_only";
+export type StrictMode = boolean | "class_only"
 
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
 	useStrictShallowCopy_: StrictMode = false
+	useStrictIteration_: boolean = true
 
 	constructor(config?: {
 		autoFreeze?: boolean
 		useStrictShallowCopy?: StrictMode
+		useStrictIteration?: boolean
 	}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
 		if (typeof config?.useStrictShallowCopy === "boolean")
 			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
+		if (typeof config?.useStrictIteration === "boolean")
+			this.setUseStrictIteration(config!.useStrictIteration)
 	}
 
 	/**
@@ -170,6 +174,20 @@ export class Immer implements ProducersFns {
 	 */
 	setUseStrictShallowCopy(value: StrictMode) {
 		this.useStrictShallowCopy_ = value
+	}
+
+	/**
+	 * Pass false to use faster iteration that skips non-enumerable properties
+	 * but still handles symbols for compatibility.
+	 *
+	 * By default, strict iteration is enabled (includes all own properties).
+	 */
+	setUseStrictIteration(value: boolean) {
+		this.useStrictIteration_ = value
+	}
+
+	shouldUseStrictIteration(): boolean {
+		return this.useStrictIteration_
 	}
 
 	applyPatches<T extends Objectish>(base: T, patches: readonly Patch[]): T {

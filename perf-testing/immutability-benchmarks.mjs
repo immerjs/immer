@@ -59,8 +59,8 @@ const MAX = 1
 
 const BENCHMARK_CONFIG = {
 	iterations: 1,
-	arraySize: 10000,
-	nestedArraySize: 100,
+	arraySize: 100,
+	nestedArraySize: 10,
 	multiUpdateCount: 5,
 	reuseStateIterations: 10
 }
