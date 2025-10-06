@@ -234,5 +234,7 @@ const dontMutateMethodOverride = {
 }
 
 export function isFrozen(obj: any): boolean {
+	// Fast path: primitives and null/undefined are always "frozen"
+	if (obj === null || typeof obj !== "object") return true
 	return Object.isFrozen(obj)
 }
