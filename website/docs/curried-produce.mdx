@@ -30,16 +30,22 @@ title: Curried producers
 	</a>
 </details>
 
-Passing a function as the first argument to `produce` creates a function that doesn't apply `produce` yet to a specific state, but rather creates a function that will apply `produce` to any state that is passed to it in the future. This generally is called _currying_. Take for example the following example:
+There is a second way to call `produce`. Let us first consider some code with too much boilerplate, and then how a technique known as __currying__ can improve our code.
 
 ```javascript
 import {produce} from "immer"
 
+// Toggles the "todo" associated to `id`
+// This is the actual business logic we care about
+function toggleTodo_(state, id) {
+	const todo = state.find(todo => todo.id === id)
+	todo.done = !todo.done
+}
+
+// Returns `state` with the "todo" associated to `id` toggled
+// `state` remains unchanged
 function toggleTodo(state, id) {
-	return produce(state, draft => {
-		const todo = draft.find(todo => todo.id === id)
-		todo.done = !todo.done
-	})
+	return produce(toggleTodo_)
 }
 
 const baseState = [
@@ -58,22 +64,15 @@ const baseState = [
 const nextState = toggleTodo(baseState, "Immer")
 ```
 
-The above pattern of `toggleTodo` is quite typical; pass an existing state to `produce`, modify the `draft`, and then return the result. Since `state` isn't used for anything else than passing it on to `produce`, the above example can be simplified by using the _curried_ form of `produce`, where you pass `produce` only the recipe function, and `produce` will return a new function that will apply recipe to the base state. This allows us to shorten the above `toggleTodo` definition.
+The above pattern of `toggleTodo` is quite typical; pass an existing state to `produce`, modify the `draft`, and then return the result. You are essentially applying `produce` on top of a function, `toggleTodo_` that implements the business logic. Since `state` isn't used for anything else than passing it on to `produce`, the above example can be simplified by using the _curried_ form of `produce` as shown below.
 
 ```javascript
-import {produce} from "immer"
-
 // curried producer:
-const toggleTodo = produce((draft, id) => {
-	const todo = draft.find(todo => todo.id === id)
-	todo.done = !todo.done
-})
-
-const baseState = [
-	/* as is */
-]
+const toggleTodo = produce(toggleTodo_)
 
 const nextState = toggleTodo(baseState, "Immer")
 ```
 
-Note that the `id` param has now become part of the recipe function! This pattern of having curried producers combines really neatly with for example the `useState` hook from React, as we will see on the next page.
+Here, you pass `produce` a single argument, a recipe that takes the draft state and the extra arguments of `toggleTodo`, in this case `id`, and obtain a function that is essentially equivalent to `toggleTodo_`, appart that, instead of updating its first argument, it returns the updated copy of it. It is important to note that, in this case, `produce` did not return a state, but a function. This function, which we called `toggleTodo`, will apply `toggleTodo_` to any state that is passed to it in the future.
+
+Note also that the `id` param has now become part of the recipe function! This pattern of having curried producers combines really neatly with for example the `useState` hook from React, as we will see on the next page.
