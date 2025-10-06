@@ -230,10 +230,10 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		Object.defineProperties(obj, {
-			set: {value: dontMutateFrozenCollections as any},
-			add: {value: dontMutateFrozenCollections as any},
-			clear: {value: dontMutateFrozenCollections as any},
-			delete: {value: dontMutateFrozenCollections as any}
+			set: dontMutateMethodOverride,
+			add: dontMutateMethodOverride,
+			clear: dontMutateMethodOverride,
+			delete: dontMutateMethodOverride
 		})
 	}
 	Object.freeze(obj)
@@ -246,6 +246,10 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 
 function dontMutateFrozenCollections() {
 	die(2)
+}
+
+const dontMutateMethodOverride = {
+	value: dontMutateFrozenCollections
 }
 
 export function isFrozen(obj: any): boolean {
