@@ -26,17 +26,20 @@ import {
 import {produce as produceLimu, setAutoFreeze as setAutoFreezeLimu} from "limu"
 import {bench, run, group, summary} from "mitata"
 
-function createInitialState() {
+function createInitialState(arraySize = BENCHMARK_CONFIG.arraySize) {
 	const initialState = {
-		largeArray: Array.from({length: 10000}, (_, i) => ({
+		largeArray: Array.from({length: arraySize}, (_, i) => ({
 			id: i,
 			value: Math.random(),
 			nested: {key: `key-${i}`, data: Math.random()},
 			moreNested: {
-				items: Array.from({length: 100}, (_, i) => ({id: i, name: String(i)}))
+				items: Array.from(
+					{length: BENCHMARK_CONFIG.nestedArraySize},
+					(_, i) => ({id: i, name: String(i)})
+				)
 			}
 		})),
-		otherData: Array.from({length: 10000}, (_, i) => ({
+		otherData: Array.from({length: arraySize}, (_, i) => ({
 			id: i,
 			name: `name-${i}`,
 			isActive: i % 2 === 0
@@ -46,6 +49,25 @@ function createInitialState() {
 }
 
 const MAX = 1
+
+const BENCHMARK_CONFIG = {
+	iterations: 1,
+	arraySize: 10000,
+	nestedArraySize: 100,
+	multiUpdateCount: 5,
+	reuseStateIterations: 10
+}
+
+// Utility functions for calculating array indices based on size
+const getValidIndex = (arraySize = BENCHMARK_CONFIG.arraySize) => {
+	// Return a valid index (not the last one to avoid edge cases)
+	return Math.min(arraySize - 2, Math.max(0, arraySize - 2))
+}
+
+const getValidId = (arraySize = BENCHMARK_CONFIG.arraySize) => {
+	// Return a valid ID that exists in the array
+	return Math.min(arraySize - 2, Math.max(0, arraySize - 2))
+}
 
 const add = index => ({
 	type: "test/addItem",
