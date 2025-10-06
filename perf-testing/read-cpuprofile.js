@@ -1,11 +1,17 @@
 import fs from "fs"
 import {SourceMapConsumer} from "source-map"
 
-const profileName = process.argv[2]
+let profileName = process.argv[2]
 
-if (!profileName || !fs.existsSync(profileName)) {
-	console.error("Usage: node read-cpuprofile.js <path-to-cpuprofile>")
-	process.exit(1)
+if (!profileName) {
+	const cpuProfiles = fs.readdirSync(".").filter(f => f.endsWith(".cpuprofile"))
+	const [lastProfile] = cpuProfiles.slice(-1)
+	if (!lastProfile) {
+		console.error("Usage: node read-cpuprofile.js <path-to-cpuprofile>")
+		process.exit(1)
+	}
+	console.log("Using latest profile: ", lastProfile)
+	profileName = lastProfile
 }
 
 const profile = JSON.parse(fs.readFileSync(profileName, "utf8"))
