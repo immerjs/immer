@@ -23,7 +23,8 @@ export function isDraft(value: any): boolean {
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
 export function isDraftable(value: any): boolean {
-	if (!value) return false
+	// Fast path: primitives are never draftable
+	if (!value || typeof value !== "object") return false
 	return (
 		isPlainObject(value) ||
 		Array.isArray(value) ||
@@ -234,5 +235,7 @@ const dontMutateMethodOverride = {
 }
 
 export function isFrozen(obj: any): boolean {
+	// Fast path: primitives and null/undefined are always "frozen"
+	if (obj === null || typeof obj !== "object") return true
 	return Object.isFrozen(obj)
 }
