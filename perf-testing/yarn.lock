@@ -148,9 +148,6 @@ cross-spawn@^7.0.1:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.1.3.tgz#e38a0b97db59949d31d9b381b04c2e441b1c3747"
   integrity sha512-tmjF/k8QDKydUlm3mZU+tjM6zeq9/fFpPqH9SzWmBnVVKsPBg/V66qsMwb3/Bo90cgUN+ghdVBess+hPsxUyRw==
 
-"immer10Perf@file:..":
-  version "10.0.3-beta"
-
 "immer5@npm:immer@5":
   version "5.3.6"
   resolved "https://registry.yarnpkg.com/immer/-/immer-5.3.6.tgz#51eab8cbbeb13075fe2244250f221598818cac04"
@@ -176,13 +173,15 @@ cross-spawn@^7.0.1:
   resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.21.tgz#1e025ea31a40f24fb064f1fef23e931496330176"
   integrity sha512-bc4NBHqOqSfRW7POMkHd51LvClaeMXpm8dx0e8oE2GORbq5aRK7Bxl4FyzVLdGtLmvLKL7BTDBG5ACQm4HWjTA==
 
-"immer@file:..":
-  version "10.0.3-beta"
-
 isexe@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
+
+limu@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/limu/-/limu-4.1.1.tgz#28950b32f7f09cb35843a258dc38e55f21ae90c3"
+  integrity sha512-IkMC00X9uc1HnSm3uPeuKKraEdRjbAqoVPzQfma8nupXoNdJ9fcPsHYUTswjZsyxMz03dQB9Q11MWzEyggyfqg==
 
 mitata@^1.0.34:
   version "1.0.34"
@@ -194,10 +193,10 @@ mutative-compat@^0.1.2:
   resolved "https://registry.yarnpkg.com/mutative-compat/-/mutative-compat-0.1.2.tgz#d1926069e42de35e3754458fcd37754339bf3bf6"
   integrity sha512-XF+l3jkY4XGZ2IZzdkS0tu0DtYsKJZcSQcoxHu+gvHkNWS1Xd+B4yOLqbhFAx46jzuB4BWIN/SoXB1E5yDAKjg==
 
-mutative@^1.1.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/mutative/-/mutative-1.2.0.tgz#db75b60b436ad0a940e2e47bffb6661dd77c2754"
-  integrity sha512-1muFw45Lwjso6TSBGiXfbjKS01fVSD/qaqBfTo/gXgp79e8KM4Sa1XP/S4iN2/DvSdIZgjFJI+JIhC7eKf3GTg==
+mutative@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/mutative/-/mutative-1.3.0.tgz#9cb4f216813267487fadfae794881ed6ee69f444"
+  integrity sha512-8MJj6URmOZAV70dpFe1YnSppRTKC4DsMkXQiBDFayLcDI4ljGokHxmpqaBQuDWa4iAxWaJJ1PS8vAmbntjjKmQ==
 
 path-key@^3.1.0:
   version "3.1.1"
@@ -261,6 +260,11 @@ source-map@^0.7.4:
   version "0.7.6"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.7.6.tgz#a3658ab87e5b6429c8a1f3ba0083d4c61ca3ef02"
   integrity sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==
+
+structurajs@^0.12.6:
+  version "0.12.6"
+  resolved "https://registry.yarnpkg.com/structurajs/-/structurajs-0.12.6.tgz#9d4bc717e43f62d5a6dd50feec92de2e2837bc0d"
+  integrity sha512-V3UTJ2XMJSoIfeH2S6eJwT6HrsgN5uZ0htj2xLLyOtopjKtiix0BcRJv+U53njccwLsVzV3DXukx6X1Dphiu+Q==
 
 tslib@^2.4.0:
   version "2.8.1"
