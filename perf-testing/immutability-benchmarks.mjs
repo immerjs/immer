@@ -19,6 +19,11 @@ import {
 	produce as produceMutativeCompat,
 	setAutoFreeze as setAutoFreezeMutativeCompat
 } from "mutative-compat"
+import {
+	produce as produceStructura,
+	enableAutoFreeze as setAutoFreezeStructura
+} from "structurajs"
+import {produce as produceLimu, setAutoFreeze as setAutoFreezeLimu} from "limu"
 import {bench, run, group, summary} from "mitata"
 
 function createInitialState() {
@@ -68,13 +73,15 @@ const actions = {
 const immerProducers = {
 	// immer5: produce5,
 	// immer6: produce6,
-	immer7: produce7,
-	immer8: produce8,
-	immer9: produce9,
+	// immer7: produce7,
+	// immer8: produce8,
+	// immer9: produce9,
 	immer10: produce10,
 	immer10Perf: produce10Perf
 	// mutative: produceMutative,
-	// mutativeCompat: produceMutativeCompat
+	// mutativeCompat: produceMutativeCompat,
+	// structura: produceStructura,
+	// limu: produceLimu
 }
 
 const noop = () => {}
@@ -89,7 +96,9 @@ const setAutoFreezes = {
 	immer10: setAutoFreeze10,
 	immer10Perf: setAutoFreeze10Perf,
 	mutative: noop,
-	mutativeCompat: setAutoFreezeMutativeCompat
+	mutativeCompat: setAutoFreezeMutativeCompat,
+	structura: setAutoFreezeStructura,
+	limu: setAutoFreezeLimu
 }
 
 const setStrictIteration = {
@@ -102,7 +111,10 @@ const setStrictIteration = {
 	immer10: noop,
 	immer10Perf: noop, // setUseStrictIteration10Perf,
 	mutative: noop,
-	mutativeCompat: noop
+	mutativeCompat: noop,
+	structura: noop,
+	limu: noop
+}
 }
 
 const vanillaReducer = (state = createInitialState(), action) => {
