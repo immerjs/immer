@@ -2367,9 +2367,9 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				draft.y = 1
 				draft.z = NaN
 				if (!isProd) {
-					expect(draft[DRAFT_STATE].assigned_.x).toBe(true)
-					expect(draft[DRAFT_STATE].assigned_.y).toBe(undefined)
-					expect(draft[DRAFT_STATE].assigned_.z).toBe(undefined)
+					expect(draft[DRAFT_STATE].assigned_.get("x")).toBe(true)
+					expect(draft[DRAFT_STATE].assigned_.get("y")).toBe(undefined)
+					expect(draft[DRAFT_STATE].assigned_.get("z")).toBe(undefined)
 				}
 			})
 			expect(nextState.x).toBe("s2")

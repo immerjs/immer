@@ -87,19 +87,21 @@ export function enablePatches() {
 
 		// Process replaced indices.
 		for (let i = 0; i < base_.length; i++) {
-			if (assigned_[i] && copy_[i] !== base_[i]) {
+			const copiedItem = copy_[i]
+			const baseItem = base_[i]
+			if (assigned_?.get(i.toString()) && copiedItem !== baseItem) {
 				const path = basePath.concat([i])
 				patches.push({
 					op: REPLACE,
 					path,
 					// Need to maybe clone it, as it can in fact be the original value
 					// due to the base/copy inversion at the start of this function
-					value: clonePatchValueIfNeeded(copy_[i])
+					value: clonePatchValueIfNeeded(copiedItem)
 				})
 				inversePatches.push({
 					op: REPLACE,
 					path,
-					value: clonePatchValueIfNeeded(base_[i])
+					value: clonePatchValueIfNeeded(baseItem)
 				})
 			}
 		}
