@@ -21,9 +21,6 @@ import {
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
-	assigned_: {
-		[property: string]: boolean
-	}
 	parent_?: ImmerState
 	revoke_(): void
 }
@@ -63,7 +60,7 @@ export function createProxyProxy<T extends Objectish>(
 		// Used during finalization.
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
-		assigned_: {},
+		assigned_: new Map(),
 		// The parent draft state.
 		parent_: parent,
 		// The base state.
@@ -146,7 +143,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
 			if (currentState && currentState.base_ === value) {
 				state.copy_![prop] = value
-				state.assigned_[prop] = false
+				state.assigned_!.set(prop, false)
 				return true
 			}
 			if (
@@ -169,18 +166,18 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 
 		// @ts-ignore
 		state.copy_![prop] = value
-		state.assigned_[prop] = true
+		state.assigned_!.set(prop, true)
 		return true
 	},
 	deleteProperty(state, prop: string) {
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
-			state.assigned_[prop] = false
+			state.assigned_!.set(prop, false)
 			prepareCopy(state)
 			markChanged(state)
 		} else {
 			// if an originally not assigned property was deleted
-			delete state.assigned_[prop]
+			state.assigned_!.delete(prop)
 		}
 		if (state.copy_) {
 			delete state.copy_[prop]
