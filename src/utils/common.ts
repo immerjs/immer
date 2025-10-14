@@ -208,7 +208,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
  */
 export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
-	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
+	if (isFrozen(obj) || isDraft(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		Object.defineProperties(obj, {
 			set: dontMutateMethodOverride,
@@ -221,7 +221,13 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
 		// So use Object.values (only string-like, enumerables) instead of each()
-		Object.values(obj).forEach(value => freeze(value, true))
+		each(
+			obj,
+			(_key, value) => {
+				freeze(value, true)
+			},
+			false
+		)
 	return obj
 }
 
