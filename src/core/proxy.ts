@@ -104,7 +104,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (prop === DRAFT_STATE) return state
 
 		const source = latest(state)
-		if (!has(source, prop)) {
+		if (!has(source, prop, state.type_)) {
 			// non-existing or non-own property...
 			return readPropFromProto(state, source, prop)
 		}
@@ -149,7 +149,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 				state.assigned_[prop] = false
 				return true
 			}
-			if (is(value, current) && (value !== undefined || has(state.base_, prop)))
+			if (
+				is(value, current) &&
+				(value !== undefined || has(state.base_, prop, state.type_))
+			)
 				return true
 			prepareCopy(state)
 			markChanged(state)
