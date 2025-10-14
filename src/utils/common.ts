@@ -107,23 +107,35 @@ export function getArchtype(thing: any): ArchType {
 }
 
 /*#__PURE__*/
-export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === ArchType.Map
+export function has(
+	thing: any,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): boolean {
+	return type === ArchType.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
 /*#__PURE__*/
-export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
+export function get(
+	thing: AnyMap | AnyObject,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): any {
 	// @ts-ignore
-	return getArchtype(thing) === ArchType.Map ? thing.get(prop) : thing[prop]
+	return type === ArchType.Map ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
-export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
-	const t = getArchtype(thing)
-	if (t === ArchType.Map) thing.set(propOrOldValue, value)
-	else if (t === ArchType.Set) {
+export function set(
+	thing: any,
+	propOrOldValue: PropertyKey,
+	value: any,
+	type = getArchtype(thing)
+) {
+	if (type === ArchType.Map) thing.set(propOrOldValue, value)
+	else if (type === ArchType.Set) {
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }

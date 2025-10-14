@@ -131,10 +131,10 @@ export function enablePatches() {
 		patches: Patch[],
 		inversePatches: Patch[]
 	) {
-		const {base_, copy_} = state
+		const {base_, copy_, type_} = state
 		each(state.assigned_!, (key, assignedValue) => {
-			const origValue = get(base_, key)
-			const value = get(copy_!, key)
+			const origValue = get(base_, key, type_)
+			const value = get(copy_!, key, type_)
 			const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
 			if (origValue === value && op === REPLACE) return
 			const path = basePath.concat(key as any)
