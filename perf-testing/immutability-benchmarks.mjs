@@ -44,6 +44,7 @@ function createInitialState(arraySize = BENCHMARK_CONFIG.arraySize) {
 			name: `name-${i}`,
 			isActive: i % 2 === 0
 		})),
+		largeObject: createLargeObject(BENCHMARK_CONFIG.largeObjectSize),
 		api: {
 			queries: {},
 			provided: {
@@ -61,6 +62,7 @@ const BENCHMARK_CONFIG = {
 	iterations: 1,
 	arraySize: 100,
 	nestedArraySize: 10,
+	largeObjectSize: 1000,
 	multiUpdateCount: 5,
 	reuseStateIterations: 10
 }
@@ -76,6 +78,19 @@ const getValidId = (arraySize = BENCHMARK_CONFIG.arraySize) => {
 	return Math.min(arraySize - 2, Math.max(0, arraySize - 2))
 }
 
+function createLargeObject(size = 100) {
+	const obj = {}
+	for (let i = 0; i < size; i++) {
+		obj[`property${i}`] = {
+			id: i,
+			value: Math.random(),
+			name: `item-${i}`,
+			active: i % 2 === 0
+		}
+	}
+	return obj
+}
+
 const add = index => ({
 	type: "test/addItem",
 	payload: {id: index, value: index, nested: {data: index}}
@@ -89,9 +104,16 @@ const update = index => ({
 	type: "test/updateItem",
 	payload: {id: index, value: index, nestedData: index}
 })
+const updateLargeObject = index => ({
+	type: "test/updateLargeObject",
+	payload: {value: index}
+})
 const concat = index => ({
 	type: "test/concatArray",
 	payload: Array.from({length: 500}, (_, i) => ({id: i, value: index}))
+})
+const mapNested = () => ({
+	type: "test/mapNested"
 })
 
 const updateHigh = index => ({
@@ -152,7 +174,9 @@ const actions = {
 	remove,
 	filter,
 	update,
+	updateLargeObject,
 	concat,
+	mapNested,
 	// dash-named fields to improve readability in benchmark results
 	"update-high": updateHigh,
 	"update-multiple": updateMultiple,
@@ -308,6 +332,17 @@ const vanillaReducer = (state = createInitialState(), action) => {
 				)
 			}
 		}
+		case "test/updateLargeObject": {
+			return {
+				...state,
+				largeObject: {
+					...state.largeObject,
+					[`propertyAdded${action.payload.value}`]: {
+						id: action.payload.value
+					}
+				}
+			}
+		}
 		case "test/concatArray": {
 			const length = state.largeArray.length
 			const newArray = action.payload.concat(state.largeArray)
@@ -315,6 +350,14 @@ const vanillaReducer = (state = createInitialState(), action) => {
 			return {
 				...state,
 				largeArray: newArray
+			}
+		}
+		case "test/mapNested": {
+			// Extract nested data - common pattern for denormalization or view preparation
+			const nestedData = state.largeArray.map(item => item.nested)
+			return {
+				...state,
+				otherData: nestedData // Store extracted nested objects
 			}
 		}
 		case "test/updateHighIndex": {
@@ -419,11 +462,22 @@ const createImmerReducer = produce => {
 					item.nested.data = action.payload.nestedData
 					break
 				}
+				case "test/updateLargeObject": {
+					draft.largeObject[`propertyAdded${action.payload.value}`] = {
+						id: action.payload.value
+					}
+					break
+				}
 				case "test/concatArray": {
 					const length = state.largeArray.length
 					const newArray = action.payload.concat(state.largeArray)
 					newArray.length = length
 					draft.largeArray = newArray
+					break
+				}
+				case "test/mapNested": {
+					// Extract nested data
+					draft.otherData = draft.largeArray.map(item => item.nested)
 					break
 				}
 				case "test/updateHighIndex": {
@@ -538,7 +592,13 @@ function createBenchmarks() {
 	}
 
 	// State reuse benchmarks (tests performance on frozen/evolved state)
-	const reuseActions = ["update", "update-high", "remove", "remove-high"]
+	const reuseActions = [
+		"update",
+		"update-high",
+		"remove",
+		"remove-high",
+		"updateLargeObject"
+	]
 	for (const action of reuseActions) {
 		summary(function() {
 			bench(`$action-reuse: $version (freeze: $freeze)`, function*(args) {
