@@ -25,10 +25,11 @@ const plugins: {
 			inversePatches: Patch[]
 		): void
 		applyPatches_<T>(draft: T, patches: readonly Patch[]): T
+		getPath: (state: ImmerState) => PatchPath | null
 	}
 	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
+		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
+		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
 	}
 } = {}
 

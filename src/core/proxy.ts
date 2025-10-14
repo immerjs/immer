@@ -17,7 +17,8 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope
+	ImmerScope,
+	handleCrossReference
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -49,7 +50,7 @@ type ProxyState = ProxyObjectState | ProxyArrayState
 export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
-): Drafted<T, ProxyState> {
+): [Drafted<T, ProxyState>, ProxyState] {
 	const isArray = Array.isArray(base)
 	const state: ProxyState = {
 		type_: isArray ? ArchType.Array : (ArchType.Object as any),
@@ -71,7 +72,9 @@ export function createProxyProxy<T extends Objectish>(
 		copy_: null,
 		// Called by the `produce` function.
 		revoke_: null as any,
-		isManual_: false
+		isManual_: false,
+		// `callbacks` actually gets assigned in `createProxy`
+		callbacks_: []
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -90,7 +93,7 @@ export function createProxyProxy<T extends Objectish>(
 	const {revoke, proxy} = Proxy.revocable(target, traps)
 	state.draft_ = proxy as any
 	state.revoke_ = revoke
-	return proxy as any
+	return [proxy as any, state]
 }
 
 /**
@@ -113,7 +116,11 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
-			return (state.copy_![prop as any] = createProxy(value, state))
+			// Ensure array keys are always numbers
+			const childKey = state.type_ === ArchType.Array ? Number(prop) : prop
+			const childDraft = createProxy(state.scope_, value, state, childKey)
+
+			return (state.copy_![prop as any] = childDraft)
 		}
 		return value
 	},
@@ -167,6 +174,8 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// @ts-ignore
 		state.copy_![prop] = value
 		state.assigned_!.set(prop, true)
+
+		handleCrossReference(state, prop, value)
 		return true
 	},
 	deleteProperty(state, prop: string) {

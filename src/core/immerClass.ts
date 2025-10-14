@@ -23,7 +23,11 @@ import {
 	getCurrentScope,
 	NOTHING,
 	freeze,
-	current
+	current,
+	ImmerScope,
+	registerChildFinalizationCallback,
+	ArchType,
+	fixPotentialSetContents
 } from "../internal"
 
 interface ProducersFns {
@@ -95,7 +99,7 @@ export class Immer implements ProducersFns {
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
-			const proxy = createProxy(base, undefined)
+			const proxy = createProxy(scope, base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -141,7 +145,7 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) die(8)
 		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
-		const proxy = createProxy(base, undefined)
+		const proxy = createProxy(scope, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
 		return proxy as any
@@ -220,11 +224,15 @@ export class Immer implements ProducersFns {
 }
 
 export function createProxy<T extends Objectish>(
+	rootScope: ImmerScope,
 	value: T,
-	parent?: ImmerState
+	parent?: ImmerState,
+	key?: string | number | symbol
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
-	const draft: Drafted = isMap(value)
+	// returning a tuple here lets us skip a proxy access
+	// to DRAFT_STATE later
+	const [draft, state] = isMap(value)
 		? getPlugin("MapSet").proxyMap_(value, parent)
 		: isSet(value)
 		? getPlugin("MapSet").proxySet_(value, parent)
@@ -232,5 +240,29 @@ export function createProxy<T extends Objectish>(
 
 	const scope = parent ? parent.scope_ : getCurrentScope()
 	scope.drafts_.push(draft)
-	return draft
+
+	// Ensure the parent callbacks are passed down so we actually
+	// track all callbacks added throughout the tree
+	state.callbacks_ = parent?.callbacks_ ?? []
+	state.key_ = key
+
+	if (parent && key !== undefined) {
+		registerChildFinalizationCallback(rootScope, parent, state, key)
+	} else {
+		// It's a root draft, register it with the scope
+		state.callbacks_.push(function rootDraftCleanup(patches, inversePatches) {
+			fixPotentialSetContents(state)
+
+			if (state.modified_ && patches && inversePatches) {
+				getPlugin("Patches").generatePatches_(
+					state,
+					[],
+					patches,
+					inversePatches
+				)
+			}
+		})
+	}
+
+	return draft as any
 }
