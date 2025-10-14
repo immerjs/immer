@@ -34,7 +34,8 @@ export function enableMapSet() {
 				base_: target,
 				draft_: this as any,
 				isManual_: false,
-				revoked_: false
+				revoked_: false,
+				callbacks_: []
 			}
 		}
 
@@ -109,7 +110,7 @@ export function enableMapSet() {
 				return value // either already drafted or reassigned
 			}
 			// despite what it looks, this creates a draft only once, see above condition
-			const draft = createProxy(value, state)
+			const draft = createProxy(state.scope_, value, state, key)
 			prepareMapCopy(state)
 			state.copy_!.set(key, draft)
 			return draft
@@ -158,9 +159,13 @@ export function enableMapSet() {
 		}
 	}
 
-	function proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T {
+	function proxyMap_<T extends AnyMap>(
+		target: T,
+		parent?: ImmerState
+	): [T, MapState] {
 		// @ts-ignore
-		return new DraftMap(target, parent)
+		const map = new DraftMap(target, parent)
+		return [map as any, map[DRAFT_STATE]]
 	}
 
 	function prepareMapCopy(state: MapState) {
@@ -185,7 +190,9 @@ export function enableMapSet() {
 				draft_: this,
 				drafts_: new Map(),
 				revoked_: false,
-				isManual_: false
+				isManual_: false,
+				assigned_: undefined,
+				callbacks_: []
 			}
 		}
 
@@ -275,9 +282,13 @@ export function enableMapSet() {
 			}
 		}
 	}
-	function proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T {
+	function proxySet_<T extends AnySet>(
+		target: T,
+		parent?: ImmerState
+	): [T, SetState] {
 		// @ts-ignore
-		return new DraftSet(target, parent)
+		const set = new DraftSet(target, parent)
+		return [set as any, set[DRAFT_STATE]]
 	}
 
 	function prepareSetCopy(state: SetState) {
@@ -286,7 +297,7 @@ export function enableMapSet() {
 			state.copy_ = new Set()
 			state.base_.forEach(value => {
 				if (isDraftable(value)) {
-					const draft = createProxy(value, state)
+					const draft = createProxy(state.scope_, value, state, value)
 					state.drafts_.set(value, draft)
 					state.copy_!.add(draft)
 				} else {

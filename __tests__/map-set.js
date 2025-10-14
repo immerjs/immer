@@ -124,7 +124,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 				[
 					{
 						op: "remove",
-						path: ["map", "b", "a"]
+						path: ["map", "d", "a"]
 					},
 					{
 						op: "remove",
@@ -132,13 +132,13 @@ function runBaseTest(name, autoFreeze, useListener) {
 					},
 					{
 						op: "remove",
-						path: ["map", "d", "a"]
+						path: ["map", "b", "a"]
 					}
 				],
 				[
 					{
 						op: "add",
-						path: ["map", "b", "a"],
+						path: ["map", "d", "a"],
 						value: true
 					},
 					{
@@ -148,7 +148,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 					},
 					{
 						op: "add",
-						path: ["map", "d", "a"],
+						path: ["map", "b", "a"],
 						value: true
 					}
 				]
@@ -197,7 +197,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 			expect(p).toEqual([
 				{
 					op: "remove",
-					path: ["map", "b", "a"]
+					path: ["map", "d", "a"]
 				},
 				{
 					op: "remove",
@@ -205,15 +205,16 @@ function runBaseTest(name, autoFreeze, useListener) {
 				},
 				{
 					op: "remove",
-					path: ["map", "d", "a"]
+					path: ["map", "b", "a"]
 				}
 			])
 			expect(ip).toEqual([
 				{
 					op: "add",
-					path: ["map", "b", "a"],
+					path: ["map", "d", "a"],
 					value: true
 				},
+
 				{
 					op: "add",
 					path: ["map", "c", "a"],
@@ -221,7 +222,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 				},
 				{
 					op: "add",
-					path: ["map", "d", "a"],
+					path: ["map", "b", "a"],
 					value: true
 				}
 			])
