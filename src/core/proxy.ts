@@ -17,13 +17,11 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope
+	ImmerScope,
+	handleCrossReference
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
-	assigned_: {
-		[property: string]: boolean
-	}
 	parent_?: ImmerState
 	revoke_(): void
 }
@@ -52,7 +50,7 @@ type ProxyState = ProxyObjectState | ProxyArrayState
 export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
-): Drafted<T, ProxyState> {
+): [Drafted<T, ProxyState>, ProxyState] {
 	const isArray = Array.isArray(base)
 	const state: ProxyState = {
 		type_: isArray ? ArchType.Array : (ArchType.Object as any),
@@ -63,7 +61,7 @@ export function createProxyProxy<T extends Objectish>(
 		// Used during finalization.
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
-		assigned_: {},
+		assigned_: new Map(),
 		// The parent draft state.
 		parent_: parent,
 		// The base state.
@@ -74,7 +72,9 @@ export function createProxyProxy<T extends Objectish>(
 		copy_: null,
 		// Called by the `produce` function.
 		revoke_: null as any,
-		isManual_: false
+		isManual_: false,
+		// `callbacks` actually gets assigned in `createProxy`
+		callbacks_: []
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -93,7 +93,7 @@ export function createProxyProxy<T extends Objectish>(
 	const {revoke, proxy} = Proxy.revocable(target, traps)
 	state.draft_ = proxy as any
 	state.revoke_ = revoke
-	return proxy as any
+	return [proxy as any, state]
 }
 
 /**
@@ -104,7 +104,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (prop === DRAFT_STATE) return state
 
 		const source = latest(state)
-		if (!has(source, prop)) {
+		if (!has(source, prop, state.type_)) {
 			// non-existing or non-own property...
 			return readPropFromProto(state, source, prop)
 		}
@@ -116,7 +116,11 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
-			return (state.copy_![prop as any] = createProxy(value, state))
+			// Ensure array keys are always numbers
+			const childKey = state.type_ === ArchType.Array ? Number(prop) : prop
+			const childDraft = createProxy(state.scope_, value, state, childKey)
+
+			return (state.copy_![prop as any] = childDraft)
 		}
 		return value
 	},
@@ -146,10 +150,13 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
 			if (currentState && currentState.base_ === value) {
 				state.copy_![prop] = value
-				state.assigned_[prop] = false
+				state.assigned_!.set(prop, false)
 				return true
 			}
-			if (is(value, current) && (value !== undefined || has(state.base_, prop)))
+			if (
+				is(value, current) &&
+				(value !== undefined || has(state.base_, prop, state.type_))
+			)
 				return true
 			prepareCopy(state)
 			markChanged(state)
@@ -166,18 +173,20 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 
 		// @ts-ignore
 		state.copy_![prop] = value
-		state.assigned_[prop] = true
+		state.assigned_!.set(prop, true)
+
+		handleCrossReference(state, prop, value)
 		return true
 	},
 	deleteProperty(state, prop: string) {
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
-			state.assigned_[prop] = false
+			state.assigned_!.set(prop, false)
 			prepareCopy(state)
 			markChanged(state)
 		} else {
 			// if an originally not assigned property was deleted
-			delete state.assigned_[prop]
+			state.assigned_!.delete(prop)
 		}
 		if (state.copy_) {
 			delete state.copy_[prop]

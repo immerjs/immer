@@ -35,6 +35,11 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
+export function getProxyDraft<T extends any>(value: T): ImmerState | null {
+	if (typeof value !== "object") return null
+	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
+}
+
 const objectCtorString = Object.prototype.constructor.toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
@@ -108,23 +113,35 @@ export function getArchtype(thing: any): ArchType {
 }
 
 /*#__PURE__*/
-export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === ArchType.Map
+export function has(
+	thing: any,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): boolean {
+	return type === ArchType.Map
 		? thing.has(prop)
 		: Object.prototype.hasOwnProperty.call(thing, prop)
 }
 
 /*#__PURE__*/
-export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
+export function get(
+	thing: AnyMap | AnyObject,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): any {
 	// @ts-ignore
-	return getArchtype(thing) === ArchType.Map ? thing.get(prop) : thing[prop]
+	return type === ArchType.Map ? thing.get(prop) : thing[prop]
 }
 
 /*#__PURE__*/
-export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
-	const t = getArchtype(thing)
-	if (t === ArchType.Map) thing.set(propOrOldValue, value)
-	else if (t === ArchType.Set) {
+export function set(
+	thing: any,
+	propOrOldValue: PropertyKey,
+	value: any,
+	type = getArchtype(thing)
+) {
+	if (type === ArchType.Map) thing.set(propOrOldValue, value)
+	else if (type === ArchType.Set) {
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }
@@ -148,9 +165,24 @@ export function isMap(target: any): target is AnyMap {
 export function isSet(target: any): target is AnySet {
 	return target instanceof Set
 }
+
+function getDraft(value: any): ImmerState | null {
+	if (typeof value !== "object") return null
+	return value?.[DRAFT_STATE]
+}
+
 /*#__PURE__*/
 export function latest(state: ImmerState): any {
 	return state.copy_ || state.base_
+}
+
+export function getValue<T extends object>(value: T): T {
+	const proxyDraft = getDraft(value)
+	return proxyDraft ? proxyDraft.copy_ ?? proxyDraft.base_ : value
+}
+
+export function getFinalValue(state: ImmerState): any {
+	return state.modified_ ? state.copy_ : state.base_
 }
 
 /*#__PURE__*/
@@ -209,7 +241,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
  */
 export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
-	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
+	if (isFrozen(obj) || isDraft(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		Object.defineProperties(obj, {
 			set: dontMutateMethodOverride,
@@ -222,7 +254,13 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
 		// So use Object.values (only string-like, enumerables) instead of each()
-		Object.values(obj).forEach(value => freeze(value, true))
+		each(
+			obj,
+			(_key, value) => {
+				freeze(value, true)
+			},
+			false
+		)
 	return obj
 }
 

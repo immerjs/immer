@@ -25,10 +25,11 @@ const plugins: {
 			inversePatches: Patch[]
 		): void
 		applyPatches_<T>(draft: T, patches: readonly Patch[]): T
+		getPath: (state: ImmerState) => PatchPath | null
 	}
 	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
+		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
+		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
 	}
 } = {}
 
@@ -56,7 +57,6 @@ export function loadPlugin<K extends keyof Plugins>(
 export interface MapState extends ImmerBaseState {
 	type_: ArchType.Map
 	copy_: AnyMap | undefined
-	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
 	revoked_: boolean
 	draft_: Drafted<AnyMap, MapState>
