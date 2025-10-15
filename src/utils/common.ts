@@ -166,6 +166,19 @@ export function isSet(target: any): target is AnySet {
 	return target instanceof Set
 }
 
+const reNumericIndex = /^\d+$/
+
+export function isArrayIndex(value: any): value is number | string {
+	switch (typeof value) {
+		case "number":
+			return true
+		case "string":
+			return reNumericIndex.test(value)
+		default:
+			return false
+	}
+}
+
 function getDraft(value: any): ImmerState | null {
 	if (typeof value !== "object") return null
 	return value?.[DRAFT_STATE]
