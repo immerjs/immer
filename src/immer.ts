@@ -72,6 +72,16 @@ export const setUseStrictShallowCopy = /* @__PURE__ */ immer.setUseStrictShallow
 )
 
 /**
+ * Pass false to use loose iteration that only processes enumerable string properties.
+ * This skips symbols and non-enumerable properties for maximum performance.
+ *
+ * By default, strict iteration is enabled (includes all own properties).
+ */
+export const setUseStrictIteration = /* @__PURE__ */ immer.setUseStrictIteration.bind(
+	immer
+)
+
+/**
  * Apply an array of Immer patches to the first argument.
  *
  * This function is a producer, which means copy-on-write is in effect.
