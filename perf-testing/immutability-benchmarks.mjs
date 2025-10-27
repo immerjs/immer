@@ -180,11 +180,12 @@ const actions = {
 	remove,
 	filter,
 	update,
-	updateLargeObject1,
-	updateLargeObject2,
 	concat,
 	mapNested,
 	// dash-named fields to improve readability in benchmark results
+
+	"update-largeObject1": updateLargeObject1,
+	"update-largeObject2": updateLargeObject2,
 	"update-high": updateHigh,
 	"update-multiple": updateMultiple,
 	"remove-high": removeHigh,
@@ -621,8 +622,8 @@ function createBenchmarks() {
 		"update-high",
 		"remove",
 		"remove-high",
-		"updateLargeObject1",
-		"updateLargeObject2"
+		"update-largeObject1",
+		"update-largeObject2"
 	]
 	for (const action of reuseActions) {
 		summary(function() {
@@ -1216,13 +1217,6 @@ function printOverallVersionRankings(versionScores) {
 		return
 	}
 
-	console.log(
-		"\nMethodology: Lower geometric mean = better overall performance"
-	)
-	console.log(
-		"(Geometric mean is standard for benchmarking as it handles multiplicative performance differences)"
-	)
-
 	console.log("\n┌──────┬─────────────────────┬─────────────────┬───────────┐")
 	console.log("│ Rank │ Version             │ Geometric Mean  │ Scenarios │")
 	console.log("├──────┼─────────────────────┼─────────────────┼───────────┤")
@@ -1241,22 +1235,6 @@ function printOverallVersionRankings(versionScores) {
 	}
 
 	console.log("└──────┴─────────────────────┴─────────────────┴───────────┘")
-
-	// Highlight top performers
-	if (versionScores.length >= 3) {
-		console.log("\nTop Overall Performers:")
-		for (let i = 0; i < Math.min(10, versionScores.length); i++) {
-			const score = versionScores[i]
-			const [versionName, freezeIndicator] = score.version.split("|")
-			const shortName = shortenVersionName(versionName)
-			console.log(
-				`  ${i +
-					1}. ${shortName} (${freezeIndicator}) - ${score.geometricMean.toFixed(
-					2
-				)}x average`
-			)
-		}
-	}
 }
 
 function printBenchmarkSummaryTable(benchmarks) {
