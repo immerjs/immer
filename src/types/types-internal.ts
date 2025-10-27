@@ -32,7 +32,7 @@ export interface ImmerBaseState {
 	isManual_: boolean
 	assigned_: Map<any, boolean> | undefined
 	key_?: string | number | symbol
-	callbacks_: ((patches?: Patch[], inversePatches?: Patch[]) => void)[]
+	callbacks_: ((scope: ImmerScope) => void)[]
 	draftLocations_?: Map<any, (string | number | symbol)[]>
 }
 

@@ -6,31 +6,34 @@ import {
 	AnyMap,
 	AnySet,
 	ArchType,
-	die
+	die,
+	ImmerScope
 } from "../internal"
+
+export type PatchesPlugin = {
+	generatePatches_(
+		state: ImmerState,
+		basePath: PatchPath,
+		rootScope: ImmerScope
+	): void
+	generateReplacementPatches_(
+		base: any,
+		replacement: any,
+		rootScope: ImmerScope
+	): void
+	applyPatches_<T>(draft: T, patches: readonly Patch[]): T
+	getPath: (state: ImmerState) => PatchPath | null
+}
+
+export type MapSetPlugin = {
+	proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
+	proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
+}
 
 /** Plugin utilities */
 const plugins: {
-	Patches?: {
-		generatePatches_(
-			state: ImmerState,
-			basePath: PatchPath,
-			patches: Patch[],
-			inversePatches: Patch[]
-		): void
-		generateReplacementPatches_(
-			base: any,
-			replacement: any,
-			patches: Patch[],
-			inversePatches: Patch[]
-		): void
-		applyPatches_<T>(draft: T, patches: readonly Patch[]): T
-		getPath: (state: ImmerState) => PatchPath | null
-	}
-	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
-	}
+	Patches?: PatchesPlugin
+	MapSet?: MapSetPlugin
 } = {}
 
 type Plugins = typeof plugins
@@ -44,6 +47,10 @@ export function getPlugin<K extends keyof Plugins>(
 	}
 	// @ts-ignore
 	return plugin
+}
+
+export function isPluginLoaded<K extends keyof Plugins>(pluginKey: K): boolean {
+	return !!plugins[pluginKey]
 }
 
 export function loadPlugin<K extends keyof Plugins>(

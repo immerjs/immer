@@ -26,7 +26,6 @@ import {
 	current,
 	ImmerScope,
 	registerChildFinalizationCallback,
-	ArchType,
 	fixPotentialSetContents
 } from "../internal"
 
@@ -119,7 +118,10 @@ export class Immer implements ProducersFns {
 			if (patchListener) {
 				const p: Patch[] = []
 				const ip: Patch[] = []
-				getPlugin("Patches").generateReplacementPatches_(base, result, p, ip)
+				getPlugin("Patches").generateReplacementPatches_(base, result, {
+					patches_: p,
+					inversePatches_: ip
+				} as ImmerScope) // dummy scope
 				patchListener(p, ip)
 			}
 			return result
@@ -238,7 +240,7 @@ export function createProxy<T extends Objectish>(
 		? getPlugin("MapSet").proxySet_(value, parent)
 		: createProxyProxy(value, parent)
 
-	const scope = parent ? parent.scope_ : getCurrentScope()
+	const scope = parent?.scope_ ?? getCurrentScope()
 	scope.drafts_.push(draft)
 
 	// Ensure the parent callbacks are passed down so we actually
@@ -247,19 +249,16 @@ export function createProxy<T extends Objectish>(
 	state.key_ = key
 
 	if (parent && key !== undefined) {
-		registerChildFinalizationCallback(rootScope, parent, state, key)
+		registerChildFinalizationCallback(parent, state, key)
 	} else {
 		// It's a root draft, register it with the scope
-		state.callbacks_.push(function rootDraftCleanup(patches, inversePatches) {
+		state.callbacks_.push(function rootDraftCleanup(rootScope) {
 			fixPotentialSetContents(state)
 
-			if (state.modified_ && patches) {
-				getPlugin("Patches").generatePatches_(
-					state,
-					[],
-					patches,
-					inversePatches!
-				)
+			const {patchPlugin_} = rootScope
+
+			if (state.modified_ && patchPlugin_) {
+				patchPlugin_.generatePatches_(state, [], rootScope)
 			}
 		})
 	}

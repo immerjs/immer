@@ -22,7 +22,8 @@ import {
 	NOTHING,
 	errors,
 	DRAFT_STATE,
-	getProxyDraft
+	getProxyDraft,
+	ImmerScope
 } from "../internal"
 
 export function enablePatches() {
@@ -125,8 +126,7 @@ export function enablePatches() {
 	function generatePatches_(
 		state: ImmerState,
 		basePath: PatchPath,
-		patches: Patch[],
-		inversePatches: Patch[]
+		scope: ImmerScope
 	): void {
 		if (state.scope_.processedForPatches_.has(state)) {
 			return
@@ -134,23 +134,30 @@ export function enablePatches() {
 
 		state.scope_.processedForPatches_.add(state)
 
+		const {patches_, inversePatches_} = scope
+
 		switch (state.type_) {
 			case ArchType.Object:
 			case ArchType.Map:
 				return generatePatchesFromAssigned(
 					state,
 					basePath,
-					patches,
-					inversePatches
+					patches_!,
+					inversePatches_!
 				)
 			case ArchType.Array:
-				return generateArrayPatches(state, basePath, patches, inversePatches)
+				return generateArrayPatches(
+					state,
+					basePath,
+					patches_!,
+					inversePatches_!
+				)
 			case ArchType.Set:
 				return generateSetPatches(
 					(state as any) as SetState,
 					basePath,
-					patches,
-					inversePatches
+					patches_!,
+					inversePatches_!
 				)
 		}
 	}
@@ -293,15 +300,15 @@ export function enablePatches() {
 	function generateReplacementPatches_(
 		baseValue: any,
 		replacement: any,
-		patches: Patch[],
-		inversePatches: Patch[]
+		scope: ImmerScope
 	): void {
-		patches.push({
+		const {patches_, inversePatches_} = scope
+		patches_!.push({
 			op: REPLACE,
 			path: [],
 			value: replacement === NOTHING ? undefined : replacement
 		})
-		inversePatches.push({
+		inversePatches_!.push({
 			op: REPLACE,
 			path: [],
 			value: baseValue

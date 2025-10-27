@@ -6,7 +6,10 @@ import {
 	DRAFT_STATE,
 	ImmerState,
 	ArchType,
-	getPlugin
+	getPlugin,
+	PatchesPlugin,
+	MapSetPlugin,
+	isPluginLoaded
 } from "../internal"
 
 /** Each scope represents a `produce` call. */
@@ -14,6 +17,8 @@ import {
 export interface ImmerScope {
 	patches_?: Patch[]
 	inversePatches_?: Patch[]
+	patchPlugin_?: PatchesPlugin
+	mapSetPlugin_?: MapSetPlugin
 	canAutoFreeze_: boolean
 	drafts_: any[]
 	parent_?: ImmerScope
@@ -43,7 +48,8 @@ function createScope(
 		canAutoFreeze_: true,
 		unfinalizedDrafts_: 0,
 		handledSet_: new Set(),
-		processedForPatches_: new Set()
+		processedForPatches_: new Set(),
+		mapSetPlugin_: isPluginLoaded("MapSet") ? getPlugin("MapSet") : undefined
 	}
 }
 
@@ -52,7 +58,7 @@ export function usePatchesInScope(
 	patchListener?: PatchListener
 ) {
 	if (patchListener) {
-		getPlugin("Patches") // assert we have the plugin
+		scope.patchPlugin_ = getPlugin("Patches") // assert we have the plugin
 		scope.patches_ = []
 		scope.inversePatches_ = []
 		scope.patchListener_ = patchListener

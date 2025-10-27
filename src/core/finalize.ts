@@ -37,12 +37,12 @@ export function processResult(result: any, scope: ImmerScope) {
 			// Finalize the result in case it contains (or is) a subset of the draft.
 			result = finalize(scope, result)
 		}
-		if (scope.patches_) {
-			getPlugin("Patches").generateReplacementPatches_(
+		const {patchPlugin_} = scope
+		if (patchPlugin_) {
+			patchPlugin_.generateReplacementPatches_(
 				baseDraft[DRAFT_STATE].base_,
 				result,
-				scope.patches_,
-				scope.inversePatches_!
+				scope
 			)
 		}
 	} else {
@@ -81,18 +81,15 @@ function finalize(rootScope: ImmerScope, value: any) {
 
 	if (!state.finalized_) {
 		// Execute all registered draft finalization callbacks
-		if (state.callbacks_) {
-			while (state.callbacks_.length > 0) {
-				const callback = state.callbacks_.pop()!
-				callback(rootScope.patches_, rootScope.inversePatches_)
+		const {callbacks_} = state
+		if (callbacks_) {
+			while (callbacks_.length > 0) {
+				const callback = callbacks_.pop()!
+				callback(rootScope)
 			}
 		}
 
-		generatePatchesAndFinalize(
-			state,
-			rootScope.patches_,
-			rootScope.inversePatches_
-		)
+		generatePatchesAndFinalize(state, rootScope)
 	}
 
 	// By now the root copy has been fully updated throughout its tree
@@ -144,14 +141,14 @@ export function updateDraftInParent(
 	// replace all locations where this draft appears.
 	// We only have to build this once per parent.
 	if (!parent.draftLocations_) {
-		parent.draftLocations_ = new Map()
+		const draftLocations = (parent.draftLocations_ = new Map())
 
 		// Use `each` which works on Arrays, Maps, and Objects
 		each(parentCopy, (key, value) => {
 			if (isDraft(value)) {
-				const keys = parent.draftLocations_!.get(value) || []
+				const keys = draftLocations.get(value) || []
 				keys.push(key)
-				parent.draftLocations_!.set(value, keys)
+				draftLocations.set(value, keys)
 			}
 		})
 	}
@@ -170,12 +167,11 @@ export function updateDraftInParent(
 // This assumes there is a parent -> child relationship between the two drafts,
 // and we have a key to locate the child in the parent.
 export function registerChildFinalizationCallback(
-	rootScope: ImmerScope,
 	parent: ImmerState,
 	child: ImmerState,
 	key: string | number | symbol
 ) {
-	parent.callbacks_.push(function childCleanup(patches, inversePatches) {
+	parent.callbacks_.push(function childCleanup(rootScope) {
 		const state: ImmerState = child
 
 		// Can only continue if this is a draft owned by this scope
@@ -191,27 +187,23 @@ export function registerChildFinalizationCallback(
 		// Update all locations in the parent that referenced this draft
 		updateDraftInParent(parent, state.draft_ ?? state, finalizedValue, key)
 
-		generatePatchesAndFinalize(state, patches, inversePatches)
+		generatePatchesAndFinalize(state, rootScope)
 	})
 }
 
-function generatePatchesAndFinalize(
-	state: ImmerState,
-	patches?: Patch[],
-	inversePatches?: Patch[]
-) {
+function generatePatchesAndFinalize(state: ImmerState, rootScope: ImmerScope) {
 	const shouldFinalize =
 		state.modified_ &&
 		!state.finalized_ &&
 		(state.type_ === ArchType.Set || (state.assigned_?.size ?? 0) > 0)
 
 	if (shouldFinalize) {
-		if (patches) {
-			const patchPlugin = getPlugin("Patches")
-			const basePath = patchPlugin.getPath(state)
+		const {patchPlugin_} = rootScope
+		if (patchPlugin_) {
+			const basePath = patchPlugin_!.getPath(state)
 
 			if (basePath) {
-				patchPlugin.generatePatches_(state, basePath, patches, inversePatches!)
+				patchPlugin_!.generatePatches_(state, basePath, rootScope)
 			}
 		}
 
@@ -224,10 +216,11 @@ export function handleCrossReference(
 	key: string | number | symbol,
 	value: any
 ) {
+	const {scope_} = target
 	// Check if value is a draft from this scope
 	if (isDraft(value)) {
 		const state: ImmerState = value[DRAFT_STATE]
-		if (isSameScope(state, target.scope_)) {
+		if (isSameScope(state, scope_)) {
 			// Register callback to update this location when the draft finalizes
 
 			state.callbacks_.push(function crossReferenceCleanup() {
