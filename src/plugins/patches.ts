@@ -20,7 +20,16 @@ import {
 	isDraft,
 	isDraftable,
 	NOTHING,
-	errors
+	errors,
+	DRAFT_STATE,
+	getProxyDraft,
+	ImmerScope,
+	isObjectish,
+	isFunction,
+	CONSTRUCTOR,
+	PluginPatches,
+	isArray,
+	PROTOTYPE
 } from "../internal"
 
 export function enablePatches() {
@@ -38,6 +47,84 @@ export function enablePatches() {
 		)
 	}
 
+	function getPath(state: ImmerState, path: PatchPath = []): PatchPath | null {
+		// Step 1: Check if state has a stored key
+		if ("key_" in state && state.key_ !== undefined) {
+			// Step 2: Validate the key is still valid in parent
+
+			const parentCopy = state.parent_!.copy_ ?? state.parent_!.base_
+			const proxyDraft = getProxyDraft(get(parentCopy, state.key_!))
+			const valueAtKey = get(parentCopy, state.key_!)
+
+			if (valueAtKey === undefined) {
+				return null
+			}
+
+			// Check if the value at the key is still related to this draft
+			// It should be either the draft itself, the base, or the copy
+			if (
+				valueAtKey !== state.draft_ &&
+				valueAtKey !== state.base_ &&
+				valueAtKey !== state.copy_
+			) {
+				return null // Value was replaced with something else
+			}
+			if (proxyDraft != null && proxyDraft.base_ !== state.base_) {
+				return null // Different draft
+			}
+
+			// Step 3: Handle Set case specially
+			const isSet = state.parent_!.type_ === ArchType.Set
+			let key: string | number
+
+			if (isSet) {
+				// For Sets, find the index in the drafts_ map
+				const setParent = state.parent_ as SetState
+				key = Array.from(setParent.drafts_.keys()).indexOf(state.key_)
+			} else {
+				key = state.key_ as string | number
+			}
+
+			// Step 4: Validate key still exists in parent
+			if (!((isSet && parentCopy.size > key) || has(parentCopy, key))) {
+				return null // Key deleted
+			}
+
+			// Step 5: Add key to path
+			path.push(key)
+		}
+
+		// Step 6: Recurse to parent if exists
+		if (state.parent_) {
+			return getPath(state.parent_, path)
+		}
+
+		// Step 7: At root - reverse path and validate
+		path.reverse()
+
+		try {
+			// Validate path can be resolved from ROOT
+			resolvePath(state.copy_, path)
+		} catch (e) {
+			return null // Path invalid
+		}
+
+		return path
+	}
+
+	// NEW: Add resolvePath helper function
+	function resolvePath(base: any, path: PatchPath): any {
+		let current = base
+		for (let i = 0; i < path.length - 1; i++) {
+			const key = path[i]
+			current = get(current, key)
+			if (!isObjectish(current) || current === null) {
+				throw new Error(`Cannot resolve path at '${path.join("/")}'`)
+			}
+		}
+		return current
+	}
+
 	const REPLACE = "replace"
 	const ADD = "add"
 	const REMOVE = "remove"
@@ -45,26 +132,38 @@ export function enablePatches() {
 	function generatePatches_(
 		state: ImmerState,
 		basePath: PatchPath,
-		patches: Patch[],
-		inversePatches: Patch[]
+		scope: ImmerScope
 	): void {
+		if (state.scope_.processedForPatches_.has(state)) {
+			return
+		}
+
+		state.scope_.processedForPatches_.add(state)
+
+		const {patches_, inversePatches_} = scope
+
 		switch (state.type_) {
 			case ArchType.Object:
 			case ArchType.Map:
 				return generatePatchesFromAssigned(
 					state,
 					basePath,
-					patches,
-					inversePatches
+					patches_!,
+					inversePatches_!
 				)
 			case ArchType.Array:
-				return generateArrayPatches(state, basePath, patches, inversePatches)
+				return generateArrayPatches(
+					state,
+					basePath,
+					patches_!,
+					inversePatches_!
+				)
 			case ArchType.Set:
 				return generateSetPatches(
 					(state as any) as SetState,
 					basePath,
-					patches,
-					inversePatches
+					patches_!,
+					inversePatches_!
 				)
 		}
 	}
@@ -87,19 +186,26 @@ export function enablePatches() {
 
 		// Process replaced indices.
 		for (let i = 0; i < base_.length; i++) {
-			if (assigned_[i] && copy_[i] !== base_[i]) {
+			const copiedItem = copy_[i]
+			const baseItem = base_[i]
+			if (assigned_?.get(i.toString()) && copiedItem !== baseItem) {
+				const childState = copiedItem?.[DRAFT_STATE]
+				if (childState && childState.modified_) {
+					// Skip - let the child generate its own patches
+					continue
+				}
 				const path = basePath.concat([i])
 				patches.push({
 					op: REPLACE,
 					path,
 					// Need to maybe clone it, as it can in fact be the original value
 					// due to the base/copy inversion at the start of this function
-					value: clonePatchValueIfNeeded(copy_[i])
+					value: clonePatchValueIfNeeded(copiedItem)
 				})
 				inversePatches.push({
 					op: REPLACE,
 					path,
-					value: clonePatchValueIfNeeded(base_[i])
+					value: clonePatchValueIfNeeded(baseItem)
 				})
 			}
 		}
@@ -131,14 +237,18 @@ export function enablePatches() {
 		patches: Patch[],
 		inversePatches: Patch[]
 	) {
-		const {base_, copy_} = state
+		const {base_, copy_, type_} = state
 		each(state.assigned_!, (key, assignedValue) => {
-			const origValue = get(base_, key)
-			const value = get(copy_!, key)
+			const origValue = get(base_, key, type_)
+			const value = get(copy_!, key, type_)
 			const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
 			if (origValue === value && op === REPLACE) return
 			const path = basePath.concat(key as any)
-			patches.push(op === REMOVE ? {op, path} : {op, path, value})
+			patches.push(
+				op === REMOVE
+					? {op, path}
+					: {op, path, value: clonePatchValueIfNeeded(value)}
+			)
 			inversePatches.push(
 				op === ADD
 					? {op: REMOVE, path}
@@ -196,15 +306,15 @@ export function enablePatches() {
 	function generateReplacementPatches_(
 		baseValue: any,
 		replacement: any,
-		patches: Patch[],
-		inversePatches: Patch[]
+		scope: ImmerScope
 	): void {
-		patches.push({
+		const {patches_, inversePatches_} = scope
+		patches_!.push({
 			op: REPLACE,
 			path: [],
 			value: replacement === NOTHING ? undefined : replacement
 		})
-		inversePatches.push({
+		inversePatches_!.push({
 			op: REPLACE,
 			path: [],
 			value: baseValue
@@ -226,13 +336,12 @@ export function enablePatches() {
 				// See #738, avoid prototype pollution
 				if (
 					(parentType === ArchType.Object || parentType === ArchType.Array) &&
-					(p === "__proto__" || p === "constructor")
+					(p === "__proto__" || p === CONSTRUCTOR)
 				)
 					die(errorOffset + 3)
-				if (typeof base === "function" && p === "prototype")
-					die(errorOffset + 3)
+				if (isFunction(base) && p === PROTOTYPE) die(errorOffset + 3)
 				base = get(base, p)
-				if (typeof base !== "object") die(errorOffset + 2, path.join("/"))
+				if (!isObjectish(base)) die(errorOffset + 2, path.join("/"))
 			}
 
 			const type = getArchtype(base)
@@ -291,7 +400,7 @@ export function enablePatches() {
 	function deepClonePatchValue<T>(obj: T): T
 	function deepClonePatchValue(obj: any) {
 		if (!isDraftable(obj)) return obj
-		if (Array.isArray(obj)) return obj.map(deepClonePatchValue)
+		if (isArray(obj)) return obj.map(deepClonePatchValue)
 		if (isMap(obj))
 			return new Map(
 				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
@@ -309,9 +418,10 @@ export function enablePatches() {
 		} else return obj
 	}
 
-	loadPlugin("Patches", {
+	loadPlugin(PluginPatches, {
 		applyPatches_,
 		generatePatches_,
-		generateReplacementPatches_
+		generateReplacementPatches_,
+		getPath
 	})
 }

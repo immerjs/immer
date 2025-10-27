@@ -23,7 +23,18 @@ import {
 	getCurrentScope,
 	NOTHING,
 	freeze,
-	current
+	current,
+	ImmerScope,
+	registerChildFinalizationCallback,
+	ArchType,
+	MapSetPlugin,
+	AnyMap,
+	AnySet,
+	isObjectish,
+	isFunction,
+	isBoolean,
+	PluginMapSet,
+	PluginPatches
 } from "../internal"
 
 interface ProducersFns {
@@ -36,18 +47,17 @@ export type StrictMode = boolean | "class_only"
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
 	useStrictShallowCopy_: StrictMode = false
-	useStrictIteration_: boolean = true
+	useStrictIteration_: boolean = false
 
 	constructor(config?: {
 		autoFreeze?: boolean
 		useStrictShallowCopy?: StrictMode
 		useStrictIteration?: boolean
 	}) {
-		if (typeof config?.autoFreeze === "boolean")
-			this.setAutoFreeze(config!.autoFreeze)
-		if (typeof config?.useStrictShallowCopy === "boolean")
+		if (isBoolean(config?.autoFreeze)) this.setAutoFreeze(config!.autoFreeze)
+		if (isBoolean(config?.useStrictShallowCopy))
 			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
-		if (typeof config?.useStrictIteration === "boolean")
+		if (isBoolean(config?.useStrictIteration))
 			this.setUseStrictIteration(config!.useStrictIteration)
 	}
 
@@ -72,7 +82,7 @@ export class Immer implements ProducersFns {
 	 */
 	produce: IProduce = (base: any, recipe?: any, patchListener?: any) => {
 		// curried invocation
-		if (typeof base === "function" && typeof recipe !== "function") {
+		if (isFunction(base) && !isFunction(recipe)) {
 			const defaultBase = recipe
 			recipe = base
 
@@ -86,16 +96,15 @@ export class Immer implements ProducersFns {
 			}
 		}
 
-		if (typeof recipe !== "function") die(6)
-		if (patchListener !== undefined && typeof patchListener !== "function")
-			die(7)
+		if (!isFunction(recipe)) die(6)
+		if (patchListener !== undefined && !isFunction(patchListener)) die(7)
 
 		let result
 
 		// Only plain objects, arrays, and "immerable classes" are drafted.
 		if (isDraftable(base)) {
 			const scope = enterScope(this)
-			const proxy = createProxy(base, undefined)
+			const proxy = createProxy(scope, base, undefined)
 			let hasError = true
 			try {
 				result = recipe(proxy)
@@ -107,7 +116,7 @@ export class Immer implements ProducersFns {
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
-		} else if (!base || typeof base !== "object") {
+		} else if (!base || !isObjectish(base)) {
 			result = recipe(base)
 			if (result === undefined) result = base
 			if (result === NOTHING) result = undefined
@@ -115,7 +124,10 @@ export class Immer implements ProducersFns {
 			if (patchListener) {
 				const p: Patch[] = []
 				const ip: Patch[] = []
-				getPlugin("Patches").generateReplacementPatches_(base, result, p, ip)
+				getPlugin(PluginPatches).generateReplacementPatches_(base, result, {
+					patches_: p,
+					inversePatches_: ip
+				} as ImmerScope) // dummy scope
 				patchListener(p, ip)
 			}
 			return result
@@ -124,7 +136,7 @@ export class Immer implements ProducersFns {
 
 	produceWithPatches: IProduceWithPatches = (base: any, recipe?: any): any => {
 		// curried invocation
-		if (typeof base === "function") {
+		if (isFunction(base)) {
 			return (state: any, ...args: any[]) =>
 				this.produceWithPatches(state, (draft: any) => base(draft, ...args))
 		}
@@ -141,7 +153,7 @@ export class Immer implements ProducersFns {
 		if (!isDraftable(base)) die(8)
 		if (isDraft(base)) base = current(base)
 		const scope = enterScope(this)
-		const proxy = createProxy(base, undefined)
+		const proxy = createProxy(scope, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true
 		leaveScope(scope)
 		return proxy as any
@@ -207,7 +219,7 @@ export class Immer implements ProducersFns {
 			patches = patches.slice(i + 1)
 		}
 
-		const applyPatchesImpl = getPlugin("Patches").applyPatches_
+		const applyPatchesImpl = getPlugin(PluginPatches).applyPatches_
 		if (isDraft(base)) {
 			// N.B: never hits if some patch a replacement, patches are never drafts
 			return applyPatchesImpl(base, patches)
@@ -220,17 +232,42 @@ export class Immer implements ProducersFns {
 }
 
 export function createProxy<T extends Objectish>(
+	rootScope: ImmerScope,
 	value: T,
-	parent?: ImmerState
+	parent?: ImmerState,
+	key?: string | number | symbol
 ): Drafted<T, ImmerState> {
 	// precondition: createProxy should be guarded by isDraftable, so we know we can safely draft
-	const draft: Drafted = isMap(value)
-		? getPlugin("MapSet").proxyMap_(value, parent)
+	// returning a tuple here lets us skip a proxy access
+	// to DRAFT_STATE later
+	const [draft, state] = isMap(value)
+		? getPlugin(PluginMapSet).proxyMap_(value, parent)
 		: isSet(value)
-		? getPlugin("MapSet").proxySet_(value, parent)
+		? getPlugin(PluginMapSet).proxySet_(value, parent)
 		: createProxyProxy(value, parent)
 
-	const scope = parent ? parent.scope_ : getCurrentScope()
+	const scope = parent?.scope_ ?? getCurrentScope()
 	scope.drafts_.push(draft)
-	return draft
+
+	// Ensure the parent callbacks are passed down so we actually
+	// track all callbacks added throughout the tree
+	state.callbacks_ = parent?.callbacks_ ?? []
+	state.key_ = key
+
+	if (parent && key !== undefined) {
+		registerChildFinalizationCallback(parent, state, key)
+	} else {
+		// It's a root draft, register it with the scope
+		state.callbacks_.push(function rootDraftCleanup(rootScope) {
+			rootScope.mapSetPlugin_?.fixSetContents(state)
+
+			const {patchPlugin_} = rootScope
+
+			if (state.modified_ && patchPlugin_) {
+				patchPlugin_.generatePatches_(state, [], rootScope)
+			}
+		})
+	}
+
+	return draft as any
 }

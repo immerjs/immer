@@ -17,13 +17,16 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope
+	ImmerScope,
+	handleCrossReference,
+	WRITABLE,
+	CONFIGURABLE,
+	ENUMERABLE,
+	VALUE,
+	isArray
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
-	assigned_: {
-		[property: string]: boolean
-	}
 	parent_?: ImmerState
 	revoke_(): void
 }
@@ -52,10 +55,10 @@ type ProxyState = ProxyObjectState | ProxyArrayState
 export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
-): Drafted<T, ProxyState> {
-	const isArray = Array.isArray(base)
+): [Drafted<T, ProxyState>, ProxyState] {
+	const baseIsArray = isArray(base)
 	const state: ProxyState = {
-		type_: isArray ? ArchType.Array : (ArchType.Object as any),
+		type_: baseIsArray ? ArchType.Array : (ArchType.Object as any),
 		// Track which produce call this is associated with.
 		scope_: parent ? parent.scope_ : getCurrentScope()!,
 		// True for both shallow and deep changes.
@@ -63,7 +66,8 @@ export function createProxyProxy<T extends Objectish>(
 		// Used during finalization.
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
-		assigned_: {},
+		// actually instantiated in `prepareCopy()`
+		assigned_: undefined,
 		// The parent draft state.
 		parent_: parent,
 		// The base state.
@@ -74,7 +78,9 @@ export function createProxyProxy<T extends Objectish>(
 		copy_: null,
 		// Called by the `produce` function.
 		revoke_: null as any,
-		isManual_: false
+		isManual_: false,
+		// `callbacks` actually gets assigned in `createProxy`
+		callbacks_: undefined as any
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -85,7 +91,7 @@ export function createProxyProxy<T extends Objectish>(
 	// Note that in the case of an array, we put the state in an array to have better Reflect defaults ootb
 	let target: T = state as any
 	let traps: ProxyHandler<object | Array<any>> = objectTraps
-	if (isArray) {
+	if (baseIsArray) {
 		target = [state] as any
 		traps = arrayTraps
 	}
@@ -93,7 +99,7 @@ export function createProxyProxy<T extends Objectish>(
 	const {revoke, proxy} = Proxy.revocable(target, traps)
 	state.draft_ = proxy as any
 	state.revoke_ = revoke
-	return proxy as any
+	return [proxy as any, state]
 }
 
 /**
@@ -104,7 +110,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (prop === DRAFT_STATE) return state
 
 		const source = latest(state)
-		if (!has(source, prop)) {
+		if (!has(source, prop, state.type_)) {
 			// non-existing or non-own property...
 			return readPropFromProto(state, source, prop)
 		}
@@ -116,7 +122,11 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		// Assigned values are never drafted. This catches any drafts we created, too.
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
-			return (state.copy_![prop as any] = createProxy(value, state))
+			// Ensure array keys are always numbers
+			const childKey = state.type_ === ArchType.Array ? +(prop as string) : prop
+			const childDraft = createProxy(state.scope_, value, state, childKey)
+
+			return (state.copy_![childKey] = childDraft)
 		}
 		return value
 	},
@@ -146,10 +156,13 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
 			if (currentState && currentState.base_ === value) {
 				state.copy_![prop] = value
-				state.assigned_[prop] = false
+				state.assigned_!.set(prop, false)
 				return true
 			}
-			if (is(value, current) && (value !== undefined || has(state.base_, prop)))
+			if (
+				is(value, current) &&
+				(value !== undefined || has(state.base_, prop, state.type_))
+			)
 				return true
 			prepareCopy(state)
 			markChanged(state)
@@ -166,18 +179,20 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 
 		// @ts-ignore
 		state.copy_![prop] = value
-		state.assigned_[prop] = true
+		state.assigned_!.set(prop, true)
+
+		handleCrossReference(state, prop, value)
 		return true
 	},
 	deleteProperty(state, prop: string) {
+		prepareCopy(state)
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
-			state.assigned_[prop] = false
-			prepareCopy(state)
+			state.assigned_!.set(prop, false)
 			markChanged(state)
 		} else {
 			// if an originally not assigned property was deleted
-			delete state.assigned_[prop]
+			state.assigned_!.delete(prop)
 		}
 		if (state.copy_) {
 			delete state.copy_[prop]
@@ -191,10 +206,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
 		if (!desc) return desc
 		return {
-			writable: true,
-			configurable: state.type_ !== ArchType.Array || prop !== "length",
-			enumerable: desc.enumerable,
-			value: owner[prop]
+			[WRITABLE]: true,
+			[CONFIGURABLE]: state.type_ !== ArchType.Array || prop !== "length",
+			[ENUMERABLE]: desc[ENUMERABLE],
+			[VALUE]: owner[prop]
 		}
 	},
 	defineProperty() {
@@ -216,8 +231,9 @@ const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 each(objectTraps, (key, fn) => {
 	// @ts-ignore
 	arrayTraps[key] = function() {
-		arguments[0] = arguments[0][0]
-		return fn.apply(this, arguments)
+		const args = arguments
+		args[0] = args[0][0]
+		return fn.apply(this, args)
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
@@ -246,8 +262,8 @@ function peek(draft: Drafted, prop: PropertyKey) {
 function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {
 	const desc = getDescriptorFromProto(source, prop)
 	return desc
-		? `value` in desc
-			? desc.value
+		? VALUE in desc
+			? desc[VALUE]
 			: // This is a very special case, if the prop is a getter defined by the
 			  // prototype, we should invoke it with the draft as context!
 			  desc.get?.call(state.draft_)
@@ -278,12 +294,11 @@ export function markChanged(state: ImmerState) {
 	}
 }
 
-export function prepareCopy(state: {
-	base_: any
-	copy_: any
-	scope_: ImmerScope
-}) {
+export function prepareCopy(state: ImmerState) {
 	if (!state.copy_) {
+		// Actually create the `assigned_` map now that we
+		// know this is a modified draft.
+		state.assigned_ = new Map()
 		state.copy_ = shallowCopy(
 			state.base_,
 			state.scope_.immer_.useStrictShallowCopy_

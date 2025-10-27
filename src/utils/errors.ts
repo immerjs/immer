@@ -1,3 +1,5 @@
+import {isFunction} from "../internal"
+
 export const errors =
 	process.env.NODE_ENV !== "production"
 		? [
@@ -39,7 +41,7 @@ export const errors =
 export function die(error: number, ...args: any[]): never {
 	if (process.env.NODE_ENV !== "production") {
 		const e = errors[error]
-		const msg = typeof e === "function" ? e.apply(null, args as any) : e
+		const msg = isFunction(e) ? e.apply(null, args as any) : e
 		throw new Error(`[Immer] ${msg}`)
 	}
 	throw new Error(

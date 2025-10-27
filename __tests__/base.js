@@ -2367,9 +2367,9 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				draft.y = 1
 				draft.z = NaN
 				if (!isProd) {
-					expect(draft[DRAFT_STATE].assigned_.x).toBe(true)
-					expect(draft[DRAFT_STATE].assigned_.y).toBe(undefined)
-					expect(draft[DRAFT_STATE].assigned_.z).toBe(undefined)
+					expect(draft[DRAFT_STATE].assigned_.get("x")).toBe(true)
+					expect(draft[DRAFT_STATE].assigned_.get("y")).toBe(undefined)
+					expect(draft[DRAFT_STATE].assigned_.get("z")).toBe(undefined)
 				}
 			})
 			expect(nextState.x).toBe("s2")
@@ -2756,13 +2756,31 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 				expect(next[0]).toBe(next[1])
 			})
 
-			// This actually seems to pass now!
-			it("cannot return an object that references itself", () => {
+			// As of the finalization callback rewrite, the
+			// the original `() => res.self` check passes without throwing,
+			// but we still will not have self-references
+			// when returning updated values
+			it("can return self-references, but not for modified values", () => {
 				const res = {}
 				res.self = res
-				expect(() => {
-					produce(res, () => res.self)
-				}).toThrowErrorMatchingSnapshot()
+
+				// the call will pass
+				const next = produce(res, draft => {
+					draft.a = 42
+					draft.self.b = 99
+				})
+
+				// Root object and first child were both copied
+				expect(next).not.toBe(next.self)
+				// Second child is the first circular reference
+				expect(next.self.self).not.toBe(next.self)
+				// And it's turtles all the way down
+				expect(next.self.self.self).toBe(next.self.self.self.self)
+				expect(next.a).toBe(42)
+				expect(next.self.b).toBe(99)
+				// The child copy did not receive the update
+				// to the root object
+				expect(next.self.a).toBe(undefined)
 			})
 		})
 

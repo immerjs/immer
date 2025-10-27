@@ -4,7 +4,9 @@ import {
 	ProxyObjectState,
 	ProxyArrayState,
 	MapState,
-	DRAFT_STATE
+	DRAFT_STATE,
+	Patch,
+	PatchPath
 } from "../internal"
 
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
@@ -28,6 +30,10 @@ export interface ImmerBaseState {
 	modified_: boolean
 	finalized_: boolean
 	isManual_: boolean
+	assigned_: Map<any, boolean> | undefined
+	key_?: string | number | symbol
+	callbacks_: ((scope: ImmerScope) => void)[]
+	draftLocations_?: Map<any, (string | number | symbol)[]>
 }
 
 export type ImmerState =
@@ -40,3 +46,10 @@ export type ImmerState =
 export type Drafted<Base = any, T extends ImmerState = ImmerState> = {
 	[DRAFT_STATE]: T
 } & Base
+
+export type GeneratePatches = (
+	state: ImmerState,
+	basePath: PatchPath,
+	patches: Patch[],
+	inversePatches: Patch[]
+) => void
