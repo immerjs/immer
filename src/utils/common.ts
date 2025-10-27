@@ -38,7 +38,6 @@ const objectCtorString = Object.prototype.constructor.toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
-	if (!value || typeof value !== "object") return false
 	const proto = Object.getPrototypeOf(value)
 	if (proto === null || proto === Object.prototype) return true
 
@@ -46,7 +45,7 @@ export function isPlainObject(value: any): boolean {
 		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
 	if (Ctor === Object) return true
 
-	if (typeof Ctor !== "function") return false
+	if (!isFunction(Ctor)) return false
 
 	let ctorString = cachedCtorStrings.get(Ctor)
 	if (ctorString === undefined) {
@@ -160,8 +159,20 @@ export function isSet(target: any): target is AnySet {
 	return target instanceof Set
 }
 
+export function isObjectish(target: any) {
+	return typeof target === "object"
+}
+
+export function isFunction(target: any): target is Function {
+	return typeof target === "function"
+}
+
+export function isBoolean(target: any): target is boolean {
+	return typeof target === "boolean"
+}
+
 export function getProxyDraft<T extends any>(value: T): ImmerState | null {
-	if (typeof value !== "object") return null
+	if (!isObjectish(value)) return null
 	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
 }
 
@@ -268,6 +279,6 @@ const dontMutateMethodOverride = {
 
 export function isFrozen(obj: any): boolean {
 	// Fast path: primitives and null/undefined are always "frozen"
-	if (obj === null || typeof obj !== "object") return true
 	return Object.isFrozen(obj)
+	if (obj === null || !isObjectish(obj)) return true
 }

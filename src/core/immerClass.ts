@@ -26,6 +26,13 @@ import {
 	current,
 	ImmerScope,
 	registerChildFinalizationCallback,
+	ArchType,
+	MapSetPlugin,
+	AnyMap,
+	AnySet,
+	isObjectish,
+	isFunction,
+	isBoolean
 } from "../internal"
 
 interface ProducersFns {
@@ -45,11 +52,10 @@ export class Immer implements ProducersFns {
 		useStrictShallowCopy?: StrictMode
 		useStrictIteration?: boolean
 	}) {
-		if (typeof config?.autoFreeze === "boolean")
-			this.setAutoFreeze(config!.autoFreeze)
-		if (typeof config?.useStrictShallowCopy === "boolean")
+		if (isBoolean(config?.autoFreeze)) this.setAutoFreeze(config!.autoFreeze)
+		if (isBoolean(config?.useStrictShallowCopy))
 			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
-		if (typeof config?.useStrictIteration === "boolean")
+		if (isBoolean(config?.useStrictIteration))
 			this.setUseStrictIteration(config!.useStrictIteration)
 	}
 
@@ -74,7 +80,7 @@ export class Immer implements ProducersFns {
 	 */
 	produce: IProduce = (base: any, recipe?: any, patchListener?: any) => {
 		// curried invocation
-		if (typeof base === "function" && typeof recipe !== "function") {
+		if (isFunction(base) && !isFunction(recipe)) {
 			const defaultBase = recipe
 			recipe = base
 
@@ -88,9 +94,8 @@ export class Immer implements ProducersFns {
 			}
 		}
 
-		if (typeof recipe !== "function") die(6)
-		if (patchListener !== undefined && typeof patchListener !== "function")
-			die(7)
+		if (!isFunction(recipe)) die(6)
+		if (patchListener !== undefined && !isFunction(patchListener)) die(7)
 
 		let result
 
@@ -109,7 +114,7 @@ export class Immer implements ProducersFns {
 			}
 			usePatchesInScope(scope, patchListener)
 			return processResult(result, scope)
-		} else if (!base || typeof base !== "object") {
+		} else if (!base || !isObjectish(base)) {
 			result = recipe(base)
 			if (result === undefined) result = base
 			if (result === NOTHING) result = undefined
@@ -129,7 +134,7 @@ export class Immer implements ProducersFns {
 
 	produceWithPatches: IProduceWithPatches = (base: any, recipe?: any): any => {
 		// curried invocation
-		if (typeof base === "function") {
+		if (isFunction(base)) {
 			return (state: any, ...args: any[]) =>
 				this.produceWithPatches(state, (draft: any) => base(draft, ...args))
 		}

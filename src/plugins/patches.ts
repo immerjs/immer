@@ -23,7 +23,9 @@ import {
 	errors,
 	DRAFT_STATE,
 	getProxyDraft,
-	ImmerScope
+	ImmerScope,
+	isObjectish,
+	isFunction
 } from "../internal"
 
 export function enablePatches() {
@@ -112,7 +114,7 @@ export function enablePatches() {
 		for (let i = 0; i < path.length - 1; i++) {
 			const key = path[i]
 			current = get(current, key)
-			if (typeof current !== "object" || current === null) {
+			if (!isObjectish(current) || current === null) {
 				throw new Error(`Cannot resolve path at '${path.join("/")}'`)
 			}
 		}
@@ -333,10 +335,9 @@ export function enablePatches() {
 					(p === "__proto__" || p === "constructor")
 				)
 					die(errorOffset + 3)
-				if (typeof base === "function" && p === "prototype")
-					die(errorOffset + 3)
+				if (isFunction(base) && p === "prototype") die(errorOffset + 3)
 				base = get(base, p)
-				if (typeof base !== "object") die(errorOffset + 2, path.join("/"))
+				if (!isObjectish(base)) die(errorOffset + 2, path.join("/"))
 			}
 
 			const type = getArchtype(base)
