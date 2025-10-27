@@ -239,43 +239,23 @@ export function handleCrossReference(
 
 			if (get(targetCopy, key, target.type_) === value) {
 				// Process the value to replace any nested drafts
-				finalizeAssigned(target, key, target.scope_)
+				// finalizeAssigned(target, key, target.scope_)
+
+				if (
+					scope_.drafts_.length > 1 &&
+					((target as Exclude<ImmerState, SetState>).assigned_!.get(key) ??
+						false) === true &&
+					target.copy_
+				) {
+					// This might be a non-draft value that has drafts
+					// inside. We do need to recurse here to handle those.
+					handleValue(
+						get(target.copy_, key, target.type_),
+						scope_.handledSet_,
+						scope_
+					)
+				}
 			}
-		})
-	}
-}
-
-export function finalizeAssigned(
-	state: ImmerState,
-	key: PropertyKey,
-	rootScope: ImmerScope
-) {
-	// const wasAssigned =
-
-	if (
-		rootScope.drafts_.length > 1 &&
-		((state as Exclude<ImmerState, SetState>).assigned_!.get(key) ?? false) ===
-			true &&
-		state.copy_
-	) {
-		// This might be a non-draft value that has drafts
-		// inside. We do need to recurse here to handle those.
-		handleValue(
-			get(state.copy_, key, state.type_),
-			rootScope.handledSet_,
-			rootScope
-		)
-	}
-}
-
-export function fixPotentialSetContents(target: ImmerState) {
-	// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
-	// To preserve insertion order in all cases we then clear the set
-	if (target.type_ === ArchType.Set && target.copy_) {
-		const copy = new Set(target.copy_)
-		target.copy_.clear()
-		copy.forEach(value => {
-			target.copy_!.add(getValue(value))
 		})
 	}
 }
