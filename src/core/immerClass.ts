@@ -26,7 +26,6 @@ import {
 	current,
 	ImmerScope,
 	registerChildFinalizationCallback,
-	fixPotentialSetContents
 } from "../internal"
 
 interface ProducersFns {
@@ -253,7 +252,7 @@ export function createProxy<T extends Objectish>(
 	} else {
 		// It's a root draft, register it with the scope
 		state.callbacks_.push(function rootDraftCleanup(rootScope) {
-			fixPotentialSetContents(state)
+			rootScope.mapSetPlugin_?.fixPotentialSetContents(state)
 
 			const {patchPlugin_} = rootScope
 

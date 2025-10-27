@@ -14,7 +14,8 @@ import {
 	markChanged,
 	die,
 	ArchType,
-	each
+	each,
+	getValue
 } from "../internal"
 
 export function enableMapSet() {
@@ -311,5 +312,17 @@ export function enableMapSet() {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
-	loadPlugin("MapSet", {proxyMap_, proxySet_})
+	function fixPotentialSetContents(target: ImmerState) {
+		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
+		// To preserve insertion order in all cases we then clear the set
+		if (target.type_ === ArchType.Set && target.copy_) {
+			const copy = new Set(target.copy_)
+			target.copy_.clear()
+			copy.forEach(value => {
+				target.copy_!.add(getValue(value))
+			})
+		}
+	}
+
+	loadPlugin("MapSet", {proxyMap_, proxySet_, fixPotentialSetContents})
 }

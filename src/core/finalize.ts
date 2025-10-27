@@ -180,7 +180,7 @@ export function registerChildFinalizationCallback(
 		}
 
 		// Handle potential set value finalization first
-		fixPotentialSetContents(state)
+		rootScope.mapSetPlugin_?.fixPotentialSetContents(state)
 
 		const finalizedValue = getFinalValue(state)
 

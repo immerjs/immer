@@ -28,6 +28,7 @@ export type PatchesPlugin = {
 export type MapSetPlugin = {
 	proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
 	proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
+	fixPotentialSetContents: (state: ImmerState) => void
 }
 
 /** Plugin utilities */
