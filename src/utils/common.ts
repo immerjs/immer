@@ -12,7 +12,9 @@ import {
 	StrictMode
 } from "../internal"
 
-export const getPrototypeOf = Object.getPrototypeOf
+const O = Object
+
+export const getPrototypeOf = O.getPrototypeOf
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
@@ -34,15 +36,15 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
-const objectCtorString = Object.prototype.constructor.toString()
+const objectCtorString = O.prototype.constructor.toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
-	const proto = Object.getPrototypeOf(value)
-	if (proto === null || proto === Object.prototype) return true
+	if (!value || !isObjectish(value)) return false
+	const proto = O.getPrototypeOf(value)
+	if (proto === null || proto === O.prototype) return true
 
-	const Ctor =
-		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	const Ctor = O.hasOwnProperty.call(proto, "constructor") && proto.constructor
 	if (Ctor === Object) return true
 
 	if (!isFunction(Ctor)) return false
@@ -82,7 +84,7 @@ export function each(obj: any, iter: any, strict: boolean = true) {
 	if (getArchtype(obj) === ArchType.Object) {
 		// If strict, we do a full iteration including symbols and non-enumerable properties
 		// Otherwise, we only iterate enumerable string properties for performance
-		const keys = strict ? Reflect.ownKeys(obj) : Object.keys(obj)
+		const keys = strict ? Reflect.ownKeys(obj) : O.keys(obj)
 		keys.forEach(key => {
 			iter(key, obj[key], obj)
 		})
@@ -113,7 +115,7 @@ export function has(
 ): boolean {
 	return type === ArchType.Map
 		? thing.has(prop)
-		: Object.prototype.hasOwnProperty.call(thing, prop)
+		: O.prototype.hasOwnProperty.call(thing, prop)
 }
 
 /*#__PURE__*/
@@ -204,7 +206,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
 
 	if (strict === true || (strict === "class_only" && !isPlain)) {
 		// Perform a strict copy
-		const descriptors = Object.getOwnPropertyDescriptors(base)
+		const descriptors = O.getOwnPropertyDescriptors(base)
 		delete descriptors[DRAFT_STATE as any]
 		let keys = Reflect.ownKeys(descriptors)
 		for (let i = 0; i < keys.length; i++) {
@@ -225,15 +227,15 @@ export function shallowCopy(base: any, strict: StrictMode) {
 					value: base[key]
 				}
 		}
-		return Object.create(getPrototypeOf(base), descriptors)
+		return O.create(getPrototypeOf(base), descriptors)
 	} else {
 		// perform a sloppy copy
 		const proto = getPrototypeOf(base)
 		if (proto !== null && isPlain) {
 			return {...base} // assumption: better inner class optimization than the assign below
 		}
-		const obj = Object.create(proto)
-		return Object.assign(obj, base)
+		const obj = O.create(proto)
+		return O.assign(obj, base)
 	}
 }
 
@@ -248,14 +250,14 @@ export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
 	if (isFrozen(obj) || isDraft(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		Object.defineProperties(obj, {
+		O.defineProperties(obj, {
 			set: dontMutateMethodOverride,
 			add: dontMutateMethodOverride,
 			clear: dontMutateMethodOverride,
 			delete: dontMutateMethodOverride
 		})
 	}
-	Object.freeze(obj)
+	O.freeze(obj)
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
 		// So use Object.values (only string-like, enumerables) instead of each()
@@ -279,6 +281,6 @@ const dontMutateMethodOverride = {
 
 export function isFrozen(obj: any): boolean {
 	// Fast path: primitives and null/undefined are always "frozen"
-	return Object.isFrozen(obj)
 	if (obj === null || !isObjectish(obj)) return true
+	return O.isFrozen(obj)
 }
