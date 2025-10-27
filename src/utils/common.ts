@@ -34,11 +34,6 @@ export function isDraftable(value: any): boolean {
 	)
 }
 
-export function getProxyDraft<T extends any>(value: T): ImmerState | null {
-	if (typeof value !== "object") return null
-	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
-}
-
 const objectCtorString = Object.prototype.constructor.toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
@@ -165,9 +160,9 @@ export function isSet(target: any): target is AnySet {
 	return target instanceof Set
 }
 
-function getDraft(value: any): ImmerState | null {
+export function getProxyDraft<T extends any>(value: T): ImmerState | null {
 	if (typeof value !== "object") return null
-	return value?.[DRAFT_STATE]
+	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
 }
 
 /*#__PURE__*/
@@ -176,7 +171,7 @@ export function latest(state: ImmerState): any {
 }
 
 export function getValue<T extends object>(value: T): T {
-	const proxyDraft = getDraft(value)
+	const proxyDraft = getProxyDraft(value)
 	return proxyDraft ? proxyDraft.copy_ ?? proxyDraft.base_ : value
 }
 

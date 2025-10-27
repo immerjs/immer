@@ -61,7 +61,8 @@ export function createProxyProxy<T extends Objectish>(
 		// Used during finalization.
 		finalized_: false,
 		// Track which properties have been assigned (true) or deleted (false).
-		assigned_: new Map(),
+		// actually instantiated in `prepareCopy()`
+		assigned_: undefined,
 		// The parent draft state.
 		parent_: parent,
 		// The base state.
@@ -74,7 +75,7 @@ export function createProxyProxy<T extends Objectish>(
 		revoke_: null as any,
 		isManual_: false,
 		// `callbacks` actually gets assigned in `createProxy`
-		callbacks_: []
+		callbacks_: undefined as any
 	}
 
 	// the traps must target something, a bit like the 'real' base.
@@ -117,10 +118,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (value === peek(state.base_, prop)) {
 			prepareCopy(state)
 			// Ensure array keys are always numbers
-			const childKey = state.type_ === ArchType.Array ? Number(prop) : prop
+			const childKey = state.type_ === ArchType.Array ? +(prop as string) : prop
 			const childDraft = createProxy(state.scope_, value, state, childKey)
 
-			return (state.copy_![prop as any] = childDraft)
+			return (state.copy_![childKey] = childDraft)
 		}
 		return value
 	},
@@ -179,10 +180,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		return true
 	},
 	deleteProperty(state, prop: string) {
+		prepareCopy(state)
 		// The `undefined` check is a fast path for pre-existing keys.
 		if (peek(state.base_, prop) !== undefined || prop in state.base_) {
 			state.assigned_!.set(prop, false)
-			prepareCopy(state)
 			markChanged(state)
 		} else {
 			// if an originally not assigned property was deleted
@@ -287,12 +288,11 @@ export function markChanged(state: ImmerState) {
 	}
 }
 
-export function prepareCopy(state: {
-	base_: any
-	copy_: any
-	scope_: ImmerScope
-}) {
+export function prepareCopy(state: ImmerState) {
 	if (!state.copy_) {
+		// Actually create the `assigned_` map now that we
+		// know this is a modified draft.
+		state.assigned_ = new Map()
 		state.copy_ = shallowCopy(
 			state.base_,
 			state.scope_.immer_.useStrictShallowCopy_

@@ -115,8 +115,11 @@ function isSameScope(state: ImmerState, rootScope: ImmerScope) {
 	return state.scope_ === rootScope
 }
 
-const NO_LOCATIONS: (string | symbol | number)[] = []
+// A reusable empty array to avoid allocations
+const EMPTY_LOCATIONS_RESULT: (string | symbol | number)[] = []
 
+// Updates all references to a draft in its parent to the finalized value.
+// This handles cases where the same draft appears multiple times in the parent, or has been moved around.
 export function updateDraftInParent(
 	parent: ImmerState,
 	draftValue: any,
@@ -154,7 +157,8 @@ export function updateDraftInParent(
 	}
 
 	// Look up all locations where this draft appears
-	const locations = parent.draftLocations_.get(draftValue) ?? NO_LOCATIONS
+	const locations =
+		parent.draftLocations_.get(draftValue) ?? EMPTY_LOCATIONS_RESULT
 
 	// Update all locations
 	for (const location of locations) {
@@ -162,6 +166,9 @@ export function updateDraftInParent(
 	}
 }
 
+// Register a callback to finalize a child draft when the parent draft is finalized.
+// This assumes there is a parent -> child relationship between the two drafts,
+// and we have a key to locate the child in the parent.
 export function registerChildFinalizationCallback(
 	rootScope: ImmerScope,
 	parent: ImmerState,
@@ -196,16 +203,15 @@ function generatePatchesAndFinalize(
 	const shouldFinalize =
 		state.modified_ &&
 		!state.finalized_ &&
-		(state.type_ === ArchType.Set ||
-			(state.assigned_ && state.assigned_.size > 0))
+		(state.type_ === ArchType.Set || (state.assigned_?.size ?? 0) > 0)
 
 	if (shouldFinalize) {
-		if (patches && inversePatches) {
+		if (patches) {
 			const patchPlugin = getPlugin("Patches")
 			const basePath = patchPlugin.getPath(state)
 
 			if (basePath) {
-				patchPlugin.generatePatches_(state, basePath, patches, inversePatches)
+				patchPlugin.generatePatches_(state, basePath, patches, inversePatches!)
 			}
 		}
 
@@ -251,10 +257,14 @@ export function finalizeAssigned(
 	key: PropertyKey,
 	rootScope: ImmerScope
 ) {
-	const wasAssigned =
-		(state as Exclude<ImmerState, SetState>).assigned_!.get(key) ?? false
+	// const wasAssigned =
 
-	if (rootScope.drafts_.length > 1 && wasAssigned === true && state.copy_) {
+	if (
+		rootScope.drafts_.length > 1 &&
+		((state as Exclude<ImmerState, SetState>).assigned_!.get(key) ?? false) ===
+			true &&
+		state.copy_
+	) {
 		// This might be a non-draft value that has drafts
 		// inside. We do need to recurse here to handle those.
 		handleValue(
@@ -279,9 +289,18 @@ export function fixPotentialSetContents(target: ImmerState) {
 
 export function handleValue(
 	target: any,
-	handledSet: WeakSet<any>,
+	handledSet: Set<any>,
 	rootScope: ImmerScope
 ) {
+	if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
+		// optimization: if an object is not a draft, and we don't have to
+		// deepfreeze everything, and we are sure that no drafts are left in the remaining object
+		// cause we saw and finalized all drafts already; we can stop visiting the rest of the tree.
+		// This benefits especially adding large data tree's without further processing.
+		// See add-data.js perf test
+		return target
+	}
+
 	// Skip if already handled, frozen, or not draftable
 	if (
 		isDraft(target) ||
@@ -289,15 +308,6 @@ export function handleValue(
 		!isDraftable(target) ||
 		isFrozen(target)
 	) {
-		return target
-	}
-
-	if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
-		// optimization: if an object is not a draft, and we don't have to
-		// deepfreeze everything, and we are sure that no drafts are left in the remaining object
-		// cause we saw and finalized all drafts already; we can stop visiting the rest of the tree.
-		// This benefits especially adding large data tree's without further processing.
-		// See add-data.js perf test
 		return target
 	}
 

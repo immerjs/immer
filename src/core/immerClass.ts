@@ -253,12 +253,12 @@ export function createProxy<T extends Objectish>(
 		state.callbacks_.push(function rootDraftCleanup(patches, inversePatches) {
 			fixPotentialSetContents(state)
 
-			if (state.modified_ && patches && inversePatches) {
+			if (state.modified_ && patches) {
 				getPlugin("Patches").generatePatches_(
 					state,
 					[],
 					patches,
-					inversePatches
+					inversePatches!
 				)
 			}
 		})

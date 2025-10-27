@@ -42,7 +42,7 @@ export function enablePatches() {
 
 	function getPath(state: ImmerState, path: PatchPath = []): PatchPath | null {
 		// Step 1: Check if state has a stored key
-		if (Object.hasOwnProperty.call(state, "key_") && state.key_ !== undefined) {
+		if ("key_" in state && state.key_ !== undefined) {
 			// Step 2: Validate the key is still valid in parent
 
 			const parentCopy = state.parent_!.copy_ ?? state.parent_!.base_
