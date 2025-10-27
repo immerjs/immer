@@ -10,6 +10,9 @@ import {
 	ImmerScope
 } from "../internal"
 
+export const PluginMapSet = "MapSet"
+export const PluginPatches = "Patches"
+
 export type PatchesPlugin = {
 	generatePatches_(
 		state: ImmerState,
@@ -28,7 +31,7 @@ export type PatchesPlugin = {
 export type MapSetPlugin = {
 	proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
 	proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
-	fixPotentialSetContents: (state: ImmerState) => void
+	fixSetContents: (state: ImmerState) => void
 }
 
 /** Plugin utilities */
@@ -50,9 +53,8 @@ export function getPlugin<K extends keyof Plugins>(
 	return plugin
 }
 
-export function isPluginLoaded<K extends keyof Plugins>(pluginKey: K): boolean {
-	return !!plugins[pluginKey]
-}
+export let isPluginLoaded = <K extends keyof Plugins>(pluginKey: K): boolean =>
+	!!plugins[pluginKey]
 
 export function loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,

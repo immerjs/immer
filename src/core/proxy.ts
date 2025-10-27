@@ -18,7 +18,12 @@ import {
 	createProxy,
 	ArchType,
 	ImmerScope,
-	handleCrossReference
+	handleCrossReference,
+	WRITABLE,
+	CONFIGURABLE,
+	ENUMERABLE,
+	VALUE,
+	isArray
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -51,9 +56,9 @@ export function createProxyProxy<T extends Objectish>(
 	base: T,
 	parent?: ImmerState
 ): [Drafted<T, ProxyState>, ProxyState] {
-	const isArray = Array.isArray(base)
+	const baseIsArray = isArray(base)
 	const state: ProxyState = {
-		type_: isArray ? ArchType.Array : (ArchType.Object as any),
+		type_: baseIsArray ? ArchType.Array : (ArchType.Object as any),
 		// Track which produce call this is associated with.
 		scope_: parent ? parent.scope_ : getCurrentScope()!,
 		// True for both shallow and deep changes.
@@ -86,7 +91,7 @@ export function createProxyProxy<T extends Objectish>(
 	// Note that in the case of an array, we put the state in an array to have better Reflect defaults ootb
 	let target: T = state as any
 	let traps: ProxyHandler<object | Array<any>> = objectTraps
-	if (isArray) {
+	if (baseIsArray) {
 		target = [state] as any
 		traps = arrayTraps
 	}
@@ -201,10 +206,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		const desc = Reflect.getOwnPropertyDescriptor(owner, prop)
 		if (!desc) return desc
 		return {
-			writable: true,
-			configurable: state.type_ !== ArchType.Array || prop !== "length",
-			enumerable: desc.enumerable,
-			value: owner[prop]
+			[WRITABLE]: true,
+			[CONFIGURABLE]: state.type_ !== ArchType.Array || prop !== "length",
+			[ENUMERABLE]: desc[ENUMERABLE],
+			[VALUE]: owner[prop]
 		}
 	},
 	defineProperty() {
@@ -226,8 +231,9 @@ const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 each(objectTraps, (key, fn) => {
 	// @ts-ignore
 	arrayTraps[key] = function() {
-		arguments[0] = arguments[0][0]
-		return fn.apply(this, arguments)
+		const args = arguments
+		args[0] = args[0][0]
+		return fn.apply(this, args)
 	}
 })
 arrayTraps.deleteProperty = function(state, prop) {
@@ -256,8 +262,8 @@ function peek(draft: Drafted, prop: PropertyKey) {
 function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {
 	const desc = getDescriptorFromProto(source, prop)
 	return desc
-		? `value` in desc
-			? desc.value
+		? VALUE in desc
+			? desc[VALUE]
 			: // This is a very special case, if the prop is a getter defined by the
 			  // prototype, we should invoke it with the draft as context!
 			  desc.get?.call(state.draft_)

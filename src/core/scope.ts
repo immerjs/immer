@@ -9,7 +9,9 @@ import {
 	getPlugin,
 	PatchesPlugin,
 	MapSetPlugin,
-	isPluginLoaded
+	isPluginLoaded,
+	PluginMapSet,
+	PluginPatches
 } from "../internal"
 
 /** Each scope represents a `produce` call. */
@@ -31,34 +33,32 @@ export interface ImmerScope {
 
 let currentScope: ImmerScope | undefined
 
-export function getCurrentScope() {
-	return currentScope!
-}
+export let getCurrentScope = () => currentScope!
 
-function createScope(
+let createScope = (
 	parent_: ImmerScope | undefined,
 	immer_: Immer
-): ImmerScope {
-	return {
-		drafts_: [],
-		parent_,
-		immer_,
-		// Whenever the modified draft contains a draft from another scope, we
-		// need to prevent auto-freezing so the unowned draft can be finalized.
-		canAutoFreeze_: true,
-		unfinalizedDrafts_: 0,
-		handledSet_: new Set(),
-		processedForPatches_: new Set(),
-		mapSetPlugin_: isPluginLoaded("MapSet") ? getPlugin("MapSet") : undefined
-	}
-}
+): ImmerScope => ({
+	drafts_: [],
+	parent_,
+	immer_,
+	// Whenever the modified draft contains a draft from another scope, we
+	// need to prevent auto-freezing so the unowned draft can be finalized.
+	canAutoFreeze_: true,
+	unfinalizedDrafts_: 0,
+	handledSet_: new Set(),
+	processedForPatches_: new Set(),
+	mapSetPlugin_: isPluginLoaded(PluginMapSet)
+		? getPlugin(PluginMapSet)
+		: undefined
+})
 
 export function usePatchesInScope(
 	scope: ImmerScope,
 	patchListener?: PatchListener
 ) {
 	if (patchListener) {
-		scope.patchPlugin_ = getPlugin("Patches") // assert we have the plugin
+		scope.patchPlugin_ = getPlugin(PluginPatches) // assert we have the plugin
 		scope.patches_ = []
 		scope.inversePatches_ = []
 		scope.patchListener_ = patchListener
@@ -78,9 +78,8 @@ export function leaveScope(scope: ImmerScope) {
 	}
 }
 
-export function enterScope(immer: Immer) {
-	return (currentScope = createScope(currentScope, immer))
-}
+export let enterScope = (immer: Immer) =>
+	(currentScope = createScope(currentScope, immer))
 
 function revokeDraft(draft: Drafted) {
 	const state: ImmerState = draft[DRAFT_STATE]

@@ -32,7 +32,9 @@ import {
 	AnySet,
 	isObjectish,
 	isFunction,
-	isBoolean
+	isBoolean,
+	PluginMapSet,
+	PluginPatches
 } from "../internal"
 
 interface ProducersFns {
@@ -122,7 +124,7 @@ export class Immer implements ProducersFns {
 			if (patchListener) {
 				const p: Patch[] = []
 				const ip: Patch[] = []
-				getPlugin("Patches").generateReplacementPatches_(base, result, {
+				getPlugin(PluginPatches).generateReplacementPatches_(base, result, {
 					patches_: p,
 					inversePatches_: ip
 				} as ImmerScope) // dummy scope
@@ -217,7 +219,7 @@ export class Immer implements ProducersFns {
 			patches = patches.slice(i + 1)
 		}
 
-		const applyPatchesImpl = getPlugin("Patches").applyPatches_
+		const applyPatchesImpl = getPlugin(PluginPatches).applyPatches_
 		if (isDraft(base)) {
 			// N.B: never hits if some patch a replacement, patches are never drafts
 			return applyPatchesImpl(base, patches)
@@ -239,9 +241,9 @@ export function createProxy<T extends Objectish>(
 	// returning a tuple here lets us skip a proxy access
 	// to DRAFT_STATE later
 	const [draft, state] = isMap(value)
-		? getPlugin("MapSet").proxyMap_(value, parent)
+		? getPlugin(PluginMapSet).proxyMap_(value, parent)
 		: isSet(value)
-		? getPlugin("MapSet").proxySet_(value, parent)
+		? getPlugin(PluginMapSet).proxySet_(value, parent)
 		: createProxyProxy(value, parent)
 
 	const scope = parent?.scope_ ?? getCurrentScope()
@@ -257,7 +259,7 @@ export function createProxy<T extends Objectish>(
 	} else {
 		// It's a root draft, register it with the scope
 		state.callbacks_.push(function rootDraftCleanup(rootScope) {
-			rootScope.mapSetPlugin_?.fixPotentialSetContents(state)
+			rootScope.mapSetPlugin_?.fixSetContents(state)
 
 			const {patchPlugin_} = rootScope
 

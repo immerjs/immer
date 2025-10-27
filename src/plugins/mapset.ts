@@ -15,7 +15,8 @@ import {
 	die,
 	ArchType,
 	each,
-	getValue
+	getValue,
+	PluginMapSet
 } from "../internal"
 
 export function enableMapSet() {
@@ -312,7 +313,7 @@ export function enableMapSet() {
 		if (state.revoked_) die(3, JSON.stringify(latest(state)))
 	}
 
-	function fixPotentialSetContents(target: ImmerState) {
+	function fixSetContents(target: ImmerState) {
 		// For sets we clone before iterating, otherwise we can get in endless loop due to modifying during iteration, see #628
 		// To preserve insertion order in all cases we then clear the set
 		if (target.type_ === ArchType.Set && target.copy_) {
@@ -324,5 +325,5 @@ export function enableMapSet() {
 		}
 	}
 
-	loadPlugin("MapSet", {proxyMap_, proxySet_, fixPotentialSetContents})
+	loadPlugin(PluginMapSet, {proxyMap_, proxySet_, fixSetContents})
 }

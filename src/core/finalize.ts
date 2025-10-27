@@ -108,9 +108,8 @@ function markStateFinalized(state: ImmerState) {
 	state.scope_.unfinalizedDrafts_--
 }
 
-function isSameScope(state: ImmerState, rootScope: ImmerScope) {
-	return state.scope_ === rootScope
-}
+let isSameScope = (state: ImmerState, rootScope: ImmerScope) =>
+	state.scope_ === rootScope
 
 // A reusable empty array to avoid allocations
 const EMPTY_LOCATIONS_RESULT: (string | symbol | number)[] = []
@@ -180,7 +179,7 @@ export function registerChildFinalizationCallback(
 		}
 
 		// Handle potential set value finalization first
-		rootScope.mapSetPlugin_?.fixPotentialSetContents(state)
+		rootScope.mapSetPlugin_?.fixSetContents(state)
 
 		const finalizedValue = getFinalValue(state)
 

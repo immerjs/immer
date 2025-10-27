@@ -25,7 +25,11 @@ import {
 	getProxyDraft,
 	ImmerScope,
 	isObjectish,
-	isFunction
+	isFunction,
+	CONSTRUCTOR,
+	PluginPatches,
+	isArray,
+	PROTOTYPE
 } from "../internal"
 
 export function enablePatches() {
@@ -332,10 +336,10 @@ export function enablePatches() {
 				// See #738, avoid prototype pollution
 				if (
 					(parentType === ArchType.Object || parentType === ArchType.Array) &&
-					(p === "__proto__" || p === "constructor")
+					(p === "__proto__" || p === CONSTRUCTOR)
 				)
 					die(errorOffset + 3)
-				if (isFunction(base) && p === "prototype") die(errorOffset + 3)
+				if (isFunction(base) && p === PROTOTYPE) die(errorOffset + 3)
 				base = get(base, p)
 				if (!isObjectish(base)) die(errorOffset + 2, path.join("/"))
 			}
@@ -396,7 +400,7 @@ export function enablePatches() {
 	function deepClonePatchValue<T>(obj: T): T
 	function deepClonePatchValue(obj: any) {
 		if (!isDraftable(obj)) return obj
-		if (Array.isArray(obj)) return obj.map(deepClonePatchValue)
+		if (isArray(obj)) return obj.map(deepClonePatchValue)
 		if (isMap(obj))
 			return new Map(
 				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
@@ -414,7 +418,7 @@ export function enablePatches() {
 		} else return obj
 	}
 
-	loadPlugin("Patches", {
+	loadPlugin(PluginPatches, {
 		applyPatches_,
 		generatePatches_,
 		generateReplacementPatches_,

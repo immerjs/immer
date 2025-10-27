@@ -16,11 +16,17 @@ const O = Object
 
 export const getPrototypeOf = O.getPrototypeOf
 
+export const CONSTRUCTOR = "constructor"
+export const PROTOTYPE = "prototype"
+
+export const CONFIGURABLE = "configurable"
+export const ENUMERABLE = "enumerable"
+export const WRITABLE = "writable"
+export const VALUE = "value"
+
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
-export function isDraft(value: any): boolean {
-	return !!value && !!value[DRAFT_STATE]
-}
+export let isDraft = (value: any): boolean => !!value && !!value[DRAFT_STATE]
 
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
@@ -28,23 +34,23 @@ export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
 		isPlainObject(value) ||
-		Array.isArray(value) ||
+		isArray(value) ||
 		!!value[DRAFTABLE] ||
-		!!value.constructor?.[DRAFTABLE] ||
+		!!value[CONSTRUCTOR]?.[DRAFTABLE] ||
 		isMap(value) ||
 		isSet(value)
 	)
 }
 
-const objectCtorString = O.prototype.constructor.toString()
+const objectCtorString = O[PROTOTYPE][CONSTRUCTOR].toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
 	if (!value || !isObjectish(value)) return false
-	const proto = O.getPrototypeOf(value)
-	if (proto === null || proto === O.prototype) return true
+	const proto = getPrototypeOf(value)
+	if (proto === null || proto === O[PROTOTYPE]) return true
 
-	const Ctor = O.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	const Ctor = O.hasOwnProperty.call(proto, CONSTRUCTOR) && proto[CONSTRUCTOR]
 	if (Ctor === Object) return true
 
 	if (!isFunction(Ctor)) return false
@@ -98,7 +104,7 @@ export function getArchtype(thing: any): ArchType {
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
 		? state.type_
-		: Array.isArray(thing)
+		: isArray(thing)
 		? ArchType.Array
 		: isMap(thing)
 		? ArchType.Map
@@ -108,33 +114,31 @@ export function getArchtype(thing: any): ArchType {
 }
 
 /*#__PURE__*/
-export function has(
+export let has = (
 	thing: any,
 	prop: PropertyKey,
 	type = getArchtype(thing)
-): boolean {
-	return type === ArchType.Map
+): boolean =>
+	type === ArchType.Map
 		? thing.has(prop)
-		: O.prototype.hasOwnProperty.call(thing, prop)
-}
+		: O[PROTOTYPE].hasOwnProperty.call(thing, prop)
 
 /*#__PURE__*/
-export function get(
+export let get = (
 	thing: AnyMap | AnyObject,
 	prop: PropertyKey,
 	type = getArchtype(thing)
-): any {
+): any =>
 	// @ts-ignore
-	return type === ArchType.Map ? thing.get(prop) : thing[prop]
-}
+	type === ArchType.Map ? thing.get(prop) : thing[prop]
 
 /*#__PURE__*/
-export function set(
+export let set = (
 	thing: any,
 	propOrOldValue: PropertyKey,
 	value: any,
 	type = getArchtype(thing)
-) {
+) => {
 	if (type === ArchType.Map) thing.set(propOrOldValue, value)
 	else if (type === ArchType.Set) {
 		thing.add(value)
@@ -151,46 +155,37 @@ export function is(x: any, y: any): boolean {
 	}
 }
 
-/*#__PURE__*/
-export function isMap(target: any): target is AnyMap {
-	return target instanceof Map
-}
+export let isArray = Array.isArray
 
 /*#__PURE__*/
-export function isSet(target: any): target is AnySet {
-	return target instanceof Set
-}
+export let isMap = (target: any): target is AnyMap => target instanceof Map
 
-export function isObjectish(target: any) {
-	return typeof target === "object"
-}
+/*#__PURE__*/
+export let isSet = (target: any): target is AnySet => target instanceof Set
 
-export function isFunction(target: any): target is Function {
-	return typeof target === "function"
-}
+export let isObjectish = (target: any) => typeof target === "object"
 
-export function isBoolean(target: any): target is boolean {
-	return typeof target === "boolean"
-}
+export let isFunction = (target: any): target is Function =>
+	typeof target === "function"
 
-export function getProxyDraft<T extends any>(value: T): ImmerState | null {
+export let isBoolean = (target: any): target is boolean =>
+	typeof target === "boolean"
+
+export let getProxyDraft = <T extends any>(value: T): ImmerState | null => {
 	if (!isObjectish(value)) return null
 	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
 }
 
 /*#__PURE__*/
-export function latest(state: ImmerState): any {
-	return state.copy_ || state.base_
-}
+export let latest = (state: ImmerState): any => state.copy_ || state.base_
 
-export function getValue<T extends object>(value: T): T {
+export let getValue = <T extends object>(value: T): T => {
 	const proxyDraft = getProxyDraft(value)
 	return proxyDraft ? proxyDraft.copy_ ?? proxyDraft.base_ : value
 }
 
-export function getFinalValue(state: ImmerState): any {
-	return state.modified_ ? state.copy_ : state.base_
-}
+export let getFinalValue = (state: ImmerState): any =>
+	state.modified_ ? state.copy_ : state.base_
 
 /*#__PURE__*/
 export function shallowCopy(base: any, strict: StrictMode) {
@@ -200,7 +195,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
 	if (isSet(base)) {
 		return new Set(base)
 	}
-	if (Array.isArray(base)) return Array.prototype.slice.call(base)
+	if (isArray(base)) return Array[PROTOTYPE].slice.call(base)
 
 	const isPlain = isPlainObject(base)
 
@@ -212,19 +207,19 @@ export function shallowCopy(base: any, strict: StrictMode) {
 		for (let i = 0; i < keys.length; i++) {
 			const key: any = keys[i]
 			const desc = descriptors[key]
-			if (desc.writable === false) {
-				desc.writable = true
-				desc.configurable = true
+			if (desc[WRITABLE] === false) {
+				desc[WRITABLE] = true
+				desc[CONFIGURABLE] = true
 			}
 			// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
 			// with libraries that trap values, like mobx or vue
 			// unlike object.assign, non-enumerables will be copied as well
 			if (desc.get || desc.set)
 				descriptors[key] = {
-					configurable: true,
-					writable: true, // could live with !!desc.set as well here...
-					enumerable: desc.enumerable,
-					value: base[key]
+					[CONFIGURABLE]: true,
+					[WRITABLE]: true, // could live with !!desc.set as well here...
+					[ENUMERABLE]: desc[ENUMERABLE],
+					[VALUE]: base[key]
 				}
 		}
 		return O.create(getPrototypeOf(base), descriptors)
@@ -276,7 +271,7 @@ function dontMutateFrozenCollections() {
 }
 
 const dontMutateMethodOverride = {
-	value: dontMutateFrozenCollections
+	[VALUE]: dontMutateFrozenCollections
 }
 
 export function isFrozen(obj: any): boolean {
