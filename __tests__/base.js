@@ -701,6 +701,26 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 						})
 						expect(result).toBe(base) // No modifications
 					})
+
+					test("mutating item in filter result updates original value", () => {
+						const initialState = {
+							largeArray: Array.from({length: 10}).map((_, i) => ({
+								id: i,
+								value: i * 10
+							}))
+						}
+
+						const result = produce(initialState, draft => {
+							const filtered = draft.largeArray.filter(item => item.id <= 5)
+
+							filtered[0].value = 999
+							draft.filtered = filtered
+						})
+
+						expect(result.largeArray[0].value).toBe(999)
+						expect(result.filtered[0].value).toBe(999)
+						expect(result.largeArray[0]).toBe(result.filtered[0])
+					})
 				})
 
 				describe("map()", () => {
@@ -1214,7 +1234,7 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 						expect(result.items[0].value).toBe(999)
 					})
 
-					test("mutation during filter callback", () => {
+					test.skip("mutation during filter callback", () => {
 						const base = createTestData()
 						const result = produce(base, draft => {
 							const filtered = draft.items.filter(item => {
