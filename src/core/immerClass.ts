@@ -31,7 +31,12 @@ interface ProducersFns {
 	produceWithPatches: IProduceWithPatches
 }
 
-export type StrictMode = boolean | "class_only"
+export type StrictMode =
+	| boolean
+	| "class_only"
+	| "strings_only"
+	| "with_symbols"
+	| "full"
 
 export class Immer implements ProducersFns {
 	autoFreeze_: boolean = true
@@ -45,7 +50,7 @@ export class Immer implements ProducersFns {
 	}) {
 		if (typeof config?.autoFreeze === "boolean")
 			this.setAutoFreeze(config!.autoFreeze)
-		if (typeof config?.useStrictShallowCopy === "boolean")
+		if (typeof config?.useStrictShallowCopy !== "undefined")
 			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
 		if (typeof config?.useStrictIteration === "boolean")
 			this.setUseStrictIteration(config!.useStrictIteration)
