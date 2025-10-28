@@ -164,7 +164,11 @@ export function shallowCopy(base: any, strict: StrictMode) {
 
 	const isPlain = isPlainObject(base)
 
-	if (strict === true || (strict === "class_only" && !isPlain)) {
+	if (
+		strict === true ||
+		strict === "full" ||
+		(strict === "class_only" && !isPlain)
+	) {
 		// Perform a strict copy
 		const descriptors = Object.getOwnPropertyDescriptors(base)
 		delete descriptors[DRAFT_STATE as any]
@@ -192,6 +196,25 @@ export function shallowCopy(base: any, strict: StrictMode) {
 		// perform a sloppy copy
 		const proto = getPrototypeOf(base)
 		if (proto !== null && isPlain) {
+			// v8 has a perf cliff at 1020 properties where it
+			// switches from "fast properties" to "dictionary mode" at 1020 keys:
+			// - https://github.com/v8/v8/blob/754e7ba956b06231c487e09178aab9baba1f46fe/src/objects/property-details.h#L242-L247
+			// - https://github.com/v8/v8/blob/754e7ba956b06231c487e09178aab9baba1f46fe/test/mjsunit/dictionary-prototypes.js
+			// At that size, object spread gets drastically slower,
+			// and an `Object.keys()` loop becomes _faster_.
+			// Immer currently expects that we also copy symbols.  That would require either a `Reflect.ownKeys()`,
+			// or `.keys()` + `.getOwnPropertySymbols()`.
+			// For v10.x, we can keep object spread the default,
+			// and offer an option to switch to just strings to enable better perf
+			// with larger objects. For v11, we can flip those defaults.
+			if (strict === "strings_only") {
+				const copy: Record<string | symbol, any> = {}
+				Object.keys(base).forEach(key => {
+					copy[key] = base[key]
+				})
+				return copy
+			}
+
 			return {...base} // assumption: better inner class optimization than the assign below
 		}
 		const obj = Object.create(proto)
