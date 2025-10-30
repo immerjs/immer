@@ -11,7 +11,9 @@ import {
 	MapSetPlugin,
 	isPluginLoaded,
 	PluginMapSet,
-	PluginPatches
+	PluginPatches,
+	ArrayMethodsPlugin,
+	PluginArrayMethods
 } from "../internal"
 
 /** Each scope represents a `produce` call. */
@@ -21,6 +23,7 @@ export interface ImmerScope {
 	inversePatches_?: Patch[]
 	patchPlugin_?: PatchesPlugin
 	mapSetPlugin_?: MapSetPlugin
+	arrayMethodsPlugin_?: ArrayMethodsPlugin
 	canAutoFreeze_: boolean
 	drafts_: any[]
 	parent_?: ImmerScope
@@ -50,6 +53,9 @@ let createScope = (
 	processedForPatches_: new Set(),
 	mapSetPlugin_: isPluginLoaded(PluginMapSet)
 		? getPlugin(PluginMapSet)
+		: undefined,
+	arrayMethodsPlugin_: isPluginLoaded(PluginArrayMethods)
+		? getPlugin(PluginArrayMethods)
 		: undefined
 })
 
