@@ -138,6 +138,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			state.type_ === ArchType.Array &&
 			(state as ProxyArrayState).operationMethod &&
 			isMutatingArrayMethod((state as ProxyArrayState).operationMethod!) &&
+			typeof prop === "string" &&
 			isArrayIndex(prop)
 		) {
 			// Return raw value during mutating operations, create proxy only if modified
