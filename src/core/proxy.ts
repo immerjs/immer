@@ -45,6 +45,7 @@ export interface ProxyArrayState extends ProxyBaseState {
 	copy_: AnyArray | null
 	draft_: Drafted<AnyArray, ProxyArrayState>
 	operationMethod?: ArrayOperationMethod
+	allIndicesReassigned_?: boolean
 }
 
 type ProxyState = ProxyObjectState | ProxyArrayState
@@ -389,9 +390,7 @@ function executeArrayMethod<T>(
 }
 
 function markAllIndicesReassigned(state: ProxyArrayState) {
-	for (let i = 0; i < state.copy_!.length; i++) {
-		state.assigned_!.set(i.toString(), true)
-	}
+	state.allIndicesReassigned_ = true
 }
 
 function normalizeSliceIndex(index: number, length: number): number {
