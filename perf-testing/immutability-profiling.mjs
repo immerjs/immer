@@ -1,6 +1,7 @@
 /* eslint-disable no-inner-declarations */
-import {produce, setAutoFreeze} from "../dist/immer.mjs"
+import {produce, setAutoFreeze, enableArrayMethods} from "../dist/immer.mjs"
 
+enableArrayMethods()
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
