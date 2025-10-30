@@ -1234,23 +1234,6 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 						expect(result.items[0].value).toBe(999)
 					})
 
-					test.skip("mutation during filter callback", () => {
-						const base = createTestData()
-						const result = produce(base, draft => {
-							const filtered = draft.items.filter(item => {
-								// Verify items in filter callback are drafts
-								expect(isDraft(item)).toBe(true)
-								item.touched = true
-								return item.value > 25
-							})
-							expect(filtered).toHaveLength(3)
-						})
-						expect(result.items[0].touched).toBe(true)
-						expect(result.items[3].touched).toBe(true)
-						// Verify base state unchanged
-						expect(base.items[0].touched).toBeUndefined()
-					})
-
 					test("primitive array filter", () => {
 						const base = {numbers: [1, 2, 3, 4, 5]}
 						const result = produce(base, draft => {
