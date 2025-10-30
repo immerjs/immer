@@ -7,9 +7,17 @@ import {
 	isDraft,
 	immerable,
 	enablePatches,
-	enableMapSet
+	enableMapSet,
+	enableArrayMethods
 } from "../src/immer"
-import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
+
+import {
+	each,
+	shallowCopy,
+	DRAFT_STATE,
+	clearPlugin,
+	PluginArrayMethods
+} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import * as lodash from "lodash"
 
@@ -37,10 +45,22 @@ for (const autoFreeze of [true, false]) {
 	}
 }
 
+// Run one additional test suite with the array methods plugin enabled,
+// as that should be a separate concern from the other settings
+const testArrayMethodsName = `array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false`
+runBaseTest(testArrayMethodsName, true, false, false, true)
+
 class Foo {}
 
-function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
+function runBaseTest(
+	name,
+	autoFreeze,
+	useStrictShallowCopy,
+	useListener,
+	useArrayMethods = false
+) {
 	const listener = useListener ? function() {} : undefined
+
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
 		useStrictShallowCopy
@@ -67,6 +87,13 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 
 		beforeEach(() => {
 			origBaseState = baseState = createBaseState()
+
+			// Allow running our tests with and without the array method plugin
+			if (useArrayMethods) {
+				enableArrayMethods()
+			} else {
+				clearPlugin(PluginArrayMethods)
+			}
 		})
 
 		it("returns the original state when no changes are made", () => {
