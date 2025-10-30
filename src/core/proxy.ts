@@ -23,7 +23,8 @@ import {
 	CONFIGURABLE,
 	ENUMERABLE,
 	VALUE,
-	isArray
+	isArray,
+	isArrayIndex
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -43,6 +44,8 @@ export interface ProxyArrayState extends ProxyBaseState {
 	base_: AnyArray
 	copy_: AnyArray | null
 	draft_: Drafted<AnyArray, ProxyArrayState>
+	operationMethod?: string
+	allIndicesReassigned_?: boolean
 }
 
 type ProxyState = ProxyObjectState | ProxyArrayState
@@ -109,6 +112,17 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 
+		let arrayPlugin = state.scope_.arrayMethodsPlugin_
+		const isArrayWithStringProp =
+			state.type_ === ArchType.Array && typeof prop === "string"
+		// Intercept array methods so that we can override
+		// behavior and skip proxy creation for perf
+		if (isArrayWithStringProp) {
+			if (arrayPlugin?.isArrayOperationMethod(prop)) {
+				return arrayPlugin.createMethodInterceptor(state, prop)
+			}
+		}
+
 		const source = latest(state)
 		if (!has(source, prop, state.type_)) {
 			// non-existing or non-own property...
@@ -116,6 +130,20 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		}
 		const value = source[prop]
 		if (state.finalized_ || !isDraftable(value)) {
+			return value
+		}
+
+		// During mutating array operations, defer proxy creation for array elements
+		// This optimization avoids creating unnecessary proxies during sort/reverse
+		if (
+			isArrayWithStringProp &&
+			(state as ProxyArrayState).operationMethod &&
+			arrayPlugin?.isMutatingArrayMethod(
+				(state as ProxyArrayState).operationMethod!
+			) &&
+			isArrayIndex(prop)
+		) {
+			// Return raw value during mutating operations, create proxy only if modified
 			return value
 		}
 		// Check for existing draft in modified state.

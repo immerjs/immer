@@ -184,11 +184,15 @@ export function enablePatches() {
 			;[patches, inversePatches] = [inversePatches, patches]
 		}
 
+		const allReassigned = state.allIndicesReassigned_ === true
+
 		// Process replaced indices.
 		for (let i = 0; i < base_.length; i++) {
 			const copiedItem = copy_[i]
 			const baseItem = base_[i]
-			if (assigned_?.get(i.toString()) && copiedItem !== baseItem) {
+
+			const isAssigned = allReassigned || assigned_?.get(i.toString())
+			if (isAssigned && copiedItem !== baseItem) {
 				const childState = copiedItem?.[DRAFT_STATE]
 				if (childState && childState.modified_) {
 					// Skip - let the child generate its own patches

@@ -9,10 +9,8 @@ import {produce as produce9, setAutoFreeze as setAutoFreeze9} from "immer9"
 import {produce as produce10, setAutoFreeze as setAutoFreeze10} from "immer10"
 import {
 	produce as produce10Perf,
-	setAutoFreeze as setAutoFreeze10Perf
-	// Uncomment when using a build of Immer that exposes this function,
-	// and enable the corresponding line in the setStrictIteration object below.
-	// setUseStrictIteration as setUseStrictIteration10Perf
+	setAutoFreeze as setAutoFreeze10Perf,
+	enableArrayMethods as enableArrayMethods10Perf
 } from "immer10Perf"
 import {create as produceMutative} from "mutative"
 import {
@@ -233,6 +231,21 @@ const setStrictIteration = {
 	immer9: noop,
 	immer10: noop,
 	immer10Perf: noop, // setUseStrictIteration10Perf,
+	mutative: noop,
+	mutativeCompat: noop,
+	structura: noop,
+	limu: noop
+}
+
+const setEnableArrayMethods = {
+	vanilla: noop,
+	immer5: noop,
+	immer6: noop,
+	immer7: noop,
+	immer8: noop,
+	immer9: noop,
+	immer10: noop,
+	immer10Perf: enableArrayMethods10Perf,
 	mutative: noop,
 	mutativeCompat: noop,
 	structura: noop,
@@ -601,6 +614,7 @@ function createBenchmarks() {
 				function benchMethod() {
 					setAutoFreezes[version](freeze)
 					setStrictIteration[version](false)
+					setEnableArrayMethods[version]()
 					for (let i = 0; i < MAX; i++) {
 						reducers[version](initialState, actions[action](i))
 					}
@@ -635,6 +649,7 @@ function createBenchmarks() {
 				function benchMethod() {
 					setAutoFreezes[version](freeze)
 					setStrictIteration[version](false)
+					setEnableArrayMethods[version]()
 
 					let currentState = createInitialState()
 
@@ -663,6 +678,7 @@ function createBenchmarks() {
 			function benchMethod() {
 				setAutoFreezes[version](freeze)
 				setStrictIteration[version](false)
+				setEnableArrayMethods[version]()
 
 				let state = createInitialState()
 
@@ -692,6 +708,7 @@ function createBenchmarks() {
 			function benchMethod() {
 				setAutoFreezes[version](freeze)
 				setStrictIteration[version](false)
+				setEnableArrayMethods[version]()
 
 				let state = createInitialState()
 				// Use smaller array size for RTKQ benchmark due to exponential scaling

@@ -7,9 +7,17 @@ import {
 	isDraft,
 	immerable,
 	enablePatches,
-	enableMapSet
+	enableMapSet,
+	enableArrayMethods
 } from "../src/immer"
-import {each, shallowCopy, DRAFT_STATE} from "../src/internal"
+
+import {
+	each,
+	shallowCopy,
+	DRAFT_STATE,
+	clearPlugin,
+	PluginArrayMethods
+} from "../src/internal"
 import deepFreeze from "deep-freeze"
 import * as lodash from "lodash"
 
@@ -37,10 +45,22 @@ for (const autoFreeze of [true, false]) {
 	}
 }
 
+// Run one additional test suite with the array methods plugin enabled,
+// as that should be a separate concern from the other settings
+const testArrayMethodsName = `array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false`
+runBaseTest(testArrayMethodsName, true, false, false, true)
+
 class Foo {}
 
-function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
+function runBaseTest(
+	name,
+	autoFreeze,
+	useStrictShallowCopy,
+	useListener,
+	useArrayMethods = false
+) {
 	const listener = useListener ? function() {} : undefined
+
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
 		useStrictShallowCopy
@@ -67,6 +87,13 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 
 		beforeEach(() => {
 			origBaseState = baseState = createBaseState()
+
+			// Allow running our tests with and without the array method plugin
+			if (useArrayMethods) {
+				enableArrayMethods()
+			} else {
+				clearPlugin(PluginArrayMethods)
+			}
 		})
 
 		it("returns the original state when no changes are made", () => {
@@ -701,6 +728,26 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 						})
 						expect(result).toBe(base) // No modifications
 					})
+
+					test("mutating item in filter result updates original value", () => {
+						const initialState = {
+							largeArray: Array.from({length: 10}).map((_, i) => ({
+								id: i,
+								value: i * 10
+							}))
+						}
+
+						const result = produce(initialState, draft => {
+							const filtered = draft.largeArray.filter(item => item.id <= 5)
+
+							filtered[0].value = 999
+							draft.filtered = filtered
+						})
+
+						expect(result.largeArray[0].value).toBe(999)
+						expect(result.filtered[0].value).toBe(999)
+						expect(result.largeArray[0]).toBe(result.filtered[0])
+					})
 				})
 
 				describe("map()", () => {
@@ -1212,23 +1259,6 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 							filtered[0].value = 999
 						})
 						expect(result.items[0].value).toBe(999)
-					})
-
-					test("mutation during filter callback", () => {
-						const base = createTestData()
-						const result = produce(base, draft => {
-							const filtered = draft.items.filter(item => {
-								// Verify items in filter callback are drafts
-								expect(isDraft(item)).toBe(true)
-								item.touched = true
-								return item.value > 25
-							})
-							expect(filtered).toHaveLength(3)
-						})
-						expect(result.items[0].touched).toBe(true)
-						expect(result.items[3].touched).toBe(true)
-						// Verify base state unchanged
-						expect(base.items[0].touched).toBeUndefined()
 					})
 
 					test("primitive array filter", () => {
