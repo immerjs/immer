@@ -110,18 +110,14 @@ export const finishDraft = /* @__PURE__ */ immer.finishDraft.bind(immer)
  *
  * @param value
  */
-export function castDraft<T>(value: T): Draft<T> {
-	return value as any
-}
+export let castDraft = <T>(value: T): Draft<T> => value as any
 
 /**
  * This function is actually a no-op, but can be used to cast a mutable type
  * to an immutable type and make TypeScript happy
  * @param value
  */
-export function castImmutable<T>(value: T): Immutable<T> {
-	return value as any
-}
+export let castImmutable = <T>(value: T): Immutable<T> => value as any
 
 export {Immer}
 

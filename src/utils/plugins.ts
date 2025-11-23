@@ -6,30 +6,38 @@ import {
 	AnyMap,
 	AnySet,
 	ArchType,
-	die
+	die,
+	ImmerScope
 } from "../internal"
+
+export const PluginMapSet = "MapSet"
+export const PluginPatches = "Patches"
+
+export type PatchesPlugin = {
+	generatePatches_(
+		state: ImmerState,
+		basePath: PatchPath,
+		rootScope: ImmerScope
+	): void
+	generateReplacementPatches_(
+		base: any,
+		replacement: any,
+		rootScope: ImmerScope
+	): void
+	applyPatches_<T>(draft: T, patches: readonly Patch[]): T
+	getPath: (state: ImmerState) => PatchPath | null
+}
+
+export type MapSetPlugin = {
+	proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): [T, ImmerState]
+	proxySet_<T extends AnySet>(target: T, parent?: ImmerState): [T, ImmerState]
+	fixSetContents: (state: ImmerState) => void
+}
 
 /** Plugin utilities */
 const plugins: {
-	Patches?: {
-		generatePatches_(
-			state: ImmerState,
-			basePath: PatchPath,
-			patches: Patch[],
-			inversePatches: Patch[]
-		): void
-		generateReplacementPatches_(
-			base: any,
-			replacement: any,
-			patches: Patch[],
-			inversePatches: Patch[]
-		): void
-		applyPatches_<T>(draft: T, patches: readonly Patch[]): T
-	}
-	MapSet?: {
-		proxyMap_<T extends AnyMap>(target: T, parent?: ImmerState): T
-		proxySet_<T extends AnySet>(target: T, parent?: ImmerState): T
-	}
+	Patches?: PatchesPlugin
+	MapSet?: MapSetPlugin
 } = {}
 
 type Plugins = typeof plugins
@@ -45,6 +53,9 @@ export function getPlugin<K extends keyof Plugins>(
 	return plugin
 }
 
+export let isPluginLoaded = <K extends keyof Plugins>(pluginKey: K): boolean =>
+	!!plugins[pluginKey]
+
 export function loadPlugin<K extends keyof Plugins>(
 	pluginKey: K,
 	implementation: Plugins[K]
@@ -56,7 +67,6 @@ export function loadPlugin<K extends keyof Plugins>(
 export interface MapState extends ImmerBaseState {
 	type_: ArchType.Map
 	copy_: AnyMap | undefined
-	assigned_: Map<any, boolean> | undefined
 	base_: AnyMap
 	revoked_: boolean
 	draft_: Drafted<AnyMap, MapState>

@@ -10,8 +10,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
 
-exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
-
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > revokes the draft once produce returns 2`] = `[TypeError: Cannot perform 'set' on a proxy that has been revoked]`;
@@ -47,8 +45,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > map drafts > revokes map proxies 2`] = `[Error: [Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
-
-exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
@@ -86,8 +82,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=f
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
 
-exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
-
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > revokes the draft once produce returns 2`] = `[TypeError: Cannot perform 'set' on a proxy that has been revoked]`;
@@ -123,8 +117,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=t
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > map drafts > revokes map proxies 2`] = `[Error: [Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
-
-exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
@@ -162,8 +154,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=f
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
 
-exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
-
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > revokes the draft once produce returns 2`] = `[TypeError: Cannot perform 'set' on a proxy that has been revoked]`;
@@ -199,8 +189,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=t
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > map drafts > revokes map proxies 2`] = `[Error: [Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
-
-exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
@@ -238,8 +226,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=fa
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
 
-exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
-
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > revokes the draft once produce returns 2`] = `[TypeError: Cannot perform 'set' on a proxy that has been revoked]`;
@@ -275,8 +261,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=tr
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > map drafts > revokes map proxies 2`] = `[Error: [Immer] Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? {}]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.]`;
-
-exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[Error: [Immer] Immer forbids circular references]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > revokes the draft once produce returns 1`] = `[TypeError: Cannot perform 'get' on a proxy that has been revoked]`;
 

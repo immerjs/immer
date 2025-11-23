@@ -12,13 +12,21 @@ import {
 	StrictMode
 } from "../internal"
 
-export const getPrototypeOf = Object.getPrototypeOf
+const O = Object
+
+export const getPrototypeOf = O.getPrototypeOf
+
+export const CONSTRUCTOR = "constructor"
+export const PROTOTYPE = "prototype"
+
+export const CONFIGURABLE = "configurable"
+export const ENUMERABLE = "enumerable"
+export const WRITABLE = "writable"
+export const VALUE = "value"
 
 /** Returns true if the given value is an Immer draft */
 /*#__PURE__*/
-export function isDraft(value: any): boolean {
-	return !!value && !!value[DRAFT_STATE]
-}
+export let isDraft = (value: any): boolean => !!value && !!value[DRAFT_STATE]
 
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
@@ -26,27 +34,26 @@ export function isDraftable(value: any): boolean {
 	if (!value) return false
 	return (
 		isPlainObject(value) ||
-		Array.isArray(value) ||
+		isArray(value) ||
 		!!value[DRAFTABLE] ||
-		!!value.constructor?.[DRAFTABLE] ||
+		!!value[CONSTRUCTOR]?.[DRAFTABLE] ||
 		isMap(value) ||
 		isSet(value)
 	)
 }
 
-const objectCtorString = Object.prototype.constructor.toString()
+const objectCtorString = O[PROTOTYPE][CONSTRUCTOR].toString()
 const cachedCtorStrings = new WeakMap()
 /*#__PURE__*/
 export function isPlainObject(value: any): boolean {
-	if (!value || typeof value !== "object") return false
-	const proto = Object.getPrototypeOf(value)
-	if (proto === null || proto === Object.prototype) return true
+	if (!value || !isObjectish(value)) return false
+	const proto = getPrototypeOf(value)
+	if (proto === null || proto === O[PROTOTYPE]) return true
 
-	const Ctor =
-		Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
+	const Ctor = O.hasOwnProperty.call(proto, CONSTRUCTOR) && proto[CONSTRUCTOR]
 	if (Ctor === Object) return true
 
-	if (typeof Ctor !== "function") return false
+	if (!isFunction(Ctor)) return false
 
 	let ctorString = cachedCtorStrings.get(Ctor)
 	if (ctorString === undefined) {
@@ -83,7 +90,7 @@ export function each(obj: any, iter: any, strict: boolean = true) {
 	if (getArchtype(obj) === ArchType.Object) {
 		// If strict, we do a full iteration including symbols and non-enumerable properties
 		// Otherwise, we only iterate enumerable string properties for performance
-		const keys = strict ? Reflect.ownKeys(obj) : Object.keys(obj)
+		const keys = strict ? Reflect.ownKeys(obj) : O.keys(obj)
 		keys.forEach(key => {
 			iter(key, obj[key], obj)
 		})
@@ -97,7 +104,7 @@ export function getArchtype(thing: any): ArchType {
 	const state: undefined | ImmerState = thing[DRAFT_STATE]
 	return state
 		? state.type_
-		: Array.isArray(thing)
+		: isArray(thing)
 		? ArchType.Array
 		: isMap(thing)
 		? ArchType.Map
@@ -107,23 +114,33 @@ export function getArchtype(thing: any): ArchType {
 }
 
 /*#__PURE__*/
-export function has(thing: any, prop: PropertyKey): boolean {
-	return getArchtype(thing) === ArchType.Map
+export let has = (
+	thing: any,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): boolean =>
+	type === ArchType.Map
 		? thing.has(prop)
-		: Object.prototype.hasOwnProperty.call(thing, prop)
-}
+		: O[PROTOTYPE].hasOwnProperty.call(thing, prop)
 
 /*#__PURE__*/
-export function get(thing: AnyMap | AnyObject, prop: PropertyKey): any {
+export let get = (
+	thing: AnyMap | AnyObject,
+	prop: PropertyKey,
+	type = getArchtype(thing)
+): any =>
 	// @ts-ignore
-	return getArchtype(thing) === ArchType.Map ? thing.get(prop) : thing[prop]
-}
+	type === ArchType.Map ? thing.get(prop) : thing[prop]
 
 /*#__PURE__*/
-export function set(thing: any, propOrOldValue: PropertyKey, value: any) {
-	const t = getArchtype(thing)
-	if (t === ArchType.Map) thing.set(propOrOldValue, value)
-	else if (t === ArchType.Set) {
+export let set = (
+	thing: any,
+	propOrOldValue: PropertyKey,
+	value: any,
+	type = getArchtype(thing)
+) => {
+	if (type === ArchType.Map) thing.set(propOrOldValue, value)
+	else if (type === ArchType.Set) {
 		thing.add(value)
 	} else thing[propOrOldValue] = value
 }
@@ -138,19 +155,37 @@ export function is(x: any, y: any): boolean {
 	}
 }
 
+export let isArray = Array.isArray
+
 /*#__PURE__*/
-export function isMap(target: any): target is AnyMap {
-	return target instanceof Map
+export let isMap = (target: any): target is AnyMap => target instanceof Map
+
+/*#__PURE__*/
+export let isSet = (target: any): target is AnySet => target instanceof Set
+
+export let isObjectish = (target: any) => typeof target === "object"
+
+export let isFunction = (target: any): target is Function =>
+	typeof target === "function"
+
+export let isBoolean = (target: any): target is boolean =>
+	typeof target === "boolean"
+
+export let getProxyDraft = <T extends any>(value: T): ImmerState | null => {
+	if (!isObjectish(value)) return null
+	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]
 }
 
 /*#__PURE__*/
-export function isSet(target: any): target is AnySet {
-	return target instanceof Set
+export let latest = (state: ImmerState): any => state.copy_ || state.base_
+
+export let getValue = <T extends object>(value: T): T => {
+	const proxyDraft = getProxyDraft(value)
+	return proxyDraft ? proxyDraft.copy_ ?? proxyDraft.base_ : value
 }
-/*#__PURE__*/
-export function latest(state: ImmerState): any {
-	return state.copy_ || state.base_
-}
+
+export let getFinalValue = (state: ImmerState): any =>
+	state.modified_ ? state.copy_ : state.base_
 
 /*#__PURE__*/
 export function shallowCopy(base: any, strict: StrictMode) {
@@ -160,42 +195,42 @@ export function shallowCopy(base: any, strict: StrictMode) {
 	if (isSet(base)) {
 		return new Set(base)
 	}
-	if (Array.isArray(base)) return Array.prototype.slice.call(base)
+	if (isArray(base)) return Array[PROTOTYPE].slice.call(base)
 
 	const isPlain = isPlainObject(base)
 
 	if (strict === true || (strict === "class_only" && !isPlain)) {
 		// Perform a strict copy
-		const descriptors = Object.getOwnPropertyDescriptors(base)
+		const descriptors = O.getOwnPropertyDescriptors(base)
 		delete descriptors[DRAFT_STATE as any]
 		let keys = Reflect.ownKeys(descriptors)
 		for (let i = 0; i < keys.length; i++) {
 			const key: any = keys[i]
 			const desc = descriptors[key]
-			if (desc.writable === false) {
-				desc.writable = true
-				desc.configurable = true
+			if (desc[WRITABLE] === false) {
+				desc[WRITABLE] = true
+				desc[CONFIGURABLE] = true
 			}
 			// like object.assign, we will read any _own_, get/set accessors. This helps in dealing
 			// with libraries that trap values, like mobx or vue
 			// unlike object.assign, non-enumerables will be copied as well
 			if (desc.get || desc.set)
 				descriptors[key] = {
-					configurable: true,
-					writable: true, // could live with !!desc.set as well here...
-					enumerable: desc.enumerable,
-					value: base[key]
+					[CONFIGURABLE]: true,
+					[WRITABLE]: true, // could live with !!desc.set as well here...
+					[ENUMERABLE]: desc[ENUMERABLE],
+					[VALUE]: base[key]
 				}
 		}
-		return Object.create(getPrototypeOf(base), descriptors)
+		return O.create(getPrototypeOf(base), descriptors)
 	} else {
 		// perform a sloppy copy
 		const proto = getPrototypeOf(base)
 		if (proto !== null && isPlain) {
 			return {...base} // assumption: better inner class optimization than the assign below
 		}
-		const obj = Object.create(proto)
-		return Object.assign(obj, base)
+		const obj = O.create(proto)
+		return O.assign(obj, base)
 	}
 }
 
@@ -208,20 +243,26 @@ export function shallowCopy(base: any, strict: StrictMode) {
  */
 export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
-	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
+	if (isFrozen(obj) || isDraft(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
-		Object.defineProperties(obj, {
+		O.defineProperties(obj, {
 			set: dontMutateMethodOverride,
 			add: dontMutateMethodOverride,
 			clear: dontMutateMethodOverride,
 			delete: dontMutateMethodOverride
 		})
 	}
-	Object.freeze(obj)
+	O.freeze(obj)
 	if (deep)
 		// See #590, don't recurse into non-enumerable / Symbol properties when freezing
 		// So use Object.values (only string-like, enumerables) instead of each()
-		Object.values(obj).forEach(value => freeze(value, true))
+		each(
+			obj,
+			(_key, value) => {
+				freeze(value, true)
+			},
+			false
+		)
 	return obj
 }
 
@@ -230,11 +271,11 @@ function dontMutateFrozenCollections() {
 }
 
 const dontMutateMethodOverride = {
-	value: dontMutateFrozenCollections
+	[VALUE]: dontMutateFrozenCollections
 }
 
 export function isFrozen(obj: any): boolean {
 	// Fast path: primitives and null/undefined are always "frozen"
-	if (obj === null || typeof obj !== "object") return true
-	return Object.isFrozen(obj)
+	if (obj === null || !isObjectish(obj)) return true
+	return O.isFrozen(obj)
 }
