@@ -2677,6 +2677,29 @@ function runBaseTest(name, autoFreeze, useStrictShallowCopy, useListener) {
 			})
 
 		autoFreeze &&
+			test("issue #1190 / #1192 - should not freeze non-draftable objects (class instances and typed arrays)", () => {
+				class MutableClass {
+					value = 5
+				}
+
+				const state = {
+					someValue: 5,
+					mutableClass: new MutableClass(),
+					typedArray: new Uint8Array(10)
+				}
+
+				expect(() => {
+					// Should not throw when producing with autoFreeze enabled
+					const result = produce(state, draft => {
+						draft.someValue = 6
+					})
+
+					// Verify the non-draftable class instance is not frozen
+					state.mutableClass.value = 6
+				}).not.toThrow()
+			})
+
+		autoFreeze &&
 			test("issue #469, state not frozen", () => {
 				const project = produce(
 					{

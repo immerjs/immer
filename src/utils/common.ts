@@ -243,7 +243,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
  */
 export function freeze<T>(obj: T, deep?: boolean): T
 export function freeze<T>(obj: any, deep: boolean = false): T {
-	if (isFrozen(obj) || isDraft(obj)) return obj
+	if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj)) return obj
 	if (getArchtype(obj) > 1 /* Map or Set */) {
 		O.defineProperties(obj, {
 			set: dontMutateMethodOverride,
