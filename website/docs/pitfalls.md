@@ -87,3 +87,29 @@ remove(values, a)
 ```
 
 If possible, it's recommended to perform the comparison outside the `produce` function, or to use a unique identifier property like `.id` instead, to avoid needing to use `original`.
+
+### Array Methods Plugin: Callbacks receive base values
+
+When using the [Array Methods Plugin](./array-methods.md) (`enableArrayMethods()`), callbacks for overridden methods like `filter`, `find`, `some`, `every`, and `slice` receive **base values** (not drafts). This is the core performance optimization - it avoids creating proxies for every element during iteration.
+
+```javascript
+import {enableArrayMethods, produce} from "immer"
+enableArrayMethods()
+
+produce(state, draft => {
+	draft.items.filter(item => {
+		// `item` is a base value here, NOT a draft
+		// Reading works fine:
+		return item.value > 10
+
+		// But direct mutation here won't be tracked:
+		// item.value = 999  // ❌ Won't affect the draft!
+	})
+
+	// Instead, use the returned result (which contains drafts):
+	const filtered = draft.items.filter(item => item.value > 10)
+	filtered[0].value = 999 // ✅ This works - filtered[0] is a draft
+})
+```
+
+This only applies to methods intercepted by the plugin. Methods like `map`, `forEach`, `reduce` are NOT overridden and work normally - their callbacks receive drafts.
