@@ -38,7 +38,7 @@
     "build": "tsup",
     "publish-docs": "cd website && GIT_USER=mweststrate USE_SSH=true yarn docusaurus deploy",
     "start": "cd website && yarn start",
-    "test:size": "yarn build && yarn import-size --report . produce enableMapSet enablePatches",
+    "test:size": "yarn build && yarn import-size --report . produce enableMapSet enablePatches enableArrayMethods",
     "test:sizequick": "yarn build && yarn import-size . produce"
   },
   "husky": {
