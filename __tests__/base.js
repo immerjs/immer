@@ -1184,6 +1184,561 @@ function runBaseTest(
 					})
 				})
 
+				describe("concat()", () => {
+					test("returns new array with concatenated items", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							const concatenated = draft.items.concat([{id: 3}])
+							expect(concatenated).toHaveLength(3)
+							expect(concatenated[2].id).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("concat with no arguments creates shallow copy", () => {
+						const base = {
+							items: [
+								{id: 1, value: 10},
+								{id: 2, value: 20}
+							]
+						}
+						const result = produce(base, draft => {
+							const copy = draft.items.concat()
+							expect(copy).toHaveLength(2)
+							expect(copy[0].id).toBe(1)
+						})
+						expect(result).toBe(base)
+					})
+
+					// Behavior differs based on array methods plugin
+					if (useArrayMethods) {
+						test("concat returns base values, not drafts (with plugin)", () => {
+							const base = {items: [{id: 1, value: 10}]}
+							const result = produce(base, draft => {
+								const concatenated = draft.items.concat()
+								// With plugin: concat returns base values, not drafts
+								expect(isDraft(concatenated[0])).toBe(false)
+							})
+							expect(result).toBe(base)
+						})
+					} else {
+						test("concat returns draft proxies (default behavior)", () => {
+							const base = {items: [{id: 1, value: 10}]}
+							const result = produce(base, draft => {
+								const concatenated = draft.items.concat()
+								// Without plugin: concat returns draft proxies via get trap
+								expect(isDraft(concatenated[0])).toBe(true)
+							})
+							expect(result).toBe(base)
+						})
+					}
+
+					test("concat with multiple arrays", () => {
+						const base = {items: [{id: 1}]}
+						const result = produce(base, draft => {
+							const concatenated = draft.items.concat([{id: 2}], [{id: 3}])
+							expect(concatenated).toHaveLength(3)
+							expect(concatenated[1].id).toBe(2)
+							expect(concatenated[2].id).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("concat result assigned to draft works", () => {
+						const base = {items: [{id: 1}], combined: []}
+						const result = produce(base, draft => {
+							draft.combined = draft.items.concat([{id: 2}])
+						})
+						expect(result.combined).toHaveLength(2)
+						expect(result.combined[0].id).toBe(1)
+						expect(result.combined[1].id).toBe(2)
+					})
+
+					test("concat with primitives", () => {
+						const base = {numbers: [1, 2, 3]}
+						const result = produce(base, draft => {
+							const concatenated = draft.numbers.concat([4, 5])
+							expect(concatenated).toEqual([1, 2, 3, 4, 5])
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("flat()", () => {
+					test("returns flattened array", () => {
+						const base = {
+							nested: [
+								[1, 2],
+								[3, 4]
+							]
+						}
+						const result = produce(base, draft => {
+							const flattened = draft.nested.flat()
+							expect(flattened).toEqual([1, 2, 3, 4])
+						})
+						expect(result).toBe(base)
+					})
+
+					test("flat with depth parameter", () => {
+						const base = {nested: [[[1, 2]], [[3, 4]]]}
+						const result = produce(base, draft => {
+							const shallow = draft.nested.flat(1)
+							expect(shallow).toEqual([
+								[1, 2],
+								[3, 4]
+							])
+							const deep = draft.nested.flat(2)
+							expect(deep).toEqual([1, 2, 3, 4])
+						})
+						expect(result).toBe(base)
+					})
+
+					// Behavior differs based on array methods plugin
+					if (useArrayMethods) {
+						test("flat returns base values, not drafts (with plugin)", () => {
+							const base = {nested: [[{id: 1}], [{id: 2}]]}
+							const result = produce(base, draft => {
+								const flattened = draft.nested.flat()
+								expect(flattened).toHaveLength(2)
+								// With plugin: flat returns base values, not drafts
+								expect(isDraft(flattened[0])).toBe(false)
+							})
+							expect(result).toBe(base)
+						})
+					} else {
+						test("flat returns draft proxies (default behavior)", () => {
+							const base = {nested: [[{id: 1}], [{id: 2}]]}
+							const result = produce(base, draft => {
+								const flattened = draft.nested.flat()
+								expect(flattened).toHaveLength(2)
+								// Without plugin: flat returns draft proxies via get trap
+								expect(isDraft(flattened[0])).toBe(true)
+							})
+							expect(result).toBe(base)
+						})
+					}
+
+					test("flat with empty nested arrays", () => {
+						const base = {nested: [[], [1, 2], []]}
+						const result = produce(base, draft => {
+							const flattened = draft.nested.flat()
+							expect(flattened).toEqual([1, 2])
+						})
+						expect(result).toBe(base)
+					})
+
+					test("flat result assigned to draft works", () => {
+						const base = {nested: [[1], [2]], result: []}
+						const result = produce(base, draft => {
+							draft.result = draft.nested.flat()
+						})
+						expect(result.result).toEqual([1, 2])
+					})
+				})
+
+				describe("findIndex()", () => {
+					test("returns index of found item", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const index = draft.items.findIndex(item => item.id === 3)
+							expect(index).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns -1 when not found", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const index = draft.items.findIndex(item => item.id === 999)
+							expect(index).toBe(-1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("predicate receives correct arguments", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.findIndex((item, index, array) => {
+								expect(typeof index).toBe("number")
+								expect(Array.isArray(array)).toBe(true)
+								return false
+							})
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with primitives", () => {
+						const base = {numbers: [10, 20, 30, 40, 50]}
+						const result = produce(base, draft => {
+							const index = draft.numbers.findIndex(n => n > 25)
+							expect(index).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("findLastIndex()", () => {
+					test("returns last matching index", () => {
+						const base = {
+							items: [
+								{id: 1, type: "A"},
+								{id: 2, type: "B"},
+								{id: 3, type: "A"}
+							]
+						}
+						const result = produce(base, draft => {
+							const index = draft.items.findLastIndex(item => item.type === "A")
+							expect(index).toBe(2)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns -1 when not found", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							const index = draft.items.findLastIndex(item => item.id === 999)
+							expect(index).toBe(-1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("predicate receives correct arguments", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.findLastIndex((item, index, array) => {
+								expect(typeof index).toBe("number")
+								expect(Array.isArray(array)).toBe(true)
+								return false
+							})
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("some()", () => {
+					test("returns true when condition met", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const hasHighValue = draft.items.some(item => item.value > 40)
+							expect(hasHighValue).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns false when no items match", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const hasHugeValue = draft.items.some(item => item.value > 1000)
+							expect(hasHugeValue).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("short-circuits on first match", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						let callCount = 0
+						const result = produce(base, draft => {
+							const found = draft.items.some(item => {
+								callCount++
+								return item.id === 1
+							})
+							expect(found).toBe(true)
+						})
+						expect(callCount).toBe(1)
+						expect(result).toBe(base)
+					})
+
+					test("predicate receives correct arguments", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.some((item, index, array) => {
+								expect(typeof index).toBe("number")
+								expect(Array.isArray(array)).toBe(true)
+								return false
+							})
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with primitives", () => {
+						const base = {numbers: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							expect(draft.numbers.some(n => n > 3)).toBe(true)
+							expect(draft.numbers.some(n => n > 10)).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("every()", () => {
+					test("returns true when all items match", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const allPositive = draft.items.every(item => item.value > 0)
+							expect(allPositive).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns false when any item fails", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							const allHighValue = draft.items.every(item => item.value > 30)
+							expect(allHighValue).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("short-circuits on first failure", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						let callCount = 0
+						const result = produce(base, draft => {
+							const allMatch = draft.items.every(item => {
+								callCount++
+								return item.id === 999
+							})
+							expect(allMatch).toBe(false)
+						})
+						expect(callCount).toBe(1)
+						expect(result).toBe(base)
+					})
+
+					test("predicate receives correct arguments", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.every((item, index, array) => {
+								expect(typeof index).toBe("number")
+								expect(Array.isArray(array)).toBe(true)
+								return true
+							})
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns true for empty array", () => {
+						const base = {items: []}
+						const result = produce(base, draft => {
+							const allMatch = draft.items.every(() => false)
+							expect(allMatch).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("lastIndexOf()", () => {
+					test("returns last index of item", () => {
+						const base = {items: [1, 2, 3, 2, 1]}
+						const result = produce(base, draft => {
+							const index = draft.items.lastIndexOf(2)
+							expect(index).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns -1 when not found", () => {
+						const base = {items: [1, 2, 3]}
+						const result = produce(base, draft => {
+							const index = draft.items.lastIndexOf(99)
+							expect(index).toBe(-1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with fromIndex parameter", () => {
+						const base = {items: [1, 2, 3, 2, 1]}
+						const result = produce(base, draft => {
+							const index = draft.items.lastIndexOf(2, 2)
+							expect(index).toBe(1)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with negative fromIndex", () => {
+						const base = {items: [1, 2, 3, 2, 1]}
+						const result = produce(base, draft => {
+							const index = draft.items.lastIndexOf(2, -2)
+							expect(index).toBe(3)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("includes()", () => {
+					test("returns true when item exists", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							expect(draft.items.includes(3)).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("returns false when item doesn't exist", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							expect(draft.items.includes(99)).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with fromIndex parameter", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							expect(draft.items.includes(2, 2)).toBe(false)
+							expect(draft.items.includes(3, 2)).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with NaN", () => {
+						const base = {items: [1, NaN, 3]}
+						const result = produce(base, draft => {
+							expect(draft.items.includes(NaN)).toBe(true)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with negative fromIndex", () => {
+						const base = {items: [1, 2, 3, 4, 5]}
+						const result = produce(base, draft => {
+							expect(draft.items.includes(4, -2)).toBe(true)
+							expect(draft.items.includes(2, -2)).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("toString()", () => {
+					test("returns string representation", () => {
+						const base = {items: [1, 2, 3]}
+						const result = produce(base, draft => {
+							const str = draft.items.toString()
+							expect(str).toBe("1,2,3")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with objects", () => {
+						const base = {items: [{id: 1}, {id: 2}]}
+						const result = produce(base, draft => {
+							const str = draft.items.toString()
+							expect(str).toContain("[object Object]")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with empty array", () => {
+						const base = {items: []}
+						const result = produce(base, draft => {
+							const str = draft.items.toString()
+							expect(str).toBe("")
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("toLocaleString()", () => {
+					test("returns locale string representation", () => {
+						const base = {items: [1, 2, 3]}
+						const result = produce(base, draft => {
+							const str = draft.items.toLocaleString()
+							expect(typeof str).toBe("string")
+						})
+						expect(result).toBe(base)
+					})
+
+					test("works with numbers", () => {
+						const base = {numbers: [1000, 2000]}
+						const result = produce(base, draft => {
+							const str = draft.numbers.toLocaleString()
+							expect(typeof str).toBe("string")
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("findLast() additional edge cases", () => {
+					test("returns undefined when not found", () => {
+						const base = {items: [{id: 1}, {id: 2}, {id: 3}]}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(item => item.id === 999)
+							expect(found).toBeUndefined()
+						})
+						expect(result).toBe(base)
+					})
+
+					test("nested mutations on findLast result", () => {
+						const base = {
+							items: [
+								{id: 1, type: "A", nested: {value: 10}},
+								{id: 2, type: "B", nested: {value: 20}},
+								{id: 3, type: "A", nested: {value: 30}}
+							]
+						}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(item => item.type === "A")
+							expect(isDraft(found)).toBe(true)
+							if (found) {
+								found.nested.value = 999
+							}
+						})
+						expect(result.items[2].nested.value).toBe(999)
+						expect(base.items[2].nested.value).toBe(30)
+					})
+
+					test("findLast on empty array", () => {
+						const base = {items: []}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(() => true)
+							expect(found).toBeUndefined()
+						})
+						expect(result).toBe(base)
+					})
+				})
+
+				describe("comparison: filter vs concat behavior", () => {
+					test("filter returns drafts that can affect original", () => {
+						const base = {
+							items: [
+								{id: 1, value: 10},
+								{id: 2, value: 20}
+							]
+						}
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(item => item.id === 1)
+							expect(isDraft(filtered[0])).toBe(true)
+							filtered[0].value = 999
+						})
+						expect(result.items[0].value).toBe(999)
+					})
+
+					// Behavior differs based on array methods plugin
+					if (useArrayMethods) {
+						test("concat returns base values that cannot affect original (with plugin)", () => {
+							const base = {items: [{id: 1, value: 10}]}
+							const result = produce(base, draft => {
+								const concatenated = draft.items.concat()
+								// With plugin: concat returns base values, not drafts
+								expect(isDraft(concatenated[0])).toBe(false)
+								// Attempting to mutate won't affect the draft
+								// (would throw if autoFreeze is on, or just not be tracked)
+							})
+							expect(result).toBe(base)
+						})
+					} else {
+						test("concat returns drafts that can affect original (default behavior)", () => {
+							const base = {items: [{id: 1, value: 10}]}
+							const result = produce(base, draft => {
+								const concatenated = draft.items.concat()
+								// Without plugin: concat returns draft proxies via get trap
+								expect(isDraft(concatenated[0])).toBe(true)
+								// Mutations to concatenated items ARE tracked
+								concatenated[0].value = 999
+							})
+							expect(result.items[0].value).toBe(999)
+						})
+					}
+				})
+
 				describe("combined operations", () => {
 					test("chain filter then map then mutate", () => {
 						const base = createTestData()
