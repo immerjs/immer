@@ -7,7 +7,14 @@ import {
 	ProxyArrayState
 } from "../internal"
 
-// Type-safe union of mutating array method names
+/**
+ * Methods that directly modify the array in place.
+ * These operate on the copy without creating per-element proxies:
+ * - `push`, `pop`: Add/remove from end
+ * - `shift`, `unshift`: Add/remove from start (marks all indices reassigned)
+ * - `splice`: Add/remove at arbitrary position (marks all indices reassigned)
+ * - `reverse`, `sort`: Reorder elements (marks all indices reassigned)
+ */
 type MutatingArrayMethod =
 	| "push"
 	| "pop"
@@ -17,7 +24,22 @@ type MutatingArrayMethod =
 	| "reverse"
 	| "sort"
 
-// Type-safe union of non-mutating array method names
+/**
+ * Methods that read from the array without modifying it.
+ * These fall into distinct categories based on return semantics:
+ *
+ * **Subset operations** (return drafts - mutations propagate):
+ * - `filter`, `slice`: Return array of draft proxies
+ * - `find`, `findLast`: Return single draft proxy or undefined
+ *
+ * **Transform operations** (return base values - mutations don't track):
+ * - `concat`, `flat`: Create new structures, not subsets of original
+ *
+ * **Primitive-returning** (no draft needed):
+ * - `findIndex`, `findLastIndex`, `indexOf`, `lastIndexOf`: Return numbers
+ * - `some`, `every`, `includes`: Return booleans
+ * - `join`, `toString`, `toLocaleString`: Return strings
+ */
 type NonMutatingArrayMethod =
 	| "filter"
 	| "slice"
@@ -29,8 +51,6 @@ type NonMutatingArrayMethod =
 	| "findLastIndex"
 	| "some"
 	| "every"
-	| "reduce"
-	| "reduceRight"
 	| "indexOf"
 	| "lastIndexOf"
 	| "includes"
@@ -38,9 +58,44 @@ type NonMutatingArrayMethod =
 	| "toString"
 	| "toLocaleString"
 
-// Union of all array operation methods
+/** Union of all array operation methods handled by the plugin. */
 export type ArrayOperationMethod = MutatingArrayMethod | NonMutatingArrayMethod
 
+/**
+ * Enables optimized array method handling for Immer drafts.
+ *
+ * This plugin overrides array methods to avoid unnecessary Proxy creation during iteration,
+ * significantly improving performance for array-heavy operations.
+ *
+ * **Mutating methods** (push, pop, shift, unshift, splice, sort, reverse):
+ * Operate directly on the copy without creating per-element proxies.
+ *
+ * **Non-mutating methods** fall into categories:
+ * - **Subset operations** (filter, slice, find, findLast): Return draft proxies - mutations track
+ * - **Transform operations** (concat, flat): Return base values - mutations don't track
+ * - **Primitive-returning** (indexOf, includes, some, every, etc.): Return primitives
+ *
+ * **Important**: Callbacks for overridden methods receive base values, not drafts.
+ * This is the core performance optimization.
+ *
+ * @example
+ * ```ts
+ * import { enableArrayMethods, produce } from "immer"
+ *
+ * enableArrayMethods()
+ *
+ * const next = produce(state, draft => {
+ *   // Optimized - no proxy creation per element
+ *   draft.items.sort((a, b) => a.value - b.value)
+ *
+ *   // filter returns drafts - mutations propagate
+ *   const filtered = draft.items.filter(x => x.value > 5)
+ *   filtered[0].value = 999 // Affects draft.items[originalIndex]
+ * })
+ * ```
+ *
+ * @see https://immerjs.github.io/immer/array-methods
+ */
 export function enableArrayMethods() {
 	const SHIFTING_METHODS = new Set<MutatingArrayMethod>(["shift", "unshift"])
 
@@ -134,7 +189,15 @@ export function enableArrayMethods() {
 		return Math.min(index, length)
 	}
 
-	// Consolidated handler functions
+	/**
+	 * Handles mutating operations that add/remove elements (push, pop, shift, unshift, splice).
+	 *
+	 * Operates directly on `state.copy_` without creating per-element proxies.
+	 * For shifting methods (shift, unshift), marks all indices as reassigned since
+	 * indices shift.
+	 *
+	 * @returns For push/pop/shift/unshift: the native method result. For others: the draft.
+	 */
 	function handleSimpleOperation(
 		state: ProxyArrayState,
 		method: string,
@@ -155,6 +218,15 @@ export function enableArrayMethods() {
 		})
 	}
 
+	/**
+	 * Handles reordering operations (reverse, sort) that change element order.
+	 *
+	 * Operates directly on `state.copy_` and marks all indices as reassigned
+	 * since element positions change. Does not mark length as changed since
+	 * these operations preserve array length.
+	 *
+	 * @returns The draft proxy for method chaining.
+	 */
 	function handleReorderingOperation(
 		state: ProxyArrayState,
 		method: string,
@@ -171,12 +243,29 @@ export function enableArrayMethods() {
 		) // Don't mark length as changed
 	}
 
+	/**
+	 * Creates an interceptor function for a specific array method.
+	 *
+	 * The interceptor wraps array method calls to:
+	 * 1. Set `state.operationMethod` flag during execution (allows proxy `get` trap
+	 *    to detect we're inside an optimized method and skip proxy creation)
+	 * 2. Route to appropriate handler based on method type
+	 * 3. Clean up the operation flag in `finally` block
+	 *
+	 * The `operationMethod` flag is the key mechanism that enables the proxy's `get`
+	 * trap to return base values instead of creating nested proxies during iteration.
+	 *
+	 * @param state - The proxy array state
+	 * @param originalMethod - Name of the array method being intercepted
+	 * @returns Interceptor function that handles the method call
+	 */
 	function createMethodInterceptor(
 		state: ProxyArrayState,
 		originalMethod: string
 	) {
 		return function interceptedMethod(...args: any[]) {
-			// Enter operation mode
+			// Enter operation mode - this flag tells the proxy's get trap to return
+			// base values instead of creating nested proxies during iteration
 			const method = originalMethod as ArrayOperationMethod
 			enterOperation(state, method)
 
@@ -203,12 +292,38 @@ export function enableArrayMethods() {
 					return handleNonMutatingOperation(state, method, args)
 				}
 			} finally {
-				// Always exit operation mode
+				// Always exit operation mode - must be in finally to handle exceptions
 				exitOperation(state)
 			}
 		}
 	}
 
+	/**
+	 * Handles non-mutating array methods with different return semantics.
+	 *
+	 * **Subset operations** return draft proxies for mutation tracking:
+	 * - `filter`, `slice`: Return `state.draft_[i]` for each selected element
+	 * - `find`, `findLast`: Return `state.draft_[i]` for the found element
+	 *
+	 * This allows mutations on returned elements to propagate back to the draft:
+	 * ```ts
+	 * const filtered = draft.items.filter(x => x.value > 5)
+	 * filtered[0].value = 999 // Mutates draft.items[originalIndex]
+	 * ```
+	 *
+	 * **Transform operations** return base values (no draft tracking):
+	 * - `concat`, `flat`: These create NEW arrays rather than selecting subsets.
+	 *   Since the result structure differs from the original, tracking mutations
+	 *   back to specific draft indices would be impractical/impossible.
+	 *
+	 * **Primitive operations** return the native result directly:
+	 * - `indexOf`, `includes`, `some`, `every`, `join`, etc.
+	 *
+	 * @param state - The proxy array state
+	 * @param method - The non-mutating method name
+	 * @param args - Arguments passed to the method
+	 * @returns Drafts for subset operations, base values for transforms, primitives otherwise
+	 */
 	function handleNonMutatingOperation(
 		state: ProxyArrayState,
 		method: NonMutatingArrayMethod,
@@ -264,8 +379,11 @@ export function enableArrayMethods() {
 			return result
 		}
 
-		// For other methods (indexOf, includes, join, etc.), call on base array
-		// These don't need drafts since they don't expose items for mutation
+		// For other methods, call on base array directly:
+		// - indexOf, includes, join, toString: Return primitives, no draft needed
+		// - concat, flat: Return NEW arrays (not subsets). Elements are base values.
+		//   This is intentional - concat/flat create new data structures rather than
+		//   selecting subsets of the original, making draft tracking impractical.
 		return source[method as keyof typeof Array.prototype](...args)
 	}
 
