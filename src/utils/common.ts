@@ -171,6 +171,11 @@ export let isFunction = (target: any): target is Function =>
 export let isBoolean = (target: any): target is boolean =>
 	typeof target === "boolean"
 
+export function isArrayIndex(value: string | number): value is number | string {
+	const n = +value
+	return Number.isInteger(n) && String(n) === value
+}
+
 export let getProxyDraft = <T extends any>(value: T): ImmerState | null => {
 	if (!isObjectish(value)) return null
 	return (value as {[DRAFT_STATE]: any})?.[DRAFT_STATE]

@@ -1,12 +1,26 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > map drafts > revokes map proxies 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > map drafts > revokes map proxies 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > set drafts > revokes sets 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > throws when Object.defineProperty() is used on drafts 1`] = `[Error: [Immer] minified error nr: 11. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > throws when Object.setPrototypeOf() is used on a draft 1`] = `[Error: [Immer] minified error nr: 12. Full error at: https://bit.ly/3cXEKWf]`;
+
+exports[`base functionality - array-plugin=true:auto-freeze=true:shallow-copy=false:use-listener=false > throws when the draft is modified and another object is returned 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
+
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > map drafts > revokes map proxies 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > map drafts > revokes map proxies 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
-
-exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=false > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
@@ -24,8 +38,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
-
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=false:use-listener=true > set drafts > revokes sets 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
@@ -41,8 +53,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=f
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > map drafts > revokes map proxies 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
-
-exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=false > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
@@ -60,8 +70,6 @@ exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=t
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
-
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=false:shallow-copy=true:use-listener=true > set drafts > revokes sets 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
@@ -77,8 +85,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=f
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > map drafts > revokes map proxies 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
-
-exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=false > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
@@ -96,8 +102,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=t
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
-
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=false:use-listener=true > set drafts > revokes sets 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
@@ -114,8 +118,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=fa
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
 
-exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
-
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=false > set drafts > revokes sets 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
@@ -131,8 +133,6 @@ exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=tr
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > map drafts > revokes map proxies 2`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > recipe functions > cannot return a modified child draft 1`] = `[Error: [Immer] minified error nr: 4. Full error at: https://bit.ly/3cXEKWf]`;
-
-exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > recipe functions > cannot return an object that references itself 1`] = `[RangeError: Maximum call stack size exceeded]`;
 
 exports[`base functionality - auto-freeze=true:shallow-copy=true:use-listener=true > set drafts > revokes sets 1`] = `[Error: [Immer] minified error nr: 3. Full error at: https://bit.ly/3cXEKWf]`;
 
@@ -494,6 +494,53 @@ exports[`complex nesting map / set / object > modify deep object 15`] = `
 `;
 
 exports[`complex nesting map / set / object > modify deep object 16`] = `
+[
+  {
+    "op": "remove",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 1,
+    },
+  },
+  {
+    "op": "add",
+    "path": [
+      "map",
+      "set1",
+      0,
+    ],
+    "value": {
+      "a": 2,
+    },
+  },
+]
+`;
+
+exports[`complex nesting map / set / object > modify deep object 17`] = `
+{
+  "map": Map {
+    "set1" => Set {
+      {
+        "a": 2,
+      },
+      {
+        "b": 2,
+      },
+    },
+    "set2" => Set {
+      {
+        "c": 3,
+      },
+    },
+  },
+}
+`;
+
+exports[`complex nesting map / set / object > modify deep object 18`] = `
 [
   {
     "op": "remove",

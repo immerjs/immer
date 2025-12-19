@@ -20,7 +20,8 @@ import {
 	latest,
 	prepareCopy,
 	getFinalValue,
-	getValue
+	getValue,
+	ProxyArrayState
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -194,7 +195,10 @@ function generatePatchesAndFinalize(state: ImmerState, rootScope: ImmerScope) {
 	const shouldFinalize =
 		state.modified_ &&
 		!state.finalized_ &&
-		(state.type_ === ArchType.Set || (state.assigned_?.size ?? 0) > 0)
+		(state.type_ === ArchType.Set ||
+			(state.type_ === ArchType.Array &&
+				(state as ProxyArrayState).allIndicesReassigned_) ||
+			(state.assigned_?.size ?? 0) > 0)
 
 	if (shouldFinalize) {
 		const {patchPlugin_} = rootScope

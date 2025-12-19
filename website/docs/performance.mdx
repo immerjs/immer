@@ -69,6 +69,17 @@ Most important observation:
 
 ## Performance tips
 
+### Enable the Array Methods Plugin
+
+For applications with significant array iteration within producers, enable the [Array Methods Plugin](./array-methods.md):
+
+```javascript
+import {enableArrayMethods} from "immer"
+enableArrayMethods()
+```
+
+This plugin optimizes array operations like `filter`, `find`, `some`, `every`, and `slice` by avoiding proxy creation for every element during iteration. Without the plugin, iterating a 1000-element array creates 1000+ proxies. With the plugin, callbacks receive base values, and proxies are only created for elements you actually mutate.
+
 ### Pre-freeze data
 
 When adding a large data set to the state tree in an Immer producer (for example data received from a JSON endpoint), it is worth to call `freeze(json)` on the root of the data that is being added first. To _shallowly_ freeze it. This will allow Immer to add the new data to the tree faster, as it will avoid the need to _recursively_ scan and freeze the new data.

@@ -107,5 +107,6 @@ declare export function finishDraft<T>(base: T, listener?: PatchListener): T
 
 declare export function enableMapSet(): void
 declare export function enablePatches(): void
+declare export function enableArrayMethods(): void
 
 declare export function freeze<T>(obj: T, freeze?: boolean): T
