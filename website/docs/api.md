@@ -32,6 +32,7 @@ title: API overview
 | `produceWithPatches` | Works the same as `produce`, but instead of just returning the produced object, it returns a tuple, consisting of `[result, patches, inversePatches]`. | [Patches](./patches.mdx) |
 | `setAutoFreeze` | Enables / disables automatic freezing of the trees produces. By default enabled. | [Freezing](./freezing.mdx) |
 | `setUseStrictShallowCopy` | Can be used to enable strict shallow copy. If enable, immer copies non-enumerable properties as much as possible. | [Classes](./complex-objects.md) |
+| `setUseStrictIteration` | Controls iteration behavior: pass `false` for loose iteration (enumerable properties only, better performance) or `true` for strict iteration (includes symbols and non-enumerable properties). By default disabled (loose iteration). |  |
 
 ## Importing immer
 

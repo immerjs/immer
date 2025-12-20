@@ -9,8 +9,7 @@ title: Immer performance
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 5: Leveraging Immer's structural sharing in React
 	</summary>
@@ -29,8 +28,7 @@ title: Immer performance
 	>
 		Hosted on egghead.io
 	</a>
-</details>
-<details>
+</details> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 7: Immer will try to re-cycle data if there was no
 		semantic change
@@ -79,6 +77,19 @@ enableArrayMethods()
 ```
 
 This plugin optimizes array operations like `filter`, `find`, `some`, `every`, and `slice` by avoiding proxy creation for every element during iteration. Without the plugin, iterating a 1000-element array creates 1000+ proxies. With the plugin, callbacks receive base values, and proxies are only created for elements you actually mutate.
+
+### Use loose iteration for better performance
+
+By default, Immer uses loose iteration which only processes enumerable string properties. This is faster than strict iteration which includes symbols and non-enumerable properties. For most use cases, the default is optimal:
+
+```javascript
+import {setUseStrictIteration} from "immer"
+
+// Default: false (loose iteration for better performance)
+setUseStrictIteration(false)
+```
+
+Only enable strict iteration if you specifically need to track symbol or non-enumerable properties.
 
 ### Pre-freeze data
 
