@@ -11,6 +11,7 @@ module.exports = {
 		"Advanced Features": [
 			"api",
 			"map-set",
+			"array-methods",
 			"complex-objects",
 			"current",
 			"original",
