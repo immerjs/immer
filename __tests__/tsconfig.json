@@ -4,6 +4,7 @@
     "lib": ["es2015"],
     "strict": true,
     "noUnusedLocals": false,
-    "target": "ES5"
+    "target": "ES5",
+    "types": ["vitest/globals"]
   }
 }
