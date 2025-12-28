@@ -1,5 +1,4 @@
 import {
-	each,
 	has,
 	is,
 	isDraftable,
@@ -17,7 +16,6 @@ import {
 	die,
 	createProxy,
 	ArchType,
-	ImmerScope,
 	handleCrossReference,
 	WRITABLE,
 	CONFIGURABLE,
@@ -256,14 +254,17 @@ export const objectTraps: ProxyHandler<ProxyState> = {
  */
 
 const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
-each(objectTraps, (key, fn) => {
+// Use `for..in` instead of `each` to work around a weird
+// prod test suite issue
+for (let key in objectTraps) {
+	let fn = objectTraps[key as keyof typeof objectTraps] as Function
 	// @ts-ignore
 	arrayTraps[key] = function() {
 		const args = arguments
 		args[0] = args[0][0]
 		return fn.apply(this, args)
 	}
-})
+}
 arrayTraps.deleteProperty = function(state, prop) {
 	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
 		die(13)

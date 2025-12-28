@@ -16,7 +16,8 @@ import {
 	ArchType,
 	each,
 	getValue,
-	PluginMapSet
+	PluginMapSet,
+	handleCrossReference
 } from "../internal"
 
 export function enableMapSet() {
@@ -58,6 +59,7 @@ export function enableMapSet() {
 				state.assigned_!.set(key, true)
 				state.copy_!.set(key, value)
 				state.assigned_!.set(key, true)
+				handleCrossReference(state, key, value)
 			}
 			return this
 		}
@@ -222,6 +224,7 @@ export function enableMapSet() {
 				prepareSetCopy(state)
 				markChanged(state)
 				state.copy_!.add(value)
+				handleCrossReference(state, value, value)
 			}
 			return this
 		}
