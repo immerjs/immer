@@ -367,3 +367,118 @@ function runBaseTest(name, autoFreeze, useListener) {
 		})
 	})
 }
+
+// Bug reproduction: DraftSet leakage when placed in new object and set into Map
+// This bug occurs when a plain object containing a draft Set is set into a DraftMap
+describe("RTK-5159: DraftSet leakage in Map", () => {
+	const {produce} = new Immer({autoFreeze: true})
+
+	test.only("DraftSet should not leak when placed in new object and set into Map", () => {
+		const baseState = {
+			map: new Map([["key1", {users: new Set()}]])
+		}
+
+		// First produce: add a user
+		const state1 = produce(baseState, draft => {
+			const entry = draft.map.get("key1")
+			entry.users.add({name: "user1"})
+		})
+
+		// Second produce: create new object with existing Set and set into Map
+		const state2 = produce(state1, draft => {
+			const existingUsers = draft.map.get("key1")?.users ?? new Set()
+			const newEntry = {users: existingUsers} // New plain object with existing draft Set
+			draft.map.set("key1", newEntry)
+			newEntry.users.add({name: "user2"})
+		})
+
+		// Should not throw "Cannot use a proxy that has been revoked"
+		const users = state2.map.get("key1").users
+
+		expect(users).toBeInstanceOf(Set)
+		expect([...users].map(u => u.name)).toEqual(["user1", "user2"])
+	})
+
+	test("DraftSet in new object set into Map should finalize correctly", () => {
+		const baseState = {
+			map: new Map([["key1", {items: new Set([1, 2, 3])}]])
+		}
+
+		const result = produce(baseState, draft => {
+			const existingItems = draft.map.get("key1").items
+			// Create a new plain object containing the draft Set
+			const newEntry = {items: existingItems, extra: "data"}
+			draft.map.set("key1", newEntry)
+			newEntry.items.add(4)
+		})
+
+		// Verify the result is properly finalized (not a draft/proxy)
+		const items = result.map.get("key1").items
+		expect(items).toBeInstanceOf(Set)
+		expect([...items]).toEqual([1, 2, 3, 4])
+		expect(result.map.get("key1").extra).toBe("data")
+	})
+
+	// Test for DraftSet.add() with non-draft object containing nested draft
+	// This covers the handleCrossReference() call in DraftSet.add()
+	test("DraftSet.add() should handle non-draft object containing nested draft", () => {
+		const baseState = {
+			items: [{id: 1, name: "item1"}],
+			itemSet: new Set()
+		}
+
+		const result = produce(baseState, draft => {
+			// Get a draft of an existing item
+			const draftItem = draft.items[0]
+			// Create a new plain object that contains the draft
+			const wrapper = {item: draftItem, extra: "wrapper data"}
+			// Add the non-draft wrapper (containing a draft) to the Set
+			draft.itemSet.add(wrapper)
+			// Modify the draft item after adding
+			draftItem.name = "modified"
+		})
+
+		// The wrapper should be finalized correctly
+		const addedItems = [...result.itemSet]
+		expect(addedItems).toHaveLength(1)
+		expect(addedItems[0].item.id).toBe(1)
+		expect(addedItems[0].item.name).toBe("modified")
+		expect(addedItems[0].extra).toBe("wrapper data")
+		// Verify it's not a proxy
+		expect(() => JSON.stringify(result)).not.toThrow()
+	})
+
+	test("DraftSet.add() should handle deeply nested drafts in plain objects", () => {
+		const baseState = {
+			nested: {
+				deep: {
+					value: "original"
+				}
+			},
+			mySet: new Set()
+		}
+
+		const result = produce(baseState, draft => {
+			// Get a draft of a deeply nested object
+			const deepDraft = draft.nested.deep
+			// Create a plain object hierarchy containing the draft
+			const wrapper = {
+				level1: {
+					level2: {
+						draftRef: deepDraft
+					}
+				}
+			}
+			// Add to Set
+			draft.mySet.add(wrapper)
+			// Modify the draft
+			deepDraft.value = "modified"
+		})
+
+		const items = [...result.mySet]
+		expect(items).toHaveLength(1)
+		expect(items[0].level1.level2.draftRef.value).toBe("modified")
+		// Should not throw when accessing
+		expect(() => JSON.stringify(result)).not.toThrow()
+	})
+})

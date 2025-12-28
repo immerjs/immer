@@ -240,23 +240,29 @@ export function handleCrossReference(
 		target.callbacks_.push(function nestedDraftCleanup() {
 			const targetCopy = latest(target)
 
-			if (get(targetCopy, key, target.type_) === value) {
-				// Process the value to replace any nested drafts
-				// finalizeAssigned(target, key, target.scope_)
-
-				if (
-					scope_.drafts_.length > 1 &&
-					((target as Exclude<ImmerState, SetState>).assigned_!.get(key) ??
-						false) === true &&
-					target.copy_
-				) {
-					// This might be a non-draft value that has drafts
-					// inside. We do need to recurse here to handle those.
-					handleValue(
-						get(target.copy_, key, target.type_),
-						scope_.handledSet_,
-						scope_
-					)
+			// For Sets, check if value is still in the set
+			if (target.type_ === ArchType.Set) {
+				if (targetCopy.has(value)) {
+					// Process the value to replace any nested drafts
+					handleValue(value, scope_.handledSet_, scope_)
+				}
+			} else {
+				// Maps/objects
+				if (get(targetCopy, key, target.type_) === value) {
+					if (
+						scope_.drafts_.length > 1 &&
+						((target as Exclude<ImmerState, SetState>).assigned_!.get(key) ??
+							false) === true &&
+						target.copy_
+					) {
+						// This might be a non-draft value that has drafts
+						// inside. We do need to recurse here to handle those.
+						handleValue(
+							get(target.copy_, key, target.type_),
+							scope_.handledSet_,
+							scope_
+						)
+					}
 				}
 			}
 		})
