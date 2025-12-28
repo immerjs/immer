@@ -26,11 +26,10 @@
   "types": "./dist/immer.d.ts",
   "sideEffects": false,
   "scripts": {
-    "pretest": "yarn build",
     "test": "vitest run && yarn test:build && yarn test:flow",
     "test:perf": "cd __performance_tests__ && node add-data.mjs && node todo.mjs && node incremental.mjs && node large-obj.mjs",
     "test:flow": "yarn flow check __tests__/flow",
-    "test:build": "vitest run --config vitest.config.build.ts",
+    "test:build": "yarn build && vitest run --config vitest.config.build.ts",
     "test:src": "vitest run",
     "watch": "vitest",
     "coverage": "vitest run --coverage",
