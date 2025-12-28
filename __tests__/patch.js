@@ -1494,3 +1494,42 @@ test("#897 appendPatch", () => {
 		a: [1, 2, 3]
 	})
 })
+
+// Bug reproduction: Patch path truncation in production build
+// This bug is caused by the "key_" in state check failing after minification
+// The patch path should include the full path for nested array modifications
+describe("RTK-5159: Patch path truncation bug", () => {
+	test("patch paths should include full path for nested array modifications", () => {
+		const baseState = {
+			lists: [{items: [{id: 1}]}]
+		}
+
+		const [result, patches] = produceWithPatches(baseState, draft => {
+			draft.lists[0].items.push({id: 2})
+		})
+
+		// The patch path should be ["lists", 0, "items", 1], not just [1]
+		expect(patches[0].path).toEqual(["lists", 0, "items", 1])
+		expect(patches).toEqual([
+			{op: "add", path: ["lists", 0, "items", 1], value: {id: 2}}
+		])
+	})
+
+	test("patch paths correct for deeply nested object in array", () => {
+		const baseState = {
+			queries: {
+				queryKey: {
+					data: {
+						items: [{name: "item1"}]
+					}
+				}
+			}
+		}
+
+		const [result, patches] = produceWithPatches(baseState, draft => {
+			draft.queries.queryKey.data.items.push({name: "item2"})
+		})
+
+		expect(patches[0].path).toEqual(["queries", "queryKey", "data", "items", 1])
+	})
+})
