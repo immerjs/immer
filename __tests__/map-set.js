@@ -373,7 +373,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 describe("RTK-5159: DraftSet leakage in Map", () => {
 	const {produce} = new Immer({autoFreeze: true})
 
-	test.only("DraftSet should not leak when placed in new object and set into Map", () => {
+	test("DraftSet should not leak when placed in new object and set into Map", () => {
 		const baseState = {
 			map: new Map([["key1", {users: new Set()}]])
 		}
