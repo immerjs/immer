@@ -3,7 +3,8 @@ import {
 	IProduceWithPatches,
 	Immer,
 	Draft,
-	Immutable
+	Immutable,
+	NOTHING as nothing
 } from "./internal"
 
 export {
@@ -17,12 +18,13 @@ export {
 	current,
 	isDraft,
 	isDraftable,
-	NOTHING as nothing,
 	DRAFTABLE as immerable,
 	freeze,
 	Objectish,
 	StrictMode
 } from "./internal"
+
+export {nothing}
 
 const immer = new Immer()
 
@@ -124,3 +126,7 @@ export {Immer}
 export {enablePatches} from "./plugins/patches"
 export {enableMapSet} from "./plugins/mapset"
 export {enableArrayMethods} from "./plugins/arrayMethods"
+
+export function isNothing(value: unknown): value is typeof nothing {
+	return value === nothing
+}
