@@ -1,6 +1,6 @@
 {
   "name": "@unional/immer",
-  "version": "11.1.0.patch",
+  "version": "11.1.0-patch",
   "description": "Create your next immutable state by mutating the current one",
   "main": "./dist/cjs/index.js",
   "module": "./dist/immer.legacy-esm.js",

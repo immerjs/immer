@@ -24,7 +24,7 @@ jobs:
         run: yarn build
       - name: publish
         # avoid release on fork
-        if: github.repository == 'immerjs/immer'
+        # if: github.repository == 'immerjs/immer'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
