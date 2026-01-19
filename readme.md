@@ -1,5 +1,14 @@
 <img src="images/immer-logo.svg" height="200px" align="right"/>
 
+This is a fork of [immer](https://github.com/immerjs/immer).
+
+Releasing as `@unional/immer` as the original repo have not been updating for more than a month.
+
+This release fixes the following issues:
+
+- fix recursive JSON issue: <https://github.com/immerjs/immer/pull/990>
+- add `isNothing()`: <https://github.com/immerjs/immer/pull/989>
+
 # Immer
 
 [![npm](https://img.shields.io/npm/v/immer.svg)](https://www.npmjs.com/package/immer) [![Build Status](https://github.com/immerjs/immer/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/immerjs/immer/actions?query=branch%3Amain) [![Coverage Status](https://coveralls.io/repos/github/immerjs/immer/badge.svg?branch=main)](https://coveralls.io/github/immerjs/immer?branch=main) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier) [![OpenCollective](https://opencollective.com/immer/backers/badge.svg)](#backers) [![OpenCollective](https://opencollective.com/immer/sponsors/badge.svg)](#sponsors) [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/immerjs/immer)
