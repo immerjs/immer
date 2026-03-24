@@ -198,6 +198,69 @@ describe("applyPatches", () => {
 	})
 })
 
+describe("#916 nested patches with moved child draft", () => {
+	const makeBaseState = () => ({
+		id: 0,
+		type: "root",
+		children: [{id: 2, type: "node", value: "A"}]
+	})
+
+	const makeRootWithGroup = groupName => ({
+		id: 0,
+		type: "root",
+		children: [
+			{
+				id: 3,
+				children: [{id: 2, type: "node", value: "A"}],
+				groupName
+			}
+		]
+	})
+
+	function runNestedPatchScenario() {
+		let nestedPatches = []
+		const [nextState] = produceWithPatches(makeBaseState(), draft => {
+			const node = draft.children[0]
+			draft.children.splice(0, 1) // remove node from root
+
+			const group = {id: 3, children: [node], groupName: ""} // new group
+			draft.children.splice(0, 0, group) // add group to root
+
+			const [, patches] = produceWithPatches(draft, inner => {
+				const value = inner.children[0].children[0].value
+				inner.children[0].groupName = value + " Group"
+			})
+
+			nestedPatches = patches
+			applyPatches(draft, patches)
+		})
+
+		return {nextState, patches: nestedPatches}
+	}
+
+	it("#916 nested patches with moved child draft", () => {
+		const {nextState, patches} = runNestedPatchScenario()
+
+		expect(patches).toEqual(
+			expect.arrayContaining([
+				{
+					op: "replace",
+					path: ["children", 0, "groupName"],
+					value: "A Group"
+				}
+			])
+		)
+		expect(nextState).toEqual(makeRootWithGroup("A Group"))
+	})
+
+	it("#916 patches apply on non-draft base", () => {
+		const {patches} = runNestedPatchScenario()
+		expect(applyPatches(makeRootWithGroup(""), patches)).toEqual(
+			makeRootWithGroup("A Group")
+		)
+	})
+})
+
 // New macro-style test
 runPatchTests(
 	"simple assignment - 1",
