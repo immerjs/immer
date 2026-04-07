@@ -20,6 +20,15 @@ import {
 	handleCrossReference
 } from "../internal"
 
+declare global {
+	// `Iterator.from` was added in ES2025.
+	var Iterator:
+		| undefined
+		| {
+				from<T, TReturn>(iterable: Iterator<T, TReturn>): IterableIterator<T>
+		  }
+}
+
 export function enableMapSet() {
 	class DraftMap extends Map {
 		[DRAFT_STATE]: MapState
@@ -126,8 +135,7 @@ export function enableMapSet() {
 
 		values(): IterableIterator<any> {
 			const iterator = this.keys()
-			return {
-				[Symbol.iterator]: () => this.values(),
+			return iteratorFrom({
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -138,13 +146,12 @@ export function enableMapSet() {
 						value
 					}
 				}
-			} as any
+			})
 		}
 
 		entries(): IterableIterator<[any, any]> {
 			const iterator = this.keys()
-			return {
-				[Symbol.iterator]: () => this.entries(),
+			return iteratorFrom({
 				next: () => {
 					const r = iterator.next()
 					/* istanbul ignore next */
@@ -155,12 +162,27 @@ export function enableMapSet() {
 						value: [r.value, value]
 					}
 				}
-			} as any
+			})
 		}
 
 		[Symbol.iterator]() {
 			return this.entries()
 		}
+	}
+
+	function iteratorFrom<T, TReturn>(
+		iterable: Iterator<T, TReturn>
+	): IterableIterator<T> {
+		if (typeof Iterator !== "undefined") {
+			return Iterator.from(iterable)
+		}
+
+		const iterator: IterableIterator<T> = {
+			...iterable,
+			[Symbol.iterator]: () => iterator
+		}
+
+		return iterator
 	}
 
 	function proxyMap_<T extends AnyMap>(

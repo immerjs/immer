@@ -331,6 +331,36 @@ function runBaseTest(name, autoFreeze, useListener) {
 
 			expect(Array.from(newSet)).toEqual([items[0], items[1]])
 		})
+
+		it("IterableIterator should return itself", () => {
+			const baseState = {
+				map: new Map([1, 2, 3].map(i => [i, `Item ${i}`]))
+			}
+
+			produce(baseState, draft => {
+				const it = draft.map.values()
+				expect(it.next()).toEqual({value: "Item 1", done: false})
+
+				const itOfIt = it[Symbol.iterator]()
+				expect(itOfIt.next()).toEqual({value: "Item 2", done: false})
+				expect(itOfIt).toBe(it)
+
+				const it2 = draft.map.values()
+				expect(it2.next()).toEqual({value: "Item 1", done: false})
+			})
+		})
+
+		it("is compatible with ES2025 features", () => {
+			const baseState = {
+				map: new Map([1, 2, 3].map(i => [i, `Item ${i}`]))
+			}
+
+			const result = produce(baseState, draft => {
+				draft.map = new Map(draft.map.entries().filter(([k]) => k % 2 === 1))
+			})
+
+			expect(result.map.keys().toArray()).toEqual([1, 3])
+		})
 	})
 	describe("set issues " + name, () => {
 		test("#819.A - maintains order when adding", () => {
