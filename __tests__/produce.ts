@@ -770,3 +770,9 @@ it("allows higher order type inference", () => {
 		)
 	}
 })
+
+it("supports tuples with spread", () => {
+	type State = [boolean, ...number[]]
+	const foo = (x: State) => x
+	produce<State>(x => foo(x))
+})
