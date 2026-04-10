@@ -758,3 +758,15 @@ it("allows for mixed property value types", () => {
 		}
 	})
 })
+
+it("allows higher order type inference", () => {
+	function _test<A>() {
+		type S = {prop: A | undefined}
+		produce(
+			draft => {
+				draft.prop = undefined
+			},
+			{prop: undefined} as S
+		)
+	}
+})

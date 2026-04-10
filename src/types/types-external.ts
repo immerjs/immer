@@ -37,7 +37,7 @@ export type WritableDraft<T> = T extends any[]
 	: WritableNonArrayDraft<T>
 
 type WritableNonArrayDraft<T> = {
-	-readonly [K in keyof T]: T[K] extends infer V
+	-readonly [K in keyof T]: {_: T[K]} extends {_: infer V}
 		? V extends object
 			? Draft<V>
 			: V
