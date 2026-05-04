@@ -27,11 +27,7 @@ export default defineConfig(options => {
 			format: ["esm"],
 			dts: true,
 			clean: true,
-			sourcemap: true,
-			onSuccess() {
-				// Support Flow types
-				fs.copyFileSync("src/types/index.js.flow", "dist/cjs/index.js.flow")
-			}
+			sourcemap: true
 		},
 		// ESM, Webpack 4 support. Target ES2018 syntax to compile away optional chaining and spreads
 		{
@@ -87,6 +83,8 @@ if (process.env.NODE_ENV === 'production') {
   module.exports = require('./immer.cjs.development.js')
 }`
 				)
+				// Support Flow types
+				fs.copyFileSync("src/types/index.js.flow", "dist/cjs/index.js.flow")
 			}
 		}
 	]

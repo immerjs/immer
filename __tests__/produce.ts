@@ -187,6 +187,9 @@ describe("curried producer", () => {
 			let foo = produce((s: State, a: number, b: number) => {})
 			assert(foo, _ as Recipe)
 			foo(_ as State, 1, 2)
+
+			// @ts-expect-error
+			foo(undefined, 1, 2)
 		}
 
 		// Using argument parameters:
@@ -200,8 +203,10 @@ describe("curried producer", () => {
 		// With initial state:
 		{
 			type Recipe = (state?: State | undefined, ...rest: number[]) => State
-			let bar = produce((state: Draft<State>, ...args: number[]) => {},
-			_ as State)
+			let bar = produce(
+				(state: Draft<State>, ...args: number[]) => {},
+				_ as State
+			)
 			assert(bar, _ as Recipe)
 			bar(_ as State, 1, 2)
 			bar(_ as State)
@@ -532,7 +537,7 @@ it("infers draft, #720 - 2", () => {
 	function useState<S>(
 		initialState: S | (() => S)
 	): [S, Dispatch<SetStateAction<S>>] {
-		return [initialState, function() {}] as any
+		return [initialState, function () {}] as any
 	}
 	type Dispatch<A> = (value: A) => void
 	type SetStateAction<S> = S | ((prevState: S) => S)
@@ -569,7 +574,7 @@ it("infers draft, #720 - 3", () => {
 	function useState<S>(
 		initialState: S | (() => S)
 	): [S, Dispatch<SetStateAction<S>>] {
-		return [initialState, function() {}] as any
+		return [initialState, function () {}] as any
 	}
 	type Dispatch<A> = (value: A) => void
 	type SetStateAction<S> = S | ((prevState: S) => S)
@@ -743,6 +748,13 @@ it("infers curried", () => {
 		const n = f(base as ROState)
 		assert(n, _ as ROState) // yay!
 	}
+	{
+		// explicitly use generic, but curried
+		const f = produce<ROState>(draft => {
+			draft.count++
+		})
+		assert(f, _ as (state: ROState) => ROState)
+	}
 }
 
 it("allows for mixed property value types", () => {
@@ -775,4 +787,23 @@ it("supports tuples with spread", () => {
 	type State = [boolean, ...number[]]
 	const foo = (x: State) => x
 	produce<State>(x => foo(x))
+})
+
+it("#877 - produce with typed state generic requires initial state", () => {
+	const reducerNoInitial = produce<{count: number}, [{type: "inc"}]>(
+		(draft, action: {type: "inc"}) => {
+			if (action.type === "inc") draft.count++
+		}
+	)
+	const reducer = produce<{count: number}, [{type: "inc"}]>(
+		(draft, action: {type: "inc"}) => {
+			if (action.type === "inc") draft.count++
+		},
+		{count: 0}
+	)
+
+	expect(reducer({count: 0}, {type: "inc"})).toEqual({count: 1})
+	expect(reducer(undefined, {type: "inc"})).toEqual({count: 1})
+	// @ts-expect-error runtime error without initial state
+	expect(() => reducerNoInitial(undefined, {type: "inc"})).toThrow()
 })

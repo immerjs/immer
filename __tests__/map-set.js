@@ -23,7 +23,7 @@ runBaseTest("proxy (autofreeze)", true, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
 
 function runBaseTest(name, autoFreeze, useListener) {
-	const listener = useListener ? function() {} : undefined
+	const listener = useListener ? function () {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze
 	})
@@ -34,7 +34,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function(...args) {
+		immer.produce = function (...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)

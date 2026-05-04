@@ -16,13 +16,11 @@ type AtomicObject = Function | Promise<any> | Date | RegExp
  */
 export type IfAvailable<T, Fallback = void> =
 	// fallback if any
-	true | false extends (T extends never
-	? true
-	: false)
+	true | false extends (T extends never ? true : false)
 		? Fallback // fallback if empty type
 		: keyof T extends never
-		? Fallback // original type
-		: T
+			? Fallback // original type
+			: T
 
 /**
  * These should also never be mapped but must be tested after regular Map and
@@ -61,31 +59,31 @@ type WritableNonArrayDraft<T> = {
 export type Draft<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
-	? T
-	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
-	? Map<Draft<K>, Draft<V>>
-	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
-	? Set<Draft<V>>
-	: T extends WeakReferences
-	? T
-	: T extends object
-	? WritableDraft<T>
-	: T
+		? T
+		: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
+			? Map<Draft<K>, Draft<V>>
+			: T extends ReadonlySet<infer V> // Set extends ReadonlySet
+				? Set<Draft<V>>
+				: T extends WeakReferences
+					? T
+					: T extends object
+						? WritableDraft<T>
+						: T
 
 /** Convert a mutable type into a readonly type */
 export type Immutable<T> = T extends PrimitiveType
 	? T
 	: T extends AtomicObject
-	? T
-	: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
-	? ReadonlyMap<Immutable<K>, Immutable<V>>
-	: T extends ReadonlySet<infer V> // Set extends ReadonlySet
-	? ReadonlySet<Immutable<V>>
-	: T extends WeakReferences
-	? T
-	: T extends object
-	? {readonly [K in keyof T]: Immutable<T[K]>}
-	: T
+		? T
+		: T extends ReadonlyMap<infer K, infer V> // Map extends ReadonlyMap
+			? ReadonlyMap<Immutable<K>, Immutable<V>>
+			: T extends ReadonlySet<infer V> // Set extends ReadonlySet
+				? ReadonlySet<Immutable<V>>
+				: T extends WeakReferences
+					? T
+					: T extends object
+						? {readonly [K in keyof T]: Immutable<T[K]>}
+						: T
 
 export interface Patch {
 	op: "replace" | "remove" | "add"
@@ -130,7 +128,7 @@ type InferRecipeFromCurried<Curried> = Curried extends (
 		? (
 				draft: Draft<State>,
 				...rest: Args
-		  ) => ValidRecipeReturnType<Draft<State>>
+			) => ValidRecipeReturnType<Draft<State>>
 		: never
 	: never
 
@@ -149,7 +147,7 @@ type InferCurriedFromRecipe<
 		? (
 				base: Immutable<DraftState>,
 				...args: RestArgs
-		  ) => ReturnTypeWithPatchesIfNeeded<DraftState, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
+			) => ReturnTypeWithPatchesIfNeeded<DraftState, UsePatches> // N.b. we return mutable draftstate, in case the recipe's first arg isn't read only, and that isn't expected as output either
 		: never // incorrect return type
 	: never // not a function
 
@@ -164,7 +162,7 @@ type InferCurriedFromInitialStateAndRecipe<
 	? (
 			base?: State | undefined,
 			...args: RestArgs
-	  ) => ReturnTypeWithPatchesIfNeeded<State, UsePatches>
+		) => ReturnTypeWithPatchesIfNeeded<State, UsePatches>
 	: never // recipe doesn't match initial state
 
 /**
@@ -194,18 +192,11 @@ export interface IProduce {
 	): Curried
 
 	/** Curried producer that infers curried from the recipe  */
-	<Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<
-		Recipe,
-		false
-	>
+	<Recipe extends AnyFunc>(
+		recipe: Recipe
+	): InferCurriedFromRecipe<Recipe, false>
 
 	/** Curried producer that infers curried from the State generic, which is explicitly passed in.  */
-	<State>(
-		recipe: (
-			state: Draft<State>,
-			initialState: State
-		) => ValidRecipeReturnType<State>
-	): (state?: State) => State
 	<State, Args extends any[]>(
 		recipe: (
 			state: Draft<State>,
@@ -213,9 +204,9 @@ export interface IProduce {
 		) => ValidRecipeReturnType<State>,
 		initialState: State
 	): (state?: State, ...args: Args) => State
-	<State>(recipe: (state: Draft<State>) => ValidRecipeReturnType<State>): (
-		state: State
-	) => State
+	<State>(
+		recipe: (state: Draft<State>) => ValidRecipeReturnType<State>
+	): (state: State) => State
 	<State, Args extends any[]>(
 		recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
 	): (state: State, ...args: Args) => State

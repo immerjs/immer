@@ -120,7 +120,7 @@ const updatedTodosArray = produce(todosArray, draft => {
 
 // reset/clear/empty
 const emptyTodo = produce(todosArray, () => {
-	return [];
+	return []
 })
 ```
 

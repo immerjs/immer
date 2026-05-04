@@ -51,9 +51,8 @@ export const produce: IProduce = /* @__PURE__ */ immer.produce
  * Like `produce`, but `produceWithPatches` always returns a tuple
  * [nextState, patches, inversePatches] (instead of just the next state)
  */
-export const produceWithPatches: IProduceWithPatches = /* @__PURE__ */ immer.produceWithPatches.bind(
-	immer
-)
+export const produceWithPatches: IProduceWithPatches =
+	/* @__PURE__ */ immer.produceWithPatches.bind(immer)
 
 /**
  * Pass true to automatically freeze all copies created by Immer.
@@ -67,9 +66,8 @@ export const setAutoFreeze = /* @__PURE__ */ immer.setAutoFreeze.bind(immer)
  *
  * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-export const setUseStrictShallowCopy = /* @__PURE__ */ immer.setUseStrictShallowCopy.bind(
-	immer
-)
+export const setUseStrictShallowCopy =
+	/* @__PURE__ */ immer.setUseStrictShallowCopy.bind(immer)
 
 /**
  * Pass false to use loose iteration that only processes enumerable string properties.
@@ -77,9 +75,8 @@ export const setUseStrictShallowCopy = /* @__PURE__ */ immer.setUseStrictShallow
  *
  * By default, strict iteration is enabled (includes all own properties).
  */
-export const setUseStrictIteration = /* @__PURE__ */ immer.setUseStrictIteration.bind(
-	immer
-)
+export const setUseStrictIteration =
+	/* @__PURE__ */ immer.setUseStrictIteration.bind(immer)
 
 /**
  * Apply an array of Immer patches to the first argument.

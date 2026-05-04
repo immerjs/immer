@@ -10,7 +10,7 @@ import deepFreeze from "deep-freeze"
 
 console.log("\n# add-data - loading large set of data\n")
 
-import dataSet from "./data.json"  assert { type: "json" }
+import dataSet from "./data.json" with {type: "json"}
 
 const baseState = {
 	data: null

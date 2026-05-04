@@ -37,10 +37,10 @@ export function enablePatches() {
 	if (process.env.NODE_ENV !== "production") {
 		errors.push(
 			'Sets cannot have "replace" patches.',
-			function(op: string) {
+			function (op: string) {
 				return "Unsupported patch operation: " + op
 			},
-			function(path: string) {
+			function (path: string) {
 				return "Cannot apply patch, path doesn't resolve: " + path
 			},
 			"Patching reserved attributes like __proto__, prototype and constructor is not allowed"
@@ -160,7 +160,7 @@ export function enablePatches() {
 				)
 			case ArchType.Set:
 				return generateSetPatches(
-					(state as any) as SetState,
+					state as any as SetState,
 					basePath,
 					patches_!,
 					inversePatches_!
@@ -257,8 +257,8 @@ export function enablePatches() {
 				op === ADD
 					? {op: REMOVE, path}
 					: op === REMOVE
-					? {op: ADD, path, value: clonePatchValueIfNeeded(origValue)}
-					: {op: REPLACE, path, value: clonePatchValueIfNeeded(origValue)}
+						? {op: ADD, path, value: clonePatchValueIfNeeded(origValue)}
+						: {op: REPLACE, path, value: clonePatchValueIfNeeded(origValue)}
 			)
 		})
 	}

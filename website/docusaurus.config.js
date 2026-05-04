@@ -96,7 +96,7 @@ module.exports = {
 		[
 			"@docusaurus/plugin-client-redirects",
 			{
-				createRedirects: function(existingPath) {
+				createRedirects: function (existingPath) {
 					return ["/docs" + existingPath]
 				}
 			}

@@ -16,7 +16,7 @@ runBaseTest("es5 (no freeze)", false, false)
 runBaseTest("es5 (autofreeze)", false, true)
 
 function runBaseTest(name, useProxies, autoFreeze, useListener) {
-	const listener = useListener ? function() {} : undefined
+	const listener = useListener ? function () {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
 		useProxies,
 		autoFreeze
@@ -28,7 +28,7 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function(...args) {
+		immer.produce = function (...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)

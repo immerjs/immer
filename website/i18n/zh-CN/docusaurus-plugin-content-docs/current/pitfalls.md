@@ -57,10 +57,10 @@ function onReceiveTodo(todo) {
 ### Immer patches 不一定是最优的
 
 Immer 生成的 patches 应该是正确的，也就是说，将它们应用于相同的基础对象应该会导致相同的最终状态。然而，Immer 不保证生成的 patches 是最优的，即可能的最小 patches
+
 ### 始终使用嵌套 producers 的结果
 
-支持嵌套调用 `produce` ，但请注意 `produce` 将_始终_产生新状态，因此即使将 draft 传递给嵌套 produce，内部 produce 所做的更改也不会在传递给它的 draft 中可见，只会反映在产生的输出中。换句话说，当使用嵌套 produce 时，您会得到 draft 的 draft，并且内部 produce 的结果应该合并回原始 draft（或返回）。例如，如果内部 produce 的输出没有被使用的话， `produce(state, draft => {produce(draft.user, userDraft => { userDraft.name += "!" })})` 将不会生效。使用嵌套 producers 的正确方法是：
-
+支持嵌套调用 `produce` ，但请注意 `produce` 将*始终*产生新状态，因此即使将 draft 传递给嵌套 produce，内部 produce 所做的更改也不会在传递给它的 draft 中可见，只会反映在产生的输出中。换句话说，当使用嵌套 produce 时，您会得到 draft 的 draft，并且内部 produce 的结果应该合并回原始 draft（或返回）。例如，如果内部 produce 的输出没有被使用的话， `produce(state, draft => {produce(draft.user, userDraft => { userDraft.name += "!" })})` 将不会生效。使用嵌套 producers 的正确方法是：
 
 ```javascript
 produce(state, draft => {
@@ -74,7 +74,6 @@ produce(state, draft => {
 
 Immer 中的 draft 对象包装在 `Proxy` 中，因此您不能使用 `==` 或 `===` 来测试原始对象与其 draft 之间的相等性（例如，当匹配数组中的特定元素时）。相反，您可以使用 `original` 助手：
 
-
 ```javascript
 const remove = produce((list, element) => {
 	const index = list.indexOf(element) // 不会工作！
@@ -87,4 +86,3 @@ remove(values, a)
 ```
 
 如果可以的话，建议在 `produce` 函数之外执行比较，或者使用 `.id` 之类的唯一标识符属性，以避免需要使用 `original`。
-

@@ -9,7 +9,6 @@ title: 类
 
 普通对象（没有原型的对象）、数组、`Map` 和 `Set` 总是可以用 Immer 更新。所有其他对象都必须使用 `immerable` 符号将自己标记为与 Immer 兼容。当这些对象之一在 `produce` 中进行更改时，它的原型将保留在副本之间
 
-
 ```js
 import {immerable} from "immer"
 

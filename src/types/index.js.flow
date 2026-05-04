@@ -40,12 +40,12 @@ interface IProduce {
 }
 
 interface IProduceWithPatches {
-        /**
-         * Like `produce`, but instead of just returning the new state,
-         * a tuple is returned with [nextState, patches, inversePatches]
-         *
-         * Like produce, this function supports currying
-         */
+	/**
+	 * Like `produce`, but instead of just returning the new state,
+	 * a tuple is returned with [nextState, patches, inversePatches]
+	 *
+	 * Like produce, this function supports currying
+	 */
 	<S: Base>(
 		currentState: S,
 		recipe: (draftState: S) => S | void
@@ -54,11 +54,23 @@ interface IProduceWithPatches {
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void,
 		initialState: S
-	): (currentState: S | void, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
+	): (
+		currentState: S | void,
+		a: A,
+		b: B,
+		c: C,
+		...extraArgs: any[]
+	) => [S, Patch[], Patch[]];
 	// curried invocations without initial state
 	<S: Base, A = void, B = void, C = void>(
 		recipe: (draftState: S, a: A, b: B, c: C, ...extraArgs: any[]) => S | void
-	): (currentState: S, a: A, b: B, c: C, ...extraArgs: any[]) => [S, Patch[], Patch[]];
+	): (
+		currentState: S,
+		a: A,
+		b: B,
+		c: C,
+		...extraArgs: any[]
+	) => [S, Patch[], Patch[]];
 }
 
 declare export var produce: IProduce
@@ -82,7 +94,9 @@ declare export function setAutoFreeze(autoFreeze: boolean): void
  *
  * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
  */
-declare export function setUseStrictShallowCopy(useStrictShallowCopy: boolean): void
+declare export function setUseStrictShallowCopy(
+	useStrictShallowCopy: boolean
+): void
 
 declare export function applyPatches<S>(state: S, patches: Patch[]): S
 

@@ -243,8 +243,8 @@ export function createProxy<T extends Objectish>(
 	const [draft, state] = isMap(value)
 		? getPlugin(PluginMapSet).proxyMap_(value, parent)
 		: isSet(value)
-		? getPlugin(PluginMapSet).proxySet_(value, parent)
-		: createProxyProxy(value, parent)
+			? getPlugin(PluginMapSet).proxySet_(value, parent)
+			: createProxyProxy(value, parent)
 
 	const scope = parent?.scope_ ?? getCurrentScope()
 	scope.drafts_.push(draft)

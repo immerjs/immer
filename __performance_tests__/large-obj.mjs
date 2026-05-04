@@ -1,8 +1,5 @@
 import {measure} from "./measure.mjs"
-import {
-	produce,
-	setUseStrictShallowCopy
-} from "../dist/immer.mjs"
+import {produce, setUseStrictShallowCopy} from "../dist/immer.mjs"
 
 console.log("\n# large-obj - mutate large object\n")
 

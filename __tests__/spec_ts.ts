@@ -18,25 +18,26 @@ type TestExact<Left, Right> =
 
 type IsAny<T> = Any extends T ? ([T] extends [Any] ? 1 : 0) : 0
 
-export type Test<Left, Right> = IsAny<Left> extends 1
-	? IsAny<Right> extends 1
-		? 1
-		: "❌ Left type is 'any' but right type is not"
-	: IsAny<Right> extends 1
-	? "❌ Right type is 'any' but left type is not"
-	: [Left] extends [Right]
-	? [Right] extends [Left]
-		? Any extends TestExact<Left, Right>
+export type Test<Left, Right> =
+	IsAny<Left> extends 1
+		? IsAny<Right> extends 1
 			? 1
-			: "❌ Unexpected or missing 'readonly' property"
-		: "❌ Right type is not assignable to left type"
-	: "❌ Left type is not assignable to right type"
+			: "❌ Left type is 'any' but right type is not"
+		: IsAny<Right> extends 1
+			? "❌ Right type is 'any' but left type is not"
+			: [Left] extends [Right]
+				? [Right] extends [Left]
+					? Any extends TestExact<Left, Right>
+						? 1
+						: "❌ Unexpected or missing 'readonly' property"
+					: "❌ Right type is not assignable to left type"
+				: "❌ Left type is not assignable to right type"
 
 type Assert<T, U> = U extends 1
 	? T // No error.
 	: IsAny<T> extends 1
-	? never // Ensure "any" is refused.
-	: U // Return the error message.
+		? never // Ensure "any" is refused.
+		: U // Return the error message.
 
 /**
  * Raise a compiler error when both argument types are not identical.

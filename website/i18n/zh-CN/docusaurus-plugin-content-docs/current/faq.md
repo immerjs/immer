@@ -12,7 +12,6 @@ sidebar_label: FAQ
 
 阅读[介绍博客](https://medium.com/@mweststrate/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)的（第二部分）
 
-
 ## Q: Immer 是否使用结构共享？这样我的选择器就可以被记住了吗？
 
 A: 是的

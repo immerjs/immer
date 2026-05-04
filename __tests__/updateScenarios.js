@@ -149,7 +149,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-						  }
+							}
 						: item
 				)
 			}
@@ -172,7 +172,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-						  }
+							}
 						: item
 				)
 			}
@@ -188,7 +188,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: update.value,
 								nested: {...item.nested, data: update.nestedData}
-						  }
+							}
 						: item
 				})
 			}

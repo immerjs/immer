@@ -348,7 +348,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-						  }
+							}
 						: item
 				)
 			}
@@ -401,7 +401,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-						  }
+							}
 						: item
 				)
 			}
@@ -417,7 +417,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: update.value,
 								nested: {...item.nested, data: update.nestedData}
-						  }
+							}
 						: item
 				})
 			}
@@ -603,8 +603,8 @@ const freeze = [false, true]
 function createBenchmarks() {
 	// All single-operation benchmarks (fresh state each time)
 	for (const action in actions) {
-		summary(function() {
-			bench(`$action: $version (freeze: $freeze)`, function*(args) {
+		summary(function () {
+			bench(`$action: $version (freeze: $freeze)`, function* (args) {
 				const version = args.get("version")
 				const freeze = args.get("freeze")
 				const action = args.get("action")
@@ -640,8 +640,8 @@ function createBenchmarks() {
 		"update-largeObject2"
 	]
 	for (const action of reuseActions) {
-		summary(function() {
-			bench(`$action-reuse: $version (freeze: $freeze)`, function*(args) {
+		summary(function () {
+			bench(`$action-reuse: $version (freeze: $freeze)`, function* (args) {
 				const version = args.get("version")
 				const freeze = args.get("freeze")
 				const action = args.get("action")
@@ -670,8 +670,8 @@ function createBenchmarks() {
 	}
 
 	// Mixed operations sequence benchmark
-	summary(function() {
-		bench(`mixed-sequence: $version (freeze: $freeze)`, function*(args) {
+	summary(function () {
+		bench(`mixed-sequence: $version (freeze: $freeze)`, function* (args) {
 			const version = args.get("version")
 			const freeze = args.get("freeze")
 
@@ -700,8 +700,8 @@ function createBenchmarks() {
 	})
 
 	// RTKQ-style benchmark - executes multiple reducer calls in sequence
-	summary(function() {
-		bench(`rtkq-sequence: $version (freeze: $freeze)`, function*(args) {
+	summary(function () {
+		bench(`rtkq-sequence: $version (freeze: $freeze)`, function* (args) {
 			const version = args.get("version")
 			const freeze = args.get("freeze")
 

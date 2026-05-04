@@ -259,19 +259,19 @@ const arrayTraps: ProxyHandler<[ProxyArrayState]> = {}
 for (let key in objectTraps) {
 	let fn = objectTraps[key as keyof typeof objectTraps] as Function
 	// @ts-ignore
-	arrayTraps[key] = function() {
+	arrayTraps[key] = function () {
 		const args = arguments
 		args[0] = args[0][0]
 		return fn.apply(this, args)
 	}
 }
-arrayTraps.deleteProperty = function(state, prop) {
+arrayTraps.deleteProperty = function (state, prop) {
 	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
 		die(13)
 	// @ts-ignore
 	return arrayTraps.set!.call(this, state, prop, undefined)
 }
-arrayTraps.set = function(state, prop, value) {
+arrayTraps.set = function (state, prop, value) {
 	if (
 		process.env.NODE_ENV !== "production" &&
 		prop !== "length" &&
@@ -294,8 +294,8 @@ function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {
 		? VALUE in desc
 			? desc[VALUE]
 			: // This is a very special case, if the prop is a getter defined by the
-			  // prototype, we should invoke it with the draft as context!
-			  desc.get?.call(state.draft_)
+				// prototype, we should invoke it with the draft as context!
+				desc.get?.call(state.draft_)
 		: undefined
 }
 

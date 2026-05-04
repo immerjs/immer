@@ -59,7 +59,7 @@ function runBaseTest(
 	useListener,
 	useArrayMethods = false
 ) {
-	const listener = useListener ? function() {} : undefined
+	const listener = useListener ? function () {} : undefined
 
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
@@ -72,7 +72,7 @@ function runBaseTest(
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function(...args) {
+		immer.produce = function (...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)
@@ -3180,13 +3180,13 @@ function runBaseTest(
 
 		it("'this' should not be bound anymore - 1", () => {
 			const base = {x: 3}
-			const next1 = produce(base, function() {
+			const next1 = produce(base, function () {
 				expect(this).toBe(undefined)
 			})
 		})
 
 		it("'this' should not be bound anymore - 2", () => {
-			const incrementor = produce(function() {
+			const incrementor = produce(function () {
 				expect(this).toBe(undefined)
 			})
 			incrementor()
@@ -3195,7 +3195,7 @@ function runBaseTest(
 		it("should be possible to use dynamic bound this", () => {
 			const world = {
 				counter: {count: 1},
-				inc: produce(function(draft) {
+				inc: produce(function (draft) {
 					expect(this).toBe(world)
 					draft.counter.count = this.counter.count + 1
 				})

@@ -9,7 +9,8 @@ title: React & Immer
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 8: Using Immer with _useState_. Or: _useImmer_
 	</summary>
@@ -35,45 +36,45 @@ title: React & Immer
 The `useState` hook assumes any state that is stored inside it is treated as immutable. Deep updates in the state of React components can be greatly simplified as by using Immer. The following example shows how to use `produce` in combination with `useState`, and can be tried on [CodeSandbox](https://codesandbox.io/s/immer-usestate-ujkgg?file=/src/index.js).
 
 ```javascript
-import React, { useCallback, useState } from "react";
-import {produce} from "immer";
+import React, {useCallback, useState} from "react"
+import {produce} from "immer"
 
 const TodoList = () => {
-  const [todos, setTodos] = useState([
-    {
-      id: "React",
-      title: "Learn React",
-      done: true
-    },
-    {
-      id: "Immer",
-      title: "Try Immer",
-      done: false
-    }
-  ]);
+	const [todos, setTodos] = useState([
+		{
+			id: "React",
+			title: "Learn React",
+			done: true
+		},
+		{
+			id: "Immer",
+			title: "Try Immer",
+			done: false
+		}
+	])
 
-  const handleToggle = useCallback((id) => {
-    setTodos(
-      produce((draft) => {
-        const todo = draft.find((todo) => todo.id === id);
-        todo.done = !todo.done;
-      })
-    );
-  }, []);
+	const handleToggle = useCallback(id => {
+		setTodos(
+			produce(draft => {
+				const todo = draft.find(todo => todo.id === id)
+				todo.done = !todo.done
+			})
+		)
+	}, [])
 
-  const handleAdd = useCallback(() => {
-    setTodos(
-      produce((draft) => {
-        draft.push({
-          id: "todo_" + Math.random(),
-          title: "A new todo",
-          done: false
-        });
-      })
-    );
-  }, []);
+	const handleAdd = useCallback(() => {
+		setTodos(
+			produce(draft => {
+				draft.push({
+					id: "todo_" + Math.random(),
+					title: "A new todo",
+					done: false
+				})
+			})
+		)
+	}, [])
 
-  return (<div>{*/ See CodeSandbox */}</div>)
+	return <div>{/* See CodeSandbox */}</div>
 }
 ```
 

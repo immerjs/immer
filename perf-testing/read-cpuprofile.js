@@ -295,8 +295,9 @@ function resolveOriginalName(callFrame) {
 									return {
 										name: versionPosition.name,
 										version: version,
-										location: `${versionPosition.source?.split("/").pop() ||
-											sourceFile}:${versionPosition.line}`
+										location: `${
+											versionPosition.source?.split("/").pop() || sourceFile
+										}:${versionPosition.line}`
 									}
 								}
 							}
