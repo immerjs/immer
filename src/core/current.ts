@@ -1,5 +1,6 @@
 import {
 	die,
+	Draft,
 	isDraft,
 	shallowCopy,
 	each,
@@ -11,8 +12,8 @@ import {
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
-export function current<T>(value: T): T
-export function current(value: any): any {
+export function current<T>(value: Draft<T>): T
+export function current(value: Draft<any>): any {
 	if (!isDraft(value)) die(10, value)
 	return currentImpl(value)
 }

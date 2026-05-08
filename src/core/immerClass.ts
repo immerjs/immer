@@ -151,7 +151,7 @@ export class Immer implements ProducersFns {
 
 	createDraft<T extends Objectish>(base: T): Draft<T> {
 		if (!isDraftable(base)) die(8)
-		if (isDraft(base)) base = current(base)
+		if (isDraft(base)) base = current(base as Draft<T>)
 		const scope = enterScope(this)
 		const proxy = createProxy(scope, base, undefined)
 		proxy[DRAFT_STATE].isManual_ = true

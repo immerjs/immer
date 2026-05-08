@@ -2,7 +2,7 @@ import {
 	DRAFT_STATE,
 	DRAFTABLE,
 	Objectish,
-	Drafted,
+	Draft,
 	AnyObject,
 	AnyMap,
 	AnySet,
@@ -66,8 +66,8 @@ export function isPlainObject(value: any): boolean {
 
 /** Get the underlying object that is represented by the given draft */
 /*#__PURE__*/
-export function original<T>(value: T): T | undefined
-export function original(value: Drafted<any>): any {
+export function original<T>(value: Draft<T>): T
+export function original(value: Draft<any>): any {
 	if (!isDraft(value)) die(15, value)
 	return value[DRAFT_STATE].base_
 }
