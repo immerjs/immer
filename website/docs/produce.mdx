@@ -81,6 +81,67 @@ expect(nextState[0]).toBe(baseState[0])
 expect(nextState[1]).not.toBe(baseState[1])
 ```
 
+## TypeScript example
+
+If you want to pass a typed recipe callback around, you can type it using `Draft` and allow either `void` or a replacement state as the return value.
+
+```ts
+import {produce} from "immer"
+import type {Draft} from "immer"
+
+type Recipe<S> = (draft: Draft<S>) => void | S
+
+function updateState<S>(
+	setState: (updater: (prev: S) => S) => void,
+	recipe: Recipe<S>
+) {
+	setState(prev => produce(prev, recipe))
+}
+```
+
+## React example
+
+A common usage in React is to wrap `setState` with `produce` so callers can provide a typed recipe.
+
+```tsx
+import {produce} from "immer"
+import type {Draft} from "immer"
+import {useCallback, useState} from "react"
+
+type State = {
+	foo: string
+	bar: string
+}
+
+const initialState: State = {
+	foo: "",
+	bar: ""
+}
+
+type Recipe = (draft: Draft<State>) => void | State
+
+export function Example() {
+	const [state, setState] = useState<State>(initialState)
+
+	const updateState = useCallback((recipe: Recipe) => {
+		setState(prev => produce(prev, recipe))
+	}, [])
+
+	return (
+		<button
+			onClick={() => {
+				updateState(draft => {
+					draft.foo = "Muffin Man" // this recipe is typed
+				})
+			}}
+			type="button"
+		>
+			Hello {state.foo}
+		</button>
+	)
+}
+```
+
 ### Terminology
 
 - `(base)state`, the immutable state passed to `produce`
