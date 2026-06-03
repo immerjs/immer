@@ -23,4 +23,6 @@ title: Built with Immer
 - [ngrx-wieder](https://github.com/nilsmehlhorn/ngrx-wieder) _Lightweight yet configurable solution for implementing undo-redo in Angular apps on top of NgRx and Immer_
 - [immer-yjs](https://github.com/sep2/immer-yjs) _Combine `immer` with CRDT library `y.js` for easy json data manipulation_
 - [immerhin](https://github.com/webstudio-is/immerhin) Sync state with undo/redo
+- [zenith](https://github.com/do-md/zenith) *Reactive React state management on Immer with MobX-style computed properties and patch-based undo/redo, powering DOMD.*
+- [domd](https://github.com/do-md/domd) *High-performance macOS markdown editor built on Immer's structural sharing, with near-O(1) per-keystroke rendering on large documents.*
 - ... and [many more](https://www.npmjs.com/browse/depended/immer)
