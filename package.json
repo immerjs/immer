@@ -93,6 +93,6 @@
     "type-plus": "^7.6.2",
     "typescript": "^5.0.2",
     "vite": "^6.4.2",
-    "vitest": "^2.0.0"
+    "vitest": "^3.2.6"
   }
 }
