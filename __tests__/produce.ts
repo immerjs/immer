@@ -755,6 +755,41 @@ it("infers curried", () => {
 		})
 		assert(f, _ as (state: ROState) => ROState)
 	}
+	// produceWithPatches should infer the same state type as produce (#1045),
+	// just wrapped in the [state, patches, inversePatches] tuple
+	{
+		// curried
+		const f = produceWithPatches((state: State) => {
+			state.count++
+		})
+		assert(
+			f,
+			_ as (state: Immutable<State>) => readonly [State, Patch[], Patch[]]
+		)
+	}
+	{
+		// curried, with extra argument
+		const f = produceWithPatches((state: State, delta: number) => {
+			state.count += delta
+		})
+		assert(
+			f,
+			_ as (
+				state: Immutable<State>,
+				delta: number
+			) => readonly [State, Patch[], Patch[]]
+		)
+	}
+	{
+		// explicitly use generic, but curried
+		const f = produceWithPatches<State, [number]>((state, delta) => {
+			state.count += delta
+		})
+		assert(
+			f,
+			_ as (state: State, delta: number) => readonly [State, Patch[], Patch[]]
+		)
+	}
 }
 
 it("allows for mixed property value types", () => {

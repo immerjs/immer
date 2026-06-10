@@ -234,6 +234,22 @@ export interface IProduce {
 export interface IProduceWithPatches {
 	// Types copied from IProduce, wrapped with PatchesTuple
 	<Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<Recipe, true>
+
+	/** Curried producer that infers curried from the State generic, which is explicitly passed in.  */
+	<State, Args extends any[]>(
+		recipe: (
+			state: Draft<State>,
+			...args: Args
+		) => ValidRecipeReturnType<State>,
+		initialState: State
+	): (state?: State, ...args: Args) => PatchesTuple<State>
+	<State>(
+		recipe: (state: Draft<State>) => ValidRecipeReturnType<State>
+	): (state: State) => PatchesTuple<State>
+	<State, Args extends any[]>(
+		recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
+	): (state: State, ...args: Args) => PatchesTuple<State>
+
 	<State, Recipe extends Function>(
 		recipe: Recipe,
 		initialState: State
