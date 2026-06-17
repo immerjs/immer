@@ -345,7 +345,8 @@ export function enablePatches() {
 					die(errorOffset + 3)
 				if (isFunction(base) && p === PROTOTYPE) die(errorOffset + 3)
 				base = get(base, p)
-				if (!isObjectish(base)) die(errorOffset + 2, path.join("/"))
+				if (base === null || !isObjectish(base))
+					die(errorOffset + 2, path.join("/"))
 			}
 
 			const type = getArchtype(base)
