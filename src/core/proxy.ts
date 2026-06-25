@@ -44,6 +44,7 @@ export interface ProxyArrayState extends ProxyBaseState {
 	draft_: Drafted<AnyArray, ProxyArrayState>
 	operationMethod?: string
 	allIndicesReassigned_?: boolean
+	baseRefs_?: Set<any>
 }
 
 type ProxyState = ProxyObjectState | ProxyArrayState
@@ -172,7 +173,10 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		}
 		// Check for existing draft in modified state.
 		// Assigned values are never drafted. This catches any drafts we created, too.
-		if (value === peek(state.base_, prop)) {
+		if (
+			value === peek(state.base_, prop) ||
+			isRelocatedBaseRef(state, prop, value)
+		) {
 			prepareCopy(state)
 			// Ensure array keys are always numbers
 			const childKey = state.type_ === ArchType.Array ? +(prop as string) : prop
@@ -330,6 +334,25 @@ function peek(draft: Drafted, prop: PropertyKey) {
 	const state = draft[DRAFT_STATE]
 	const source = state ? latest(state) : draft
 	return source[prop]
+}
+
+// Reordering array methods (reverse, sort) from the array-methods plugin run
+// natively on `copy_`, which still holds raw base references. This relocates an
+// un-drafted base object to a position where it no longer matches `base_[prop]`,
+// so the normal positional check above misses it and the get trap would hand back
+// the raw base object, breaking the guarantee that the base state is never mutated.
+// Detect such a relocated base reference so it is drafted before being exposed.
+function isRelocatedBaseRef(state: ImmerState, prop: PropertyKey, value: any) {
+	if (
+		state.type_ !== ArchType.Array ||
+		!(state as ProxyArrayState).allIndicesReassigned_ ||
+		state.assigned_?.get(prop) ||
+		!isDraftable(value) ||
+		value[DRAFT_STATE]
+	) {
+		return false
+	}
+	return (state as ProxyArrayState).baseRefs_!.has(value)
 }
 
 function readPropFromProto(state: ImmerState, source: any, prop: PropertyKey) {

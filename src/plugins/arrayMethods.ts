@@ -181,6 +181,7 @@ export function enableArrayMethods() {
 
 	function markAllIndicesReassigned(state: ProxyArrayState) {
 		state.allIndicesReassigned_ = true
+		state.baseRefs_ = new Set(state.base_)
 	}
 
 	function normalizeSliceIndex(index: number, length: number): number {

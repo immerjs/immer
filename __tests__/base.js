@@ -8,7 +8,8 @@ import {
 	immerable,
 	enablePatches,
 	enableMapSet,
-	enableArrayMethods
+	enableArrayMethods,
+	applyPatches
 } from "../src/immer"
 
 import {
@@ -354,6 +355,37 @@ function runBaseTest(
 					})
 					expect(nextState).not.toBe(baseState)
 					expect(nextState).toEqual([{value: 1}, {value: 2}, {value: 3}])
+				})
+
+				it("mutating an element after reverse() does not mutate the base", () => {
+					const reordered = {id: 3}
+					const baseState = [{id: 1}, {id: 2}, reordered]
+					const nextState = produce(baseState, s => {
+						s.reverse()
+						// After reverse, the element at index 0 is the relocated base
+						// object. It must be drafted, otherwise writing to it mutates base.
+						expect(isDraft(s[0])).toBe(true)
+						s[0].id = 99
+					})
+					expect(baseState).toEqual([{id: 1}, {id: 2}, {id: 3}])
+					expect(reordered).toEqual({id: 3})
+					expect(nextState).toEqual([{id: 99}, {id: 2}, {id: 1}])
+				})
+
+				it("mutating an element after sort() does not mutate the base", () => {
+					const baseState = [{value: 3}, {value: 1}, {value: 2}]
+					const [nextState, patches, inverse] = produceWithPatches(
+						baseState,
+						s => {
+							s.sort((a, b) => a.value - b.value)
+							expect(isDraft(s[0])).toBe(true)
+							s[0].value = 99
+						}
+					)
+					expect(baseState).toEqual([{value: 3}, {value: 1}, {value: 2}])
+					expect(nextState).toEqual([{value: 99}, {value: 2}, {value: 3}])
+					expect(applyPatches(baseState, patches)).toEqual(nextState)
+					expect(applyPatches(nextState, inverse)).toEqual(baseState)
 				})
 
 				describe("push()", () => {
