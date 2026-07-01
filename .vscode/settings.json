@@ -5,5 +5,8 @@
   "javascript.validate.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
   "jest.enableInlineErrorMessages": true,
-  "cSpell.enabled": true
+  "cSpell.enabled": true,
+  "chat.tools.terminal.autoApprove": {
+    "yarn vitest": true
+  }
 }
