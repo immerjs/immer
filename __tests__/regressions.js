@@ -5,10 +5,12 @@ import {
 	original,
 	isDraft,
 	immerable,
-	enableMapSet
+	enableMapSet,
+	enablePatches
 } from "../src/immer"
 
 enableMapSet()
+enablePatches()
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
@@ -250,6 +252,26 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			expect(newState).toEqual({
 				baz: undefined
 			})
+		})
+
+		test("#1160 assigning undefined to a key only present on the prototype is still stored as an own property", () => {
+			const proto = {[immerable]: true, name: undefined}
+			const state = Object.create(proto)
+
+			expect(Object.hasOwnProperty.call(state, "name")).toBe(false)
+
+			const [newState, patches] = produceWithPatches(state, draft => {
+				draft.name = undefined
+			})
+
+			expect(Object.hasOwnProperty.call(newState, "name")).toBe(true)
+			expect(patches).toEqual([
+				{
+					op: "add",
+					path: ["name"],
+					value: undefined
+				}
+			])
 		})
 
 		test("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {

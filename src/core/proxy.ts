@@ -241,7 +241,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		if (
 			(state.copy_![prop] === value &&
 				// special case: handle new props with value 'undefined'
-				(value !== undefined || prop in state.copy_)) ||
+				(value !== undefined || has(state.copy_, prop, state.type_))) ||
 			// special case: NaN
 			(Number.isNaN(value) && Number.isNaN(state.copy_![prop]))
 		)
