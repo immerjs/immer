@@ -1549,12 +1549,7 @@
   dependencies:
     "@sigstore/protobuf-specs" "^0.5.0"
 
-"@sigstore/core@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@sigstore/core/-/core-3.2.0.tgz#beaea6ea4d7d4caadadb7453168e35636b78830e"
-  integrity sha512-kxHrDQ9YgfrWUSXU0cjsQGv8JykOFZQ9ErNKbFPWzk3Hgpwu8x2hHrQ9IdA8yl+j9RTLTC3sAF3Tdq1IQCP4oA==
-
-"@sigstore/core@^3.2.1":
+"@sigstore/core@^3.2.0", "@sigstore/core@^3.2.1":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@sigstore/core/-/core-3.2.1.tgz#4efd4ab0f59e768b6daf65612024ba925787de72"
   integrity sha512-qRsxPnCrbC/puegGxKuynfnxgLiHqWStrSjxkoB4YKqq3Z3s4cyZyj42ZdWFAEblNP65C+rBH8EuREHIXoi83g==
