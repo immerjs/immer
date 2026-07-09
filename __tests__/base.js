@@ -2953,6 +2953,18 @@ function runBaseTest(
 			expect(result.objConstructed).toEqual(new Object().constructor(1))
 		})
 
+		it("keeps constructor wrappers stable for equal drafts", () => {
+			produce(
+				{
+					left: {x: 1},
+					right: {x: 1}
+				},
+				draft => {
+					expect(draft.left.constructor).toBe(draft.right.constructor)
+				}
+			)
+		})
+
 		it("does not allow prototype pollution via reserved constructor access", () => {
 			const pollutedKey = "__immer_test_polluted__"
 			const original = Object.prototype[pollutedKey]

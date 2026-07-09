@@ -48,6 +48,9 @@ export interface ProxyArrayState extends ProxyBaseState {
 
 type ProxyState = ProxyObjectState | ProxyArrayState
 
+const emptyProtoObject = Object.freeze(Object.create(null))
+const constructorProxyCache = new WeakMap<Function, Function>()
+
 /**
  * Returns a new draft of the `base` object.
  *
@@ -110,30 +113,42 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 	get(state, prop) {
 		if (prop === DRAFT_STATE) return state
 
-		// Guard against prototype pollution via constructor and __proto__
-		// We allow access but wrap in a proxy that blocks prototype chain traversal
-		if (prop === "constructor" || prop === "__proto__") {
+		// Keep constructor access working, but return a stable wrapper so equality
+		// checks on equal drafts still behave as expected.
+		if (prop === "constructor") {
 			const source = latest(state)
 			const value = source[prop]
-			// Return a proxy that allows calling the constructor but blocks access to prototype
-			return new Proxy(value || {}, {
-				get: (target, key) => {
-					// Block __proto__ and prototype access chains
-					if (key === "__proto__" || key === "prototype") {
-						return Object.freeze(Object.create(null))
+			if (typeof value !== "function") {
+				return value
+			}
+
+			let constructorProxy = constructorProxyCache.get(value)
+			if (!constructorProxy) {
+				constructorProxy = new Proxy(value, {
+					get: (target, key) => {
+						// Block __proto__ and prototype access chains
+						if (key === "__proto__" || key === "prototype") {
+							return emptyProtoObject
+						}
+						// Allow normal property access for legitimate use
+						return Reflect.get(target, key)
+					},
+					set: () => {
+						// Silently ignore writes to prevent pollution
+						return true
+					},
+					apply: (target, thisArg, args) => {
+						// Allow constructor to be called as a function (e.g., draft.arr.constructor(1))
+						return Reflect.apply(target as Function, thisArg, args)
 					}
-					// Allow normal property access for legitimate use
-					return Reflect.get(target, key)
-				},
-				set: () => {
-					// Silently ignore writes to prevent pollution
-					return true
-				},
-				apply: (target, thisArg, args) => {
-					// Allow constructor to be called as a function (e.g., draft.arr.constructor(1))
-					return Reflect.apply(target as Function, thisArg, args)
-				}
-			})
+				})
+				constructorProxyCache.set(value, constructorProxy)
+			}
+			return constructorProxy
+		}
+
+		if (prop === "__proto__") {
+			return emptyProtoObject
 		}
 
 		let arrayPlugin = state.scope_.arrayMethodsPlugin_
