@@ -118,7 +118,7 @@ expect(state).toEqual({
 })
 ```
 
-The generated patches are similar (but not the same) to the [RFC-6902 JSON patch standard](https://datatracker.ietf.org/doc/html/rfc6902/#section-4.1), except that the `path` property is an array, rather than a string. This makes processing patches easier. If you want to normalize to the official specification, `patch.path = patch.path.join("/")` should do the trick. Anyway, this is what a bunch of patches and their inverse could look like:
+The generated patches are similar (but not the same) to the [RFC-6902 JSON patch standard](https://datatracker.ietf.org/doc/html/rfc6902/#section-4.1), except that the `path` property is an array, rather than a string. This makes processing patches easier. If you want to normalize to the official specification, use `patch.path = "/" + patch.path.join("/")` so the result is a JSON Pointer with a leading `/` (and escape `~` / `/` in path tokens per [RFC-6901](https://datatracker.ietf.org/doc/html/rfc6901) when needed). Anyway, this is what a bunch of patches and their inverse could look like:
 
 ```json
 [
