@@ -7,11 +7,15 @@ on:
   push:
     branches:
       - main
+      - matrix
 
 permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
+  contents: read
+            write
+  id-token: read
+            write
+  pull-requests: read
+                 write
 
 jobs:
   release:
