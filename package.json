@@ -79,7 +79,7 @@
     "deep-freeze": "^0.0.1",
     "flow-bin": "^0.123.0",
     "husky": "^1.2.0",
-    "immutable": "^3.8.2",
+    "immutable": "^4.3.9",
     "import-size": "^1.0.2",
     "lodash": "^4.17.4",
     "lodash.clonedeep": "^4.5.0",
