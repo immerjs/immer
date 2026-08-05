@@ -423,6 +423,23 @@ function runBaseTest(
 							expect(newLength).toBe(4)
 						})
 					})
+
+					test("push onto an index freed by pop() is patched", () => {
+						const base = {items: ["a", "b", "c"]}
+						const [result, patches, inverse] = produceWithPatches(
+							base,
+							draft => {
+								draft.items.pop()
+								draft.items.push("z")
+							}
+						)
+						expect(result.items).toEqual(["a", "b", "z"])
+						expect(patches).toEqual([
+							{op: "replace", path: ["items", 2], value: "z"}
+						])
+						expect(applyPatches(base, patches)).toEqual(result)
+						expect(applyPatches(result, inverse)).toEqual(base)
+					})
 				})
 
 				describe("unshift()", () => {

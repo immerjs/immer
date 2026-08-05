@@ -202,6 +202,11 @@ export function enableArrayMethods() {
 	 * Without this, values containing draft proxies (like `{...state[0]}`)
 	 * pushed via the array methods plugin would have their nested drafts
 	 * revoked during finalization without being replaced by final values.
+	 *
+	 * The index is stringified because the proxy traps only ever see property
+	 * names, so `assigned_` is keyed by string everywhere else. A numeric key
+	 * would be invisible to the readers that look indices up by name, such as
+	 * patch generation.
 	 */
 	function handleInsertedValues(
 		state: ProxyArrayState,
@@ -209,7 +214,7 @@ export function enableArrayMethods() {
 		values: any[]
 	) {
 		for (let i = 0; i < values.length; i++) {
-			const index = startIndex + i
+			const index = "" + (startIndex + i)
 			state.assigned_!.set(index, true)
 			handleCrossReference(state, index, values[i])
 		}
