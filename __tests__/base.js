@@ -292,6 +292,44 @@ function runBaseTest(
 			})
 
 			describe("mutating array methods", () => {
+				describe("no-op calls preserve structural sharing", () => {
+					it("push() with no arguments returns the base", () => {
+						const base = {list: [1, 2, 3], keep: {x: 1}}
+						const [next, patches] = produceWithPatches(base, d => {
+							d.list.push(...[])
+						})
+						expect(next).toBe(base)
+						expect(next.keep).toBe(base.keep)
+						expect(patches).toHaveLength(0)
+					})
+
+					it("unshift() with no arguments returns the base", () => {
+						const base = {list: [1, 2, 3]}
+						const next = produce(base, d => {
+							d.list.unshift()
+						})
+						expect(next).toBe(base)
+					})
+
+					it("splice() that removes and inserts nothing returns the base", () => {
+						const base = {list: [1, 2, 3]}
+						const [next, patches] = produceWithPatches(base, d => {
+							d.list.splice(1, 0)
+						})
+						expect(next).toBe(base)
+						expect(patches).toHaveLength(0)
+					})
+
+					it("pop()/shift() on an empty array return the base", () => {
+						const base = {popped: [], shifted: []}
+						const next = produce(base, d => {
+							d.popped.pop()
+							d.shifted.shift()
+						})
+						expect(next).toBe(base)
+					})
+				})
+
 				// Reported here: https://github.com/mweststrate/immer/issues/116
 				it("can pop then push", () => {
 					const nextState = produce([1, 2, 3], s => {
