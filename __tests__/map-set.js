@@ -23,7 +23,7 @@ runBaseTest("proxy (autofreeze)", true, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true, true)
 
 function runBaseTest(name, autoFreeze, useListener) {
-	const listener = useListener ? function () {} : undefined
+	const listener = useListener ? function() {} : undefined
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze
 	})
@@ -34,7 +34,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function (...args) {
+		immer.produce = function(...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)
@@ -394,6 +394,27 @@ function runBaseTest(name, autoFreeze, useListener) {
 			})
 
 			expect(Array.from(newSet)).toEqual([objs[0], objs[1]])
+		})
+
+		test("reading (but not modifying) a nested object inside a Set does not leak the copy", () => {
+			const untouched = {nested: {a: 1}}
+			const base = new Set([untouched, {x: 1}])
+			const next = produce(base, draft => {
+				for (const v of draft) {
+					if (v.nested) {
+						// Read only - creates a child draft (and a stray copy_
+						// on the parent) but modifies nothing
+						expect(v.nested.a).toBe(1)
+					} else {
+						v.x = 2
+					}
+				}
+			})
+			expect(next).not.toBe(base)
+			const finalUntouched = Array.from(next).find(v => v.nested)
+			expect(finalUntouched).toBe(untouched)
+			expect(finalUntouched.nested.a).toBe(1)
+			expect(isDraft(finalUntouched.nested)).toBe(false)
 		})
 	})
 }
