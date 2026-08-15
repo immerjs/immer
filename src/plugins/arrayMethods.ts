@@ -246,6 +246,18 @@ export function enableArrayMethods() {
 		method: string,
 		args: any[]
 	) {
+		// Detect no-op calls before creating a copy so structural sharing is
+		// preserved: push/unshift with no arguments add nothing, and pop/shift
+		// on an empty array remove nothing. The check must happen before
+		// prepareCopy - a stray copy_ on an unmodified state would be picked
+		// up by finalization of a parent Set and break identity there.
+		const isInsert = method === "push" || method === "unshift"
+		if (isInsert ? args.length === 0 : latest(state).length === 0) {
+			// Match the native return values: push/unshift return the
+			// (unchanged) length, pop/shift on an empty array return undefined
+			return isInsert ? latest(state).length : undefined
+		}
+
 		prepareCopy(state)
 
 		// For push/unshift, capture the length before the operation
@@ -254,29 +266,19 @@ export function enableArrayMethods() {
 
 		const result = (state.copy_! as any)[method](...args)
 
-		// Detect no-op calls so structural sharing is preserved:
-		// push/unshift with no arguments add nothing, and pop/shift on an
-		// empty array remove nothing. In those cases the array is unchanged.
-		const changed =
-			method === "push" || method === "unshift"
-				? args.length > 0
-				: lengthBefore > 0 // pop / shift
+		markArrayChanged(state)
 
-		if (changed) {
-			markArrayChanged(state)
+		// Handle index reassignment for shifting methods
+		if (SHIFTING_METHODS.has(method as MutatingArrayMethod)) {
+			markAllIndicesReassigned(state)
+		}
 
-			// Handle index reassignment for shifting methods
-			if (SHIFTING_METHODS.has(method as MutatingArrayMethod)) {
-				markAllIndicesReassigned(state)
-			}
-
-			// Handle cross-references for newly inserted values.
-			// push appends at the end, unshift inserts at the beginning.
-			if (method === "push") {
-				handleInsertedValues(state, lengthBefore, args)
-			} else if (method === "unshift") {
-				handleInsertedValues(state, 0, args)
-			}
+		// Handle cross-references for newly inserted values.
+		// push appends at the end, unshift inserts at the beginning.
+		if (method === "push") {
+			handleInsertedValues(state, lengthBefore, args)
+		} else if (method === "unshift") {
+			handleInsertedValues(state, 0, args)
 		}
 
 		// Return appropriate value based on method
@@ -348,14 +350,35 @@ export function enableArrayMethods() {
 					}
 
 					if (method === "splice") {
-						prepareCopy(state)
 						const insertCount = args.length > 2 ? args.length - 2 : 0
+
+						// Detect no-op calls before creating a copy so structural
+						// sharing is preserved (see handleSimpleOperation). A splice
+						// removes nothing when called with no arguments, when the
+						// normalized start is at/past the end, or when the delete
+						// count coerces to less than 1. splice(start) with a single
+						// argument removes everything from start onwards, so it must
+						// not match. Exotic arguments that slip through are caught
+						// by the post-copy check below.
+						if (insertCount === 0) {
+							const length = latest(state).length
+							if (
+								args.length === 0 ||
+								normalizeSliceIndex(args[0] ?? 0, length) === length ||
+								(args.length > 1 && !(args[1] >= 1))
+							) {
+								return []
+							}
+						}
+
+						prepareCopy(state)
 						const res = state.copy_!.splice(
 							...(args as [number, number, ...any[]])
 						)
 
-						// A splice that removes and inserts nothing leaves the array
-						// unchanged, so structural sharing must be preserved.
+						// Backstop for exotic arguments the pre-check above missed:
+						// if nothing was removed and nothing inserted, the array is
+						// unchanged and must not be marked as modified.
 						if (res.length === 0 && insertCount === 0) {
 							return res
 						}
