@@ -301,6 +301,11 @@ export function enableArrayMethods() {
 		method: string,
 		args: any[]
 	) {
+		// Reordering an array with fewer than two elements cannot change it,
+		// so preserve structural sharing and skip copying (see
+		// handleSimpleOperation for why this must run before prepareCopy).
+		if (latest(state).length <= 1) return state.draft_
+
 		return executeArrayMethod(
 			state,
 			() => {

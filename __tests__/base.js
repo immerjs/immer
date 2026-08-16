@@ -342,6 +342,17 @@ function runBaseTest(
 						expect([...next].find(Array.isArray)).toBe(arr)
 					})
 
+					it("sort()/reverse() on arrays with fewer than two elements return the base", () => {
+						const base = {empty: [], single: [1]}
+						const next = produce(base, d => {
+							d.empty.sort()
+							d.empty.reverse()
+							d.single.sort((a, b) => a - b)
+							d.single.reverse()
+						})
+						expect(next).toBe(base)
+					})
+
 					it("no-op splice() on an array inside a Set preserves the array's identity", () => {
 						const arr = [1, 2, 3]
 						const base = new Set([arr, {x: 1}])
