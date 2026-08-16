@@ -105,12 +105,12 @@ export function getArchtype(thing: any): ArchType {
 	return state
 		? state.type_
 		: isArray(thing)
-			? ArchType.Array
-			: isMap(thing)
-				? ArchType.Map
-				: isSet(thing)
-					? ArchType.Set
-					: ArchType.Object
+		? ArchType.Array
+		: isMap(thing)
+		? ArchType.Map
+		: isSet(thing)
+		? ArchType.Set
+		: ArchType.Object
 }
 
 /*#__PURE__*/
@@ -186,7 +186,11 @@ export let latest = (state: ImmerState): any => state.copy_ || state.base_
 
 export let getValue = <T extends object>(value: T): T => {
 	const proxyDraft = getProxyDraft(value)
-	return proxyDraft ? (proxyDraft.copy_ ?? proxyDraft.base_) : value
+	// Use the copy only if the draft was actually modified. An unmodified
+	// draft can still have a copy_ (e.g. the get trap caches child drafts
+	// there), and using it would both break structural sharing and leak
+	// soon-to-be-revoked child drafts into the result.
+	return proxyDraft ? getFinalValue(proxyDraft) : value
 }
 
 export let getFinalValue = (state: ImmerState): any =>

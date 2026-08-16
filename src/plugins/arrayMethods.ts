@@ -174,9 +174,21 @@ export function enableArrayMethods() {
 	): T {
 		prepareCopy(state)
 		const result = operation()
+		markArrayChanged(state, markLength)
+		return result
+	}
+
+	/**
+	 * Marks the array (and its ancestors) as modified after a mutating operation.
+	 *
+	 * Kept separate from `executeArrayMethod` so that operations which turn out to
+	 * be no-ops (e.g. `push()` with no arguments, `splice(i, 0)`, `pop()`/`shift()`
+	 * on an empty array) can prepare a copy but skip marking, preserving Immer's
+	 * structural-sharing guarantee that a change-free producer returns the base.
+	 */
+	function markArrayChanged(state: ProxyArrayState, markLength = true) {
 		markChanged(state)
 		if (markLength) state.assigned_!.set("length", true)
-		return result
 	}
 
 	function markAllIndicesReassigned(state: ProxyArrayState) {
@@ -234,31 +246,45 @@ export function enableArrayMethods() {
 		method: string,
 		args: any[]
 	) {
-		return executeArrayMethod(state, () => {
-			// For push/unshift, capture the length before the operation
-			// so we can compute insertion indices for handleCrossReference
-			const lengthBefore = state.copy_!.length
+		// Detect no-op calls before creating a copy so structural sharing is
+		// preserved: push/unshift with no arguments add nothing, and pop/shift
+		// on an empty array remove nothing. The check must happen before
+		// prepareCopy - a stray copy_ on an unmodified state would be picked
+		// up by finalization of a parent Set and break identity there.
+		const isInsert = method === "push" || method === "unshift"
+		if (isInsert ? args.length === 0 : latest(state).length === 0) {
+			// Match the native return values: push/unshift return the
+			// (unchanged) length, pop/shift on an empty array return undefined
+			return isInsert ? latest(state).length : undefined
+		}
 
-			const result = (state.copy_! as any)[method](...args)
+		prepareCopy(state)
 
-			// Handle index reassignment for shifting methods
-			if (SHIFTING_METHODS.has(method as MutatingArrayMethod)) {
-				markAllIndicesReassigned(state)
-			}
+		// For push/unshift, capture the length before the operation
+		// so we can compute insertion indices for handleCrossReference
+		const lengthBefore = state.copy_!.length
 
-			// Handle cross-references for newly inserted values.
-			// push appends at the end, unshift inserts at the beginning.
-			if (method === "push" && args.length > 0) {
-				handleInsertedValues(state, lengthBefore, args)
-			} else if (method === "unshift" && args.length > 0) {
-				handleInsertedValues(state, 0, args)
-			}
+		const result = (state.copy_! as any)[method](...args)
 
-			// Return appropriate value based on method
-			return RESULT_RETURNING_METHODS.has(method as MutatingArrayMethod)
-				? result
-				: state.draft_
-		})
+		markArrayChanged(state)
+
+		// Handle index reassignment for shifting methods
+		if (SHIFTING_METHODS.has(method as MutatingArrayMethod)) {
+			markAllIndicesReassigned(state)
+		}
+
+		// Handle cross-references for newly inserted values.
+		// push appends at the end, unshift inserts at the beginning.
+		if (method === "push") {
+			handleInsertedValues(state, lengthBefore, args)
+		} else if (method === "unshift") {
+			handleInsertedValues(state, 0, args)
+		}
+
+		// Return appropriate value based on method
+		return RESULT_RETURNING_METHODS.has(method as MutatingArrayMethod)
+			? result
+			: state.draft_
 	}
 
 	/**
@@ -275,6 +301,11 @@ export function enableArrayMethods() {
 		method: string,
 		args: any[]
 	) {
+		// Reordering an array with fewer than two elements cannot change it,
+		// so preserve structural sharing and skip copying (see
+		// handleSimpleOperation for why this must run before prepareCopy).
+		if (latest(state).length <= 1) return state.draft_
+
 		return executeArrayMethod(
 			state,
 			() => {
@@ -324,12 +355,43 @@ export function enableArrayMethods() {
 					}
 
 					if (method === "splice") {
-						const res = executeArrayMethod(state, () =>
-							state.copy_!.splice(...(args as [number, number, ...any[]]))
+						const insertCount = args.length > 2 ? args.length - 2 : 0
+
+						// Detect no-op calls before creating a copy so structural
+						// sharing is preserved (see handleSimpleOperation). A splice
+						// removes nothing when called with no arguments, when the
+						// normalized start is at/past the end, or when the delete
+						// count coerces to less than 1. splice(start) with a single
+						// argument removes everything from start onwards, so it must
+						// not match. Exotic arguments that slip through are caught
+						// by the post-copy check below.
+						if (insertCount === 0) {
+							const length = latest(state).length
+							if (
+								args.length === 0 ||
+								normalizeSliceIndex(args[0] ?? 0, length) === length ||
+								(args.length > 1 && !(args[1] >= 1))
+							) {
+								return []
+							}
+						}
+
+						prepareCopy(state)
+						const res = state.copy_!.splice(
+							...(args as [number, number, ...any[]])
 						)
+
+						// Backstop for exotic arguments the pre-check above missed:
+						// if nothing was removed and nothing inserted, the array is
+						// unchanged and must not be marked as modified.
+						if (res.length === 0 && insertCount === 0) {
+							return res
+						}
+
+						markArrayChanged(state)
 						markAllIndicesReassigned(state)
 						// Handle cross-references for inserted values (args from index 2+)
-						if (args.length > 2) {
+						if (insertCount > 0) {
 							const startIndex = normalizeSliceIndex(
 								args[0] ?? 0,
 								state.copy_!.length
