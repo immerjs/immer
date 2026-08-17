@@ -20,14 +20,16 @@ import {
 	handleCrossReference
 } from "../internal"
 
-declare global {
-	// `Iterator.from` was added in ES2025.
-	var Iterator:
-		| undefined
-		| {
-				from<T, TReturn>(iterable: Iterator<T, TReturn>): IterableIterator<T>
-		  }
-}
+// Feature-detect `Iterator.from` (added in ES2025) without augmenting the
+// global scope. Declaring `var Iterator` in a `declare global` block leaks a
+// conflicting global variable into the bundled `.d.ts` (TS2403 when compiled
+// against the ESNext lib). We cast via `globalThis` to satisfy the type checker
+// while keeping the runtime feature detect accurate. (#1273)
+const _globalIterator = (globalThis as any).Iterator as
+	| undefined
+	| { from: <T>(iterable: Iterator<T>) => IterableIterator<T> }
+const hasIteratorFrom =
+	typeof _globalIterator?.from === "function"
 
 export function enableMapSet() {
 	class DraftMap extends Map {
@@ -173,8 +175,8 @@ export function enableMapSet() {
 	function iteratorFrom<T, TReturn>(
 		iterable: Iterator<T, TReturn>
 	): IterableIterator<T> {
-		if (typeof Iterator !== "undefined") {
-			return Iterator.from(iterable)
+		if (hasIteratorFrom) {
+			return _globalIterator!.from(iterable)
 		}
 
 		const iterator: IterableIterator<T> = {
