@@ -117,10 +117,27 @@ const TodoList = () => {
     });
   }, []);
 
-  // etc
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo.id}>
+          <label>
+            <input
+              type="checkbox"
+              checked={todo.done}
+              onChange={() => handleToggle(todo.id)}
+            />
+            {todo.title}
+          </label>
+        </li>
+      ))}
+      <button type="button" onClick={handleAdd}>
+        Add todo
+      </button>
+    </ul>
+  );
+};
 ```
-
-完整的 demo 请参阅 [CodeSandbox](https://codesandbox.io/s/use-immer-bvd5v?file=/src/index.js)
 
 ## useReducer + Immer
 
