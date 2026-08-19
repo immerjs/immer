@@ -180,7 +180,7 @@ function runBaseTest(
 				delete s.a
 				s.a = a
 			})
-			expect(nextState).not.toBe(baseState)
+			expect(nextState).toBe(baseState)
 			expect(nextState).toEqual(baseState)
 		})
 
@@ -3398,8 +3398,7 @@ function runBaseTest(
 				draft.highlight = false
 				draft.highlight = true
 			})
-			// See explanation in issue
-			expect(next1).not.toBe(a)
+			expect(next1).toBe(a)
 
 			const next2 = produce(a, draft => {
 				draft.highlight = true
@@ -3620,7 +3619,7 @@ function runBaseTest(
 			expect(next).toEqual({dots: base.availableStartingDots})
 		})
 
-		it("cannot always detect noop assignments - 0", () => {
+		it("detects noop assignments - 0", () => {
 			const baseState = {x: {y: 3}}
 			const nextState = produce(baseState, d => {
 				const a = d.x
@@ -3629,20 +3628,17 @@ function runBaseTest(
 			expect(nextState).toBe(baseState)
 		})
 
-		it("cannot always detect noop assignments - 1", () => {
+		it("detects noop assignments - 1", () => {
 			const baseState = {x: {y: 3}}
 			const nextState = produce(baseState, d => {
 				const a = d.x
 				d.x = 4
 				d.x = a
 			})
-			// Ideally, this should actually be the same instances
-			// but this would be pretty expensive to detect,
-			// so we don't atm
-			expect(nextState).not.toBe(baseState)
+			expect(nextState).toBe(baseState)
 		})
 
-		it("cannot always detect noop assignments - 2", () => {
+		it("detects noop assignments - 2", () => {
 			const baseState = {x: {y: 3}}
 			const nextState = produce(baseState, d => {
 				const a = d.x
@@ -3650,13 +3646,10 @@ function runBaseTest(
 				d.x = 4
 				d.x = a
 			})
-			// Ideally, this should actually be the same instances
-			// but this would be pretty expensive to detect,
-			// so we don't atm
-			expect(nextState).not.toBe(baseState)
+			expect(nextState).toBe(baseState)
 		})
 
-		it("cannot always detect noop assignments - 3", () => {
+		it("detects noop assignments - 3", () => {
 			const baseState = {x: 3}
 			const nextState = produce(baseState, d => {
 				d.x = 3
@@ -3664,19 +3657,16 @@ function runBaseTest(
 			expect(nextState).toBe(baseState)
 		})
 
-		it("cannot always detect noop assignments - 4", () => {
+		it("detects noop assignments - 4", () => {
 			const baseState = {x: 3}
 			const nextState = produce(baseState, d => {
 				d.x = 4
 				d.x = 3
 			})
-			// Ideally, this should actually be the same instances
-			// but this would be pretty expensive to detect,
-			// so we don't atm
-			expect(nextState).not.toBe(baseState)
+			expect(nextState).toBe(baseState)
 		})
 
-		it("cannot always detect noop assignments - 4", () => {
+		it("cannot always detect noop assignments - 1", () => {
 			const baseState = {}
 			const [nextState, patches] = produceWithPatches(baseState, d => {
 				d.x = 4

@@ -22,7 +22,11 @@ import {
 	ENUMERABLE,
 	VALUE,
 	isArray,
-	isArrayIndex
+	isArrayIndex,
+	getProxyDraft,
+	each,
+	get,
+	getValue
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -207,6 +211,8 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 		)
 			return true
 
+		if (revertToBaseIfNeeded(state, prop, value)) return true
+
 		// @ts-ignore
 		state.copy_![prop] = value
 		state.assigned_!.set(prop, true)
@@ -335,6 +341,42 @@ function getDescriptorFromProto(
 		proto = getPrototypeOf(proto)
 	}
 	return undefined
+}
+
+function revertToBaseIfNeeded(
+	state: ImmerState,
+	prop: PropertyKey,
+	value: any
+): boolean {
+	if (
+		!has(state.base_, prop, state.type_) ||
+		!is(get(state.base_, prop), getValue(value))
+	) {
+		return false
+	}
+
+	state.copy_![prop] = value
+	state.assigned_!.delete(prop)
+
+	if (state.assigned_!.size > 0) return true
+
+	let childModified = false
+	each(state.copy_!, (key, val) => {
+		if (getProxyDraft(val)?.modified_) {
+			childModified = true
+		}
+	})
+	if (childModified) return true
+
+	state.modified_ = false
+	state.copy_ = null
+	state.assigned_ = undefined
+
+	if (state.parent_ && state.key_ !== undefined) {
+		revertToBaseIfNeeded(state.parent_, state.key_, state.base_)
+	}
+
+	return true
 }
 
 export function markChanged(state: ImmerState) {
