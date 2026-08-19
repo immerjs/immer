@@ -119,7 +119,7 @@ expect(state).toEqual({
 })
 ```
 
-生成的 patches 与 [RFC-6902 JSON patch standard](https://datatracker.ietf.org/doc/html/rfc6902/#section-4.1) 类似（但并不相同），除了 path 属性是一个数组，而不是一个字符串。这使得处理 patches 更加容易。如果你想规范化到官方格式，`patch.path = patch.path.join("/")`应该可以解决这个问题。无论如何，下面就是一堆 patches 和它们回溯的样子。
+生成的 patches 与 [RFC-6902 JSON patch standard](https://datatracker.ietf.org/doc/html/rfc6902/#section-4.1) 类似（但并不相同），除了 path 属性是一个数组，而不是一个字符串。这使得处理 patches 更加容易。如果你想规范化到官方格式，请使用 `patch.path = "/" + patch.path.join("/")`，这样会得到带前导 `/` 的 JSON Pointer（如有需要，请按 [RFC-6901](https://datatracker.ietf.org/doc/html/rfc6901) 转义路径段中的 `~` / `/`）。无论如何，下面就是一堆 patches 和它们回溯的样子。
 
 ```json
 [
