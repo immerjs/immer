@@ -10,8 +10,7 @@ sidebar_label: TypeScript / Flow
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center>
-<details>
+</center> <details>
 	<summary className="egghead-summary">
 		egghead.io lesson 12: Immer + TypeScript
 	</summary>
@@ -63,6 +62,67 @@ This ensures that the only place you can modify your state is in your produce ca
 1. Always define your states as `readonly` as much as possible. This best reflects the mental model and reality, since Immer will freeze all its returned values.
 2. You can use the utility type `Immutable` to recursively make an entire type tree read-only, e.g.: `type ReadonlyState = Immutable<State>`.
 3. Immer won't automatically wrap all returned types in `Immutable` if the original type of the input state wasn't immutable. This is to make sure it doesn't break code bases that don't use immutable types.
+
+## Typing reusable recipes
+
+If you want to pass a recipe callback around, you can type it using `Draft` and allow either `void` or a replacement state as the return value.
+
+```ts
+import {produce} from "immer"
+import type {Draft} from "immer"
+
+type Recipe<S> = (draft: Draft<S>) => void | S
+
+function updateState<S>(
+	setState: (updater: (prev: S) => S) => void,
+	recipe: Recipe<S>
+) {
+	setState(prev => produce(prev, recipe))
+}
+```
+
+### React example
+
+A common usage in React is to wrap `setState` with `produce` so callers can provide a typed recipe.
+
+```tsx
+import {produce} from "immer"
+import type {Draft} from "immer"
+import {useCallback, useState} from "react"
+
+type State = {
+	foo: string
+	bar: string
+}
+
+const initialState: State = {
+	foo: "",
+	bar: ""
+}
+
+type Recipe = (draft: Draft<State>) => void | State
+
+export function Example() {
+	const [state, setState] = useState<State>(initialState)
+
+	const updateState = useCallback((recipe: Recipe) => {
+		setState(prev => produce(prev, recipe))
+	}, [])
+
+	return (
+		<button
+			onClick={() => {
+				updateState(draft => {
+					draft.foo = "Muffin Man" // this recipe is typed
+				})
+			}}
+			type="button"
+		>
+			Hello {state.foo}
+		</button>
+	)
+}
+```
 
 ## Tips for curried producers
 
