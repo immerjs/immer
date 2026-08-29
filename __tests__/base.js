@@ -1819,6 +1819,97 @@ function runBaseTest(
 					})
 				})
 
+				// Regression: the plugin hand-rolls filter/find/findLast and used to
+				// drop the optional thisArg argument (ECMA-262 23.1.3.8, 23.1.3.12.1).
+				describe("thisArg forwarding", () => {
+					test("filter() passes thisArg to the predicate", () => {
+						const base = createTestData()
+						const ctx = {threshold: 25}
+						const seen = []
+						const result = produce(base, draft => {
+							const filtered = draft.items.filter(function (item) {
+								seen.push(this)
+								return item.value > this.threshold
+							}, ctx)
+							expect(filtered.map(item => item.id)).toEqual([3, 4, 5])
+						})
+						expect(seen).toHaveLength(5)
+						seen.forEach(self => expect(self).toBe(ctx))
+						expect(result).toBe(base)
+					})
+
+					test("find() passes thisArg to the predicate", () => {
+						const base = createTestData()
+						const ctx = {targetId: 3}
+						const result = produce(base, draft => {
+							const found = draft.items.find(function (item) {
+								return item.id === this.targetId
+							}, ctx)
+							expect(found.value).toBe(30)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("findLast() passes thisArg to the predicate", () => {
+						const base = createTestData()
+						const ctx = {threshold: 25}
+						const result = produce(base, draft => {
+							const found = draft.items.findLast(function (item) {
+								return item.value > this.threshold
+							}, ctx)
+							expect(found.id).toBe(5)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("thisArg still reaches predicates the plugin does not hand-roll", () => {
+						const base = createTestData()
+						const ctx = {threshold: 25}
+						const result = produce(base, draft => {
+							expect(
+								draft.items.findIndex(function (item) {
+									return item.value > this.threshold
+								}, ctx)
+							).toBe(2)
+							expect(
+								draft.items.findLastIndex(function (item) {
+									return item.value > this.threshold
+								}, ctx)
+							).toBe(4)
+							expect(
+								draft.items.some(function (item) {
+									return item.value > this.threshold
+								}, ctx)
+							).toBe(true)
+							expect(
+								draft.items.every(function (item) {
+									return item.value > this.threshold
+								}, ctx)
+							).toBe(false)
+						})
+						expect(result).toBe(base)
+					})
+
+					test("omitting thisArg leaves the predicate's this undefined", () => {
+						const base = createTestData()
+						const result = produce(base, draft => {
+							draft.items.filter(function () {
+								expect(this).toBeUndefined()
+								return false
+							})
+							draft.items.find(function () {
+								expect(this).toBeUndefined()
+								return false
+							})
+							draft.items.findLast(function () {
+								expect(this).toBeUndefined()
+								return false
+							})
+						})
+						expect(result).toBe(base)
+					})
+				})
+
 				describe("comparison: filter vs concat behavior", () => {
 					test("filter returns drafts that can affect original", () => {
 						const base = {
