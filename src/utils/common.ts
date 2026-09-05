@@ -216,6 +216,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
 		for (let i = 0; i < keys.length; i++) {
 			const key: any = keys[i]
 			const desc = descriptors[key]
+			if (!desc) continue
 			if (desc[WRITABLE] === false) {
 				desc[WRITABLE] = true
 				desc[CONFIGURABLE] = true
