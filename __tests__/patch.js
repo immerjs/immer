@@ -1605,3 +1605,35 @@ test("applyPatches throws proper immer error when intermediate path value is nul
 		applyPatches({a: null}, [{op: "add", path: ["a", "b"], value: 1}])
 	}).toThrow(isProd ? "18" : "Cannot apply patch, path doesn't resolve: a/b")
 })
+
+describe("assigning a base value back over its own draft", () => {
+	// Reading a property drafts it; writing the base value back leaves the
+	// property untouched, so it must not show up in the patches at all.
+	const rootChild = {id: 1}
+	runPatchTests(
+		"root level",
+		{child: rootChild, other: 0},
+		d => {
+			d.child
+			d.child = rootChild
+			d.other = 1
+		},
+		[{op: "replace", path: ["other"], value: 1}],
+		[{op: "replace", path: ["other"], value: 0}],
+		{child: {id: 1}, other: 1}
+	)
+
+	const nestedChild = {id: 1}
+	runPatchTests(
+		"nested",
+		{a: {child: nestedChild, other: 0}},
+		d => {
+			d.a.child
+			d.a.child = nestedChild
+			d.a.other = 1
+		},
+		[{op: "replace", path: ["a", "other"], value: 1}],
+		[{op: "replace", path: ["a", "other"], value: 0}],
+		{a: {child: {id: 1}, other: 1}}
+	)
+})

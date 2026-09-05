@@ -186,7 +186,9 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
 			if (currentState && currentState.base_ === value) {
 				state.copy_![prop] = value
-				state.assigned_!.set(prop, false)
+				// The property still holds its base value, so nothing was assigned
+				// and nothing was deleted. `false` here reads as a deletion later.
+				state.assigned_!.delete(prop)
 				return true
 			}
 			if (
