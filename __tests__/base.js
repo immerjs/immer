@@ -2334,6 +2334,18 @@ function runBaseTest(
 				expect(() => m.set("x", 3)).toThrowErrorMatchingSnapshot()
 			})
 
+			it("revokes map proxies for reads that do not go through get", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aMap
+				})
+				const revoked = /has been revoked|minified error nr: 3/
+				expect(() => m.has("jedi")).toThrow(revoked)
+				expect(() => m.size).toThrow(revoked)
+				expect(() => m.keys()).toThrow(revoked)
+				expect(() => m.forEach(() => {})).toThrow(revoked)
+			})
+
 			it("does not draft map keys", () => {
 				// anything else would be terribly confusing
 				const key = {a: 1}
@@ -2636,6 +2648,14 @@ function runBaseTest(
 				})
 				expect(() => m.has("x")).toThrowErrorMatchingSnapshot()
 				expect(() => m.add("x")).toThrowErrorMatchingSnapshot()
+			})
+
+			it("revokes set size reads", () => {
+				let m
+				produce(baseState, s => {
+					m = s.aSet
+				})
+				expect(() => m.size).toThrow(/has been revoked|minified error nr: 3/)
 			})
 
 			it("does support instanceof Set", () => {

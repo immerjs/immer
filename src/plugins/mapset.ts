@@ -54,11 +54,15 @@ export function enableMapSet() {
 		}
 
 		get size(): number {
-			return latest(this[DRAFT_STATE]).size
+			const state: MapState = this[DRAFT_STATE]
+			assertUnrevoked(state)
+			return latest(state).size
 		}
 
 		has(key: any): boolean {
-			return latest(this[DRAFT_STATE]).has(key)
+			const state: MapState = this[DRAFT_STATE]
+			assertUnrevoked(state)
+			return latest(state).has(key)
 		}
 
 		set(key: any, value: any) {
@@ -109,6 +113,7 @@ export function enableMapSet() {
 
 		forEach(cb: (value: any, key: any, self: any) => void, thisArg?: any) {
 			const state: MapState = this[DRAFT_STATE]
+			assertUnrevoked(state)
 			latest(state).forEach((_value: any, key: any, _map: any) => {
 				cb.call(thisArg, this.get(key), key, this)
 			})
@@ -132,7 +137,9 @@ export function enableMapSet() {
 		}
 
 		keys(): IterableIterator<any> {
-			return latest(this[DRAFT_STATE]).keys()
+			const state: MapState = this[DRAFT_STATE]
+			assertUnrevoked(state)
+			return latest(state).keys()
 		}
 
 		values(): IterableIterator<any> {
@@ -225,7 +232,9 @@ export function enableMapSet() {
 		}
 
 		get size(): number {
-			return latest(this[DRAFT_STATE]).size
+			const state: SetState = this[DRAFT_STATE]
+			assertUnrevoked(state)
+			return latest(state).size
 		}
 
 		has(value: any): boolean {
