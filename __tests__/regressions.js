@@ -274,6 +274,32 @@ function runBaseTest(name, useProxies, autoFreeze, useListener) {
 			])
 		})
 
+		for (const modified of [false, true]) {
+			test.each(["default", NaN])(
+				`assigning an inherited value creates an own property (modified: ${modified}, value: %s)`,
+				value => {
+					const proto = {[immerable]: true, name: value}
+					const state = Object.create(proto)
+
+					const [newState, patches, inversePatches] = produceWithPatches(
+						state,
+						draft => {
+							if (modified) draft.changed = true
+							draft.name = value
+						}
+					)
+
+					expect(newState).not.toBe(state)
+					expect(Object.hasOwnProperty.call(state, "name")).toBe(false)
+					expect(Object.hasOwnProperty.call(newState, "name")).toBe(true)
+					expect(newState.name).toBe(value)
+					expect(Object.getPrototypeOf(newState)).toBe(proto)
+					expect(patches).toContainEqual({op: "add", path: ["name"], value})
+					expect(inversePatches).toContainEqual({op: "remove", path: ["name"]})
+				}
+			)
+		}
+
 		test("Nested and chained produce calls throw 'Cannot perform 'get' on a proxy that has been revoked' error", () => {
 			const state = {
 				foo: {
