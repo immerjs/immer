@@ -18,11 +18,20 @@ export function current(value: Draft<any>): any {
 	return currentImpl(value)
 }
 
-function currentImpl(value: any): any {
+function currentImpl(
+	value: any,
+	strict: boolean = true,
+	copies?: WeakMap<object, any>
+): any {
 	if (!isDraftable(value) || isFrozen(value)) return value
 	const state: ImmerState | undefined = value[DRAFT_STATE]
+	// Don't walk the same object twice. Pre-existing circular references
+	// (including those stored on symbol keys) overflowed here (#1106).
+	if (copies) {
+		if (copies.has(value)) return copies.get(value)
+		if (state && copies.has(state.base_)) return copies.get(state.base_)
+	}
 	let copy: any
-	let strict = true // Default to strict for compatibility
 	if (state) {
 		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
@@ -32,11 +41,14 @@ function currentImpl(value: any): any {
 	} else {
 		copy = shallowCopy(value, true)
 	}
-	// recurse
+	if (!copies) copies = new WeakMap()
+	copies.set(value, copy)
+	if (state) copies.set(state.base_, copy)
+	// recurse — keep the same iteration mode for nested non-drafts
 	each(
 		copy,
 		(key, childValue) => {
-			set(copy, key, currentImpl(childValue))
+			set(copy, key, currentImpl(childValue, strict, copies))
 		},
 		strict
 	)
