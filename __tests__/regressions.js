@@ -12,6 +12,19 @@ import {
 enableMapSet()
 enablePatches()
 
+test("#1106 handles circular references in symbol properties", () => {
+	const symbol = Symbol("parent")
+	const parent = {value: 0}
+	const child = {[symbol]: parent}
+	parent.child = child
+
+	const next = new Immer().produce(parent, draft => {
+		draft.value = 1
+	})
+
+	expect(next.value).toBe(1)
+})
+
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
 runBaseTest("es5 (no freeze)", false, false)
