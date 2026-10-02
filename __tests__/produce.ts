@@ -177,6 +177,95 @@ it("can apply readonly patches", () => {
 	expect(applyPatches({}, patches)).toEqual({x: 4})
 })
 
+describe("assigning a value and then reverting it, generates no changes", () => {
+	it("top-level", () => {
+		type Item = {date: Date}
+
+		let initialDate = new Date()
+		let data: Item = {date: initialDate}
+
+		const [newData, patches] = produceWithPatches(data, draft => {
+			const dateBefore = draft.date
+			draft.date = new Date()
+			draft.date = dateBefore
+		})
+
+		// Expect no patches and the returned value to be the same reference
+		expect(patches).toEqual([])
+		expect(newData).toBe(data)
+	})
+
+	it("top-level pathological case", () => {
+		type Item = {number: Number}
+
+		let data: Item = {number: -0}
+
+		const [newData, patches] = produceWithPatches(data, draft => {
+			draft.number = 1
+			draft.number = +0
+		})
+
+		// Expect no patches and the returned value to be the same reference
+		expect(newData).not.toBe(data)
+		// Bug in patches, should be a patch but none generated
+		expect(patches).toEqual([])
+	})
+
+	it("top-level with adjacent modified draft", () => {
+		type Item = {date: Date; other: {x: number}}
+
+		let initialDate = new Date()
+		let data: Item = {date: initialDate, other: {x: 0}}
+
+		const [newData, patches] = produceWithPatches(data, draft => {
+			const dateBefore = draft.date
+			draft.date = new Date()
+			draft.other.x++
+			draft.date = dateBefore
+		})
+
+		// Expect patches and the returned value not to be the same reference
+		expect(patches).not.toEqual([])
+		expect(newData).not.toBe(data)
+	})
+
+	it("nested in array", () => {
+		type Item = {date: Date}
+
+		let initialDate = new Date()
+		let data: Item[] = [{date: initialDate}]
+
+		const [newData, patches] = produceWithPatches(data, draft => {
+			const element = draft[0]
+			const dateBefore = element.date
+			element.date = new Date()
+			element.date = dateBefore
+		})
+
+		// Expect no patches and the returned value to be the same reference
+		expect(patches).toEqual([])
+		expect(newData).toBe(data)
+	})
+
+	it("nested in map", () => {
+		type Item = {date: Date}
+
+		let initialDate = new Date()
+		let data: Map<number, Item> = new Map([[0, {date: initialDate}]])
+
+		const [newData, patches] = produceWithPatches(data, draft => {
+			const element = draft.get(0)!
+			const dateBefore = element.date
+			element.date = new Date()
+			element.date = dateBefore
+		})
+
+		// Expect no patches and the returned value to be the same reference
+		expect(patches).toEqual([])
+		expect(newData).toBe(data)
+	})
+})
+
 describe("curried producer", () => {
 	it("supports rest parameters", () => {
 		type State = {readonly a: 1}
