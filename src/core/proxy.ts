@@ -179,8 +179,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 			return true
 		}
 		if (!state.modified_) {
-			// the last check is because we need to be able to distinguish setting a non-existing to undefined (which is a change)
-			// from setting an existing property with value undefined to undefined (which is not a change)
+			// Assigning an inherited value creates an own property, even when the value is unchanged.
 			const current = peek(latest(state), prop)
 			// special case, if we assigning the original value to a draft, we can ignore the assignment
 			const currentState: ProxyObjectState = current?.[DRAFT_STATE]
@@ -189,21 +188,16 @@ export const objectTraps: ProxyHandler<ProxyState> = {
 				state.assigned_!.set(prop, false)
 				return true
 			}
-			if (
-				is(value, current) &&
-				(value !== undefined || has(state.base_, prop, state.type_))
-			)
-				return true
+			if (is(value, current) && has(state.base_, prop, state.type_)) return true
 			prepareCopy(state)
 			markChanged(state)
 		}
 
 		if (
-			(state.copy_![prop] === value &&
-				// special case: handle new props with value 'undefined'
-				(value !== undefined || has(state.copy_, prop, state.type_))) ||
-			// special case: NaN
-			(Number.isNaN(value) && Number.isNaN(state.copy_![prop]))
+			(state.copy_![prop] === value ||
+				// special case: NaN
+				(Number.isNaN(value) && Number.isNaN(state.copy_![prop]))) &&
+			has(state.copy_, prop, state.type_)
 		)
 			return true
 
