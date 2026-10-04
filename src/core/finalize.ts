@@ -169,7 +169,7 @@ export function updateDraftInParent(
 export function registerChildFinalizationCallback(
 	parent: ImmerState,
 	child: ImmerState,
-	key: string | number | symbol
+	key: string | number | symbol | undefined
 ) {
 	parent.callbacks_.push(function childCleanup(rootScope) {
 		const state: ImmerState = child
