@@ -196,7 +196,14 @@ export function enableArrayMethods() {
 		state.baseRefs_ = new Set(state.base_)
 	}
 
+	/**
+	 * Resolves a `slice`/`splice` index argument the way the native methods do:
+	 * the value is converted to an integer first (fractions are truncated and
+	 * `NaN` becomes 0), then negative values count back from the end and the
+	 * result is clamped to `[0, length]`.
+	 */
 	function normalizeSliceIndex(index: number, length: number): number {
+		index = Math.trunc(Number(index)) || 0
 		if (index < 0) {
 			return Math.max(length + index, 0)
 		}
