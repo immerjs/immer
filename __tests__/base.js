@@ -60,7 +60,7 @@ function runBaseTest(
 	useListener,
 	useArrayMethods = false
 ) {
-	const listener = useListener ? function() {} : undefined
+	const listener = useListener ? function () {} : undefined
 
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
@@ -73,7 +73,7 @@ function runBaseTest(
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function(...args) {
+		immer.produce = function (...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)
@@ -642,6 +642,17 @@ function runBaseTest(
 						})
 						expect(result.items[1].value).toBe(20)
 					})
+
+					test("splice with a fractional start inserting a draft reference", () => {
+						const base = {items: [{id: 1}, {id: 2}], other: {x: 1}}
+						const result = produce(base, draft => {
+							// native splice truncates the start index to 1
+							draft.items.splice(1.5, 0, {ref: draft.other})
+							draft.other.x = 2
+						})
+						expect(result.items).toEqual([{id: 1}, {ref: {x: 2}}, {id: 2}])
+						expect(isDraft(result.items[1].ref)).toBe(false)
+					})
 				})
 
 				describe("combined operations", () => {
@@ -1062,6 +1073,25 @@ function runBaseTest(
 						expect(base.items[3].value).toBe(40)
 						// Verify result is a copy
 						expect(result.items[3]).not.toBe(base.items[3])
+					})
+
+					test("slice converts non-integer indices like the native method", () => {
+						const base = createTestData()
+						const cases = [
+							[0, 2.5],
+							[1.5],
+							[-2.5],
+							[NaN],
+							[undefined, -1.5],
+							[NaN, NaN]
+						]
+						produce(base, draft => {
+							for (const args of cases) {
+								expect(draft.items.slice(...args).map(item => item.id)).toEqual(
+									base.items.slice(...args).map(item => item.id)
+								)
+							}
+						})
 					})
 				})
 
@@ -3415,13 +3445,13 @@ function runBaseTest(
 
 		it("'this' should not be bound anymore - 1", () => {
 			const base = {x: 3}
-			const next1 = produce(base, function() {
+			const next1 = produce(base, function () {
 				expect(this).toBe(undefined)
 			})
 		})
 
 		it("'this' should not be bound anymore - 2", () => {
-			const incrementor = produce(function() {
+			const incrementor = produce(function () {
 				expect(this).toBe(undefined)
 			})
 			incrementor()
@@ -3430,7 +3460,7 @@ function runBaseTest(
 		it("should be possible to use dynamic bound this", () => {
 			const world = {
 				counter: {count: 1},
-				inc: produce(function(draft) {
+				inc: produce(function (draft) {
 					expect(this).toBe(world)
 					draft.counter.count = this.counter.count + 1
 				})
