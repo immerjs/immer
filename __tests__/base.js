@@ -716,6 +716,91 @@ function runBaseTest(
 					})
 				})
 
+				describe("patches for elements moved by shifting or reordering", () => {
+					const createBase = () => ({
+						arr: [
+							{id: 1, a: 1, meta: {n: 1}},
+							{id: 2, a: 2, meta: {n: 2}},
+							{id: 3, a: 3, meta: {n: 3}}
+						]
+					})
+					const added = {id: 9, a: 9, meta: {n: 9}}
+
+					// Only the first four failed before: they write to an element that was
+					// shifted to an index at or past the base length. The rest are guards.
+					test.each([
+						[
+							"unshift, write to an element moved past the base length",
+							d => {
+								d.arr.unshift({...added})
+								d.arr[3].a = 99
+							}
+						],
+						[
+							"unshift, write to a nested object of an element moved past the base length",
+							d => {
+								d.arr.unshift({...added})
+								d.arr[3].meta.n = 99
+							}
+						],
+						[
+							"unshift of two items, write to the last element",
+							d => {
+								d.arr.unshift({...added}, {...added, id: 10})
+								d.arr[4].a = 99
+							}
+						],
+						[
+							"splice insert, write to an element moved past the base length",
+							d => {
+								d.arr.splice(1, 0, {...added})
+								d.arr[3].a = 99
+							}
+						],
+						[
+							"unshift, write to an element that stays within the base length",
+							d => {
+								d.arr.unshift({...added})
+								d.arr[1].a = 99
+							}
+						],
+						[
+							"shift, write to a shifted element",
+							d => {
+								d.arr.shift()
+								d.arr[1].a = 99
+							}
+						],
+						[
+							"reverse, write to a relocated element",
+							d => {
+								d.arr.reverse()
+								d.arr[0].a = 99
+							}
+						],
+						[
+							"push, write to the pushed item",
+							d => {
+								d.arr.push({...added})
+								d.arr[3].a = 99
+							}
+						],
+						[
+							"write, then unshift",
+							d => {
+								d.arr[2].a = 99
+								d.arr.unshift({...added})
+							}
+						]
+					])("%s", (_title, recipe) => {
+						const base = createBase()
+						const [result, patches, inverse] = produceWithPatches(base, recipe)
+						expect(base).toEqual(createBase())
+						expect(applyPatches(base, patches)).toEqual(result)
+						expect(applyPatches(result, inverse)).toEqual(base)
+					})
+				})
+
 				describe("return values", () => {
 					test("pop returns removed item", () => {
 						const base = {items: [{id: 1}, {id: 2}]}
