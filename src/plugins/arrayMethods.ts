@@ -377,6 +377,9 @@ export function enableArrayMethods() {
 						}
 
 						prepareCopy(state)
+						// The start index must be resolved against the length the array
+						// had before the splice, like the native method does
+						const lengthBefore = state.copy_!.length
 						const res = state.copy_!.splice(
 							...(args as [number, number, ...any[]])
 						)
@@ -392,10 +395,7 @@ export function enableArrayMethods() {
 						markAllIndicesReassigned(state)
 						// Handle cross-references for inserted values (args from index 2+)
 						if (insertCount > 0) {
-							const startIndex = normalizeSliceIndex(
-								args[0] ?? 0,
-								state.copy_!.length
-							)
+							const startIndex = normalizeSliceIndex(args[0] ?? 0, lengthBefore)
 							handleInsertedValues(state, startIndex, args.slice(2))
 						}
 						return res
