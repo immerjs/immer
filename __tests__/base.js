@@ -463,6 +463,137 @@ function runBaseTest(
 					expect(applyPatches(nextState, inverse)).toEqual(baseState)
 				})
 
+				describe("relocated base objects at previously assigned indices", () => {
+					const createBase = () => ({
+						items: [
+							{id: "a", n: 1},
+							{id: "b", n: 2},
+							{id: "c", n: 3}
+						]
+					})
+
+					// Every recipe ends by writing to an element that is a base object
+					// which an earlier call moved onto an index that already holds an
+					// `assigned_` entry (from push, unshift, an index write or splice).
+					const recipes = {
+						"push, reverse": d => {
+							d.items.push({id: "d", n: 4})
+							d.items.reverse()
+							d.items[3].n = 100
+						},
+						"push, unshift": d => {
+							d.items.push({id: "d", n: 4})
+							d.items.unshift({id: "z", n: 0})
+							d.items[3].n = 100
+						},
+						"unshift, reverse": d => {
+							d.items.unshift({id: "z", n: 0})
+							d.items.reverse()
+							d.items[0].n = 100
+						},
+						"index write, sort": d => {
+							d.items[2] = {id: "x", n: 0}
+							d.items.sort((l, r) => l.n - r.n)
+							d.items[2].n = 100
+						},
+						"splice, reverse": d => {
+							d.items.splice(0, 0, {id: "x", n: 0})
+							d.items.reverse()
+							d.items[0].n = 100
+						}
+					}
+
+					for (const [title, recipe] of Object.entries(recipes)) {
+						test(`${title}: does not mutate the base state`, () => {
+							const base = createBase()
+							const result = produce(base, recipe)
+							expect(base).toEqual(createBase())
+							expect(result.items.filter(i => i.n === 100)).toHaveLength(1)
+						})
+
+						test(`${title}: works on a frozen base state`, () => {
+							const base = deepFreeze(createBase())
+							const result = produce(base, recipe)
+							expect(base).toEqual(createBase())
+							expect(result.items.filter(i => i.n === 100)).toHaveLength(1)
+						})
+					}
+
+					test("find() after push() and sort() returns a draft", () => {
+						const base = deepFreeze({
+							items: [
+								{id: 3, v: 0},
+								{id: 1, v: 0},
+								{id: 2, v: 0}
+							]
+						})
+						const result = produce(base, d => {
+							d.items.push({id: 0, v: 0})
+							d.items.sort((l, r) => l.id - r.id)
+							const found = d.items.find(i => i.id === 3)
+							expect(isDraft(found)).toBe(true)
+							found.v = 5
+						})
+						expect(result.items.map(i => [i.id, i.v])).toEqual([
+							[0, 0],
+							[1, 0],
+							[2, 0],
+							[3, 5]
+						])
+						expect(base.items[0]).toEqual({id: 3, v: 0})
+					})
+
+					test("filter() and slice() after push() and sort() return drafts", () => {
+						const base = deepFreeze({
+							items: [
+								{id: 3, v: 0},
+								{id: 1, v: 0},
+								{id: 2, v: 0}
+							]
+						})
+						const result = produce(base, d => {
+							d.items.push({id: 0, v: 0})
+							d.items.sort((l, r) => l.id - r.id)
+							d.items.filter(i => i.id === 3)[0].v = 5
+							d.items.slice(2, 3)[0].v = 7
+						})
+						expect(result.items.map(i => [i.id, i.v])).toEqual([
+							[0, 0],
+							[1, 0],
+							[2, 7],
+							[3, 5]
+						])
+					})
+
+					test("a newly assigned object is not drafted", () => {
+						const added = {id: "d", n: 4}
+						produce(createBase(), d => {
+							d.items.push(added)
+							d.items.reverse()
+							// `added` is a new user-provided object, not a relocated base
+							// object, so it is handed back as-is
+							expect(d.items[0]).toBe(added)
+							expect(isDraft(d.items[0])).toBe(false)
+							// the relocated base objects are drafted
+							expect(isDraft(d.items[1])).toBe(true)
+						})
+					})
+
+					test("produces valid patches", () => {
+						const base = createBase()
+						const [next, patches, inverse] = produceWithPatches(base, d => {
+							d.items.unshift({id: "z", n: 0})
+							d.items.reverse()
+							d.items[1].n = 100
+						})
+						expect(base).toEqual(createBase())
+						expect(next.items.map(i => i.id)).toEqual(["c", "b", "a", "z"])
+						expect(next.items[1].n).toBe(100)
+						expect(applyPatches(base, patches)).toEqual(next)
+						expect(applyPatches(next, inverse)).toEqual(base)
+					})
+				})
+
 				describe("push()", () => {
 					test("push single item", () => {
 						const base = {items: [{id: 1}, {id: 2}]}
