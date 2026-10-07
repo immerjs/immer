@@ -1,6 +1,22 @@
 import {isType, JSONArray, JSONObject, JSONTypes} from "type-plus"
 import {Draft} from "../src/types/types-external"
 import {createDraft, current, original} from "../src/immer"
+import ts from "typescript"
+
+test("source compiles with noUncheckedIndexedAccess (#1143)", () => {
+	const {config, error} = ts.readConfigFile("tsconfig.json", ts.sys.readFile)
+	expect(error).toBeUndefined()
+	const parsed = ts.parseJsonConfigFileContent(config, ts.sys, ".", {
+		noUncheckedIndexedAccess: true,
+		skipLibCheck: true
+	})
+	const program = ts.createProgram(parsed.fileNames, parsed.options)
+	expect(
+		[...parsed.errors, ...ts.getPreEmitDiagnostics(program)].map(diagnostic =>
+			ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
+		)
+	).toEqual([])
+})
 
 describe("Draft<T>", () => {
 	test("can use JSONTypes as T", () => {

@@ -215,7 +215,7 @@ export function shallowCopy(base: any, strict: StrictMode) {
 		let keys = Reflect.ownKeys(descriptors)
 		for (let i = 0; i < keys.length; i++) {
 			const key: any = keys[i]
-			const desc = descriptors[key]
+			const desc = descriptors[key]!
 			if (desc[WRITABLE] === false) {
 				desc[WRITABLE] = true
 				desc[CONFIGURABLE] = true

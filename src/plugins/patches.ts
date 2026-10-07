@@ -116,7 +116,7 @@ export function enablePatches() {
 	function resolvePath(base: any, path: PatchPath): any {
 		let current = base
 		for (let i = 0; i < path.length - 1; i++) {
-			const key = path[i]
+			const key = path[i]!
 			current = get(current, key)
 			if (!isObjectish(current) || current === null) {
 				throw new Error(`Cannot resolve path at '${path.join("/")}'`)
@@ -351,7 +351,7 @@ export function enablePatches() {
 
 			const type = getArchtype(base)
 			const value = deepClonePatchValue(patch.value) // used to clone patch to ensure original patch is not modified, see #411
-			const key = path[path.length - 1]
+			const key = path[path.length - 1]!
 			switch (op) {
 				case REPLACE:
 					switch (type) {

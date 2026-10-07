@@ -207,7 +207,7 @@ export class Immer implements ProducersFns {
 		// before applying patches
 		let i: number
 		for (i = patches.length - 1; i >= 0; i--) {
-			const patch = patches[i]
+			const patch = patches[i]!
 			if (patch.path.length === 0 && patch.op === "replace") {
 				base = patch.value
 				break
