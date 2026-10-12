@@ -47,7 +47,7 @@ type IsPlainArray<T extends readonly any[]> = T extends readonly (infer U)[]
 		: false
 	: false
 
-type WritableNonArrayDraft<T> = {
+export type WritableNonArrayDraft<T> = {
 	-readonly [K in keyof T]: {_: T[K]} extends {_: infer V}
 		? V extends object
 			? Draft<V>
