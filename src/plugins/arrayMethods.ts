@@ -478,7 +478,7 @@ export function enableArrayMethods() {
 
 		if (method === "slice") {
 			const rawStart = args[0] ?? 0
-			const rawEnd = args[1] ?? source.length
+			const rawEnd = args[1] === undefined ? source.length : args[1]
 
 			// Normalize negative indices
 			const start = normalizeSliceIndex(rawStart, source.length)
