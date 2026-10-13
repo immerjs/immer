@@ -8,7 +8,8 @@ import {
 	set,
 	ImmerState,
 	isDraftable,
-	isFrozen
+	isFrozen,
+	isSet
 } from "../internal"
 
 /** Takes a snapshot of the current state of a draft and finalizes it (but without freezing). This is a great utility to print the current state during debugging (no Proxies in the way). The output of current can also be safely leaked outside the producer. */
@@ -32,9 +33,12 @@ function currentImpl(value: any): any {
 	} else {
 		copy = shallowCopy(value, true)
 	}
+	// Rebuild Sets so snapshots replace their draft values in insertion order.
+	const source = copy
+	if (isSet(copy)) copy = new Set()
 	// recurse
 	each(
-		copy,
+		source,
 		(key, childValue) => {
 			set(copy, key, currentImpl(childValue))
 		},
