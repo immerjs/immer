@@ -27,9 +27,8 @@ import {
 // while keeping the runtime feature detect accurate. (#1273)
 const _globalIterator = (globalThis as any).Iterator as
 	| undefined
-	| { from: <T>(iterable: Iterator<T>) => IterableIterator<T> }
-const hasIteratorFrom =
-	typeof _globalIterator?.from === "function"
+	| {from: <T>(iterable: Iterator<T>) => IterableIterator<T>}
+const hasIteratorFrom = typeof _globalIterator?.from === "function"
 
 export function enableMapSet() {
 	class DraftMap extends Map {
@@ -68,7 +67,11 @@ export function enableMapSet() {
 		set(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (!latest(state).has(key) || latest(state).get(key) !== value) {
+			const current = latest(state).get(key)
+			if (
+				!latest(state).has(key) ||
+				(current !== value && !(Number.isNaN(current) && Number.isNaN(value)))
+			) {
 				prepareMapCopy(state)
 				markChanged(state)
 				state.assigned_!.set(key, true)

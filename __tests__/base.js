@@ -60,7 +60,7 @@ function runBaseTest(
 	useListener,
 	useArrayMethods = false
 ) {
-	const listener = useListener ? function() {} : undefined
+	const listener = useListener ? function () {} : undefined
 
 	const {produce, produceWithPatches} = createPatchedImmer({
 		autoFreeze,
@@ -73,7 +73,7 @@ function runBaseTest(
 		const immer = new Immer(options)
 
 		const {produce} = immer
-		immer.produce = function(...args) {
+		immer.produce = function (...args) {
 			return typeof args[1] === "function" && args.length < 3
 				? produce(...args, listener)
 				: produce(...args)
@@ -2348,6 +2348,59 @@ function runBaseTest(
 				expect(nextState.aMap).toBe(baseState.aMap)
 			})
 
+			it("keeps a Map when NaN is assigned to an existing NaN", () => {
+				const base = new Map([["value", NaN]])
+				const result = produce(base, draft => {
+					expect(draft.set("value", NaN)).toBe(draft)
+				})
+				expect(result).toBe(base)
+			})
+
+			it("keeps the parent when NaN is assigned to a nested Map's existing NaN", () => {
+				const base = {map: new Map([["value", NaN]])}
+				const result = produce(base, draft => {
+					draft.map.set("value", NaN)
+				})
+				expect(result.map).toBe(base.map)
+				expect(result).toBe(base)
+			})
+
+			it.each([
+				[NaN, 1],
+				[1, NaN]
+			])("changes a Map value from %s to %s", (before, after) => {
+				const base = new Map([["value", before]])
+				const result = produce(base, draft => {
+					draft.set("value", after)
+				})
+				expect(result).not.toBe(base)
+				expect(base.get("value")).toBe(before)
+				expect(result.get("value")).toBe(after)
+			})
+
+			it("adds a missing Map key with a NaN value", () => {
+				const base = new Map()
+				const result = produce(base, draft => {
+					draft.set("value", NaN)
+				})
+				expect(result).not.toBe(base)
+				expect(base.has("value")).toBe(false)
+				expect(result.has("value")).toBe(true)
+				expect(result.get("value")).toBeNaN()
+			})
+
+			it.each([
+				[0, -0],
+				[-0, 0]
+			])("keeps a Map when %s is replaced with %s", (before, after) => {
+				const base = new Map([["value", before]])
+				const result = produce(base, draft => {
+					draft.set("value", after)
+				})
+				expect(result).toBe(base)
+				expect(result.get("value")).toBe(before)
+			})
+
 			it("returns 'size'", () => {
 				const nextState = produce(baseState, s => {
 					s.aMap.set("newKey", true)
@@ -3415,13 +3468,13 @@ function runBaseTest(
 
 		it("'this' should not be bound anymore - 1", () => {
 			const base = {x: 3}
-			const next1 = produce(base, function() {
+			const next1 = produce(base, function () {
 				expect(this).toBe(undefined)
 			})
 		})
 
 		it("'this' should not be bound anymore - 2", () => {
-			const incrementor = produce(function() {
+			const incrementor = produce(function () {
 				expect(this).toBe(undefined)
 			})
 			incrementor()
@@ -3430,7 +3483,7 @@ function runBaseTest(
 		it("should be possible to use dynamic bound this", () => {
 			const world = {
 				counter: {count: 1},
-				inc: produce(function(draft) {
+				inc: produce(function (draft) {
 					expect(this).toBe(world)
 					draft.counter.count = this.counter.count + 1
 				})
