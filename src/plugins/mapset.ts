@@ -27,8 +27,9 @@ import {
 // while keeping the runtime feature detect accurate. (#1273)
 const _globalIterator = (globalThis as any).Iterator as
 	| undefined
-	| {from: <T>(iterable: Iterator<T>) => IterableIterator<T>}
-const hasIteratorFrom = typeof _globalIterator?.from === "function"
+	| { from: <T>(iterable: Iterator<T>) => IterableIterator<T> }
+const hasIteratorFrom =
+	typeof _globalIterator?.from === "function"
 
 export function enableMapSet() {
 	class DraftMap extends Map {
