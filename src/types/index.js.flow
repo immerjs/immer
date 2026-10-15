@@ -106,6 +106,8 @@ declare export function current<S>(value: S): S
 
 declare export function isDraft(value: any): boolean
 
+declare export function isModified(value: any): boolean
+
 /**
  * Creates a mutable draft from an (immutable) object / array.
  * The draft can be modified until `finishDraft` is called

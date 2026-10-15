@@ -25,6 +25,7 @@ title: API overview
 | `immerable` | Symbol that can be added to a constructor or prototype, to indicate that Immer should treat the class as something that can be safely drafted | [Classes](./complex-objects.md) |
 | `Immutable<T>` | Exposed TypeScript type to convert mutable types to immutable types |  |
 | `isDraft` | Returns true if the given object is a draft object |  |
+| `isModified` | Returns true if the given object is a draft object that has been modified, either directly or through one of its nested drafts. Returns false for values that are not drafts |  |
 | `isDraftable` | Returns true if Immer is capable of turning this object into a draft. Which is true for: arrays, objects without prototype, objects with `Object` as their prototype, objects that have the `immerable` symbol on their constructor or prototype |  |
 | `nothing` | Value that can be returned from a recipe, to indicate that the value `undefined` should be produced | [Return](./return.mdx) |
 | `original` | Given a draft object (doesn't have to be a tree root), returns the original object at the same path in the original state tree, if present | [Original](./original.md) |

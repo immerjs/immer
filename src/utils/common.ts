@@ -28,6 +28,19 @@ export const VALUE = "value"
 /*#__PURE__*/
 export let isDraft = (value: any): boolean => !!value && !!value[DRAFT_STATE]
 
+/**
+ * Returns true if the given value is an Immer draft that has been modified,
+ * either directly or through one of its nested drafts. Modifications made to
+ * a nested draft mark all of its parent drafts as modified as well, so this
+ * also reports modifications that happened anywhere inside the given draft.
+ * Returns false for values that are not drafts.
+ */
+/*#__PURE__*/
+export function isModified(value: any): boolean {
+	if (!isDraft(value)) return false
+	return value[DRAFT_STATE].modified_
+}
+
 /** Returns true if the given value can be drafted by Immer */
 /*#__PURE__*/
 export function isDraftable(value: any): boolean {
