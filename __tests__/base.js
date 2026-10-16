@@ -2317,6 +2317,46 @@ function runBaseTest(
 				expect(result.get("second").a).toEqual(100)
 			})
 
+			it("visits added entries and skips deleted entries during forEach", () => {
+				const base = new Map([
+					["first", 1],
+					["second", 2]
+				])
+				const seen = []
+				produce(base, draft => {
+					draft.forEach((value, key) => {
+						seen.push([key, value])
+						if (key === "first") {
+							draft.delete("second")
+							draft.set("third", 3)
+						}
+					})
+				})
+				expect(seen).toEqual([
+					["first", 1],
+					["third", 3]
+				])
+			})
+
+			it.each([
+				["keys", ["third"]],
+				["values", [3]],
+				["entries", [["third", 3]]],
+				[Symbol.iterator, [["third", 3]]]
+			])("keeps %s iterators live across mutations", (method, expected) => {
+				const base = new Map([
+					["first", 1],
+					["second", 2]
+				])
+				produce(base, draft => {
+					const iterator = draft[method]()
+					iterator.next()
+					draft.delete("second")
+					draft.set("third", 3)
+					expect([...iterator]).toEqual(expected)
+				})
+			})
+
 			it("can assign by key", () => {
 				const nextState = produce(baseState, s => {
 					// Map.prototype.set should return the Map itself

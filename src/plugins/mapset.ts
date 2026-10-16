@@ -114,6 +114,7 @@ export function enableMapSet() {
 		forEach(cb: (value: any, key: any, self: any) => void, thisArg?: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
+			prepareMapCopy(state)
 			latest(state).forEach((_value: any, key: any, _map: any) => {
 				cb.call(thisArg, this.get(key), key, this)
 			})
@@ -139,6 +140,7 @@ export function enableMapSet() {
 		keys(): IterableIterator<any> {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
+			prepareMapCopy(state)
 			return latest(state).keys()
 		}
 
