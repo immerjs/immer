@@ -1024,6 +1024,43 @@ function runBaseTest(
 				})
 
 				describe("slice()", () => {
+					test.each([
+						[0, undefined, 2],
+						[1, 5, 1],
+						[-4, -1, 1]
+					])(
+						"preserves sparse slots for slice(%s, %s)",
+						(start, end, index) => {
+							const items = new Array(5)
+							items[2] = {id: 2}
+							const expected = items.slice(start, end)
+							const base = {items}
+							const result = produce(base, draft => {
+								const sliced = draft.items.slice(start, end)
+								expect(Object.keys(sliced)).toEqual(Object.keys(expected))
+								expect(sliced.map(item => item.id)).toStrictEqual(
+									expected.map(item => item.id)
+								)
+								sliced[index].id = 20
+							})
+							expect(result.items[2].id).toBe(20)
+							expect(items[2].id).toBe(2)
+							expect(Object.keys(result.items)).toEqual(["2"])
+						}
+					)
+
+					test("distinguishes sparse slots from explicit undefined values", () => {
+						const items = new Array(3)
+						items[1] = undefined
+						const base = {items}
+						const result = produce(base, draft => {
+							const sliced = draft.items.slice()
+							expect(sliced).toStrictEqual(items)
+							expect(Object.keys(sliced)).toEqual(["1"])
+						})
+						expect(result).toBe(base)
+					})
+
 					test("returns sliced array", () => {
 						const base = createTestData()
 						const result = produce(base, draft => {
