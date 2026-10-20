@@ -464,11 +464,12 @@ export function enableArrayMethods() {
 		if (FIND_METHODS.has(method)) {
 			const predicate = args[0]
 			const thisArg = args[1]
+			const length = source.length
 			const isForward = method === "find"
 			const step = isForward ? 1 : -1
-			const start = isForward ? 0 : source.length - 1
+			const start = isForward ? 0 : length - 1
 
-			for (let i = start; i >= 0 && i < source.length; i += step) {
+			for (let i = start; i >= 0 && i < length; i += step) {
 				if (predicate.call(thisArg, source[i], i, source)) {
 					return state.draft_[i]
 				}
