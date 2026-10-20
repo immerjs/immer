@@ -1,4 +1,6 @@
+import {vi} from "vitest"
 import {
+	Immer,
 	setAutoFreeze,
 	current,
 	immerable,
@@ -244,3 +246,119 @@ function runTests(name) {
 		})
 	})
 }
+
+// Bound Set traversal so a regression cannot hang the test process.
+function takeSetSnapshot(draft) {
+	const forEach = Set.prototype.forEach
+	const guard = vi
+		.spyOn(Set.prototype, "forEach")
+		.mockImplementation(function (callback, thisArg) {
+			const size = this.size
+			let visited = 0
+			return forEach.call(this, (value, key, set) => {
+				if (++visited > size)
+					throw new Error("Set snapshot traversal grew beyond its initial size")
+				callback.call(thisArg, value, key, set)
+			})
+		})
+	try {
+		return current(draft)
+	} finally {
+		guard.mockRestore()
+	}
+}
+
+describe.each([true, false])(
+	"current Set snapshots - autoFreeze=%s",
+	autoFreeze => {
+		const {produce} = new Immer({autoFreeze})
+
+		it("snapshots modified objects in insertion order without leaking drafts", () => {
+			const changed = {count: 0}
+			const untouched = {count: 10}
+			const base = new Set([changed, "middle", untouched])
+			let snapshot
+			const next = produce(base, draft => {
+				const item = draft.values().next().value
+				item.count = 1
+				snapshot = takeSetSnapshot(draft)
+				const values = [...snapshot]
+				expect(values).toEqual([{count: 1}, "middle", untouched])
+				expect(values[2]).toBe(untouched)
+				expect(values.every(value => !isDraft(value))).toBe(true)
+				expect(Object.isFrozen(snapshot)).toBe(false)
+				expect(Object.isFrozen(values[0])).toBe(false)
+				item.count = 2
+				expect(values[0].count).toBe(1)
+			})
+			expect([...snapshot]).toEqual([{count: 1}, "middle", untouched])
+			expect([...next]).toEqual([{count: 2}, "middle", untouched])
+			expect(changed.count).toBe(0)
+		})
+
+		it("snapshots object Sets nested in a parent", () => {
+			const base = {items: new Set([{count: 0}])}
+			let snapshot
+			const next = produce(base, draft => {
+				const item = draft.items.values().next().value
+				item.count = 1
+				snapshot = takeSetSnapshot(draft)
+				item.count = 2
+			})
+			expect([...snapshot.items]).toEqual([{count: 1}])
+			expect([...next.items]).toEqual([{count: 2}])
+			expect([...base.items]).toEqual([{count: 0}])
+		})
+
+		it("keeps membership snapshots independent of later additions and deletions", () => {
+			const removed = {id: "removed"}
+			const kept = {id: "kept"}
+			const base = new Set([removed, kept])
+			let snapshot
+			const next = produce(base, draft => {
+				draft.delete(removed)
+				draft.add({id: "added"})
+				snapshot = takeSetSnapshot(draft)
+				expect([...snapshot]).toEqual([kept, {id: "added"}])
+				expect([...snapshot][0]).toBe(kept)
+				draft.clear()
+			})
+			expect([...snapshot]).toEqual([kept, {id: "added"}])
+			expect(next.size).toBe(0)
+			expect([...base]).toEqual([removed, kept])
+		})
+
+		it("snapshots arrays stored as Set values", () => {
+			const base = new Set([[1]])
+			let snapshot
+			produce(base, draft => {
+				const item = draft.values().next().value
+				item.push(2)
+				snapshot = takeSetSnapshot(draft)
+				item.push(3)
+			})
+			expect([...snapshot]).toEqual([[1, 2]])
+			expect([...base]).toEqual([[1]])
+		})
+
+		it("keeps unchanged frozen objects exactly once when adding a primitive", () => {
+			const item = freeze({count: 0})
+			const base = new Set([item])
+			let snapshot
+			produce(base, draft => {
+				draft.add(1)
+				snapshot = takeSetSnapshot(draft)
+			})
+			expect([...snapshot]).toEqual([item, 1])
+			expect([...snapshot][0]).toBe(item)
+		})
+
+		it("returns the original Set when its objects are only read", () => {
+			const base = new Set([{count: 0}])
+			produce(base, draft => {
+				expect(draft.values().next().value.count).toBe(0)
+				expect(takeSetSnapshot(draft)).toBe(base)
+			})
+		})
+	}
+)
