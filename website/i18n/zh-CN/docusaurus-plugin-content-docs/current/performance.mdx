@@ -68,6 +68,30 @@ title: Immer 性能
 
 ## 性能提示
 
+### 启用数组方法插件
+
+如果应用在 producer 中大量遍历数组，可以启用[数组方法插件](./array-methods.md)：
+
+```javascript
+import {enableArrayMethods} from "immer"
+enableArrayMethods()
+```
+
+该插件通过避免在遍历时为每个元素创建代理，优化 `filter`、`find`、`some`、`every` 和 `slice` 等数组操作。不启用插件时，遍历包含 1000 个元素的数组会创建 1000 多个代理。启用插件后，回调函数接收原始值，插件仅在需要跟踪变更时创建代理。
+
+### 使用宽松遍历以获得更好的性能
+
+默认情况下，Immer 使用宽松遍历，只处理可枚举的字符串属性。这比包含 symbol 和不可枚举属性的严格遍历更快。对于大多数用例，默认设置就是最佳选择：
+
+```javascript
+import {setUseStrictIteration} from "immer"
+
+// 默认值：false（使用宽松遍历以获得更好的性能）
+setUseStrictIteration(false)
+```
+
+只有确实需要处理 symbol 或不可枚举属性时，才启用严格遍历。
+
 ### 预冻结数据
 
 当向 Immer producer 中的状态树添加大型数据集时（例如从 JSON 端点接收的数据），可以在首先添加的数据的根上调用 `freeze(json)` ，来*浅冻结*它。这将允许 Immer 更快地将新数据添加到树中，因为它将避免*递归*扫描和冻结新数据的需要。
@@ -82,4 +106,4 @@ Immer 会将您在 draft 中读取的任何内容也递归地转换为 draft。�
 
 ### 将 produce 拉到尽可能远的地方
 
-始终尝试将 produce “向上”拉动，例如 `for (let x of y) produce(base, d => d.push(x))` 比 `produce(base, d => { for (let x of y) ) d.push(x)})` 慢得多
+始终尝试将 produce “向上”拉动，例如 `for (let x of y) produce(base, d => d.push(x))` 比 `produce(base, d => { for (let x of y) d.push(x)})` 慢得多
