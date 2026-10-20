@@ -90,6 +90,18 @@ export function enablePatches() {
 				return null // Key deleted
 			}
 
+			// Once an array's elements have been shifted or reordered, a child's index
+			// no longer matches its position in the base. The array generates a patch
+			// for every index that changed (carrying the finalized child), so a nested
+			// patch at the child's new index is redundant and, for an index past the
+			// base length, points at a path that does not exist yet when it is applied.
+			if (
+				state.parent_!.type_ === ArchType.Array &&
+				(state.parent_ as ProxyArrayState).allIndicesReassigned_
+			) {
+				return null
+			}
+
 			// Step 5: Add key to path
 			path.push(key)
 		}
