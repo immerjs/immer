@@ -451,7 +451,8 @@ export function enableArrayMethods() {
 			const result: any[] = []
 
 			// First pass: call predicate on base values to determine which items pass
-			for (let i = 0; i < source.length; i++) {
+			const length = source.length
+			for (let i = 0; i < length; i++) {
 				if (predicate.call(thisArg, source[i], i, source)) {
 					// Only create draft for items that passed the predicate
 					result.push(state.draft_[i])
