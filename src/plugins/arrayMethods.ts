@@ -443,6 +443,12 @@ export function enableArrayMethods() {
 		args: any[]
 	) {
 		const source = latest(state)
+		if (
+			(method === "filter" || FIND_METHODS.has(method)) &&
+			typeof args[0] !== "function"
+		) {
+			throw new TypeError("The predicate must be a function")
+		}
 
 		// Methods that return arrays with selected items - need to return drafts
 		if (method === "filter") {
@@ -452,7 +458,7 @@ export function enableArrayMethods() {
 
 			// First pass: call predicate on base values to determine which items pass
 			for (let i = 0; i < source.length; i++) {
-				if (predicate.call(thisArg, source[i], i, source)) {
+				if (Reflect.apply(predicate, thisArg, [source[i], i, source])) {
 					// Only create draft for items that passed the predicate
 					result.push(state.draft_[i])
 				}
@@ -470,7 +476,7 @@ export function enableArrayMethods() {
 			const start = isForward ? 0 : length - 1
 
 			for (let i = start; i >= 0 && i < length; i += step) {
-				if (predicate.call(thisArg, source[i], i, source)) {
+				if (Reflect.apply(predicate, thisArg, [source[i], i, source])) {
 					return state.draft_[i]
 				}
 			}

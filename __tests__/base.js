@@ -1013,6 +1013,36 @@ function runBaseTest(
 			})
 
 			describe("non-mutating array methods", () => {
+				describe.each(["filter", "find", "findLast"])(
+					"%s callback validation",
+					method => {
+						describe.each([[], [1]].map(items => [items]))(
+							"with items %j",
+							items => {
+								test.each([undefined, null, {}, {call: () => true}])(
+									"rejects non-callable predicate %j",
+									predicate => {
+										expect(() => items[method](predicate)).toThrow(TypeError)
+										expect(() =>
+											produce(items, draft => draft[method](predicate))
+										).toThrow(TypeError)
+									}
+								)
+							}
+						)
+
+						test("accepts a predicate with its own call property", () => {
+							const predicate = Object.assign(value => value === 1, {
+								call: null
+							})
+							const items = [1, 2]
+							expect(produce(items, draft => draft[method](predicate))).toEqual(
+								items[method](predicate)
+							)
+						})
+					}
+				)
+
 				// Test data factory
 				const createTestData = () => ({
 					items: [
