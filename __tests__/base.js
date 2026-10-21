@@ -642,6 +642,54 @@ function runBaseTest(
 						})
 						expect(result.items[1].value).toBe(20)
 					})
+
+					describe("splice() inserting values that contain drafts", () => {
+						const createBase = () => ({items: [{a: 1}, {a: 2}, {a: 3}]})
+
+						test.each([
+							["negative start", -2, [{a: 1}, {copy: {a: 1}}, {a: 2}, {a: 3}]],
+							["start of -1", -1, [{a: 1}, {a: 2}, {copy: {a: 1}}, {a: 3}]],
+							[
+								"start past the end",
+								100,
+								[{a: 1}, {a: 2}, {a: 3}, {copy: {a: 1}}]
+							],
+							["in-range start", 1, [{a: 1}, {copy: {a: 1}}, {a: 2}, {a: 3}]]
+						])("%s", (_title, start, expected) => {
+							const base = createBase()
+							const [result, patches, inverse] = produceWithPatches(
+								base,
+								draft => {
+									draft.items.splice(start, 0, {copy: draft.items[0]})
+								}
+							)
+							expect(result.items).toEqual(expected)
+							expect(base).toEqual(createBase())
+							expect(applyPatches(base, patches)).toEqual(result)
+							expect(applyPatches(result, inverse)).toEqual(base)
+						})
+
+						test("negative start with a deleteCount", () => {
+							const base = createBase()
+							const result = produce(base, draft => {
+								draft.items.splice(-1, 1, {copy: draft.items[0]})
+							})
+							expect(result.items).toEqual([{a: 1}, {a: 2}, {copy: {a: 1}}])
+						})
+
+						test("duplicating an item with a negative start", () => {
+							const base = {items: [{a: {x: 1}}, {a: {x: 2}}, {a: {x: 3}}]}
+							const result = produce(base, draft => {
+								draft.items.splice(-1, 0, {...draft.items[0]})
+							})
+							expect(result.items).toEqual([
+								{a: {x: 1}},
+								{a: {x: 2}},
+								{a: {x: 1}},
+								{a: {x: 3}}
+							])
+						})
+					})
 				})
 
 				describe("combined operations", () => {
