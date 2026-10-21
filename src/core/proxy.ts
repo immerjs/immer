@@ -300,11 +300,16 @@ function peek(draft: Drafted, prop: PropertyKey) {
 // so the normal positional check above misses it and the get trap would hand back
 // the raw base object, breaking the guarantee that the base state is never mutated.
 // Detect such a relocated base reference so it is drafted before being exposed.
+//
+// Membership in `baseRefs_` is what identifies it, not `assigned_`: once elements
+// have been reordered, `assigned_` is keyed by index and no longer describes the
+// value that now sits there (e.g. a base object relocated onto an index that
+// `push` or `unshift` assigned earlier). Objects the user newly assigned are
+// never in `baseRefs_`, so they are still returned as-is.
 function isRelocatedBaseRef(state: ImmerState, prop: PropertyKey, value: any) {
 	if (
 		state.type_ !== ArchType.Array ||
 		!(state as ProxyArrayState).allIndicesReassigned_ ||
-		state.assigned_?.get(prop) ||
 		!isDraftable(value) ||
 		value[DRAFT_STATE]
 	) {
