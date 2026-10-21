@@ -28,7 +28,7 @@ export type IfAvailable<T, Fallback = void> =
  */
 type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
-export type WritableDraft<T> = T extends any[]
+export type WritableDraft<T> = T extends readonly any[]
 	? number extends T["length"]
 		? IsPlainArray<T> extends true
 			? Draft<T[number]>[]

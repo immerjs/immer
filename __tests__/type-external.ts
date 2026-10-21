@@ -1,6 +1,6 @@
 import {isType, JSONArray, JSONObject, JSONTypes} from "type-plus"
 import {Draft} from "../src/types/types-external"
-import {createDraft, current, original} from "../src/immer"
+import {createDraft, current, original, produce} from "../src/immer"
 
 describe("Draft<T>", () => {
 	test("can use JSONTypes as T", () => {
@@ -16,6 +16,23 @@ describe("Draft<T>", () => {
 	it("can use Tuple as T", () => {
 		type A = Draft<[string, number, JSONArray, JSONObject]>
 		isType.equal<true, [string, number, JSONArray, JSONObject], A>()
+	})
+
+	it("can use recursive types containing readonly arrays as T (#839)", () => {
+		// Same shape as type-fest's JsonValue
+		type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+		type JsonObject = {[Key in string]: JsonValue} & {
+			[Key in string]?: JsonValue | undefined
+		}
+		type JsonArray = JsonValue[] | readonly JsonValue[]
+
+		type A = Draft<readonly JsonValue[]>
+		isType.equal<true, Draft<JsonValue>[], A>()
+
+		const base: {readonly items: readonly JsonValue[]} = {items: []}
+		produce(base, draft => {
+			draft.items.push({a: [1, "b"]})
+		})
 	})
 })
 
