@@ -41,7 +41,7 @@ function runTests(name) {
 				draft[0].x++
 				c = current(draft)
 				expect(c).toEqual([{x: 2}])
-				expect(Array.isArray(c))
+				expect(Array.isArray(c)).toBe(true)
 				draft[0].x++
 			})
 			expect(next).toEqual([{x: 3}])
