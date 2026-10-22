@@ -1637,3 +1637,60 @@ describe("assigning a base value back over its own draft", () => {
 		{a: {child: {id: 1}, other: 1}}
 	)
 })
+
+describe("assigning a base value back over a modified draft", () => {
+	// Writing the base value back discards the draft, including its changes,
+	// so those changes must not show up in the patches either.
+	const objectChild = {id: 1}
+	runPatchTests(
+		"object",
+		{child: objectChild, other: 0},
+		d => {
+			d.child.id = 2
+			d.child = objectChild
+			d.other = 1
+		},
+		[{op: "replace", path: ["other"], value: 1}],
+		[{op: "replace", path: ["other"], value: 0}],
+		{child: {id: 1}, other: 1}
+	)
+
+	const nestedChild = {inner: {id: 1}}
+	runPatchTests(
+		"nested drafts",
+		{child: nestedChild},
+		d => {
+			d.child.inner.id = 2
+			d.child = nestedChild
+		},
+		[],
+		[],
+		{child: {inner: {id: 1}}}
+	)
+
+	const arrayChild = {id: 1}
+	runPatchTests(
+		"array",
+		{list: [arrayChild]},
+		d => {
+			d.list[0].id = 2
+			d.list[0] = arrayChild
+		},
+		[],
+		[],
+		{list: [{id: 1}]}
+	)
+
+	const mapChild = {id: 1}
+	runPatchTests(
+		"map",
+		{map: new Map([["child", mapChild]])},
+		d => {
+			d.map.get("child").id = 2
+			d.map.set("child", mapChild)
+		},
+		[],
+		[],
+		{map: new Map([["child", {id: 1}]])}
+	)
+})

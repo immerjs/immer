@@ -61,12 +61,9 @@ export function enablePatches() {
 			}
 
 			// Check if the value at the key is still related to this draft
-			// It should be either the draft itself, the base, or the copy
-			if (
-				valueAtKey !== state.draft_ &&
-				valueAtKey !== state.base_ &&
-				valueAtKey !== state.copy_
-			) {
+			// It should be either the draft itself or the copy. The base means the
+			// original value was written back, which discards this draft's changes
+			if (valueAtKey !== state.draft_ && valueAtKey !== state.copy_) {
 				return null // Value was replaced with something else
 			}
 			if (proxyDraft != null && proxyDraft.base_ !== state.base_) {
