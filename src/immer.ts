@@ -9,6 +9,7 @@ import {
 export {
 	Draft,
 	WritableDraft,
+	WritableNonArrayDraft,
 	Immutable,
 	Patch,
 	PatchListener,
