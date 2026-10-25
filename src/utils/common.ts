@@ -273,6 +273,10 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 			clear: dontMutateMethodOverride,
 			delete: dontMutateMethodOverride
 		})
+		if (isMap(obj))
+			nativeMapUpsertMethods.forEach(method =>
+				O.defineProperty(obj, method, dontMutateMethodOverride)
+			)
 	}
 	O.freeze(obj)
 	if (deep)
@@ -295,6 +299,10 @@ function dontMutateFrozenCollections() {
 const dontMutateMethodOverride = {
 	[VALUE]: dontMutateFrozenCollections
 }
+
+export const nativeMapUpsertMethods = (
+	["getOrInsert", "getOrInsertComputed"] as const
+).filter(method => method in Map.prototype)
 
 export function isFrozen(obj: any): boolean {
 	// Fast path: primitives and null/undefined are always "frozen"

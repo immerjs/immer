@@ -158,6 +158,28 @@ function runTests(name) {
 			expect(produce(res, d => void d.set("a", 2))).not.toBe(res)
 		})
 
+		it.runIf(
+			"getOrInsert" in Map.prototype && "getOrInsertComputed" in Map.prototype
+		)("will freeze map upsert methods", () => {
+			const res = produce(new Map([["a", 1]]), draft => {
+				draft.set("b", 2)
+			})
+			let calls = 0
+			expect(() => res.getOrInsert("a", 3)).toThrow()
+			expect(() => res.getOrInsert("c", 3)).toThrow()
+			expect(() =>
+				res.getOrInsertComputed("c", () => {
+					calls++
+					return 3
+				})
+			).toThrow()
+			expect(calls).toBe(0)
+			expect(Array.from(res)).toEqual([
+				["a", 1],
+				["b", 2]
+			])
+		})
+
 		it("will freeze sets", () => {
 			const base = new Set()
 			const res = produce(base, draft => {

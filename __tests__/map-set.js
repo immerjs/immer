@@ -14,6 +14,9 @@ import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/utils/common"
 enableMapSet()
 enablePatches()
 
+const hasNativeMapUpsert =
+	"getOrInsert" in Map.prototype && "getOrInsertComputed" in Map.prototype
+
 vi.setConfig({
 	testTimeout: 1000
 })
@@ -362,6 +365,127 @@ function runBaseTest(name, autoFreeze, useListener) {
 			expect(result.map.keys().toArray()).toEqual([1, 3])
 		})
 	})
+	describe.runIf(hasNativeMapUpsert)("map upsert methods " + name, () => {
+		test("getOrInsert reads existing keys and inserts missing ones", () => {
+			const base = new Map([
+				["a", 1],
+				["u", undefined]
+			])
+			const [result, patches] = produceWithPatches(base, draft => {
+				expect(draft.getOrInsert("a", 9)).toBe(1)
+				expect(draft.getOrInsert("u", 9)).toBe(undefined)
+				expect(draft.getOrInsert("b", 2)).toBe(2)
+				expect(draft.getOrInsert("b", 3)).toBe(2)
+				expect(draft.has("b")).toBe(true)
+				expect(draft.get("b")).toBe(2)
+			})
+			expect(Array.from(result)).toEqual([
+				["a", 1],
+				["u", undefined],
+				["b", 2]
+			])
+			expect(patches).toEqual([{op: "add", path: ["b"], value: 2}])
+			expect(Array.from(base)).toEqual([
+				["a", 1],
+				["u", undefined]
+			])
+		})
+
+		test("getOrInsert returns a draft of an existing object value", () => {
+			const base = new Map([["a", {n: 1}]])
+			const fallback = {n: 9}
+			const result = produce(base, draft => {
+				const value = draft.getOrInsert("a", fallback)
+				expect(isDraft(value)).toBe(true)
+				value.n++
+			})
+			expect(result.get("a")).toEqual({n: 2})
+			expect(base.get("a")).toEqual({n: 1})
+			expect(fallback).toEqual({n: 9})
+		})
+
+		test("getOrInsertComputed only calls the callback for missing keys", () => {
+			const base = new Map([["a", {n: 1}]])
+			const calls = []
+			const [result, patches] = produceWithPatches(base, draft => {
+				const existing = draft.getOrInsertComputed("a", key => {
+					calls.push(key)
+					return {n: 9}
+				})
+				expect(isDraft(existing)).toBe(true)
+				existing.n++
+				const inserted = draft.getOrInsertComputed(-0, function (key) {
+					calls.push({
+						argc: arguments.length,
+						thisValue: this,
+						positiveZero: Object.is(key, 0)
+					})
+					return "zero"
+				})
+				expect(inserted).toBe("zero")
+				expect(draft.get(0)).toBe("zero")
+			})
+			expect(calls).toEqual([
+				{argc: 1, thisValue: undefined, positiveZero: true}
+			])
+			expect(Array.from(result)).toEqual([
+				["a", {n: 2}],
+				[0, "zero"]
+			])
+			expect(patches).toEqual([
+				{op: "replace", path: ["a", "n"], value: 2},
+				{op: "add", path: [0], value: "zero"}
+			])
+		})
+
+		test("getOrInsertComputed stores the computed value over a reentrant set", () => {
+			const result = produce(new Map(), draft => {
+				expect(
+					draft.getOrInsertComputed("c", key => {
+						draft.set(key, 7)
+						return 8
+					})
+				).toBe(8)
+				expect(draft.get("c")).toBe(8)
+			})
+			expect(Array.from(result)).toEqual([["c", 8]])
+		})
+
+		test("getOrInsertComputed inserts nothing when the callback throws", () => {
+			const base = new Map([["a", 1]])
+			const result = produce(base, draft => {
+				expect(() =>
+					draft.getOrInsertComputed("b", () => {
+						throw new Error("boom")
+					})
+				).toThrow("boom")
+				expect(draft.has("b")).toBe(false)
+			})
+			expect(result).toBe(base)
+		})
+
+		test("getOrInsertComputed validates the callback before lookup", () => {
+			produce(new Map([["a", 1]]), draft => {
+				expect(() => draft.getOrInsertComputed("a", null)).toThrow(TypeError)
+				expect(() => draft.getOrInsertComputed("b", 1)).toThrow(TypeError)
+				expect(draft.has("b")).toBe(false)
+			})
+		})
+
+		test("upsert methods throw on a revoked draft", () => {
+			let revoked
+			produce(new Map(), draft => {
+				revoked = draft
+			})
+			expect(() => revoked.getOrInsert("a", 1)).toThrow(
+				global.USES_BUILD ? "minified error nr: 3" : "revoked"
+			)
+			expect(() => revoked.getOrInsertComputed("a", () => 1)).toThrow(
+				global.USES_BUILD ? "minified error nr: 3" : "revoked"
+			)
+		})
+	})
+
 	describe("set issues " + name, () => {
 		test("#819.A - maintains order when adding", () => {
 			const objs = [
@@ -531,5 +655,37 @@ describe("RTK-5159: DraftSet leakage in Map", () => {
 		expect(items[0].level1.level2.draftRef.value).toBe("modified")
 		// Should not throw when accessing
 		expect(() => JSON.stringify(result)).not.toThrow()
+	})
+})
+
+describe("Map upsert methods on runtimes without them", () => {
+	const upsertMethods = ["getOrInsert", "getOrInsertComputed"]
+
+	test("are not added to drafts or frozen Maps", async () => {
+		const descriptors = upsertMethods.map(method =>
+			Object.getOwnPropertyDescriptor(Map.prototype, method)
+		)
+		upsertMethods.forEach(method => delete Map.prototype[method])
+		vi.resetModules()
+		try {
+			const immer = await import("../src/immer")
+			immer.enableMapSet()
+			const result = immer.produce(new Map([["a", 1]]), draft => {
+				upsertMethods.forEach(method => {
+					expect(method in draft).toBe(false)
+				})
+				draft.set("b", 2)
+			})
+			expect(Object.isFrozen(result)).toBe(true)
+			upsertMethods.forEach(method => {
+				expect(method in result).toBe(false)
+			})
+		} finally {
+			upsertMethods.forEach((method, i) => {
+				if (descriptors[i])
+					Object.defineProperty(Map.prototype, method, descriptors[i])
+			})
+			vi.resetModules()
+		}
 	})
 })

@@ -17,7 +17,8 @@ import {
 	each,
 	getValue,
 	PluginMapSet,
-	handleCrossReference
+	handleCrossReference,
+	nativeMapUpsertMethods
 } from "../internal"
 
 // Feature-detect `Iterator.from` (added in ES2025) without augmenting the
@@ -180,6 +181,42 @@ export function enableMapSet() {
 			return this.entries()
 		}
 	}
+
+	const draftMapUpsertMethods = {
+		getOrInsert(this: DraftMap, key: unknown, value: unknown) {
+			if (this.has(key)) {
+				return this.get(key)
+			}
+			this.set(key, value)
+			return value
+		},
+
+		getOrInsertComputed(
+			this: DraftMap,
+			key: unknown,
+			callback: (key: unknown) => unknown
+		) {
+			assertUnrevoked(this[DRAFT_STATE])
+			if (typeof callback !== "function") {
+				throw new TypeError("getOrInsertComputed callback is not a function")
+			}
+			if (this.has(key)) {
+				return this.get(key)
+			}
+			const canonicalKey = Object.is(key, -0) ? 0 : key
+			const value = callback(canonicalKey)
+			this.set(canonicalKey, value)
+			return value
+		}
+	}
+
+	nativeMapUpsertMethods.forEach(method =>
+		Object.defineProperty(DraftMap.prototype, method, {
+			value: draftMapUpsertMethods[method],
+			writable: true,
+			configurable: true
+		})
+	)
 
 	function iteratorFrom<T, TReturn>(
 		iterable: Iterator<T, TReturn>
