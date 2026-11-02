@@ -14,9 +14,6 @@ import {each, shallowCopy, isEnumerable, DRAFT_STATE} from "../src/utils/common"
 enableMapSet()
 enablePatches()
 
-const hasNativeMapUpsert =
-	"getOrInsert" in Map.prototype && "getOrInsertComputed" in Map.prototype
-
 vi.setConfig({
 	testTimeout: 1000
 })
@@ -365,7 +362,7 @@ function runBaseTest(name, autoFreeze, useListener) {
 			expect(result.map.keys().toArray()).toEqual([1, 3])
 		})
 	})
-	describe.runIf(hasNativeMapUpsert)("map upsert methods " + name, () => {
+	describe("map upsert methods " + name, () => {
 		test("getOrInsert reads existing keys and inserts missing ones", () => {
 			const base = new Map([
 				["a", 1],
@@ -661,7 +658,7 @@ describe("RTK-5159: DraftSet leakage in Map", () => {
 describe("Map upsert methods on runtimes without them", () => {
 	const upsertMethods = ["getOrInsert", "getOrInsertComputed"]
 
-	test("are not added to drafts or frozen Maps", async () => {
+	test("are still available on drafts and guarded on frozen Maps", async () => {
 		const descriptors = upsertMethods.map(method =>
 			Object.getOwnPropertyDescriptor(Map.prototype, method)
 		)
@@ -671,15 +668,16 @@ describe("Map upsert methods on runtimes without them", () => {
 			const immer = await import("../src/immer")
 			immer.enableMapSet()
 			const result = immer.produce(new Map([["a", 1]]), draft => {
-				upsertMethods.forEach(method => {
-					expect(method in draft).toBe(false)
-				})
-				draft.set("b", 2)
+				expect(draft.getOrInsert("a", 9)).toBe(1)
+				expect(draft.getOrInsertComputed("b", () => 2)).toBe(2)
 			})
+			expect(Array.from(result)).toEqual([
+				["a", 1],
+				["b", 2]
+			])
 			expect(Object.isFrozen(result)).toBe(true)
-			upsertMethods.forEach(method => {
-				expect(method in result).toBe(false)
-			})
+			expect(() => result.getOrInsert("c", 3)).toThrow()
+			expect(() => result.getOrInsertComputed("c", () => 3)).toThrow()
 		} finally {
 			upsertMethods.forEach((method, i) => {
 				if (descriptors[i])
