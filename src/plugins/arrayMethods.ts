@@ -471,7 +471,8 @@ export function enableArrayMethods() {
 			const start = isForward ? 0 : length - 1
 
 			for (let i = start; i >= 0 && i < length; i += step) {
-				if (predicate.call(thisArg, source[i], i, source)) {
+				const currentSource = latest(state)
+				if (predicate.call(thisArg, currentSource[i], i, currentSource)) {
 					return state.draft_[i]
 				}
 			}
