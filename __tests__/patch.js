@@ -155,6 +155,34 @@ describe("applyPatches", () => {
 		expect(result.a).toBe(2)
 		expect(base.a).toBe(1)
 	})
+	it.each(["add", "replace"])(
+		"preserves and deep clones symbol properties in %s patch values",
+		op => {
+			const key = Symbol("key")
+			const nestedKey = Symbol("nested")
+			const base = op === "add" ? {} : {item: null}
+			const [next, patches] = produceWithPatches(base, draft => {
+				draft.item = {[key]: {[nestedKey]: {value: 1}}}
+			})
+			const result = applyPatches(base, patches)
+			expect(patches[0].op).toBe(op)
+			expect(result).toEqual(next)
+			expect(result.item[key]).not.toBe(patches[0].value[key])
+			expect(result.item[key][nestedKey]).not.toBe(
+				patches[0].value[key][nestedKey]
+			)
+		}
+	)
+	it("restores symbol properties from inverse patch values", () => {
+		const key = Symbol("key")
+		const base = {item: {[key]: {value: 1}}}
+		const [next, , inversePatches] = produceWithPatches(base, draft => {
+			draft.item = null
+		})
+		const restored = applyPatches(next, inversePatches)
+		expect(restored).toEqual(base)
+		expect(restored.item[key]).not.toBe(base.item[key])
+	})
 	it('throws when `op` is not "add", "replace", nor "remove"', () => {
 		expect(() => {
 			const patch = {op: "copy", from: [0], path: [1]}
