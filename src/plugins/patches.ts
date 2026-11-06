@@ -422,6 +422,11 @@ export function enablePatches() {
 		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
 		const cloned = Object.create(getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
+		for (const key of Object.getOwnPropertySymbols(obj)) {
+			if (Object.prototype.propertyIsEnumerable.call(obj, key)) {
+				cloned[key] = deepClonePatchValue(obj[key])
+			}
+		}
 		if (has(obj, immerable)) cloned[immerable] = obj[immerable]
 		return cloned
 	}
