@@ -285,7 +285,9 @@ arrayTraps.set = function (state, prop, value) {
 	)
 		die(14)
 	const arrayState = state[0]
-	const oldLength = prop === "length" ? latest(arrayState).length : 0
+	if (prop !== "length")
+		return objectTraps.set!.call(this, arrayState, prop, value, arrayState)
+	const oldLength = latest(arrayState).length
 	const result = objectTraps.set!.call(
 		this,
 		arrayState,
