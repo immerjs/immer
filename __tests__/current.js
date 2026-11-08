@@ -49,6 +49,23 @@ function runTests(name) {
 			expect(isDraft(c)).toBe(false)
 		})
 
+		it("keeps drafting after a snapshot throws", () => {
+			const immer = new Immer({autoFreeze: false})
+			const base = {nested: {count: 0}}
+			const result = immer.produce(base, draft => {
+				draft.unreadable = {
+					get value() {
+						throw new Error("Cannot snapshot value")
+					}
+				}
+				expect(() => current(draft)).toThrow("Cannot snapshot value")
+				delete draft.unreadable
+				draft.nested.count++
+			})
+			expect(result.nested.count).toBe(1)
+			expect(base.nested.count).toBe(0)
+		})
+
 		it("won't freeze", () => {
 			const base = {x: 1}
 			const next = produce(base, draft => {

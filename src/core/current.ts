@@ -27,8 +27,13 @@ function currentImpl(value: any): any {
 	if (state) {
 		if (!state.modified_) return state.base_
 		// Optimization: avoid generating new drafts during copying
+		const wasFinalized = state.finalized_
 		state.finalized_ = true
-		copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
+		try {
+			copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_)
+		} finally {
+			state.finalized_ = wasFinalized
+		}
 		strict = state.scope_.immer_.shouldUseStrictIteration()
 	} else {
 		copy = shallowCopy(value, true)
@@ -44,8 +49,5 @@ function currentImpl(value: any): any {
 		},
 		strict
 	)
-	if (state) {
-		state.finalized_ = false
-	}
 	return copy
 }
