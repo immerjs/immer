@@ -48,8 +48,8 @@ export function enablePatches() {
 	}
 
 	function getPath(state: ImmerState, path: PatchPath = []): PatchPath | null {
-		// Step 1: Check if state has a stored key
-		if (state.key_ !== undefined) {
+		// A Map entry can have an undefined key.
+		if (state.key_ !== undefined || state.parent_?.type_ === ArchType.Map) {
 			// Step 2: Validate the key is still valid in parent
 
 			const parentCopy = state.parent_!.copy_ ?? state.parent_!.base_
@@ -342,7 +342,11 @@ export function enablePatches() {
 			for (let i = 0; i < path.length - 1; i++) {
 				const parentType = getArchtype(base)
 				let p = path[i]
-				if (typeof p !== "string" && typeof p !== "number") {
+				if (
+					parentType !== ArchType.Map &&
+					typeof p !== "string" &&
+					typeof p !== "number"
+				) {
 					p = "" + p
 				}
 

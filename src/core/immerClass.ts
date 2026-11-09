@@ -254,7 +254,7 @@ export function createProxy<T extends Objectish>(
 	state.callbacks_ = parent?.callbacks_ ?? []
 	state.key_ = key
 
-	if (parent && key !== undefined) {
+	if (parent) {
 		registerChildFinalizationCallback(parent, state, key)
 	} else {
 		// It's a root draft, register it with the scope

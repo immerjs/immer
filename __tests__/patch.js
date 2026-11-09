@@ -311,6 +311,28 @@ runPatchTests(
 	[{op: "replace", path: ["x", "y"], value: 4}]
 )
 
+describe("nested patches through Map keys", () => {
+	for (const [label, key] of [
+		["object", {}],
+		["symbol", Symbol("key")],
+		["undefined", undefined]
+	]) {
+		test(`replays and reverses a patch through an ${label} key`, () => {
+			const base = new Map([[key, {count: 1}]])
+			const [result, patches, inversePatches] = produceWithPatches(
+				base,
+				draft => {
+					draft.get(key).count++
+				}
+			)
+
+			expect(patches).toEqual([{op: "replace", path: [key, "count"], value: 2}])
+			expect(applyPatches(base, patches)).toEqual(result)
+			expect(applyPatches(result, inversePatches)).toEqual(base)
+		})
+	}
+})
+
 runPatchTests(
 	"simple assignment - 5",
 	{x: new Map([["y", 4]])},
