@@ -1694,3 +1694,198 @@ describe("assigning a base value back over a modified draft", () => {
 		{map: new Map([["child", {id: 1}]])}
 	)
 })
+
+describe("modifying a draft that is also referenced from a new object", () => {
+	// The draft is finalized while visiting the new object, but its own
+	// changes still need patches at its original location.
+	runPatchTests(
+		"object",
+		{a: {x: 1}},
+		d => {
+			d.b = {inner: d.a}
+			d.a.x = 2
+		},
+		[
+			{op: "replace", path: ["a", "x"], value: 2},
+			{op: "add", path: ["b"], value: {inner: {x: 2}}}
+		],
+		[
+			{op: "replace", path: ["a", "x"], value: 1},
+			{op: "remove", path: ["b"]}
+		],
+		{a: {x: 2}, b: {inner: {x: 2}}}
+	)
+
+	runPatchTests(
+		"array",
+		{a: {x: 1}, list: []},
+		d => {
+			d.a.x = 2
+			d.list.push({inner: d.a})
+		},
+		[
+			{op: "add", path: ["list", 0], value: {inner: {x: 2}}},
+			{op: "replace", path: ["a", "x"], value: 2}
+		],
+		[
+			{op: "remove", path: ["list", 0]},
+			{op: "replace", path: ["a", "x"], value: 1}
+		],
+		{a: {x: 2}, list: [{inner: {x: 2}}]}
+	)
+
+	runPatchTests(
+		"map",
+		{a: {x: 1}},
+		d => {
+			d.b = new Map([["inner", d.a]])
+			d.a.x = 2
+		},
+		[
+			{op: "replace", path: ["a", "x"], value: 2},
+			{op: "add", path: ["b"], value: new Map([["inner", {x: 2}]])}
+		],
+		[
+			{op: "replace", path: ["a", "x"], value: 1},
+			{op: "remove", path: ["b"]}
+		],
+		{a: {x: 2}, b: new Map([["inner", {x: 2}]])}
+	)
+
+	runPatchTests(
+		"set",
+		{a: {x: 1}},
+		d => {
+			d.b = new Set([d.a])
+			d.a.x = 2
+		},
+		[
+			{op: "replace", path: ["a", "x"], value: 2},
+			{op: "add", path: ["b"], value: new Set([{x: 2}])}
+		],
+		[
+			{op: "replace", path: ["a", "x"], value: 1},
+			{op: "remove", path: ["b"]}
+		],
+		{a: {x: 2}, b: new Set([{x: 2}])}
+	)
+
+	describe("nested produce scopes", () => {
+		test("produceWithPatches inside produceWithPatches", () => {
+			const base = {a: {x: 1}}
+			let innerPatches, innerInverse
+			const [next, outerPatches, outerInverse] = produceWithPatches(
+				base,
+				outerDraft => {
+					const [innerNext, p, ip] = produceWithPatches(
+						{c: {y: 1}},
+						innerDraft => {
+							innerDraft.d = {inner: innerDraft.c}
+							innerDraft.c.y = 2
+						}
+					)
+					innerPatches = p
+					innerInverse = ip
+					outerDraft.b = {inner: outerDraft.a, nested: innerNext}
+					outerDraft.a.x = 2
+				}
+			)
+
+			expect(innerPatches).toEqual([
+				{op: "replace", path: ["c", "y"], value: 2},
+				{op: "add", path: ["d"], value: {inner: {y: 2}}}
+			])
+			expect(applyPatches({c: {y: 1}}, innerPatches)).toEqual({
+				c: {y: 2},
+				d: {inner: {y: 2}}
+			})
+			expect(
+				applyPatches({c: {y: 2}, d: {inner: {y: 2}}}, innerInverse)
+			).toEqual({c: {y: 1}})
+
+			expect(outerPatches).toEqual([
+				{op: "replace", path: ["a", "x"], value: 2},
+				{
+					op: "add",
+					path: ["b"],
+					value: {
+						inner: {x: 2},
+						nested: {c: {y: 2}, d: {inner: {y: 2}}}
+					}
+				}
+			])
+			expect(applyPatches(base, outerPatches)).toEqual(next)
+			expect(applyPatches(next, outerInverse)).toEqual(base)
+		})
+
+		test("produceWithPatches inside plain produce", () => {
+			const base = {a: {x: 1}}
+			let innerPatches, innerInverse, independentPatches, independentInverse
+			const next = produce(base, outerDraft => {
+				const [innerNext, p, ip] = produceWithPatches(
+					outerDraft,
+					innerDraft => {
+						innerDraft.b = {inner: innerDraft.a}
+						innerDraft.a.x = 2
+					}
+				)
+				innerPatches = p
+				innerInverse = ip
+
+				const [, p2, ip2] = produceWithPatches({c: {y: 1}}, innerDraft => {
+					innerDraft.d = {inner: innerDraft.c}
+					innerDraft.c.y = 2
+				})
+				independentPatches = p2
+				independentInverse = ip2
+
+				return innerNext
+			})
+
+			expect(next).toEqual({a: {x: 2}, b: {inner: {x: 2}}})
+			expect(innerPatches).toEqual([
+				{op: "replace", path: ["a", "x"], value: 2},
+				{op: "add", path: ["b"], value: {inner: {x: 2}}}
+			])
+			expect(applyPatches(base, innerPatches)).toEqual(next)
+			expect(applyPatches(next, innerInverse)).toEqual(base)
+
+			expect(independentPatches).toEqual([
+				{op: "replace", path: ["c", "y"], value: 2},
+				{op: "add", path: ["d"], value: {inner: {y: 2}}}
+			])
+			expect(applyPatches({c: {y: 1}}, independentPatches)).toEqual({
+				c: {y: 2},
+				d: {inner: {y: 2}}
+			})
+			expect(
+				applyPatches({c: {y: 2}, d: {inner: {y: 2}}}, independentInverse)
+			).toEqual({c: {y: 1}})
+		})
+
+		test("plain produce inside produceWithPatches", () => {
+			const wrap = produce(draft => ({inner: draft}))
+			const base = {a: {x: 1}}
+			const [next, patches, inverse] = produceWithPatches(base, outerDraft => {
+				outerDraft.b = wrap(outerDraft.a)
+				outerDraft.c = produce({tag: 1}, innerDraft => {
+					innerDraft.wrap = {inner: outerDraft.a}
+				})
+				outerDraft.a.x = 2
+			})
+
+			expect(next).toEqual({
+				a: {x: 2},
+				b: {inner: {x: 2}},
+				c: {tag: 1, wrap: {inner: {x: 2}}}
+			})
+			expect(patches).toEqual([
+				{op: "replace", path: ["a", "x"], value: 2},
+				{op: "add", path: ["b"], value: {inner: {x: 2}}},
+				{op: "add", path: ["c"], value: {tag: 1, wrap: {inner: {x: 2}}}}
+			])
+			expect(applyPatches(base, patches)).toEqual(next)
+			expect(applyPatches(next, inverse)).toEqual(base)
+		})
+	})
+})

@@ -313,7 +313,13 @@ export function handleValue(
 
 				set(target, key, updatedValue, targetType)
 
-				markStateFinalized(state)
+				// When recording patches for a modified draft, leave finalizing to its
+				// own parent callback so patches at its original path are still generated.
+				// Guard on !state.finalized_ so repeated references don't decrement
+				// unfinalizedDrafts_ more than once.
+				if ((!rootScope.patches_ || !state.modified_) && !state.finalized_) {
+					markStateFinalized(state)
+				}
 			} else if (targetType === ArchType.Set) {
 				target.add(value)
 			}
