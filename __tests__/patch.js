@@ -1694,3 +1694,43 @@ describe("assigning a base value back over a modified draft", () => {
 		{map: new Map([["child", {id: 1}]])}
 	)
 })
+
+describe("modifying a draft that is also referenced from a new object", () => {
+	// The draft is finalized while visiting the new object, but its own
+	// changes still need patches at its original location.
+	runPatchTests(
+		"object",
+		{a: {x: 1}},
+		d => {
+			d.b = {inner: d.a}
+			d.a.x = 2
+		},
+		[
+			{op: "replace", path: ["a", "x"], value: 2},
+			{op: "add", path: ["b"], value: {inner: {x: 2}}}
+		],
+		[
+			{op: "replace", path: ["a", "x"], value: 1},
+			{op: "remove", path: ["b"]}
+		],
+		{a: {x: 2}, b: {inner: {x: 2}}}
+	)
+
+	runPatchTests(
+		"array",
+		{a: {x: 1}, list: []},
+		d => {
+			d.a.x = 2
+			d.list.push({inner: d.a})
+		},
+		[
+			{op: "add", path: ["list", 0], value: {inner: {x: 2}}},
+			{op: "replace", path: ["a", "x"], value: 2}
+		],
+		[
+			{op: "remove", path: ["list", 0]},
+			{op: "replace", path: ["a", "x"], value: 1}
+		],
+		{a: {x: 2}, list: [{inner: {x: 2}}]}
+	)
+})
