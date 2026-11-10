@@ -55,8 +55,9 @@ export class Immer implements ProducersFns {
 		useStrictIteration?: boolean
 	}) {
 		if (isBoolean(config?.autoFreeze)) this.setAutoFreeze(config!.autoFreeze)
-		if (isBoolean(config?.useStrictShallowCopy))
-			this.setUseStrictShallowCopy(config!.useStrictShallowCopy)
+		const strictShallowCopy = config?.useStrictShallowCopy
+		if (isBoolean(strictShallowCopy) || strictShallowCopy === "class_only")
+			this.setUseStrictShallowCopy(strictShallowCopy)
 		if (isBoolean(config?.useStrictIteration))
 			this.setUseStrictIteration(config!.useStrictIteration)
 	}

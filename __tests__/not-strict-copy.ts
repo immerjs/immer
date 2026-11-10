@@ -1,4 +1,5 @@
 import {
+	Immer,
 	immerable,
 	produce,
 	setUseStrictShallowCopy,
@@ -73,3 +74,29 @@ describe.each([true, false, "class_only" as const])(
 		})
 	}
 )
+
+test("honors the constructor class_only shallow copy mode", () => {
+	const immer = new Immer({useStrictShallowCopy: "class_only"})
+
+	class Example {
+		[immerable] = true
+		count = 0
+	}
+
+	const instance = new Example()
+	const plain = {count: 0}
+	Object.defineProperty(instance, "hidden", {value: 42})
+	Object.defineProperty(plain, "hidden", {value: 42})
+
+	const nextInstance = immer.produce(instance, draft => {
+		draft.count++
+	})
+	const nextPlain = immer.produce(plain, draft => {
+		draft.count++
+	})
+
+	expect(Object.getOwnPropertyDescriptor(nextInstance, "hidden")?.value).toBe(
+		42
+	)
+	expect(Object.hasOwn(nextPlain, "hidden")).toBe(false)
+})
