@@ -300,13 +300,12 @@ export function handleValue(
 		if (isDraft(value)) {
 			const state: ImmerState = value[DRAFT_STATE]
 			if (isSameScope(state, rootScope)) {
-				// Replace draft with finalized value
+				// Replace draft with finalized value. The draft itself is finalized
+				// (and its patches generated) through its own parent's callback.
 
 				const updatedValue = getFinalValue(state)
 
 				set(target, key, updatedValue, target.type_)
-
-				markStateFinalized(state)
 			}
 		} else if (isDraftable(value)) {
 			// Recursively handle nested values
