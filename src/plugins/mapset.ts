@@ -114,9 +114,11 @@ export function enableMapSet() {
 		forEach(cb: (value: any, key: any, self: any) => void, thisArg?: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
+			if (typeof cb !== "function")
+				throw new TypeError("Callback must be a function")
 			prepareMapCopy(state)
 			latest(state).forEach((_value: any, key: any, _map: any) => {
-				cb.call(thisArg, this.get(key), key, this)
+				Reflect.apply(cb, thisArg, [this.get(key), key, this])
 			})
 		}
 
@@ -315,9 +317,11 @@ export function enableMapSet() {
 
 		forEach(cb: any, thisArg?: any) {
 			const iterator = this.values()
+			if (typeof cb !== "function")
+				throw new TypeError("Callback must be a function")
 			let result = iterator.next()
 			while (!result.done) {
-				cb.call(thisArg, result.value, result.value, this)
+				Reflect.apply(cb, thisArg, [result.value, result.value, this])
 				result = iterator.next()
 			}
 		}

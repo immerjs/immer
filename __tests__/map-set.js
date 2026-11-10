@@ -417,6 +417,38 @@ function runBaseTest(name, autoFreeze, useListener) {
 			expect(isDraft(finalUntouched.nested)).toBe(false)
 		})
 	})
+
+	describe("draft collection forEach " + name, () => {
+		test.each([new Map(), new Set()])(
+			"validates callbacks on an empty collection",
+			base => {
+				expect(() =>
+					produce(base, draft => {
+						draft.forEach(null)
+					})
+				).toThrow(TypeError)
+			}
+		)
+
+		test.each([new Map([["key", 1]]), new Set([1])])(
+			"calls the callback even when it has its own call property",
+			base => {
+				const seen = []
+				const context = {}
+				function callback(value, key, collection) {
+					seen.push([this, value, key, collection])
+				}
+				callback.call = undefined
+
+				produce(base, draft => {
+					draft.forEach(callback, context)
+					expect(seen).toEqual([
+						[context, 1, base instanceof Map ? "key" : 1, draft]
+					])
+				})
+			}
+		)
+	})
 }
 
 // Bug reproduction: DraftSet leakage when placed in new object and set into Map
