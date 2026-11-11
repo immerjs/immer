@@ -25,6 +25,7 @@ title: API 概览
 | `immerable` | 可以添加到构造函数或原型的符号，表示 Immer 应该将类视为可以安全 draft 的东西 | [Classes](./complex-objects.md) |
 | `Immutable<T>` | 暴露的 TypeScript 类型以将可变类型转换为不可变类型 |  |
 | `isDraft` | 如果给定对象是 draft 对象，则返回 true |  |
+| `isModified` | 如果给定值是 draft 对象，且该对象本身或其嵌套 draft 已被修改，则返回 `true`。对于非 draft 值，返回 `false`。 |  |
 | `isDraftable` | 如果 Immer 能够将此对象变成 draft，则返回 true。这适用于：数组、没有原型的对象、以 `Object` 为原型的对象、在其构造函数或原型上具有 `immerable` 符号的对象 |  |
 | `nothing` | 可以从 recipe 返回的值，以指示应生成 `undefined` | [Return](./return.mdx) |
 | `original` | 给定一个 draft 对象（不必是对象的根结点），返回原始状态树中相同路径的原始对象（如果存在） | [Original](./original.md) |
