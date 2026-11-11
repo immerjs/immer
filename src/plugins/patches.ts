@@ -342,7 +342,11 @@ export function enablePatches() {
 			for (let i = 0; i < path.length - 1; i++) {
 				const parentType = getArchtype(base)
 				let p = path[i]
-				if (typeof p !== "string" && typeof p !== "number") {
+				if (
+					typeof p !== "string" &&
+					typeof p !== "number" &&
+					typeof p !== "symbol"
+				) {
 					p = "" + p
 				}
 
