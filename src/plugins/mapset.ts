@@ -68,7 +68,11 @@ export function enableMapSet() {
 		set(key: any, value: any) {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)
-			if (!latest(state).has(key) || latest(state).get(key) !== value) {
+			const current = latest(state).get(key)
+			if (
+				!latest(state).has(key) ||
+				(current !== value && !(Number.isNaN(current) && Number.isNaN(value)))
+			) {
 				prepareMapCopy(state)
 				markChanged(state)
 				state.assigned_!.set(key, true)

@@ -2700,6 +2700,59 @@ function runBaseTest(
 				expect(nextState.aMap).toBe(baseState.aMap)
 			})
 
+			it("keeps a Map when NaN is assigned to an existing NaN", () => {
+				const base = new Map([["value", NaN]])
+				const result = produce(base, draft => {
+					expect(draft.set("value", NaN)).toBe(draft)
+				})
+				expect(result).toBe(base)
+			})
+
+			it("keeps the parent when NaN is assigned to a nested Map's existing NaN", () => {
+				const base = {map: new Map([["value", NaN]])}
+				const result = produce(base, draft => {
+					draft.map.set("value", NaN)
+				})
+				expect(result.map).toBe(base.map)
+				expect(result).toBe(base)
+			})
+
+			it.each([
+				[NaN, 1],
+				[1, NaN]
+			])("changes a Map value from %s to %s", (before, after) => {
+				const base = new Map([["value", before]])
+				const result = produce(base, draft => {
+					draft.set("value", after)
+				})
+				expect(result).not.toBe(base)
+				expect(base.get("value")).toBe(before)
+				expect(result.get("value")).toBe(after)
+			})
+
+			it("adds a missing Map key with a NaN value", () => {
+				const base = new Map()
+				const result = produce(base, draft => {
+					draft.set("value", NaN)
+				})
+				expect(result).not.toBe(base)
+				expect(base.has("value")).toBe(false)
+				expect(result.has("value")).toBe(true)
+				expect(result.get("value")).toBeNaN()
+			})
+
+			it.each([
+				[0, -0],
+				[-0, 0]
+			])("keeps a Map when %s is replaced with %s", (before, after) => {
+				const base = new Map([["value", before]])
+				const result = produce(base, draft => {
+					draft.set("value", after)
+				})
+				expect(result).toBe(base)
+				expect(result.get("value")).toBe(before)
+			})
+
 			it("returns 'size'", () => {
 				const nextState = produce(baseState, s => {
 					s.aMap.set("newKey", true)
