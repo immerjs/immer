@@ -490,7 +490,11 @@ export function enableArrayMethods() {
 
 			// Return drafts for items in the slice range
 			for (let i = start; i < end; i++) {
-				result.push(state.draft_[i])
+				if (i in source) {
+					result.push(state.draft_[i])
+				} else {
+					result.length++
+				}
 			}
 
 			return result
