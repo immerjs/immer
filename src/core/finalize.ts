@@ -247,22 +247,30 @@ export function handleCrossReference(
 					handleValue(value, scope_.handledSet_, scope_)
 				}
 			} else {
-				// Maps/objects
-				if (get(targetCopy, key, target.type_) === value) {
-					if (
-						scope_.drafts_.length > 1 &&
-						((target as Exclude<ImmerState, SetState>).assigned_!.get(key) ??
-							false) === true &&
-						target.copy_
-					) {
-						// This might be a non-draft value that has drafts
-						// inside. We do need to recurse here to handle those.
-						handleValue(
-							get(target.copy_, key, target.type_),
-							scope_.handledSet_,
-							scope_
-						)
-					}
+				// Maps/objects/arrays
+				const assigned_ = (target as Exclude<ImmerState, SetState>).assigned_!
+				let isPresent = get(targetCopy, key, target.type_) === value
+				let isAssigned = isPresent && (assigned_.get(key) ?? false) === true
+				if (
+					!isPresent &&
+					target.type_ === ArchType.Array &&
+					(target as ProxyArrayState).allIndicesReassigned_
+				) {
+					// The array methods plugin shifts and reorders elements on the
+					// copy directly (shift, unshift, splice, sort, reverse), so the
+					// value may have moved away from the index it was inserted at.
+					// Every index of such an array counts as assigned.
+					isPresent = isAssigned = targetCopy.includes(value)
+				}
+				if (
+					isPresent &&
+					isAssigned &&
+					scope_.drafts_.length > 1 &&
+					target.copy_
+				) {
+					// This might be a non-draft value that has drafts
+					// inside. We do need to recurse here to handle those.
+					handleValue(value, scope_.handledSet_, scope_)
 				}
 			}
 		})
