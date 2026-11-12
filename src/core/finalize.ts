@@ -26,7 +26,7 @@ import {
 
 export function processResult(result: any, scope: ImmerScope) {
 	scope.unfinalizedDrafts_ = scope.drafts_.length
-	const baseDraft = scope.drafts_![0]
+	const baseDraft = scope.drafts_![0].draft_
 	const isReplaced = result !== undefined && result !== baseDraft
 
 	if (isReplaced) {
