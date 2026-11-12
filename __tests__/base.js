@@ -3412,6 +3412,50 @@ function runBaseTest(
 			expect(next[1].nestedArray).toEqual(["a", "b"])
 		})
 
+		describe("keeps drafts nested in an inserted value after the array moves it", () => {
+			const cases = [
+				["unshift", s => s.unshift({id: 0}), [{id: 0}, {id: 1}, {id: 2}]],
+				["shift", s => s.shift(), [{id: 2}]],
+				["splice", s => s.splice(0, 1), [{id: 2}]],
+				["reverse", s => s.reverse(), [{id: 2}, {id: 1}]],
+				[
+					"sort",
+					s => s.sort((a, b) => (b.id ?? 9) - (a.id ?? 9)),
+					[{id: 2}, {id: 1}]
+				]
+			]
+			for (const [method, move, rest] of cases) {
+				it(`after push() then ${method}()`, () => {
+					const base = [{id: 1}, {id: 2}]
+					const [next, patches, inversePatches] = produceWithPatches(
+						base,
+						s => {
+							s.push({ref: s[1]})
+							move(s)
+						}
+					)
+					const inserted = next.find(item => "ref" in item)
+					expect(isDraft(inserted.ref)).toBe(false)
+					expect(inserted.ref).toBe(base[1])
+					expect(next.filter(item => !("ref" in item))).toEqual(rest)
+					expect(applyPatches(base, patches)).toEqual(next)
+					expect(applyPatches(next, inversePatches)).toEqual(base)
+				})
+			}
+
+			it("when the nested draft is modified", () => {
+				const base = {list: [{id: 1}]}
+				const next = produce(base, s => {
+					s.list.push({ref: s.list[0]})
+					s.list[0].id = 5
+					s.list.unshift({id: 0})
+				})
+				expect(isDraft(next.list[2].ref)).toBe(false)
+				expect(next).toEqual({list: [{id: 0}, {id: 5}, {ref: {id: 5}}]})
+				expect(next.list[2].ref).toBe(next.list[1])
+			})
+		})
+
 		it("supports assigning undefined to an existing property", () => {
 			const nextState = produce(baseState, s => {
 				s.aProp = undefined
