@@ -10,11 +10,9 @@ import {
 
 /**
  * Methods that directly modify the array in place.
- * These operate on the copy without creating per-element proxies:
- * - `push`, `pop`: Add/remove from end
- * - `shift`, `unshift`: Add/remove from start (marks all indices reassigned)
- * - `splice`: Add/remove at arbitrary position (marks all indices reassigned)
- * - `reverse`, `sort`: Reorder elements (marks all indices reassigned)
+ * All except `splice` operate on the internal copy. `pop` and `shift`
+ * first read their removed value through the normal proxy. `splice`
+ * uses the normal proxy throughout to preserve native argument coercion.
  */
 type MutatingArrayMethod =
 	| "push"
@@ -68,8 +66,9 @@ export type ArrayOperationMethod = MutatingArrayMethod | NonMutatingArrayMethod
  * This plugin overrides array methods to avoid unnecessary Proxy creation during iteration,
  * significantly improving performance for array-heavy operations.
  *
- * **Mutating methods** (push, pop, shift, unshift, splice, sort, reverse):
- * Operate directly on the copy without creating per-element proxies.
+ * **Mutating methods**:
+ * Most operate directly on the copy; pop and shift first draft removed values.
+ * splice uses the normal proxy to preserve removed drafts and argument coercion.
  *
  * **Non-mutating methods** fall into categories:
  * - **Subset operations** (filter, slice, find, findLast): Return draft proxies - mutations track
@@ -341,6 +340,30 @@ export function enableArrayMethods() {
 			// Enter operation mode - this flag tells the proxy's get trap to return
 			// base values instead of creating nested proxies during iteration
 			const method = originalMethod as ArrayOperationMethod
+			if (method === "splice") {
+				// Splice arguments can coerce or mutate the array. Let the native
+				// method read through the proxy without normalizing them twice.
+				const previousOperation = state.operationMethod
+				state.operationMethod = undefined
+				try {
+					return Reflect.apply(Array.prototype[method], state.draft_, args)
+				} finally {
+					state.operationMethod = previousOperation
+				}
+			}
+			if (method === "pop" || method === "shift") {
+				// Draft only the removed item before mutating the internal copy.
+				const length = latest(state).length
+				if (length > 0) {
+					const previousOperation = state.operationMethod
+					state.operationMethod = undefined
+					try {
+						void state.draft_[method === "pop" ? length - 1 : 0]
+					} finally {
+						state.operationMethod = previousOperation
+					}
+				}
+			}
 			enterOperation(state, method)
 
 			try {
@@ -352,53 +375,6 @@ export function enableArrayMethods() {
 					}
 					if (REORDERING_METHODS.has(method)) {
 						return handleReorderingOperation(state, method, args)
-					}
-
-					if (method === "splice") {
-						const insertCount = args.length > 2 ? args.length - 2 : 0
-
-						// Detect no-op calls before creating a copy so structural
-						// sharing is preserved (see handleSimpleOperation). A splice
-						// removes nothing when called with no arguments, when the
-						// normalized start is at/past the end, or when the delete
-						// count coerces to less than 1. splice(start) with a single
-						// argument removes everything from start onwards, so it must
-						// not match. Exotic arguments that slip through are caught
-						// by the post-copy check below.
-						if (insertCount === 0) {
-							const length = latest(state).length
-							if (
-								args.length === 0 ||
-								normalizeSliceIndex(args[0] ?? 0, length) === length ||
-								(args.length > 1 && !(args[1] >= 1))
-							) {
-								return []
-							}
-						}
-
-						prepareCopy(state)
-						// The start index must be resolved against the length the array
-						// had before the splice, like the native method does
-						const lengthBefore = state.copy_!.length
-						const res = state.copy_!.splice(
-							...(args as [number, number, ...any[]])
-						)
-
-						// Backstop for exotic arguments the pre-check above missed:
-						// if nothing was removed and nothing inserted, the array is
-						// unchanged and must not be marked as modified.
-						if (res.length === 0 && insertCount === 0) {
-							return res
-						}
-
-						markArrayChanged(state)
-						markAllIndicesReassigned(state)
-						// Handle cross-references for inserted values (args from index 2+)
-						if (insertCount > 0) {
-							const startIndex = normalizeSliceIndex(args[0] ?? 0, lengthBefore)
-							handleInsertedValues(state, startIndex, args.slice(2))
-						}
-						return res
 					}
 				} else {
 					// Handle non-mutating methods
