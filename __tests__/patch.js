@@ -1,6 +1,7 @@
 "use strict"
 import {vi} from "vitest"
 import {
+	Immer,
 	produce,
 	applyPatches,
 	produceWithPatches,
@@ -25,10 +26,11 @@ function createPatchTestData(
 	producer,
 	expectedPatches,
 	expectedInversePatches,
-	expectedResult
+	expectedResult,
+	produceRecipe = produce
 ) {
 	let recordedPatches, recordedInversePatches
-	const res = produce(base, producer, (p, i) => {
+	const res = produceRecipe(base, producer, (p, i) => {
 		recordedPatches = p
 		recordedInversePatches = i
 	})
@@ -53,7 +55,8 @@ function runPatchTests(
 	expectedResult,
 	options = {}
 ) {
-	const {only = false, skip = false} = options
+	const {only = false, skip = false, immer} = options
+	const replay = immer ? immer.applyPatches.bind(immer) : applyPatches
 
 	// Choose the appropriate describe function
 	let describeFn = describe
@@ -66,7 +69,8 @@ function runPatchTests(
 		producer,
 		expectedPatches,
 		expectedInversePatches,
-		expectedResult
+		expectedResult,
+		immer ? immer.produce : produce
 	)
 
 	describeFn(testName, () => {
@@ -84,14 +88,12 @@ function runPatchTests(
 		})
 
 		test("patches are replayable", () => {
-			expect(applyPatches(base, testData.patches)).toEqual(testData.result)
+			expect(replay(base, testData.patches)).toEqual(testData.result)
 		})
 
 		test("patches can be reversed", () => {
 			if (expectedInversePatches) {
-				expect(applyPatches(testData.result, testData.inversePatches)).toEqual(
-					base
-				)
+				expect(replay(testData.result, testData.inversePatches)).toEqual(base)
 			}
 		})
 	})
@@ -154,34 +156,6 @@ describe("applyPatches", () => {
 		expect(result).not.toBe(base)
 		expect(result.a).toBe(2)
 		expect(base.a).toBe(1)
-	})
-	it.each(["add", "replace"])(
-		"preserves and deep clones symbol properties in %s patch values",
-		op => {
-			const key = Symbol("key")
-			const nestedKey = Symbol("nested")
-			const base = op === "add" ? {} : {item: null}
-			const [next, patches] = produceWithPatches(base, draft => {
-				draft.item = {[key]: {[nestedKey]: {value: 1}}}
-			})
-			const result = applyPatches(base, patches)
-			expect(patches[0].op).toBe(op)
-			expect(result).toEqual(next)
-			expect(result.item[key]).not.toBe(patches[0].value[key])
-			expect(result.item[key][nestedKey]).not.toBe(
-				patches[0].value[key][nestedKey]
-			)
-		}
-	)
-	it("restores symbol properties from inverse patch values", () => {
-		const key = Symbol("key")
-		const base = {item: {[key]: {value: 1}}}
-		const [next, , inversePatches] = produceWithPatches(base, draft => {
-			draft.item = null
-		})
-		const restored = applyPatches(next, inversePatches)
-		expect(restored).toEqual(base)
-		expect(restored.item[key]).not.toBe(base.item[key])
 	})
 	it('throws when `op` is not "add", "replace", nor "remove"', () => {
 		expect(() => {
@@ -1722,3 +1696,102 @@ describe("assigning a base value back over a modified draft", () => {
 		{map: new Map([["child", {id: 1}]])}
 	)
 })
+
+describe.each([false, true, "class_only"])(
+	"patch value shallow copy: %s",
+	strict => {
+		const immer = new Immer({autoFreeze: false})
+		immer.setUseStrictShallowCopy(strict)
+		const key = Symbol("key")
+		const nestedKey = Symbol("nested")
+		for (const op of ["add", "replace"]) {
+			const value = {[key]: {[nestedKey]: {value: 1}}}
+			const base = op === "add" ? {} : {item: null}
+			const data = runPatchTests(
+				`preserves symbols in ${op} values`,
+				base,
+				draft => {
+					draft.item = value
+				},
+				[{op, path: ["item"], value}],
+				op === "add"
+					? [{op: "remove", path: ["item"]}]
+					: [{op: "replace", path: ["item"], value: null}],
+				{item: value},
+				{immer}
+			)
+			it(`deep clones ${op} values`, () => {
+				const result = immer.applyPatches(base, data.patches)
+				expect(result.item[key]).not.toBe(value[key])
+				expect(result.item[key][nestedKey]).not.toBe(value[key][nestedKey])
+			})
+		}
+		runPatchTests(
+			"restores symbols in inverse values",
+			{item: {[key]: {value: 1}}},
+			draft => {
+				draft.item = null
+			},
+			[{op: "replace", path: ["item"], value: null}],
+			[{op: "replace", path: ["item"], value: {[key]: {value: 1}}}],
+			{item: null},
+			{immer}
+		)
+		for (const isClass of [false, true]) {
+			class Value {
+				[immerable] = true
+				changed = false
+			}
+			const value = isClass ? new Value() : {changed: false}
+			const hidden = Symbol("hidden")
+			Object.defineProperty(value, "hidden", {
+				value: {nested: 1},
+				enumerable: false
+			})
+			Object.defineProperty(value, hidden, {
+				value: {nested: 2},
+				enumerable: false
+			})
+			// Copy through a recipe so patch generation and replay must agree on the flag.
+			const expected = immer.produce(value, draft => {
+				draft.changed = true
+			})
+			const data = runPatchTests(
+				`copies ${isClass ? "class" : "plain"} draft values`,
+				{source: value},
+				draft => {
+					draft.source.changed = true
+					draft.item = draft.source
+					delete draft.source
+				},
+				[
+					{op: "add", path: ["item"], value: expected},
+					{op: "remove", path: ["source"]}
+				],
+				undefined,
+				{item: expected},
+				{immer}
+			)
+			it(`respects non-enumerables for ${isClass ? "classes" : "plain objects"}`, () => {
+				const result = immer.applyPatches({}, [
+					{op: "add", path: ["item"], value}
+				]).item
+				const keepsHidden =
+					strict === true || (strict === "class_only" && isClass)
+				for (const property of ["hidden", hidden]) {
+					expect(Object.hasOwn(result, property)).toBe(keepsHidden)
+					expect(Object.hasOwn(data.patches[0].value, property)).toBe(
+						keepsHidden
+					)
+					if (keepsHidden) {
+						expect(result[property]).toEqual(value[property])
+						expect(result[property]).not.toBe(value[property])
+						expect(
+							Object.getOwnPropertyDescriptor(result, property).enumerable
+						).toBe(false)
+					}
+				}
+			})
+		}
+	}
+)
