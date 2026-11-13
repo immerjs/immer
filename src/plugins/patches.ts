@@ -11,7 +11,8 @@ import {
 	each,
 	has,
 	getArchtype,
-	getPrototypeOf,
+	shallowCopy,
+	StrictMode,
 	isSet,
 	isMap,
 	loadPlugin,
@@ -359,7 +360,10 @@ export function enablePatches() {
 			}
 
 			const type = getArchtype(base)
-			const value = deepClonePatchValue(patch.value) // used to clone patch to ensure original patch is not modified, see #411
+			const value = deepClonePatchValue(
+				patch.value,
+				(draft as any)[DRAFT_STATE].scope_.immer_.useStrictShallowCopy_
+			) // used to clone patch to ensure original patch is not modified, see #411
 			const key = path[path.length - 1]
 			switch (op) {
 				case REPLACE:
@@ -411,21 +415,25 @@ export function enablePatches() {
 	// optimize: this is quite a performance hit, can we detect intelligently when it is needed?
 	// E.g. auto-draft when new objects from outside are assigned and modified?
 	// (See failing test when deepClone just returns obj)
-	function deepClonePatchValue<T>(obj: T): T
-	function deepClonePatchValue(obj: any) {
+	function deepClonePatchValue<T>(obj: T, strict: StrictMode): T
+	function deepClonePatchValue(obj: any, strict: StrictMode) {
 		if (!isDraftable(obj)) return obj
-		if (isArray(obj)) return obj.map(deepClonePatchValue)
+		if (isArray(obj))
+			return obj.map(value => deepClonePatchValue(value, strict))
 		if (isMap(obj))
 			return new Map(
-				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
+				Array.from(obj.entries()).map(([k, v]) => [
+					k,
+					deepClonePatchValue(v, strict)
+				])
 			)
-		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
-		const cloned = Object.create(getPrototypeOf(obj))
-		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
-		for (const key of Object.getOwnPropertySymbols(obj)) {
-			if (Object.prototype.propertyIsEnumerable.call(obj, key)) {
-				cloned[key] = deepClonePatchValue(obj[key])
-			}
+		if (isSet(obj))
+			return new Set(
+				Array.from(obj).map(value => deepClonePatchValue(value, strict))
+			)
+		const cloned = shallowCopy(obj, strict)
+		for (const key of Reflect.ownKeys(cloned)) {
+			cloned[key] = deepClonePatchValue(cloned[key], strict)
 		}
 		if (has(obj, immerable)) cloned[immerable] = obj[immerable]
 		return cloned
@@ -433,7 +441,10 @@ export function enablePatches() {
 
 	function clonePatchValueIfNeeded<T>(obj: T): T {
 		if (isDraft(obj)) {
-			return deepClonePatchValue(obj)
+			return deepClonePatchValue(
+				obj,
+				(obj as any)[DRAFT_STATE].scope_.immer_.useStrictShallowCopy_
+			)
 		} else return obj
 	}
 
