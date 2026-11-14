@@ -148,6 +148,11 @@ cross-spawn@^7.0.1:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.1.3.tgz#e38a0b97db59949d31d9b381b04c2e441b1c3747"
   integrity sha512-tmjF/k8QDKydUlm3mZU+tjM6zeq9/fFpPqH9SzWmBnVVKsPBg/V66qsMwb3/Bo90cgUN+ghdVBess+hPsxUyRw==
 
+"immer11@npm:immer@11.2.10":
+  version "11.2.10"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-11.2.10.tgz#fe5f3fa0c14882ed2dbca049866e43562247e252"
+  integrity sha512-pzANBj+0A9u+prdhBJ14DVi44vCvVUQzBa8DKt6I0AMCokPHtt722BK9IX5bFC70xUSU9TnzLRIJLTGqIzjEFw==
+
 "immer5@npm:immer@5":
   version "5.3.6"
   resolved "https://registry.yarnpkg.com/immer/-/immer-5.3.6.tgz#51eab8cbbeb13075fe2244250f221598818cac04"
