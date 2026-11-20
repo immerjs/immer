@@ -137,6 +137,28 @@ export function enableMapSet() {
 			return draft
 		}
 
+		getOrInsert(key: any, value: any): any {
+			if (this.has(key)) {
+				return this.get(key)
+			}
+			this.set(key, value)
+			return value
+		}
+
+		getOrInsertComputed(key: any, callback: (key: any) => any): any {
+			assertUnrevoked(this[DRAFT_STATE])
+			if (typeof callback !== "function") {
+				throw new TypeError("getOrInsertComputed callback is not a function")
+			}
+			if (this.has(key)) {
+				return this.get(key)
+			}
+			const canonicalKey = Object.is(key, -0) ? 0 : key
+			const value = callback(canonicalKey)
+			this.set(canonicalKey, value)
+			return value
+		}
+
 		keys(): IterableIterator<any> {
 			const state: MapState = this[DRAFT_STATE]
 			assertUnrevoked(state)

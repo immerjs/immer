@@ -273,6 +273,11 @@ export function freeze<T>(obj: any, deep: boolean = false): T {
 			clear: dontMutateMethodOverride,
 			delete: dontMutateMethodOverride
 		})
+		if (isMap(obj))
+			O.defineProperties(obj, {
+				getOrInsert: dontMutateMethodOverride,
+				getOrInsertComputed: dontMutateMethodOverride
+			})
 	}
 	O.freeze(obj)
 	if (deep)
