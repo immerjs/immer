@@ -196,11 +196,21 @@ export function enableArrayMethods() {
 		state.baseRefs_ = new Set(state.base_)
 	}
 
+	// Array methods apply ToIntegerOrInfinity to their index arguments before
+	// clamping; Math.min/max alone would leave fractions and NaN untouched.
+	function toIntegerOrInfinity(value: number): number {
+		const number = +value
+		if (Number.isNaN(number) || number === 0) return 0
+		if (!Number.isFinite(number)) return number
+		return Math.trunc(number)
+	}
+
 	function normalizeSliceIndex(index: number, length: number): number {
-		if (index < 0) {
-			return Math.max(length + index, 0)
+		const integer = toIntegerOrInfinity(index)
+		if (integer < 0) {
+			return Math.max(length + integer, 0)
 		}
-		return Math.min(index, length)
+		return Math.min(integer, length)
 	}
 
 	/**
