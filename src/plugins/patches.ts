@@ -385,7 +385,11 @@ export function enablePatches() {
 						case ArchType.Map:
 							return base.set(key, value)
 						case ArchType.Set:
-							return base.add(value)
+							// Set members are matched by identity, so the original
+							// patch value is inserted: a clone would never match the
+							// original reference that a later remove patch (or the
+							// inverse patches) deletes by.
+							return base.add(patch.value)
 						default:
 							return (base[key] = value)
 					}
@@ -419,7 +423,9 @@ export function enablePatches() {
 			return new Map(
 				Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
 			)
-		if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
+		// Sets are identity-keyed, so their members are kept by reference:
+		// cloning them would break `Set.delete` during patch replay.
+		if (isSet(obj)) return new Set(obj)
 		const cloned = Object.create(getPrototypeOf(obj))
 		for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
 		if (has(obj, immerable)) cloned[immerable] = obj[immerable]

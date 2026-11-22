@@ -956,6 +956,36 @@ describe("sets - mutate - 1", () => {
 	)
 })
 
+describe("sets - patch values keep member identity", () => {
+	test("inverse patches remove an object member from a replayed set", () => {
+		const member = {n: 0}
+		const base = new Set()
+		const [next, patches, inversePatches] = produceWithPatches(base, draft => {
+			draft.add(member)
+		})
+		expect(applyPatches(next, inversePatches).size).toBe(0)
+		const replay = applyPatches(base, patches)
+		expect(replay.size).toBe(1)
+		expect([...replay][0]).toBe(member)
+		expect(applyPatches(replay, inversePatches).size).toBe(0)
+	})
+
+	test("replaying insertion and clear across producers yields an empty set", () => {
+		const [inserted, firstPatches] = produceWithPatches({slot: null}, draft => {
+			draft.slot = new Set([{n: 0}])
+		})
+		const [next, secondPatches] = produceWithPatches(inserted, draft => {
+			draft.slot.clear()
+		})
+		expect(next.slot.size).toBe(0)
+		const replay = applyPatches({slot: null}, [
+			...firstPatches,
+			...secondPatches
+		])
+		expect(replay.slot.size).toBe(0)
+	})
+})
+
 // These patches were more optimal pre immer 7, but not always correct
 runPatchTests(
 	"arrays - splice should should result in remove op.",
