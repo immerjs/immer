@@ -16,6 +16,7 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "immer10": "npm:immer@10",
+    "immer11": "npm:immer@11.2.10",
     "immer5": "npm:immer@5",
     "immer6": "npm:immer@6",
     "immer7": "npm:immer@7",

@@ -1,9 +1,7 @@
 import {
 	Patch,
 	PatchListener,
-	Drafted,
 	Immer,
-	DRAFT_STATE,
 	ImmerState,
 	ArchType,
 	getPlugin,
@@ -25,7 +23,7 @@ export interface ImmerScope {
 	mapSetPlugin_?: MapSetPlugin
 	arrayMethodsPlugin_?: ArrayMethodsPlugin
 	canAutoFreeze_: boolean
-	drafts_: any[]
+	drafts_: ImmerState[]
 	parent_?: ImmerScope
 	patchListener_?: PatchListener
 	immer_: Immer
@@ -87,8 +85,7 @@ export function leaveScope(scope: ImmerScope) {
 export let enterScope = (immer: Immer) =>
 	(currentScope = createScope(currentScope, immer))
 
-function revokeDraft(draft: Drafted) {
-	const state: ImmerState = draft[DRAFT_STATE]
+function revokeDraft(state: ImmerState) {
 	if (state.type_ === ArchType.Object || state.type_ === ArchType.Array)
 		state.revoke_()
 	else state.revoked_ = true

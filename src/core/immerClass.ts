@@ -248,7 +248,7 @@ export function createProxy<T extends Objectish>(
 			: createProxyProxy(value, parent)
 
 	const scope = parent?.scope_ ?? getCurrentScope()
-	scope.drafts_.push(draft)
+	scope.drafts_.push(state)
 
 	// Ensure the parent callbacks are passed down so we actually
 	// track all callbacks added throughout the tree

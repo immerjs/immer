@@ -12,6 +12,11 @@ import {
 	setAutoFreeze as setAutoFreeze10Perf,
 	enableArrayMethods as enableArrayMethods10Perf
 } from "immer10Perf"
+import {
+	produce as produce11,
+	setAutoFreeze as setAutoFreeze11,
+	enableArrayMethods as enableArrayMethods11
+} from "immer11"
 import {create as produceMutative} from "mutative"
 import {
 	produce as produceMutativeCompat,
@@ -198,6 +203,7 @@ const immerProducers = {
 	// immer8: produce8,
 	// immer9: produce9,
 	immer10: produce10,
+	immer11: produce11,
 	immer10Perf: produce10Perf
 	// mutative: produceMutative,
 	// mutativeCompat: produceMutativeCompat,
@@ -215,6 +221,7 @@ const setAutoFreezes = {
 	immer8: setAutoFreeze8,
 	immer9: setAutoFreeze9,
 	immer10: setAutoFreeze10,
+	immer11: setAutoFreeze11,
 	immer10Perf: setAutoFreeze10Perf,
 	mutative: noop,
 	mutativeCompat: setAutoFreezeMutativeCompat,
@@ -230,6 +237,7 @@ const setStrictIteration = {
 	immer8: noop,
 	immer9: noop,
 	immer10: noop,
+	immer11: noop,
 	immer10Perf: noop, // setUseStrictIteration10Perf,
 	mutative: noop,
 	mutativeCompat: noop,
@@ -245,6 +253,7 @@ const setEnableArrayMethods = {
 	immer8: noop,
 	immer9: noop,
 	immer10: noop,
+	immer11: enableArrayMethods11,
 	immer10Perf: enableArrayMethods10Perf,
 	mutative: noop,
 	mutativeCompat: noop,
@@ -869,6 +878,7 @@ function shortenVersionName(versionName) {
 	const shortNames = {
 		immer10Perf: "i10Perf",
 		immer10: "i10",
+		immer11: "i11",
 		immer5: "i5",
 		immer6: "i6",
 		immer7: "i7",
