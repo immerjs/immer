@@ -8,7 +8,9 @@ import {
 	immerable,
 	nothing,
 	enablePatches,
-	enableMapSet
+	enableMapSet,
+	createDraft,
+	finishDraft
 } from "../src/immer"
 
 enablePatches()
@@ -789,6 +791,89 @@ runPatchTests(
 		{op: "add", path: ["x", 2], value: 3}
 	]
 )
+
+// #1355
+runPatchTests(
+	"arrays - truncate with length, then grow",
+	{x: [1]},
+	d => {
+		d.x.length = 0
+		d.x[1] = 2
+	},
+	[
+		{op: "replace", path: ["x", 0], value: undefined},
+		{op: "add", path: ["x", 1], value: 2}
+	],
+	[
+		{op: "replace", path: ["x", 0], value: 1},
+		{op: "remove", path: ["x", 1]}
+	],
+	{x: [undefined, 2]}
+)
+
+runPatchTests(
+	"arrays - truncate with length, then restore the length",
+	{x: [1, 2]},
+	d => {
+		d.x.length = 0
+		d.x.length = 2
+	},
+	[
+		{op: "replace", path: ["x", 0], value: undefined},
+		{op: "replace", path: ["x", 1], value: undefined}
+	],
+	[
+		{op: "replace", path: ["x", 0], value: 1},
+		{op: "replace", path: ["x", 1], value: 2}
+	],
+	{x: [undefined, undefined]}
+)
+
+runPatchTests(
+	"arrays - truncate with length, then push",
+	{x: [1, 2, 3]},
+	d => {
+		d.x.length = 1
+		d.x.push(4, 5)
+	},
+	[
+		{op: "replace", path: ["x", 1], value: 4},
+		{op: "replace", path: ["x", 2], value: 5}
+	],
+	[
+		{op: "replace", path: ["x", 1], value: 2},
+		{op: "replace", path: ["x", 2], value: 3}
+	],
+	{x: [1, 4, 5]}
+)
+
+runPatchTests(
+	"arrays - truncate with length, then grow back to the same values",
+	{x: [1, 2]},
+	d => {
+		d.x.length = 0
+		d.x[0] = 1
+		d.x[1] = 2
+	},
+	[],
+	[],
+	{x: [1, 2]}
+)
+
+test("arrays - truncate with length, then grow, on a draft from createDraft", () => {
+	// finishDraft is the first place a manual draft learns that patches are wanted
+	const draft = createDraft({x: [1]})
+	draft.x.length = 0
+	draft.x[1] = 2
+	let patches
+	finishDraft(draft, p => {
+		patches = p
+	})
+	expect(patches).toEqual([
+		{op: "replace", path: ["x", 0], value: undefined},
+		{op: "add", path: ["x", 1], value: 2}
+	])
+})
 
 runPatchTests(
 	"arrays - pop twice",

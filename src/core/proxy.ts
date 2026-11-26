@@ -22,7 +22,9 @@ import {
 	ENUMERABLE,
 	VALUE,
 	isArray,
-	isArrayIndex
+	isArrayIndex,
+	isPluginLoaded,
+	PluginPatches
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -284,7 +286,26 @@ arrayTraps.set = function (state, prop, value) {
 		isNaN(parseInt(prop as any))
 	)
 		die(14)
-	return objectTraps.set!.call(this, state[0], prop, value, state[0])
+	const arrayState = state[0]
+	// Only patch generation reads the dropped indices below; skip the work when
+	// patches are not enabled. (`scope_.patches_` is only set once the recipe
+	// has run, so it can't tell yet whether this call records patches.)
+	if (prop !== "length" || !isPluginLoaded(PluginPatches))
+		return objectTraps.set!.call(this, arrayState, prop, value, arrayState)
+	const oldLength = latest(arrayState).length
+	const result = objectTraps.set!.call(
+		this,
+		arrayState,
+		prop,
+		value,
+		arrayState
+	)
+	// Shrinking `length` drops the tail without going through `deleteProperty`,
+	// so mark the dropped base indices as assigned. Otherwise, if the array grows
+	// back, patch generation sees no assignment for them and emits no `replace`.
+	const end = Math.min(oldLength, arrayState.base_.length)
+	for (let i = +value; i < end; i++) arrayState.assigned_!.set("" + i, true)
+	return result
 }
 
 // Access a property without creating an Immer draft.
