@@ -8,7 +8,9 @@ import {
 	immerable,
 	nothing,
 	enablePatches,
-	enableMapSet
+	enableMapSet,
+	createDraft,
+	finishDraft
 } from "../src/immer"
 
 enablePatches()
@@ -857,6 +859,21 @@ runPatchTests(
 	[],
 	{x: [1, 2]}
 )
+
+test("arrays - truncate with length, then grow, on a draft from createDraft", () => {
+	// finishDraft is the first place a manual draft learns that patches are wanted
+	const draft = createDraft({x: [1]})
+	draft.x.length = 0
+	draft.x[1] = 2
+	let patches
+	finishDraft(draft, p => {
+		patches = p
+	})
+	expect(patches).toEqual([
+		{op: "replace", path: ["x", 0], value: undefined},
+		{op: "add", path: ["x", 1], value: 2}
+	])
+})
 
 runPatchTests(
 	"arrays - pop twice",

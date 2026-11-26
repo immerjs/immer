@@ -22,7 +22,9 @@ import {
 	ENUMERABLE,
 	VALUE,
 	isArray,
-	isArrayIndex
+	isArrayIndex,
+	isPluginLoaded,
+	PluginPatches
 } from "../internal"
 
 interface ProxyBaseState extends ImmerBaseState {
@@ -285,7 +287,10 @@ arrayTraps.set = function (state, prop, value) {
 	)
 		die(14)
 	const arrayState = state[0]
-	if (prop !== "length")
+	// Only patch generation reads the dropped indices below; skip the work when
+	// patches are not enabled. (`scope_.patches_` is only set once the recipe
+	// has run, so it can't tell yet whether this call records patches.)
+	if (prop !== "length" || !isPluginLoaded(PluginPatches))
 		return objectTraps.set!.call(this, arrayState, prop, value, arrayState)
 	const oldLength = latest(arrayState).length
 	const result = objectTraps.set!.call(
