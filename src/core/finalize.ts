@@ -21,7 +21,8 @@ import {
 	prepareCopy,
 	getFinalValue,
 	getValue,
-	ProxyArrayState
+	ProxyArrayState,
+	getArchtype
 } from "../internal"
 
 export function processResult(result: any, scope: ImmerScope) {
@@ -295,8 +296,14 @@ export function handleValue(
 
 	handledSet.add(target)
 
+	// Rebuild Sets from a snapshot so replaced drafts do not remain in the Set
+	// and insertion order is preserved when finalized values are added.
+	const targetType = getArchtype(target)
+	const entries = targetType === ArchType.Set ? new Set(target) : target
+	if (targetType === ArchType.Set) target.clear()
+
 	// Process ALL properties/entries
-	each(target, (key, value) => {
+	each(entries, (key, value) => {
 		if (isDraft(value)) {
 			const state: ImmerState = value[DRAFT_STATE]
 			if (isSameScope(state, rootScope)) {
@@ -304,13 +311,18 @@ export function handleValue(
 
 				const updatedValue = getFinalValue(state)
 
-				set(target, key, updatedValue, target.type_)
+				set(target, key, updatedValue, targetType)
 
 				markStateFinalized(state)
+			} else if (targetType === ArchType.Set) {
+				target.add(value)
 			}
-		} else if (isDraftable(value)) {
-			// Recursively handle nested values
-			handleValue(value, handledSet, rootScope)
+		} else {
+			if (isDraftable(value)) {
+				// Recursively handle nested values
+				handleValue(value, handledSet, rootScope)
+			}
+			if (targetType === ArchType.Set) target.add(value)
 		}
 	})
 
