@@ -190,10 +190,10 @@ export class Immer implements ProducersFns {
 	}
 
 	/**
-	 * Pass false to use faster iteration that skips non-enumerable properties
-	 * but still handles symbols for compatibility.
+	 * Pass false to use faster iteration that skips symbols and non-enumerable
+	 * properties.
 	 *
-	 * By default, strict iteration is enabled (includes all own properties).
+	 * By default, strict iteration is disabled (only enumerable string properties).
 	 */
 	setUseStrictIteration(value: boolean) {
 		this.useStrictIteration_ = value
