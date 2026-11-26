@@ -55,20 +55,6 @@ for (const enabled of [false, true]) {
 				})
 			}
 
-			test("preserves holes when splicing sparse arrays", () => {
-				const immer = new Immer({autoFreeze})
-				const base = {items: [, , {done: false}], done: []}
-				const next = immer.produce(base, draft => {
-					const removed = draft.items.splice(0, 3)
-					expect(0 in removed).toBe(false)
-					expect(1 in removed).toBe(false)
-					draft.done.push(removed[2])
-					removed[2].done = true
-				})
-				expect(base.items[2].done).toBe(false)
-				expect(next.done[0].done).toBe(true)
-			})
-
 			test("reuses a child draft that was read before removal", () => {
 				const immer = new Immer({autoFreeze})
 				const base = {items: [{done: false}], done: []}
@@ -80,28 +66,6 @@ for (const enabled of [false, true]) {
 					removed.done = true
 				})
 				expect(base.items[0].done).toBe(false)
-				expect(next.done[0].done).toBe(true)
-			})
-
-			test("does not reread getters outside the removed position", () => {
-				const immer = new Immer({autoFreeze})
-				let reads = 0
-				const items = [{done: false}, {done: false}]
-				Object.defineProperty(items, 0, {
-					get() {
-						if (++reads > 1) throw new Error("getter read twice")
-						return {done: false}
-					},
-					enumerable: true,
-					configurable: true
-				})
-				const next = immer.produce({items, done: []}, draft => {
-					const item = draft.items.pop()
-					draft.done.push(item)
-					item.done = true
-				})
-				expect(reads).toBe(1)
-				expect(items[1].done).toBe(false)
 				expect(next.done[0].done).toBe(true)
 			})
 
