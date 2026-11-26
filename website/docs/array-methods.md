@@ -27,7 +27,7 @@ This adds approximately **2KB** to your bundle size.
 
 ## Mutating Methods
 
-These methods modify the array in-place and operate directly on the draft's internal copy without creating per-element proxies:
+These methods modify the draft array in-place. `push()`, `unshift()`, `sort()`, and `reverse()` operate directly on its internal copy. `pop()` and `shift()` first draft only the removed element, then remove it from the internal copy. `splice()` uses the normal draft proxy throughout to preserve native argument coercion and return safe removed drafts; its performance therefore matches the standard proxy path.
 
 | Method      | Returns          | Description                           |
 | ----------- | ---------------- | ------------------------------------- |
@@ -38,6 +38,8 @@ These methods modify the array in-place and operate directly on the draft's inte
 | `splice()`  | Removed elements | Adds/removes elements at any position |
 | `sort()`    | The draft array  | Sorts elements in place               |
 | `reverse()` | The draft array  | Reverses the array in place           |
+
+Removed objects originating in the base state remain drafts, so they can be moved to another draft array and updated without changing the base. Newly inserted external objects retain their normal undrafted behavior.
 
 ```javascript
 import {produce, enableArrayMethods} from "immer"
