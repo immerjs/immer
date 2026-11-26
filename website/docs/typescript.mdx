@@ -10,7 +10,8 @@ sidebar_label: TypeScript / Flow
 		data-ea-type="image"
 		className="horizontal bordered"
 	></div>
-</center> <details>
+</center>
+<details>
 	<summary className="egghead-summary">
 		egghead.io lesson 12: Immer + TypeScript
 	</summary>
@@ -181,7 +182,7 @@ const toggler = produce<Todo>(draft => {
 // typeof toggler = (state: Todo) => Todo
 ```
 
-However, in case the curried producer is defined with an initial state, Immer can infer the state type from the initial state, so in that case the generic doesn't need to be specified either:
+Pass an initial state as the second argument to `produce` to let Immer infer the state type. The curried producer uses this state as its base when called without an argument or with `undefined`. A default value on the recipe's draft parameter is applied inside the recipe, after Immer has chosen the base, so it does not provide a default draft.
 
 ```typescript
 const state0: Todo = {
@@ -194,7 +195,8 @@ const toggler = produce(draft => {
 	draft.done = !draft.done
 }, state0)
 
-// typeof toggler = (state: Todo) => Todo
+// typeof toggler = (state?: Todo) => Todo
+const next = toggler() // {title: "test", done: true}
 ```
 
 In case the toggler has no initial state, and it has curried arguments, and you set the state generic explicitly, then type of any additional arguments should be defined explicitly as a tuple type as well:
