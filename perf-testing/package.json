@@ -16,7 +16,7 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "immer10": "npm:immer@10",
-    "immer11": "npm:immer@11.2.10",
+    "immer11": "npm:immer@11",
     "immer5": "npm:immer@5",
     "immer6": "npm:immer@6",
     "immer7": "npm:immer@7",
@@ -24,7 +24,7 @@
     "immer9": "npm:immer@9",
     "limu": "^4.1.1",
     "mitata": "^1.0.34",
-    "mutative": "^1.3.0",
+    "mutative": "^2.0.2",
     "mutative-compat": "^0.1.2",
     "pprof-format": "^2.2.1",
     "source-map": "^0.7.4",
