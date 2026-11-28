@@ -3275,6 +3275,46 @@ function runBaseTest(
 			}
 		})
 
+		it("optimization: does not visit remaining new data after finalizing all drafts in a replacement when autofreeze is disabled", () => {
+			const newData = {}
+			Object.defineProperty(newData, "x", {
+				enumerable: true,
+				get() {
+					throw new Error("visited!")
+				}
+			})
+
+			const run = () =>
+				produce({a: 1}, d => ({
+					self: d,
+					data: newData
+				}))
+			if (autoFreeze) {
+				expect(run).toThrow("visited!")
+			} else {
+				expect(run).not.toThrow("visited!")
+			}
+		})
+
+		it("finalizes all drafts when another draft is referenced repeatedly in a new object", () => {
+			const res1 = produce({a: {x: 1}, b: {y: 2}, out: null}, d => {
+				d.a.x = 2
+				d.b.y = 3
+				d.out = {r1: d.a, r2: d.a, r3: d.a, nested: {b: d.b}}
+			})
+			expect(isDraft(res1.out.nested.b)).toBe(false)
+			expect(res1.out.nested.b).toEqual({y: 3})
+
+			const res2 = produce({a: {x: 1}, b: {y: 2}}, d => ({
+				r1: d.a,
+				r2: d.a,
+				r3: d.a,
+				nested: {b: d.b}
+			}))
+			expect(isDraft(res2.nested.b)).toBe(false)
+			expect(res2.nested.b).toEqual({y: 2})
+		})
+
 		it("same optimization doesn't cause draft from nested producers to be unfinished", () => {
 			const base = {
 				y: 1,
