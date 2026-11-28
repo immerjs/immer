@@ -31,10 +31,11 @@ import {
 	isArray,
 	PROTOTYPE
 } from "../internal"
+import {IS_PRODUCTION} from "../utils/production"
 
 export function enablePatches() {
 	const errorOffset = 16
-	if (process.env.NODE_ENV !== "production") {
+	if (!IS_PRODUCTION) {
 		errors.push(
 			'Sets cannot have "replace" patches.',
 			function (op: string) {

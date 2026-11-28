@@ -24,6 +24,7 @@ import {
 	isArray,
 	isArrayIndex
 } from "../internal"
+import {IS_PRODUCTION} from "../utils/production"
 
 interface ProxyBaseState extends ImmerBaseState {
 	parent_?: ImmerState
@@ -272,17 +273,12 @@ for (let key in objectTraps) {
 	}
 }
 arrayTraps.deleteProperty = function (state, prop) {
-	if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop as any)))
-		die(13)
+	if (!IS_PRODUCTION && isNaN(parseInt(prop as any))) die(13)
 	// @ts-ignore
 	return arrayTraps.set!.call(this, state, prop, undefined)
 }
 arrayTraps.set = function (state, prop, value) {
-	if (
-		process.env.NODE_ENV !== "production" &&
-		prop !== "length" &&
-		isNaN(parseInt(prop as any))
-	)
+	if (!IS_PRODUCTION && prop !== "length" && isNaN(parseInt(prop as any)))
 		die(14)
 	return objectTraps.set!.call(this, state[0], prop, value, state[0])
 }
