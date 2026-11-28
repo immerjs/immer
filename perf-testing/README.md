@@ -41,6 +41,19 @@ yarn benchmark
 yarn profile
 ```
 
+Environment variables:
+
+- `BENCH_FILTER`: regex matched against scenario names, e.g. `BENCH_FILTER='^10k-' yarn benchmark`
+- `BENCH_VERSIONS`: comma-separated versions to run, e.g. `BENCH_VERSIONS=immer10Perf,immer10PerfAM,mutative`. Default: `immer10,immer11,immer10Perf,immer10PerfAM,mutative` (plus `vanilla`, which always runs as the baseline)
+- `BENCH_JSON`: write raw results (avg, p50, p99, min, max, sample count) to this file
+
+### How scenarios are measured
+
+- Each scenario runs with `freeze: false` and `freeze: true`. With `freeze: true` the initial state is deep-frozen before timing starts, the same as state that earlier Immer or Mutative calls produced. Auto-freeze is turned on for every library in that case, including Mutative.
+- Initial states are built once and cached, outside the timed region.
+- The default scenarios use a 100-item array. `10k-*` scenarios use a 10,000-item array: toggle one field, update via `find`, push one item, remove one item.
+- `*-reuse`, `mixed-sequence`, `rtkq-sequence` and `10k-chain10-*` feed each result into the next call, so later steps start from state the library itself produced.
+
 ### Analyzing CPU Profiles
 
 After running `yarn profile`, you'll get a `.cpuprofile` file. To analyze it:
@@ -60,8 +73,10 @@ yarn analyze-profile your-profile.cpuprofile
 
 The benchmarks compare:
 
-- **immer7-10**: Historical Immer versions
-- **immer10Perf**: Current development version (references `../dist`)
+- **immer5-10**: Historical Immer versions
+- **immer11** / **immer11AM**: Latest published Immer 11, without and with `enableArrayMethods()`
+- **immer10Perf** / **immer10PerfAM**: Local build (references `../dist`), without and with `enableArrayMethods()`. The AM variants are bundled as separate module instances so enabling the plugin does not affect the other variant.
+- **mutative**: Mutative 2.x, with `enableAutoFreeze` matching the scenario's freeze setting
 - **vanilla**: Pure JavaScript implementations for baseline comparison
 
 ## Key Features

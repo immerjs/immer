@@ -9,15 +9,21 @@ import {produce as produce9, setAutoFreeze as setAutoFreeze9} from "immer9"
 import {produce as produce10, setAutoFreeze as setAutoFreeze10} from "immer10"
 import {
 	produce as produce10Perf,
-	setAutoFreeze as setAutoFreeze10Perf,
-	enableArrayMethods as enableArrayMethods10Perf
+	setAutoFreeze as setAutoFreeze10Perf
 } from "immer10Perf"
 import {
-	produce as produce11,
-	setAutoFreeze as setAutoFreeze11,
-	enableArrayMethods as enableArrayMethods11
-} from "immer11"
-import {create as produceMutative} from "mutative"
+	produce as produce10PerfAM,
+	setAutoFreeze as setAutoFreeze10PerfAM,
+	enableArrayMethods as enableArrayMethods10PerfAM
+} from "immer10PerfAM"
+import {produce as produce11, setAutoFreeze as setAutoFreeze11} from "immer11"
+import {
+	produce as produce11AM,
+	setAutoFreeze as setAutoFreeze11AM,
+	enableArrayMethods as enableArrayMethods11AM
+} from "immer11AM"
+import {create as createMutative} from "mutative"
+import {writeFileSync} from "node:fs"
 import {
 	produce as produceMutativeCompat,
 	setAutoFreeze as setAutoFreezeMutativeCompat
@@ -34,6 +40,7 @@ function createInitialState(arraySize = BENCHMARK_CONFIG.arraySize) {
 		largeArray: Array.from({length: arraySize}, (_, i) => ({
 			id: i,
 			value: Math.random(),
+			done: false,
 			nested: {key: `key-${i}`, data: Math.random()},
 			moreNested: {
 				items: Array.from(
@@ -60,17 +67,50 @@ function createInitialState(arraySize = BENCHMARK_CONFIG.arraySize) {
 	return initialState
 }
 
-const MAX = 1
+function deepFreeze(value) {
+	if (value === null || typeof value !== "object" || Object.isFrozen(value))
+		return value
+	Object.freeze(value)
+	for (const key of Object.keys(value)) deepFreeze(value[key])
+	return value
+}
+
+// Initial states are built once per (size, freeze) and reused across
+// benchmarks, outside the timed region. None of the benchmarked libraries
+// mutate their base state, so sharing is safe. Freeze-on runs get a
+// deep-frozen base, matching state that came out of an earlier produce.
+const initialStateCache = new Map()
+
+function getInitialState(arraySize, frozen) {
+	const key = `${arraySize}|${frozen}`
+	let state = initialStateCache.get(key)
+	if (!state) {
+		state = createInitialState(arraySize)
+		if (frozen) deepFreeze(state)
+		initialStateCache.set(key, state)
+	}
+	return state
+}
 
 const BENCHMARK_CONFIG = {
 	iterations: 1,
 	arraySize: 100,
+	largeArraySize: 10000,
 	nestedArraySize: 10,
 	largeObjectSize1: 1000,
 	largeObjectSize2: 3000,
 	multiUpdateCount: 5,
 	reuseStateIterations: 10
 }
+
+// Optional env filters:
+// BENCH_FILTER: regex matched against scenario names
+// BENCH_VERSIONS: comma-separated version keys (see `immerProducers`)
+// BENCH_JSON: file path to write raw results as JSON
+const scenarioFilter = process.env.BENCH_FILTER
+	? new RegExp(process.env.BENCH_FILTER)
+	: null
+const includeScenario = name => !scenarioFilter || scenarioFilter.test(name)
 
 // Utility functions for calculating array indices based on size
 const getValidIndex = (arraySize = BENCHMARK_CONFIG.arraySize) => {
@@ -109,6 +149,8 @@ const update = index => ({
 	type: "test/updateItem",
 	payload: {id: index, value: index, nestedData: index}
 })
+// Toggle one field on one item, addressed by index (no array search)
+const toggleIndex = index => ({type: "test/toggleIndex", payload: index})
 const updateLargeObject1 = index => ({
 	type: "test/updateLargeObject1",
 	payload: {value: index}
@@ -196,20 +238,52 @@ const actions = {
 	"reverse-array": reverseArray
 }
 
-const immerProducers = {
-	// immer5: produce5,
-	// immer6: produce6,
-	// immer7: produce7,
-	// immer8: produce8,
-	// immer9: produce9,
+let mutativeAutoFreeze = false
+const produceMutative = (base, recipe) =>
+	createMutative(base, recipe, {enableAutoFreeze: mutativeAutoFreeze})
+const setAutoFreezeMutative = value => {
+	mutativeAutoFreeze = value
+}
+
+// immer10Perf is the local build in ../dist. The "AM" variants are separate
+// module instances with enableArrayMethods() turned on.
+const allImmerProducers = {
+	immer5: produce5,
+	immer6: produce6,
+	immer7: produce7,
+	immer8: produce8,
+	immer9: produce9,
 	immer10: produce10,
 	immer11: produce11,
-	immer10Perf: produce10Perf
-	// mutative: produceMutative,
-	// mutativeCompat: produceMutativeCompat,
-	// structura: produceStructura,
-	// limu: produceLimu
+	immer11AM: produce11AM,
+	immer10Perf: produce10Perf,
+	immer10PerfAM: produce10PerfAM,
+	mutative: produceMutative,
+	mutativeCompat: produceMutativeCompat,
+	structura: produceStructura,
+	limu: produceLimu
 }
+
+const defaultVersions = [
+	"immer10",
+	"immer11",
+	"immer10Perf",
+	"immer10PerfAM",
+	"mutative"
+]
+
+const selectedVersions = process.env.BENCH_VERSIONS
+	? process.env.BENCH_VERSIONS.split(",").map(v => v.trim())
+	: ["vanilla", ...defaultVersions]
+
+const immerProducers = Object.fromEntries(
+	selectedVersions
+		.filter(v => v !== "vanilla")
+		.map(v => {
+			if (!allImmerProducers[v]) throw new Error(`Unknown version: ${v}`)
+			return [v, allImmerProducers[v]]
+		})
+)
 
 const noop = () => {}
 
@@ -222,8 +296,10 @@ const setAutoFreezes = {
 	immer9: setAutoFreeze9,
 	immer10: setAutoFreeze10,
 	immer11: setAutoFreeze11,
+	immer11AM: setAutoFreeze11AM,
 	immer10Perf: setAutoFreeze10Perf,
-	mutative: noop,
+	immer10PerfAM: setAutoFreeze10PerfAM,
+	mutative: setAutoFreezeMutative,
 	mutativeCompat: setAutoFreezeMutativeCompat,
 	structura: setAutoFreezeStructura,
 	limu: setAutoFreezeLimu
@@ -238,7 +314,9 @@ const setStrictIteration = {
 	immer9: noop,
 	immer10: noop,
 	immer11: noop,
+	immer11AM: noop,
 	immer10Perf: noop, // setUseStrictIteration10Perf,
+	immer10PerfAM: noop,
 	mutative: noop,
 	mutativeCompat: noop,
 	structura: noop,
@@ -253,8 +331,10 @@ const setEnableArrayMethods = {
 	immer8: noop,
 	immer9: noop,
 	immer10: noop,
-	immer11: enableArrayMethods11,
-	immer10Perf: enableArrayMethods10Perf,
+	immer11: noop,
+	immer11AM: enableArrayMethods11AM,
+	immer10Perf: noop,
+	immer10PerfAM: enableArrayMethods10PerfAM,
 	mutative: noop,
 	mutativeCompat: noop,
 	structura: noop,
@@ -357,9 +437,18 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-							}
+						  }
 						: item
 				)
+			}
+		}
+		case "test/toggleIndex": {
+			const newArray = [...state.largeArray]
+			const item = newArray[action.payload]
+			newArray[action.payload] = {...item, done: !item.done}
+			return {
+				...state,
+				largeArray: newArray
 			}
 		}
 		case "test/updateLargeObject1": {
@@ -410,7 +499,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: action.payload.value,
 								nested: {...item.nested, data: action.payload.nestedData}
-							}
+						  }
 						: item
 				)
 			}
@@ -426,7 +515,7 @@ const vanillaReducer = (state = createInitialState(), action) => {
 								...item,
 								value: update.value,
 								nested: {...item.nested, data: update.nestedData}
-							}
+						  }
 						: item
 				})
 			}
@@ -501,6 +590,11 @@ const createImmerReducer = produce => {
 					)
 					item.value = action.payload.value
 					item.nested.data = action.payload.nestedData
+					break
+				}
+				case "test/toggleIndex": {
+					const item = draft.largeArray[action.payload]
+					item.done = !item.done
 					break
 				}
 				case "test/updateLargeObject1": {
@@ -609,37 +703,53 @@ const reducers = {
 
 const freeze = [false, true]
 
-function createBenchmarks() {
-	// All single-operation benchmarks (fresh state each time)
-	for (const action in actions) {
-		summary(function () {
-			bench(`$action: $version (freeze: $freeze)`, function* (args) {
-				const version = args.get("version")
-				const freeze = args.get("freeze")
-				const action = args.get("action")
+function setupVersion(version, freeze) {
+	setAutoFreezes[version](freeze)
+	setStrictIteration[version](false)
+	setEnableArrayMethods[version]()
+}
 
-				const initialState = createInitialState()
-
-				function benchMethod() {
-					setAutoFreezes[version](freeze)
-					setStrictIteration[version](false)
-					setEnableArrayMethods[version]()
-					for (let i = 0; i < MAX; i++) {
-						reducers[version](initialState, actions[action](i))
-					}
-					setAutoFreezes[version](false)
-				}
-
-				yield benchMethod
-			}).args({
-				version: Object.keys(reducers),
-				freeze,
-				action: [action]
-			})
+// Each scenario runs once per (version, freeze) pair. Library config and the
+// base state are set up before `yield`, so the timed function only runs
+// reducers. Freeze-on runs start from a deep-frozen base.
+function defineScenario(name, arraySize, runSteps) {
+	if (!includeScenario(name)) return
+	summary(function() {
+		bench(`${name}: $version (freeze: $freeze)`, function*(args) {
+			const version = args.get("version")
+			const freeze = args.get("freeze")
+			const reducer = reducers[version]
+			const base = getInitialState(arraySize, freeze)
+			setupVersion(version, freeze)
+			yield () => runSteps(reducer, base)
+			setAutoFreezes[version](false)
+		}).args({
+			version: Object.keys(reducers),
+			freeze
 		})
+	})
+}
+
+function runChain(reducer, state, count, makeAction) {
+	for (let i = 0; i < count; i++) {
+		state = reducer(state, makeAction(i))
+	}
+	return state
+}
+
+function createBenchmarks() {
+	const size = BENCHMARK_CONFIG.arraySize
+	const largeSize = BENCHMARK_CONFIG.largeArraySize
+	const chainLength = BENCHMARK_CONFIG.reuseStateIterations
+
+	// Single operations on the 100-item state
+	for (const action in actions) {
+		defineScenario(action, size, (reducer, base) =>
+			reducer(base, actions[action](0))
+		)
 	}
 
-	// State reuse benchmarks (tests performance on frozen/evolved state)
+	// Chained operations: each result feeds the next reducer call
 	const reuseActions = [
 		"update",
 		"update-high",
@@ -649,100 +759,62 @@ function createBenchmarks() {
 		"update-largeObject2"
 	]
 	for (const action of reuseActions) {
-		summary(function () {
-			bench(`$action-reuse: $version (freeze: $freeze)`, function* (args) {
-				const version = args.get("version")
-				const freeze = args.get("freeze")
-				const action = args.get("action")
-
-				function benchMethod() {
-					setAutoFreezes[version](freeze)
-					setStrictIteration[version](false)
-					setEnableArrayMethods[version]()
-
-					let currentState = createInitialState()
-
-					// Perform multiple operations on the same evolving state
-					for (let i = 0; i < BENCHMARK_CONFIG.reuseStateIterations; i++) {
-						currentState = reducers[version](currentState, actions[action](i))
-					}
-					setAutoFreezes[version](false)
-				}
-
-				yield benchMethod
-			}).args({
-				version: Object.keys(reducers),
-				freeze,
-				action: [action]
-			})
-		})
+		defineScenario(`${action}-reuse`, size, (reducer, base) =>
+			runChain(reducer, base, chainLength, actions[action])
+		)
 	}
 
-	// Mixed operations sequence benchmark
-	summary(function () {
-		bench(`mixed-sequence: $version (freeze: $freeze)`, function* (args) {
-			const version = args.get("version")
-			const freeze = args.get("freeze")
-
-			function benchMethod() {
-				setAutoFreezes[version](freeze)
-				setStrictIteration[version](false)
-				setEnableArrayMethods[version]()
-
-				let state = createInitialState()
-
-				// Perform a sequence of different operations (typical workflow)
-				state = reducers[version](state, actions.add(1))
-				state = reducers[version](state, actions.update(getValidId()))
-				state = reducers[version](state, actions["update-high"](2))
-				state = reducers[version](state, actions["update-multiple"](3))
-				state = reducers[version](state, actions.remove(getValidIndex()))
-
-				setAutoFreezes[version](false)
-			}
-
-			yield benchMethod
-		}).args({
-			version: Object.keys(reducers),
-			freeze
-		})
+	defineScenario("mixed-sequence", size, (reducer, base) => {
+		let state = base
+		state = reducer(state, actions.add(1))
+		state = reducer(state, actions.update(getValidId()))
+		state = reducer(state, actions["update-high"](2))
+		state = reducer(state, actions["update-multiple"](3))
+		state = reducer(state, actions.remove(getValidIndex()))
+		return state
 	})
 
-	// RTKQ-style benchmark - executes multiple reducer calls in sequence
-	summary(function () {
-		bench(`rtkq-sequence: $version (freeze: $freeze)`, function* (args) {
-			const version = args.get("version")
-			const freeze = args.get("freeze")
-
-			function benchMethod() {
-				setAutoFreezes[version](freeze)
-				setStrictIteration[version](false)
-				setEnableArrayMethods[version]()
-
-				let state = createInitialState()
-				// Use smaller array size for RTKQ benchmark due to exponential scaling
-				// 100 items = ~15ms, 200 items = ~32ms, so 10000 would be impractical
-				const arraySize = 100
-
-				// Phase 1: Execute all pending actions
-				for (let i = 0; i < arraySize; i++) {
-					state = reducers[version](state, rtkqPending(i))
-				}
-
-				// Phase 2: Execute all resolved actions
-				for (let i = 0; i < arraySize; i++) {
-					state = reducers[version](state, rtkqResolved(i))
-				}
-
-				setAutoFreezes[version](false)
-			}
-
-			yield benchMethod
-		}).args({
-			version: Object.keys(reducers),
-			freeze
-		})
+	// RTKQ-style: 100 pending then 100 resolved actions on an evolving state
+	defineScenario("rtkq-sequence", size, (reducer, base) => {
+		let state = base
+		for (let i = 0; i < 100; i++) {
+			state = reducer(state, rtkqPending(i))
+		}
+		for (let i = 0; i < 100; i++) {
+			state = reducer(state, rtkqResolved(i))
+		}
+		return state
 	})
+
+	// Large array (10k items), single operation
+	const middle = largeSize / 2
+	defineScenario("10k-toggle", largeSize, (reducer, base) =>
+		reducer(base, toggleIndex(middle))
+	)
+	defineScenario("10k-update", largeSize, (reducer, base) =>
+		reducer(base, update(middle))
+	)
+	defineScenario("10k-add", largeSize, (reducer, base) =>
+		reducer(base, add(largeSize))
+	)
+	defineScenario("10k-remove", largeSize, (reducer, base) =>
+		reducer(base, remove(middle))
+	)
+
+	// Large array, chained: 10 operations, each on the previous result
+	const spreadIndex = i => (i * 997 + 500) % largeSize
+	defineScenario("10k-chain10-toggle", largeSize, (reducer, base) =>
+		runChain(reducer, base, chainLength, i => toggleIndex(spreadIndex(i)))
+	)
+	defineScenario("10k-chain10-update", largeSize, (reducer, base) =>
+		runChain(reducer, base, chainLength, i => update(spreadIndex(i)))
+	)
+	defineScenario("10k-chain10-add", largeSize, (reducer, base) =>
+		runChain(reducer, base, chainLength, i => add(largeSize + i))
+	)
+	defineScenario("10k-chain10-remove", largeSize, (reducer, base) =>
+		runChain(reducer, base, chainLength, () => remove(middle))
+	)
 }
 
 // Summary table functionality
@@ -876,9 +948,11 @@ function formatMultiplier(relative) {
 function shortenVersionName(versionName) {
 	// Special case common long version names to save space
 	const shortNames = {
-		immer10Perf: "i10Perf",
+		immer10Perf: "iLocal",
+		immer10PerfAM: "iLocalAM",
 		immer10: "i10",
 		immer11: "i11",
+		immer11AM: "i11AM",
 		immer5: "i5",
 		immer6: "i6",
 		immer7: "i7",
@@ -1060,11 +1134,8 @@ function printSummaryTable(
 	console.log("- 1.00x indicates the fastest version for that scenario")
 }
 
-// Performance improvement analysis between immer10Perf and immer10 (freeze: true)
-function calculateImmer10PerfImprovement(matrix, scenarios) {
-	const baselineKey = "immer10|f+"
-	const improvedKey = "immer10Perf|f+"
-
+// Percentage change between two "version|freeze" keys across shared scenarios
+function calculateImprovement(matrix, scenarios, baselineKey, improvedKey) {
 	const improvements = []
 
 	for (const scenario of scenarios) {
@@ -1151,84 +1222,60 @@ function calculateOverallVersionScores(relativeData, scenarios, versions) {
 	return versionScores
 }
 
-function printImmer10PerfComparison(improvementData) {
+function describeVersionKey(key) {
+	const [versionName, freezeIndicator] = key.split("|")
+	return `${shortenVersionName(versionName)} (${freezeIndicator})`
+}
+
+function printComparison(improvementData, baselineKey, improvedKey) {
+	const baselineLabel = describeVersionKey(baselineKey)
+	const improvedLabel = describeVersionKey(improvedKey)
 	console.log("\n")
 	console.log("=".repeat(80))
-	console.log("IMMER10PERF vs IMMER10 PERFORMANCE COMPARISON (freeze: true)")
+	console.log(`COMPARISON: ${improvedLabel} vs ${baselineLabel}`)
 	console.log("=".repeat(80))
 
 	if (!improvementData) {
-		console.log(
-			"No comparable data found between immer10Perf and immer10 (freeze: true)"
-		)
+		console.log("No scenarios have data for both versions.")
 		return
 	}
 
 	const {stats, improvements} = improvementData
+	const formatPercent = value => `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`
 
-	console.log(`\nSummary Statistics (${stats.count} scenarios):`)
 	console.log(
-		`  Average Improvement: ${stats.avg >= 0 ? "+" : ""}${stats.avg.toFixed(
-			1
-		)}%`
+		`\nPositive = ${improvedLabel} is faster (${stats.count} scenarios)`
 	)
-	console.log(
-		`  Best Improvement:    ${stats.max >= 0 ? "+" : ""}${stats.max.toFixed(
-			1
-		)}%`
-	)
-	console.log(
-		`  Worst Improvement:   ${stats.min >= 0 ? "+" : ""}${stats.min.toFixed(
-			1
-		)}%`
-	)
+	console.log(`  Average: ${formatPercent(stats.avg)}`)
+	console.log(`  Best:    ${formatPercent(stats.max)}`)
+	console.log(`  Worst:   ${formatPercent(stats.min)}`)
 
-	// Show per-scenario breakdown
-	console.log("\nPer-Scenario Breakdown:")
 	console.log(
-		"┌─────────────────────┬──────────────┬──────────────┬─────────────┐"
+		"\n┌─────────────────────┬──────────────┬──────────────┬─────────────┐"
 	)
 	console.log(
-		"│ Scenario            │ immer10      │ immer10Perf  │ Improvement │"
+		`│ Scenario            │ ${baselineLabel
+			.padEnd(12)
+			.substring(0, 12)} │ ${improvedLabel
+			.padEnd(12)
+			.substring(0, 12)} │ Change      │`
 	)
 	console.log(
 		"├─────────────────────┼──────────────┼──────────────┼─────────────┤"
 	)
 
-	// Sort by improvement (best first)
-	const sortedImprovements = [...improvements].sort(
-		(a, b) => b.improvement - a.improvement
-	)
-
-	for (const item of sortedImprovements) {
+	// Keep scenario order so related scenarios stay together
+	for (const item of improvements) {
 		const scenario = item.scenario.padEnd(19).substring(0, 19)
 		const baseline = formatTime(item.baselineTime).padStart(12)
 		const improved = formatTime(item.improvedTime).padStart(12)
-		const improvement = `${
-			item.improvement >= 0 ? "+" : ""
-		}${item.improvement.toFixed(1)}%`.padStart(11)
-
+		const improvement = formatPercent(item.improvement).padStart(11)
 		console.log(`│ ${scenario} │ ${baseline} │ ${improved} │ ${improvement} │`)
 	}
 
 	console.log(
 		"└─────────────────────┴──────────────┴──────────────┴─────────────┘"
 	)
-
-	// Interpretation
-	if (stats.avg > 0) {
-		console.log(
-			`\n✓ immer10Perf shows an average ${stats.avg.toFixed(
-				1
-			)}% performance improvement over immer10`
-		)
-	} else {
-		console.log(
-			`\n⚠ immer10Perf shows an average ${Math.abs(stats.avg).toFixed(
-				1
-			)}% performance regression vs immer10`
-		)
-	}
 }
 
 function printOverallVersionRankings(versionScores) {
@@ -1282,9 +1329,22 @@ function printBenchmarkSummaryTable(benchmarks) {
 		// Print main summary table
 		printSummaryTable(matrix, scenarios, versions, relativeData, rankings)
 
-		// Print immer10Perf vs immer10 comparison
-		const improvementData = calculateImmer10PerfImprovement(matrix, scenarios)
-		printImmer10PerfComparison(improvementData)
+		// Each pair is [baseline, compared]. Pairs with missing versions are skipped.
+		const comparisons = [
+			["immer11|f+", "immer10Perf|f+"],
+			["immer10Perf|f+", "immer10PerfAM|f+"],
+			["immer10Perf|f-", "immer10Perf|f+"],
+			["immer10PerfAM|f+", "mutative|f+"]
+		]
+		for (const [baselineKey, improvedKey] of comparisons) {
+			if (!versions.includes(baselineKey) || !versions.includes(improvedKey))
+				continue
+			printComparison(
+				calculateImprovement(matrix, scenarios, baselineKey, improvedKey),
+				baselineKey,
+				improvedKey
+			)
+		}
 
 		// Print overall version rankings
 		const versionScores = calculateOverallVersionScores(
@@ -1302,8 +1362,23 @@ async function main() {
 	createBenchmarks()
 	const results = await run()
 
-	// Generate and print summary table
 	printBenchmarkSummaryTable(results.benchmarks)
+
+	if (process.env.BENCH_JSON) {
+		const data = extractBenchmarkData(results.benchmarks).map(item => ({
+			scenario: item.scenario,
+			version: item.version,
+			freeze: item.freeze,
+			avg: item.stats.avg,
+			p50: item.stats.p50,
+			p99: item.stats.p99,
+			min: item.stats.min,
+			max: item.stats.max,
+			samples: item.stats.samples.length
+		}))
+		writeFileSync(process.env.BENCH_JSON, JSON.stringify(data, null, "\t"))
+		console.log(`\nWrote ${data.length} results to ${process.env.BENCH_JSON}`)
+	}
 
 	process.exit(0)
 }
